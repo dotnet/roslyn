@@ -17,24 +17,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private abstract class UnitTestingAsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class UnitTestingAsyncWorkItemQueue<TKey>(UnitTestingSolutionCrawlerProgressReporter progressReporter) : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
-                private readonly SemaphoreSlim _semaphore;
+                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
                 private bool _disposed;
 
-                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter;
+                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
-
-                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                {
-                    _semaphore = new SemaphoreSlim(initialCount: 0);
-
-                    _progressReporter = progressReporter;
-                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 

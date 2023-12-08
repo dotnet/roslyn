@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertNamespace = "Convert Namespace";
         public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
+        public const string ConvertPrimaryToRegularConstructor = nameof(ConvertPrimaryToRegularConstructor);
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertToProgramMain = "Convert To Program.Main";
         public const string ConvertToRawString = nameof(ConvertToRawString);
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);
         public const string ImplementInterfaceImplicitly = nameof(ImplementInterfaceImplicitly);
         public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);
+        public const string InitializeMemberFromPrimaryConstructorParameter = nameof(InitializeMemberFromPrimaryConstructorParameter);
         public const string InlineMethod = "Inline Method Code Action Provider";
         public const string InlineTemporary = "Inline Temporary Code Action Provider";
         public const string IntroduceLocalForExpression = nameof(IntroduceLocalForExpression);

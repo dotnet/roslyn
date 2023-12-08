@@ -674,5 +674,60 @@ End Class"
                 reportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, location, containingSymbol.Name))
             End Sub
         End Class
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68654")>
+        Public Async Function TestAnalyzerLocalDiagnosticsWhenReportedOnEnumFieldSymbol() As Task
+            Dim source = "
+Public Class Outer
+    Public Enum E1
+        A1 = 0
+    End Enum
+End Class
+
+Public Enum E2
+    A2 = 0
+End Enum"
+
+            Dim compilation = CreateCompilation(source)
+            compilation.VerifyDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim analyzer = New EnumTypeFieldSymbolAnalyzer()
+            Dim compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer), AnalyzerOptions.Empty)
+            Dim result = Await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None)
+
+            Dim localSemanticDiagnostics = result.SemanticDiagnostics(tree)(analyzer)
+            localSemanticDiagnostics.Verify(
+                Diagnostic("ID0001", "A1 = 0").WithLocation(4, 9),
+                Diagnostic("ID0001", "A2 = 0").WithLocation(9, 5))
+
+            Assert.Empty(result.CompilationDiagnostics)
+        End Function
+
+        <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+        Private Class EnumTypeFieldSymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly Descriptor As New DiagnosticDescriptor("ID0001", "Title", "Message", "Category", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(Sub(symbolContext As SymbolAnalysisContext)
+                                                 Dim namedType = DirectCast(symbolContext.Symbol, INamedTypeSymbol)
+                                                 For Each field In namedType.GetMembers().OfType(Of IFieldSymbol)
+                                                     If Not field.IsImplicitlyDeclared Then
+                                                         Dim diag = CodeAnalysis.Diagnostic.Create(Descriptor, field.DeclaringSyntaxReferences(0).GetLocation())
+                                                         symbolContext.ReportDiagnostic(diag)
+                                                     End If
+                                                 Next
+                                             End Sub,
+                    SymbolKind.NamedType)
+            End Sub
+        End Class
     End Class
 End Namespace

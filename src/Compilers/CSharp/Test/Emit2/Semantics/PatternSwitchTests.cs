@@ -3530,7 +3530,7 @@ ref int GetRef() => throw null;";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (2,1): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.<<Main>$>g__GetRef|0_0()' because it returns by reference
+                // (2,1): error CS8178: A reference returned by a call to 'Program.<<Main>$>g__GetRef|0_0()' cannot be preserved across 'await' or 'yield' boundary.
                 // GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
             );

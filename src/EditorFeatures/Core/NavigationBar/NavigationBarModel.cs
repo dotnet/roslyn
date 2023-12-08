@@ -8,16 +8,10 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
-    internal sealed class NavigationBarModel : IEquatable<NavigationBarModel>
+    internal sealed class NavigationBarModel(INavigationBarItemService itemService, ImmutableArray<NavigationBarItem> types) : IEquatable<NavigationBarModel>
     {
-        public INavigationBarItemService ItemService { get; }
-        public ImmutableArray<NavigationBarItem> Types { get; }
-
-        public NavigationBarModel(INavigationBarItemService itemService, ImmutableArray<NavigationBarItem> types)
-        {
-            ItemService = itemService;
-            Types = types;
-        }
+        public INavigationBarItemService ItemService { get; } = itemService;
+        public ImmutableArray<NavigationBarItem> Types { get; } = types;
 
         public override bool Equals(object? obj)
             => Equals(obj as NavigationBarModel);

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Linq;
@@ -226,6 +227,36 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Maps a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <typeparam name="TArg">Type of the extra argument</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <param name="arg">The extra input used by <paramref name="predicate"/> and <paramref name="selector"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, Func<TItem, TArg, TResult> selector, TArg arg)
+        {
+            if (array.Length == 0)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    builder.Add(selector(item, arg));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
         /// Maps and flattens a subset of immutable array to another immutable array.
         /// </summary>
         /// <typeparam name="TItem">Type of the source array items</typeparam>
@@ -288,6 +319,21 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
+
+            foreach (var item in array)
+            {
+                builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
         {
             if (source.Length == 0)
@@ -300,9 +346,9 @@ namespace Microsoft.CodeAnalysis
                 return selector(source[0], arg, cancellationToken);
             }
 
-            return CreateTask();
+            return CreateTaskAsync();
 
-            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            async ValueTask<ImmutableArray<TResult>> CreateTaskAsync()
             {
                 var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -832,68 +878,117 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+        internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
             where K : notnull
             where T : notnull
         {
-            if (items.Length == 1)
+            if (accumulator.TryGetValue(key, out var existingValueOrArray))
             {
-                T value = items[0];
-                return new Dictionary<K, ImmutableArray<T>>(1, comparer)
+                if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
                 {
-                    {  keySelector(value), ImmutableArray.Create(value) },
-                };
-            }
-
-            if (items.Length == 0)
-            {
-                return new Dictionary<K, ImmutableArray<T>>(comparer);
-            }
-
-            // bucketize
-            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
-            //
-            // We store a mapping from keys to either a single item (very common in practice as this is used from
-            // callers that maps names to symbols with that name, and most names are unique), or an array builder of items.
-
-            var accumulator = new Dictionary<K, object>(items.Length, comparer);
-            foreach (var item in items)
-            {
-                var key = keySelector(item);
-                if (accumulator.TryGetValue(key, out var existingValueOrArray))
-                {
-                    if (existingValueOrArray is ArrayBuilder<T> arrayBuilder)
-                    {
-                        // Already a builder in the accumulator, just add to that.
-                        arrayBuilder.Add(item);
-                    }
-                    else
-                    {
-                        // Just a single value in the accumulator so far.  Convert to using a builder.
-                        arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
-                        arrayBuilder.Add((T)existingValueOrArray);
-                        arrayBuilder.Add(item);
-                        accumulator[key] = arrayBuilder;
-                    }
+                    // Already a builder in the accumulator, just add to that.
                 }
                 else
                 {
-                    // Nothing in the dictionary so far.  Add the item directly.
-                    accumulator.Add(key, item);
+                    // Just a single value in the accumulator so far.  Convert to using a builder.
+                    arrayBuilder = ArrayBuilder<T>.GetInstance(capacity: 2);
+                    arrayBuilder.Add((T)existingValueOrArray);
+                    accumulator[key] = arrayBuilder;
+                }
+
+                arrayBuilder.Add(item);
+            }
+            else
+            {
+                // Nothing in the dictionary so far.  Add the item directly.
+                accumulator.Add(key, item);
+            }
+        }
+
+        internal static void CreateNameToMembersMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol, TNamespaceSymbol>
+            (Dictionary<TKey, object> dictionary, Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> result)
+            where TKey : notnull
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+            where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
+        {
+            foreach (var (name, value) in dictionary)
+                result.Add(name, createMembers(value));
+
+            return;
+
+            static ImmutableArray<TNamespaceOrTypeSymbol> createMembers(object value)
+            {
+                if (value is ArrayBuilder<TNamespaceOrTypeSymbol> builder)
+                {
+                    Debug.Assert(builder.Count > 1);
+                    foreach (var item in builder)
+                    {
+                        if (item is TNamespaceSymbol)
+                            return builder.ToImmutableAndFree();
+                    }
+
+                    return ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(builder.ToDowncastedImmutableAndFree<TNamedTypeSymbol>());
+                }
+                else
+                {
+                    TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
+                    return symbol is TNamespaceSymbol
+                        ? ImmutableArray.Create(symbol)
+                        : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create((TNamedTypeSymbol)symbol));
                 }
             }
+        }
 
-            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
+        internal static Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>> GetTypesFromMemberMap<TKey, TNamespaceOrTypeSymbol, TNamedTypeSymbol>
+            (Dictionary<TKey, ImmutableArray<TNamespaceOrTypeSymbol>> map, IEqualityComparer<TKey> comparer)
+            where TKey : notnull
+            where TNamespaceOrTypeSymbol : class
+            where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
+        {
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
 
-            // freeze
-            foreach (var pair in accumulator)
+            foreach (var (name, members) in map)
             {
-                dictionary.Add(pair.Key, pair.Value is ArrayBuilder<T> arrayBuilder
-                    ? arrayBuilder.ToImmutableAndFree()
-                    : ImmutableArray.Create((T)pair.Value));
+                var namedTypes = getOrCreateNamedTypes(members);
+                if (namedTypes.Length > 0)
+                    dictionary.Add(name, namedTypes);
             }
 
             return dictionary;
+
+            static ImmutableArray<TNamedTypeSymbol> getOrCreateNamedTypes(ImmutableArray<TNamespaceOrTypeSymbol> members)
+            {
+                Debug.Assert(members.Length > 0);
+
+                // See if creator 'map' put a downcasted ImmutableArray<TNamedTypeSymbol> in it.  If so, we can just directly
+                // downcast to that and trivially reuse it.  If not, that means the array must have contained at least one
+                // TNamespaceSymbol and we'll need to filter that out.
+                var membersAsNamedTypes = members.As<TNamedTypeSymbol>();
+
+                if (!membersAsNamedTypes.IsDefault)
+                    return membersAsNamedTypes;
+
+                // Preallocate the right amount so we can avoid garbage reallocs.
+                var count = members.Count(static s => s is TNamedTypeSymbol);
+
+                // Must have less items than in the original array.  Otherwise, the .As<TNamedTypeSymbol>() cast would
+                // have succeeded.
+                Debug.Assert(count < members.Length);
+
+                if (count == 0)
+                    return ImmutableArray<TNamedTypeSymbol>.Empty;
+
+                var builder = ArrayBuilder<TNamedTypeSymbol>.GetInstance(count);
+                foreach (var member in members)
+                {
+                    if (member is TNamedTypeSymbol namedType)
+                        builder.Add(namedType);
+                }
+
+                Debug.Assert(builder.Count == count);
+                return builder.ToImmutableAndFree();
+            }
         }
 
         internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
@@ -929,8 +1024,10 @@ namespace Microsoft.CodeAnalysis
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
 
-        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T>? comparer = null)
         {
+            comparer ??= Comparer<T>.Default;
+
             for (var i = 1; i < array.Length; i++)
             {
                 if (comparer.Compare(array[i - 1], array[i]) > 0)
@@ -1000,6 +1097,44 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ~low;
+        }
+
+        public static bool IsSubsetOf<TElement>(this ImmutableArray<TElement> array, ImmutableArray<TElement> other)
+        {
+            if (other.Length == 0)
+            {
+                return array.Length == 0;
+            }
+
+            switch (array.Length)
+            {
+                case 0:
+                    return true;
+                case 1:
+                    return other.Contains(array[0]);
+                case 2:
+                    return other.Contains(array[0]) && other.Contains(array[1]);
+                case 3:
+                    return other.Contains(array[0]) && other.Contains(array[1]) && other.Contains(array[2]);
+            }
+
+            var set = PooledHashSet<TElement>.GetInstance();
+            foreach (var item in other)
+            {
+                set.Add(item);
+            }
+
+            foreach (var item in array)
+            {
+                if (!set.Contains(item))
+                {
+                    set.Free();
+                    return false;
+                }
+            }
+
+            set.Free();
+            return true;
         }
     }
 }

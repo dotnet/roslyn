@@ -11,51 +11,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// <summary>
     /// Content from a string literal or interpolated string that has been copied.
     /// </summary>
-    internal readonly struct StringCopyPasteContent
+    [method: JsonConstructor]
+    internal readonly struct StringCopyPasteContent(
+        StringCopyPasteContentKind kind,
+        string? textValue,
+        string? interpolationExpression,
+        string? interpolationAlignmentClause,
+        string? interpolationFormatClause)
     {
-        public StringCopyPasteContentKind Kind { get; }
+        public StringCopyPasteContentKind Kind { get; } = kind;
 
         /// <summary>
         /// The actual string value for <see cref="StringCopyPasteContentKind.Text"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.
         /// </summary>
-        public string? TextValue { get; }
+        public string? TextValue { get; } = textValue;
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.Expression"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        public string? InterpolationExpression { get; }
+        public string? InterpolationExpression { get; } = interpolationExpression;
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.AlignmentClause"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        public string? InterpolationAlignmentClause { get; }
+        public string? InterpolationAlignmentClause { get; } = interpolationAlignmentClause;
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.FormatClause"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        public string? InterpolationFormatClause { get; }
-
-        [JsonConstructor]
-        public StringCopyPasteContent(
-            StringCopyPasteContentKind kind,
-            string? textValue,
-            string? interpolationExpression,
-            string? interpolationAlignmentClause,
-            string? interpolationFormatClause)
-        {
-            Kind = kind;
-            TextValue = textValue;
-            InterpolationExpression = interpolationExpression;
-            InterpolationAlignmentClause = interpolationAlignmentClause;
-            InterpolationFormatClause = interpolationFormatClause;
-        }
+        public string? InterpolationFormatClause { get; } = interpolationFormatClause;
 
         [JsonIgnore]
         [MemberNotNullWhen(true, nameof(TextValue))]

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -98,49 +99,55 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var token = syntaxContext.TargetToken;
             var declaration = GetAsyncSupportingDeclaration(token);
 
-            var properties = ImmutableDictionary<string, string>.Empty
-                .Add(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString());
+            using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
+
+            builder.Add(new KeyValuePair<string, string>(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString()));
 
             var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
             if (makeContainerAsync)
-                properties = properties.Add(MakeContainerAsync, string.Empty);
+                builder.Add(new KeyValuePair<string, string>(MakeContainerAsync, string.Empty));
 
             if (isAwaitKeywordContext)
             {
-                properties = properties.Add(AddAwaitAtCurrentPosition, string.Empty);
+                builder.Add(new KeyValuePair<string, string>(AddAwaitAtCurrentPosition, string.Empty));
+                var properties = builder.ToImmutableAndClear();
+
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Asynchronously_waits_for_the_task_to_finish,
-                    isComplexTextEdit: makeContainerAsync));
+                    isComplexTextEdit: makeContainerAsync,
+                    appendConfigureAwait: false));
             }
             else
             {
                 Contract.ThrowIfTrue(dotAwaitContext == DotAwaitContext.None);
 
+                var properties = builder.ToImmutableAndClear();
+
                 // add the `await` option that will remove the dot and add `await` to the start of the expression.
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
-                    isComplexTextEdit: true));
+                    isComplexTextEdit: true,
+                    appendConfigureAwait: false));
 
                 if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
                 {
                     // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                    properties = properties.Add(AppendConfigureAwait, string.Empty);
+                    properties = properties.Add(new KeyValuePair<string, string>(AppendConfigureAwait, string.Empty));
                     context.AddItem(CreateCompletionItem(
                         properties, _awaitfDisplayText, _awaitfFilterText,
                         string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
-                        isComplexTextEdit: true));
+                        isComplexTextEdit: true,
+                        appendConfigureAwait: true));
                 }
             }
 
             return;
 
             static CompletionItem CreateCompletionItem(
-                ImmutableDictionary<string, string> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit)
+                ImmutableArray<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
             {
-                var appendConfigureAwait = completionProperties.ContainsKey(AppendConfigureAwait);
-
                 var description = appendConfigureAwait
                     ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
                     : RecommendedKeyword.CreateDisplayParts(displayText, tooltip);
@@ -168,12 +175,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxKinds = syntaxFacts.SyntaxKinds;
-            var properties = item.Properties;
 
-            if (properties.ContainsKey(MakeContainerAsync))
+            if (item.TryGetProperty(MakeContainerAsync, out var _))
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var tokenPosition = int.Parse(properties[AwaitCompletionTargetTokenPosition]);
+                var tokenPosition = int.Parse(item.GetProperty(AwaitCompletionTargetTokenPosition));
                 var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
                 if (declaration is null)
                 {
@@ -186,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
             }
 
-            if (properties.ContainsKey(AddAwaitAtCurrentPosition))
+            if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
             {
                 builder.Add(new TextChange(item.Span, _awaitKeyword));
             }
@@ -203,14 +209,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), _awaitKeyword + " "));
 
                 // remove any text after dot, including the dot token and optionally append .ConfigureAwait(false)
-                var replacementText = properties.ContainsKey(AppendConfigureAwait)
+                var replacementText = item.TryGetProperty(AppendConfigureAwait, out var _)
                     ? $".{nameof(Task.ConfigureAwait)}({_falseKeyword})"
                     : "";
 
                 builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
             var allChanges = builder.ToImmutable();
 

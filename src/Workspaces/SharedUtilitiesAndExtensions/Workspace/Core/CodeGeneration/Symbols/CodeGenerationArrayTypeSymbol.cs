@@ -7,18 +7,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationArrayTypeSymbol : CodeGenerationTypeSymbol, IArrayTypeSymbol
+    internal class CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation nullableAnnotation) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, nullableAnnotation), IArrayTypeSymbol
     {
-        public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation nullableAnnotation)
-            : base(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, nullableAnnotation)
-        {
-            this.ElementType = elementType;
-            this.Rank = rank;
-        }
+        public ITypeSymbol ElementType { get; } = elementType;
 
-        public ITypeSymbol ElementType { get; }
-
-        public int Rank { get; }
+        public int Rank { get; } = rank;
 
         public bool IsSZArray
         {

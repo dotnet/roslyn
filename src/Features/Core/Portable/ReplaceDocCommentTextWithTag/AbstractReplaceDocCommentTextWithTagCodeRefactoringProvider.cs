@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             if (IsInXMLAttribute(token))
                 return;
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var singleWordSpan = ExpandSpan(sourceText, span, fullyQualifiedName: false);
             var singleWordText = sourceText.ToString(singleWordSpan);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         private static async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.Replace(span, replacement);
 
             return document.WithText(newText);

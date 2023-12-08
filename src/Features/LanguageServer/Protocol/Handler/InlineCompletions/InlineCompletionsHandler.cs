@@ -75,7 +75,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
         }
 
         // Then attempt to get the word at the requested position.
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFactsService = document.Project.GetRequiredLanguageService<ISyntaxFactsService>();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var position = sourceText.Lines.GetPosition(linePosition);
@@ -107,15 +107,15 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
 
         return new VSInternalInlineCompletionList
         {
-            Items = new VSInternalInlineCompletionItem[]
-            {
+            Items =
+            [
                 new VSInternalInlineCompletionItem
                 {
                     Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
                     Text = formattedLspSnippet,
                     TextFormat = InsertTextFormat.Snippet,
                 }
-            }
+            ]
         };
     }
 

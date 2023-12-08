@@ -19,23 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             SynthesizedPrimaryConstructor ctor,
             ImmutableArray<Symbol> positionalMembers,
-            int memberOffset,
-            BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.DeconstructMethodName, isReadOnly: IsReadOnly(containingType, positionalMembers), hasBody: true, memberOffset, diagnostics)
+            int memberOffset)
+            : base(containingType, WellKnownMemberNames.DeconstructMethodName, memberOffset,
+                   DeclarationModifiers.Public | (IsReadOnly(containingType, positionalMembers) ? DeclarationModifiers.ReadOnly : 0))
         {
             Debug.Assert(positionalMembers.All(p => p is PropertySymbol { GetMethod: not null } or FieldSymbol));
             _ctor = ctor;
             _positionalMembers = positionalMembers;
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-        {
-            const DeclarationModifiers result = DeclarationModifiers.Public;
-            Debug.Assert((result & ~allowedModifiers) == 0);
-            return result;
-        }
-
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -49,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 ScopedKind.None,
                                                 param.Name,
                                                 locations),
-                                        arg: Locations),
-                    IsVararg: false,
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                                        arg: Locations));
         }
 
         protected override int GetParameterCountFromSyntax() => _ctor.ParameterCount;

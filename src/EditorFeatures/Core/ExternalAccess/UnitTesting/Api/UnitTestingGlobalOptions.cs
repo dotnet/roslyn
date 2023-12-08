@@ -11,18 +11,13 @@ using Microsoft.CodeAnalysis.Remote;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     [Export(typeof(UnitTestingGlobalOptions)), Shared]
-    internal sealed class UnitTestingGlobalOptions
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class UnitTestingGlobalOptions(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingGlobalOptions(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool IsServiceHubProcessCoreClr
-            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClrFeatureFlag);
+            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr);
     }
 }

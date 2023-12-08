@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly GeneratedLabelSymbol _breakLabel;
         private BoundExpression _switchGoverningExpression;
-        private BindingDiagnosticBag _switchGoverningDiagnostics;
+        private ImmutableArray<Diagnostic> _switchGoverningDiagnostics;
+        private ImmutableArray<AssemblySymbol> _switchGoverningDependencies;
 
         private SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
@@ -46,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
-        protected BindingDiagnosticBag SwitchGoverningDiagnostics
+        protected ImmutableBindingDiagnostic<AssemblySymbol> SwitchGoverningDiagnostics
         {
             get
             {
                 EnsureSwitchGoverningExpressionAndDiagnosticsBound();
-                return _switchGoverningDiagnostics;
+                return new ImmutableBindingDiagnostic<AssemblySymbol>(_switchGoverningDiagnostics, _switchGoverningDependencies);
             }
         }
 
@@ -59,9 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_switchGoverningExpression == null)
             {
-                var switchGoverningDiagnostics = new BindingDiagnosticBag();
+                var switchGoverningDiagnostics = BindingDiagnosticBag.GetInstance();
                 var boundSwitchExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
-                _switchGoverningDiagnostics = switchGoverningDiagnostics;
+
+                var immutableSwitchGoverningDiagnostics = switchGoverningDiagnostics.ToReadOnlyAndFree();
+                ImmutableInterlocked.InterlockedInitialize(ref _switchGoverningDiagnostics, immutableSwitchGoverningDiagnostics.Diagnostics);
+                ImmutableInterlocked.InterlockedInitialize(ref _switchGoverningDependencies, immutableSwitchGoverningDiagnostics.Dependencies);
                 Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
             }
         }

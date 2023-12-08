@@ -288,14 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
 
             // Update <param> tags.
-            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.StructDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.ClassDeclaration))
+            if (updatedNode?.Kind()
+                    is SyntaxKind.MethodDeclaration
+                    or SyntaxKind.ConstructorDeclaration
+                    or SyntaxKind.IndexerDeclaration
+                    or SyntaxKind.DelegateDeclaration
+                    or SyntaxKind.RecordStructDeclaration
+                    or SyntaxKind.RecordDeclaration
+                    or SyntaxKind.StructDeclaration
+                    or SyntaxKind.ClassDeclaration)
             {
                 var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
@@ -910,13 +911,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
 
         protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
-            => typeSymbol.TryGetRecordPrimaryConstructor(out primaryConstructor);
+            => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }

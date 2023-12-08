@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         aliases.RemoveRange(usedAliases);
                         aliases.Remove(MetadataReferenceProperties.GlobalAlias);
 
-                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         foreach (var alias in aliases)
                         {

@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isPreProcessorExpressionContext,
             bool isPreProcessorKeywordContext,
             bool isPrimaryFunctionExpressionContext,
+            bool isRightAfterUsingOrImportDirective,
             bool isRightOfNameSeparator,
             bool isRightSideOfNumericType,
             bool isStatementContext,
@@ -132,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isPossibleTupleContext: isPossibleTupleContext,
                   isPreProcessorDirectiveContext: isPreProcessorDirectiveContext,
                   isPreProcessorExpressionContext: isPreProcessorExpressionContext,
+                  isRightAfterUsingOrImportDirective: isRightAfterUsingOrImportDirective,
                   isRightOfNameSeparator: isRightOfNameSeparator,
                   isRightSideOfNumericType: isRightSideOfNumericType,
                   isStatementContext: isStatementContext,
@@ -291,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPreProcessorExpressionContext: isPreProcessorExpressionContext,
                 isPreProcessorKeywordContext: isPreProcessorKeywordContext,
                 isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken),
+                isRightAfterUsingOrImportDirective: targetToken.Parent is UsingDirectiveSyntax usingDirective && usingDirective?.GetLastToken() == targetToken,
                 isRightOfNameSeparator: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isStatementContext: isStatementContext,
@@ -323,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 this.SyntaxTree.IsTypeDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                    token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 return true;
             }
@@ -368,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 if (SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                        token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
                 {
                     return true;
                 }

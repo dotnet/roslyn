@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
+        private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
+
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
@@ -299,6 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
+            Debug.Assert(!context.MetadataOnly);
+
             while (typesToProcess.Count > 0)
             {
                 var definition = typesToProcess.Pop();
@@ -513,12 +517,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
+        internal virtual int GetNextAnonymousDelegateIndex()
+        {
+            return 0;
+        }
+
+        internal virtual bool TryGetPreviousAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 
-            name = null;
-            index = -1;
+            typeValue = default;
+            return false;
+        }
+
+        internal virtual bool TryGetAnonymousDelegateValue(AnonymousTypeManager.AnonymousDelegateTemplateSymbol template, out SynthesizedDelegateValue delegateValue)
+        {
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+
+            delegateValue = default;
             return false;
         }
 
@@ -1181,82 +1197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _embeddedTypesManagerOpt?.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics) ?? fieldSymbol.GetCciAdapter();
         }
 
-        public static Cci.TypeMemberVisibility MemberVisibility(Symbol symbol)
-        {
-            //
-            // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            //
-            // Top-level:
-            //   private                       -> public
-            //   protected                     -> public (compiles with a warning)
-            //   public
-            //   internal                      -> public
-            //
-            // In a nested class:
-            //
-            //   private
-            //   protected
-            //   public
-            //   internal                      -> public
-            //
-            switch (symbol.DeclaredAccessibility)
-            {
-                case Accessibility.Public:
-                    return Cci.TypeMemberVisibility.Public;
-
-                case Accessibility.Private:
-                    if (symbol.ContainingType?.TypeKind == TypeKind.Submission)
-                    {
-                        // top-level private member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Private;
-                    }
-
-                case Accessibility.Internal:
-                    if (symbol.ContainingAssembly.IsInteractive)
-                    {
-                        // top-level or nested internal member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Assembly;
-                    }
-
-                case Accessibility.Protected:
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
-                    {
-                        // top-level protected member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Family;
-                    }
-
-                case Accessibility.ProtectedAndInternal:
-                    Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
-                    return Cci.TypeMemberVisibility.FamilyAndAssembly;
-
-                case Accessibility.ProtectedOrInternal:
-                    if (symbol.ContainingAssembly.IsInteractive)
-                    {
-                        // top-level or nested protected internal member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.FamilyOrAssembly;
-                    }
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
-            }
-        }
-
         internal sealed override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate(symbol, null, diagnostics, null, needDeclaration);
@@ -1539,9 +1479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-            return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter();
+            return new SynthesizedPrivateImplementationDetailsStaticConstructor(GetPrivateImplClass(syntaxOpt, diagnostics), GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter();
         }
 
         internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
@@ -1555,6 +1495,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        internal SynthesizedAttributeData SynthesizeRequiresLocationAttribute(ParameterSymbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeRequiresLocationAttribute();
         }
 
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
@@ -1763,6 +1714,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1796,6 +1753,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
         }
 
+        internal void EnsureRequiresLocationAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
+        }
+
         internal void EnsureIsUnmanagedAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
@@ -1823,56 +1785,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
 #nullable enable
-        /// <summary>
-        /// Creates the ThrowIfNull and Throw helpers if needed.
-        /// </summary>
-        /// <remarks>
-        /// The ThrowIfNull and Throw helpers are modeled off of the helpers on ArgumentNullException.
-        /// https://github.com/dotnet/runtime/blob/22663769611ba89cd92d14cfcb76e287f8af2335/src/libraries/System.Private.CoreLib/src/System/ArgumentNullException.cs#L56-L69
-        /// </remarks>
-        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
-        {
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName);
-            if (throwIfNullAdapter is null)
-            {
-                TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
-                TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
-                TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
-                var sourceModule = SourceModule;
-
-                // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
-                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType).GetCciAdapter());
-                var actuallyAddedThrowMethod = (SynthesizedThrowMethod)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol()!;
-                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, actuallyAddedThrowMethod, returnType, argumentType, paramNameType).GetCciAdapter());
-                throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName)!;
-            }
-
-            var internalSymbol = (SynthesizedThrowIfNullMethod)throwIfNullAdapter.GetInternalSymbol()!;
-            // the ThrowMethod referenced by the ThrowIfNullMethod must be the same instance as the ThrowMethod contained in the PrivateImplementationDetails
-            Debug.Assert((object?)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol() == internalSymbol.ThrowMethod);
-            return internalSymbol;
-        }
 
         /// <summary>
         /// Creates the ThrowSwitchExpressionException helper if needed.
         /// </summary>
         internal MethodSymbol EnsureThrowSwitchExpressionExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName,
+                                                      static (privateImplClass, factory) =>
+                                                      {
+                                                          TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+                                                          TypeSymbol unmatchedValueType = factory.SpecialType(SpecialType.System_Object);
+                                                          return new SynthesizedThrowSwitchExpressionExceptionMethod(privateImplClass, returnType, unmatchedValueType);
+                                                      },
+                                                      factory,
+                                                      diagnostics);
+        }
+
+        private MethodSymbol EnsurePrivateImplClassMethodExists<TArg>(SyntaxNode syntaxNode, string methodName, Func<SynthesizedPrivateImplementationDetailsType, TArg, MethodSymbol> createMethodSymbol, TArg arg, DiagnosticBag diagnostics)
+        {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName);
-            if (throwSwitchExpressionAdapter is not null)
+            var methodAdapter = privateImplClass.PrivateImplementationDetails.GetMethod(methodName);
+            if (methodAdapter is not null)
             {
-                return (MethodSymbol)throwSwitchExpressionAdapter.GetInternalSymbol()!;
+                Debug.Assert(methodAdapter.Name == methodName);
+                return (MethodSymbol)methodAdapter.GetInternalSymbol()!;
             }
 
-            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
-            TypeSymbol unmatchedValueType = factory.SpecialType(SpecialType.System_Object);
-            var sourceModule = SourceModule;
+            MethodSymbol methodSymbol = createMethodSymbol(privateImplClass, arg);
+            Debug.Assert(methodSymbol.Name == methodName);
 
             // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
-            privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowSwitchExpressionExceptionMethod(sourceModule, privateImplClass, returnType, unmatchedValueType).GetCciAdapter());
-            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)!.GetInternalSymbol()!;
+            privateImplClass.PrivateImplementationDetails.TryAddSynthesizedMethod(methodSymbol.GetCciAdapter());
+            return (MethodSymbol)privateImplClass.PrivateImplementationDetails.GetMethod(methodName)!.GetInternalSymbol()!;
+        }
+
+        internal new SynthesizedPrivateImplementationDetailsType GetPrivateImplClass(SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            if (_lazyPrivateImplementationDetailsClass is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyPrivateImplementationDetailsClass,
+                    new SynthesizedPrivateImplementationDetailsType(base.GetPrivateImplClass(syntaxNodeOpt, diagnostics), SourceModule.GlobalNamespace, Compilation.ObjectType),
+                    null);
+            }
+
+            return _lazyPrivateImplementationDetailsClass;
         }
 
         /// <summary>
@@ -1880,24 +1838,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         internal MethodSymbol EnsureThrowSwitchExpressionExceptionParameterlessExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName);
-            if (throwSwitchExpressionAdapter is not null)
-            {
-                return (MethodSymbol)throwSwitchExpressionAdapter.GetInternalSymbol()!;
-            }
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
+                                                      static (privateImplClass, factory) =>
+                                                      {
+                                                          TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
 
-            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
-            var sourceModule = SourceModule;
-
-            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
-            privateImplClass.TryAddSynthesizedMethod(new SynthesizedParameterlessThrowMethod(
-                sourceModule,
-                privateImplClass,
-                returnType,
-                PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
-                factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor)).GetCciAdapter());
-            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName)!.GetInternalSymbol()!;
+                                                          return new SynthesizedParameterlessThrowMethod(
+                                                              privateImplClass,
+                                                              returnType,
+                                                              PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
+                                                              factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor));
+                                                      },
+                                                      factory,
+                                                      diagnostics);
         }
 
         /// <summary>
@@ -1905,25 +1858,165 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         internal MethodSymbol EnsureThrowInvalidOperationExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            var throwAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName);
-            if (throwAdapter is not null)
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
+                                                      static (privateImplClass, factory) =>
+                                                      {
+                                                          TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+
+                                                          return new SynthesizedParameterlessThrowMethod(
+                                                              privateImplClass,
+                                                              returnType,
+                                                              PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
+                                                              factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
+                                                      },
+                                                      factory,
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayAsSpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
+                                                      static (privateImplClass, arg) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayAsSpanMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
+                                                              arg.spanType,
+                                                              arg.intType);
+                                                      },
+                                                      (spanType, intType),
+                                                      diagnostics);
+        }
+
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+            Debug.Assert(arrayLength > 0);
+
+            string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+
+            if (typeAdapter is null)
             {
-                return (MethodSymbol)throwAdapter.GetInternalSymbol()!;
+                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                Debug.Assert(attributeConstructor is { });
+
+                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }
 
-            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
-            var sourceModule = SourceModule;
-
-            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
-            privateImplClass.TryAddSynthesizedMethod(new SynthesizedParameterlessThrowMethod(
-                sourceModule,
-                privateImplClass,
-                returnType,
-                PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
-                factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor)).GetCciAdapter());
-            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName)!.GetInternalSymbol()!;
+            Debug.Assert(typeAdapter.Name == typeName);
+            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
         }
+
+        internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, bool hasKnownLength, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(syntaxNode is { });
+            Debug.Assert(diagnostics is { });
+
+            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(hasKnownLength, CurrentGenerationOrdinal);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+            NamedTypeSymbol typeSymbol;
+
+            if (typeAdapter is null)
+            {
+                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, hasKnownLength);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+            }
+
+            Debug.Assert(typeAdapter.Name == typeName);
+            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+
+            var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
+            if (info is { })
+            {
+                Symbol.ReportUseSiteDiagnostic(info, diagnostics, syntaxNode.Location);
+            }
+
+            return typeSymbol;
+        }
+
+        internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
+                                                      static (privateImplClass, arg) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayAsReadOnlySpanMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
+                                                              arg.spanType,
+                                                              arg.intType);
+                                                      },
+                                                      (spanType, intType),
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayElementRefExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
+                                                      static (privateImplClass, intType) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayElementRefMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
+                                                              intType);
+                                                      },
+                                                      intType,
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayElementRefReadOnlyExists(SyntaxNode syntaxNode, NamedTypeSymbol intType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
+
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
+                                                      static (privateImplClass, intType) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayElementRefReadOnlyMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
+                                                              intType);
+                                                      },
+                                                      intType,
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayFirstElementRefExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
+                                                      static (privateImplClass, _) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayFirstElementRefMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName);
+                                                      },
+                                                      (object?)null,
+                                                      diagnostics);
+        }
+
+        internal MethodSymbol EnsureInlineArrayFirstElementRefReadOnlyExists(SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return EnsurePrivateImplClassMethodExists(syntaxNode, PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
+                                                      static (privateImplClass, _) =>
+                                                      {
+                                                          return new SynthesizedInlineArrayFirstElementRefReadOnlyMethod(
+                                                              privateImplClass,
+                                                              PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName);
+                                                      },
+                                                      (object?)null,
+                                                      diagnostics);
+        }
+
 #nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
@@ -1946,7 +2039,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
-            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
+            var result = GetEmbeddedTypes(bindingDiagnostics);
+
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+            bindingDiagnostics.Free();
+            return result;
         }
 
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)

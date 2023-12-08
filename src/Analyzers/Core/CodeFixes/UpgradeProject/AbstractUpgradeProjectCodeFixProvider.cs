@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
 #if CODE_STYLE
 
-    internal class ProjectOptionsChangeAction : CodeAction
+    internal sealed class ProjectOptionsChangeAction : CodeAction
     {
         public override string Title { get; }
 
@@ -120,14 +120,16 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
 #else
 
-    internal class ProjectOptionsChangeAction : SolutionChangeAction
+    internal sealed class ProjectOptionsChangeAction : SolutionChangeAction
     {
-        private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
+
+        private ProjectOptionsChangeAction(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
         {
         }
 
-        public static ProjectOptionsChangeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public static ProjectOptionsChangeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
             => new(title, createChangedSolution);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)

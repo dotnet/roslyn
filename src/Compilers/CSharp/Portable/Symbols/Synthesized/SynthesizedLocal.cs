@@ -156,6 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _syntaxOpt;
         }
 
+        internal override bool HasSourceLocation
+            => _syntaxOpt != null;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }

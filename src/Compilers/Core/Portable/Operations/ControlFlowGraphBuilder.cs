@@ -2132,6 +2132,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+        public override IOperation? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new InlineArrayAccessOperation(instance, argument, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
         private static bool IsConditional(IBinaryOperation operation)
         {
             switch (operation.OperatorKind)
@@ -4493,9 +4504,25 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
+
+                    if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
+                    {
+                        if (info.CollectionIsInlineArrayValue)
+                        {
+                            // We cannot convert a value to a span, need to make a local copy and convert that.
+                            int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
+
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
+                        }
+
+                        collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
+                    }
+
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
-                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
@@ -5964,7 +5991,8 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();
@@ -6042,6 +6070,14 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
+                if (onlyContainsEmptyLeafNestedInitializers(memberInitializer))
+                {
+                    // However, when the leaf nested initializers are empty, we won't access the chain of initialized members
+                    // and we only evaluate the arguments/indexes they contain.
+                    addIndexes(memberInitializer);
+                    return;
+                }
+
                 EvalStackFrame frame = PushStackFrame();
                 bool pushSuccess = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember) : VisitRequired(memberInitializer.InitializedMember);
@@ -6082,6 +6118,13 @@ oneMoreTime:
                         VisitAndPushArray(arrayReference.Indices);
                         SpillEvalStack();
                         PushOperand(VisitRequired(arrayReference.ArrayReference));
+                        return true;
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var implicitIndexerReference = (IImplicitIndexerReferenceOperation)instance;
+                        PushOperand(VisitRequired(implicitIndexerReference.Argument));
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(implicitIndexerReference.Instance));
                         return true;
 
                     case OperationKind.DynamicIndexerAccess:
@@ -6135,6 +6178,14 @@ oneMoreTime:
                         instance = PopOperand();
                         ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
                         return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var indexerReference = (IImplicitIndexerReferenceOperation)originalTarget;
+                        instance = PopOperand();
+                        IOperation index = PopOperand();
+                        return new ImplicitIndexerReferenceOperation(instance, index, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
+                                                                      semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;
                         instance = PopOperand();
@@ -6151,6 +6202,84 @@ oneMoreTime:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
+                }
+            }
+
+            static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
+            {
+                // Guard on the cases understood by addIndexes below
+                if (memberInitializer.InitializedMember is IPropertyReferenceOperation
+                    or IImplicitIndexerReferenceOperation
+                    or IArrayElementReferenceOperation
+                    or IDynamicIndexerAccessOperation
+                    or IFieldReferenceOperation
+                    or IEventReferenceOperation
+                    || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _])
+                {
+                    // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
+                    return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
+                        && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                }
+
+                return false;
+            }
+
+            void addIndexes(IMemberInitializerOperation memberInitializer)
+            {
+                var lhs = memberInitializer.InitializedMember;
+                // If we have an element access of the form `[arguments] = { ... }`, we'll evaluate `arguments` only
+                if (lhs is IPropertyReferenceOperation propertyReference)
+                {
+                    foreach (var argument in propertyReference.Arguments)
+                    {
+                        if (argument is { ArgumentKind: ArgumentKind.ParamArray, Value: IArrayCreationOperation array })
+                        {
+                            Debug.Assert(array.Initializer is not null);
+
+                            foreach (var element in array.Initializer.ElementValues)
+                            {
+                                AddStatement(Visit(element));
+                            }
+                        }
+                        else
+                        {
+                            AddStatement(Visit(argument.Value));
+                        }
+                    }
+                }
+                else if (lhs is IImplicitIndexerReferenceOperation implicitIndexer)
+                {
+                    AddStatement(Visit(implicitIndexer.Argument));
+                }
+                else if (lhs is IArrayElementReferenceOperation arrayAccess)
+                {
+                    foreach (var index in arrayAccess.Indices)
+                    {
+                        AddStatement(Visit(index));
+                    }
+                }
+                else if (lhs is IDynamicIndexerAccessOperation dynamicIndexerAccess)
+                {
+                    foreach (var argument in dynamicIndexerAccess.Arguments)
+                    {
+                        AddStatement(Visit(argument));
+                    }
+                }
+                else if (lhs is NoneOperation { ChildOperations: var children } &&
+                    children.ToImmutableArray() is [IInstanceReferenceOperation, var index])
+                {
+                    // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
+                    AddStatement(Visit(index));
+                }
+                else if (lhs is not (FieldReferenceOperation or EventReferenceOperation))
+                {
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
+                }
+
+                // And any nested indexes
+                foreach (var initializer in memberInitializer.Initializer.Initializers)
+                {
+                    addIndexes((IMemberInitializerOperation)initializer);
                 }
             }
         }
@@ -6338,6 +6467,44 @@ oneMoreTime:
                 builder.ReverseContents();
                 return new ArrayInitializerOperation(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, IsImplicit(initializer));
             }
+        }
+
+        public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var elements = VisitArray(
+                operation.Elements,
+                unwrapper: static (IOperation element) =>
+                {
+                    return element is ISpreadOperation spread ?
+                        spread.Operand :
+                        element;
+                },
+                wrapper: (IOperation operation, int index, ImmutableArray<IOperation> elements) =>
+                {
+                    return elements[index] is ISpreadOperation spread ?
+                        new SpreadOperation(
+                            operation,
+                            elementType: spread.ElementType,
+                            elementConversion: ((SpreadOperation)spread).ElementConversionConvertible,
+                            semanticModel: null,
+                            spread.Syntax,
+                            IsImplicit(spread)) :
+                        operation;
+                });
+            PopStackFrame(frame);
+            return new CollectionExpressionOperation(
+                operation.ConstructMethod,
+                elements,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
+        }
+
+        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)

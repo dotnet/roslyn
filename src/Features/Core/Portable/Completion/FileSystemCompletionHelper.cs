@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal class FileSystemCompletionHelper
     {
-        private static readonly char[] s_windowsDirectorySeparator = { '\\' };
+        private static readonly char[] s_windowsDirectorySeparator = ['\\'];
 
         private readonly Glyph _folderGlyph;
         private readonly Glyph _fileGlyph;
@@ -256,12 +256,9 @@ namespace Microsoft.CodeAnalysis.Completion
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
         {
-            private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
-
-            public TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
-                => _fileSystemCompletionHelper = fileSystemCompletionHelper;
+            private readonly FileSystemCompletionHelper _fileSystemCompletionHelper = fileSystemCompletionHelper;
 
             internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
                 => _fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);

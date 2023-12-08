@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    originalFixAllContext.ProgressTracker,
+                    originalFixAllContext.Progress,
                     this.GetFixAllTitle(originalFixAllContext),
                     GetFixedDocumentsAsync);
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgressTracker progressTracker)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
                 or FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
                     // language that doesn't support that, then just grab the text.
                     var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                    var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return (document.Id, (node, text));
                 }, cancellationToken));

@@ -12,7 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
-        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeAnalysisProgress})"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, WorkspaceChangeKind}, ProjectId?, DocumentId?, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
+        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, Func{Solution, Solution, ValueTuple{WorkspaceChangeKind, ProjectId?, DocumentId?}}, Action{Solution, Solution}?, Action{Solution, Solution}?)"/>
         internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind changeKind,
@@ -194,9 +196,7 @@ namespace Microsoft.CodeAnalysis
         {
             var (updated, _) = SetCurrentSolution(
                 transformation,
-                (_, _) => changeKind,
-                projectId,
-                documentId,
+                (_, _) => (changeKind, projectId, documentId),
                 onBeforeUpdate,
                 onAfterUpdate);
             return updated;
@@ -210,34 +210,49 @@ namespace Microsoft.CodeAnalysis
         /// allowing that memory to be shared.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
-        /// <param name="changeKind">The kind of workspace change event to raise.</param>
-        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to
-        /// the workspace change event.</param>
-        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to
-        /// the workspace change event.</param>
+        /// <param name="changeKind">The kind of workspace change event to raise. The id of the project updated by
+        /// <paramref name="transformation"/> to be passed to the workspace change event.  And the id of the document
+        /// updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
         private protected (bool updated, Solution newSolution) SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            Func<Solution, Solution, WorkspaceChangeKind> changeKind,
-            ProjectId? projectId = null,
-            DocumentId? documentId = null,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
             Action<Solution, Solution>? onBeforeUpdate = null,
             Action<Solution, Solution>? onAfterUpdate = null)
         {
-            var (oldSolution, newSolution) = SetCurrentSolution(
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                transformation,
+                changeKind,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+
+            return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
+        }
+
+        internal async ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
+            bool useAsync,
+            Func<Solution, Solution> transformation,
+            Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
+            Action<Solution, Solution>? onBeforeUpdate,
+            Action<Solution, Solution>? onAfterUpdate,
+            CancellationToken cancellationToken)
+        {
+            var (oldSolution, newSolution) = await SetCurrentSolutionAsync(
+                useAsync,
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind),
                 transformation: static (oldSolution, data) =>
                 {
                     var newSolution = data.transformation(oldSolution);
 
-                    // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
-                    var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                    if (options.DisableSharedSyntaxTrees)
-                        return newSolution;
-
+                    // Attempt to unify the syntax trees in the new solution.
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
-                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, changeKind, projectId, documentId),
+                mayRaiseEvents: true,
                 onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
@@ -249,9 +264,10 @@ namespace Microsoft.CodeAnalysis
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    var kind = data.changeKind(oldSolution, newSolution);
-                    data.@this.RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, data.projectId, data.documentId);
-                });
+                    var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
+                    data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
+                },
+                cancellationToken).ConfigureAwait(false);
 
             return (oldSolution != newSolution, newSolution);
 
@@ -266,6 +282,10 @@ namespace Microsoft.CodeAnalysis
                 // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
                 foreach (var addedProject in changes.GetAddedProjects())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!addedProject.SupportsCompilation)
+                        continue;
+
                     foreach (var addedDocument in addedProject.Documents)
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
                 }
@@ -274,6 +294,10 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var projectChanges in changes.GetProjectChanges())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!projectChanges.NewProject.SupportsCompilation)
+                        continue;
+
                     // Now do the same for all added documents in a project.
                     foreach (var addedDocument in projectChanges.GetAddedDocuments())
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
@@ -322,61 +346,104 @@ namespace Microsoft.CodeAnalysis
         /// the new value and performs a requested callback immediately before and after that update.  The callbacks
         /// will be invoked atomically while while <see cref="_serializationLock"/> is being held.
         /// </summary>
-        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="transformation">Solution transformation. This may be run multiple times.  As such it should be
+        /// a purely functional transformation on the solution instance passed to it.  It should not make stateful
+        /// changes elsewhere.</param>
+        /// <param name="mayRaiseEvents"><see langword="true"/> if this operation may raise observable events;
+        /// otherwise, <see langword="false"/>. If <see langword="true"/>, the operation will call
+        /// <see cref="EnsureEventListeners"/> to ensure listeners are registered prior to callbacks that may raise
+        /// events.</param>
         /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
         /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
         /// it will be replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
         /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-        /// accordingly.</param>
+        /// accordingly.  This will only be run once.</param>
         private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
             TData data,
             Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents = true,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
             Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            var valueTask = SetCurrentSolutionAsync(
+                useAsync: false,
+                data,
+                transformation,
+                mayRaiseEvents,
+                onBeforeUpdate,
+                onAfterUpdate,
+                CancellationToken.None);
+
+            return valueTask.VerifyCompleted("Task must have completed synchronously as we passed 'useAsync: false' to SetCurrentSolutionAsync");
+#pragma warning restore CA2012 // Use ValueTasks correctly
+        }
+
+        /// <inheritdoc cref="SetCurrentSolution{TData}(TData, Func{Solution, TData, Solution}, bool, Action{Solution, Solution, TData}?, Action{Solution, Solution, TData}?)"/>
+        private protected async ValueTask<(Solution oldSolution, Solution newSolution)> SetCurrentSolutionAsync<TData>(
+            bool useAsync,
+            TData data,
+            Func<Solution, TData, Solution> transformation,
+            bool mayRaiseEvents,
+            Action<Solution, Solution, TData>? onBeforeUpdate,
+            Action<Solution, Solution, TData>? onAfterUpdate,
+            CancellationToken cancellationToken)
+        {
             Contract.ThrowIfNull(transformation);
 
-            var oldSolution = Volatile.Read(ref _latestSolution);
-
-            // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
-            // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-            EnsureEventListeners();
-
-            while (true)
+            try
             {
-                // Run the transformation outside of the lock as it should not be making any state changes to us.
-                var newSolution = transformation(oldSolution, data);
+                var oldSolution = Volatile.Read(ref _latestSolution);
 
-                // if it did nothing, then no need to proceed.
-                if (oldSolution == newSolution)
-                    return (oldSolution, newSolution);
-
-                // Now, take the lock and try to update our internal state.
-                using (_serializationLock.DisposableWait())
+                if (mayRaiseEvents)
                 {
-                    if (_latestSolution != oldSolution)
-                    {
-                        // something else snuck in and wrote to _latestSolution. Restart and try again.
-                        oldSolution = _latestSolution;
-                        continue;
-                    }
-
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
-
-                    // Prior to updating the latest solution, let the caller do any other state updates they want.
-                    onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
-
-                    _latestSolution = newSolution;
-
-                    // Once we've updated _latestSolution, perform any requested callbacks.
-                    onAfterUpdate?.Invoke(oldSolution, newSolution, data);
-                    return (oldSolution, newSolution);
+                    // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
+                    // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
+                    EnsureEventListeners();
                 }
+
+                while (true)
+                {
+                    // Run the transformation outside of the lock as it should not be making any state changes to us.
+                    var newSolution = transformation(oldSolution, data);
+
+                    // if it did nothing, then no need to proceed.
+                    if (oldSolution == newSolution)
+                        return (oldSolution, newSolution);
+
+                    // Now, take the lock and try to update our internal state.
+                    using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                    {
+                        if (_latestSolution != oldSolution)
+                        {
+                            // something else snuck in and wrote to _latestSolution. Restart and try again.
+                            oldSolution = _latestSolution;
+                            continue;
+                        }
+
+                        newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+
+                        // Prior to updating the latest solution, let the caller do any other state updates they want.
+                        onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
+
+                        _latestSolution = newSolution;
+
+                        // Once we've updated _latestSolution, perform any requested callbacks.
+                        onAfterUpdate?.Invoke(oldSolution, newSolution, data);
+                        return (oldSolution, newSolution);
+                    }
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Critical))
+            {
+                // We'll rethrow the exception to the caller, since this exception could represent a bug in a third-party workspace, and if at this point our workspace
+                // is corrupted we want the caller to know.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -458,6 +525,7 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 data: /*unused*/ 0,
                 (oldSolution, _) => this.CreateSolution(oldSolution.Id),
+                mayRaiseEvents: reportChangeEvent,
                 onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
                 onAfterUpdate: (oldSolution, newSolution, _) =>
                 {
@@ -1080,25 +1148,16 @@ namespace Microsoft.CodeAnalysis
                         var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
                         if (linkedDocumentIds.Length > 0)
                         {
-                            // Two options for updating linked docs (legacy and new).
-                            //
-                            // Legacy behavior: update each linked doc to point at the same SourceText instance.  Each
-                            // doc will reparse itself however it wants (and thus not share any tree contents).
-                            //
-                            // Modern behavior: attempt to actually have the linked documents point *into* the same
-                            // instance data that the initial document points at.  This way things like tree data can be
-                            // shared across docs.
+                            // Have the linked documents point *into* the same instance data that the initial document
+                            // points at.  This way things like tree data can be shared across docs.
 
                             var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                            var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
 
                             var newDocument = newSolution.GetRequiredDocument(documentId);
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = shareSyntaxTrees
-                                    ? newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState)
-                                    : data.updateSolutionWithText(newSolution, linkedDocumentId, data.arg);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
@@ -1312,9 +1371,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-            => TryApplyChanges(newSolution, new ProgressTracker());
+            => TryApplyChanges(newSolution, CodeAnalysisProgress.None);
 
-        internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {

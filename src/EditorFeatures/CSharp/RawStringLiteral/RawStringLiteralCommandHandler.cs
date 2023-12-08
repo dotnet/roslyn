@@ -18,29 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(RawStringLiteralCommandHandler))]
     [Order(After = nameof(SplitStringLiteralCommandHandler))]
-    internal partial class RawStringLiteralCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class RawStringLiteralCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IGlobalOptionService globalOptions,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService,
+        IIndentationManagerService indentationManager)
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IIndentationManagerService _indentationManager;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RawStringLiteralCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService,
-            IIndentationManagerService indentationManager)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _globalOptions = globalOptions;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _indentationManager = indentationManager;
-        }
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager = indentationManager;
 
         public string DisplayName => CSharpEditorResources.Split_raw_string;
     }

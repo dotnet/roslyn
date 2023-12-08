@@ -1819,7 +1819,7 @@ public class C
             var expectedOutput = "Property,Field,Event,M2";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -1853,36 +1853,36 @@ public class C1
     public event System.Action Event;
 }";
             var expectedOutput = "Property,Field,Method,Event,Property,Field,Method,Event,Invoke";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (8,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(Property.Property) 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(8, 40),
-                // (9,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Property").WithArguments("instance member in 'nameof'", "12.0").WithLocation(8, 40),
+                // (9,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Property.Field)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(9, 24),
-                // (10,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Property").WithArguments("instance member in 'nameof'", "12.0").WithLocation(9, 24),
+                // (10,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Property.Method)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(10, 24),
-                // (11,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Property").WithArguments("instance member in 'nameof'", "12.0").WithLocation(10, 24),
+                // (11,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Property.Event)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(11, 24),
-                // (12,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Property").WithArguments("instance member in 'nameof'", "12.0").WithLocation(11, 24),
+                // (12,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Field.Property) 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(12, 24),
-                // (13,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Field").WithArguments("instance member in 'nameof'", "12.0").WithLocation(12, 24),
+                // (13,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Field.Field)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(13, 24),
-                // (14,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Field").WithArguments("instance member in 'nameof'", "12.0").WithLocation(13, 24),
+                // (14,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Field.Method)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(14, 24),
-                // (15,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Field").WithArguments("instance member in 'nameof'", "12.0").WithLocation(14, 24),
+                // (15,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Field.Event)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(15, 24),
-                // (16,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Field").WithArguments("instance member in 'nameof'", "12.0").WithLocation(15, 24),
+                // (16,24): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         + "," + nameof(Event.Invoke)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(16, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Event").WithArguments("instance member in 'nameof'", "12.0").WithLocation(16, 24));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1909,21 +1909,21 @@ public class C1
                 """;
             var expectedOutput = "Property,Field,Invoke,Invoke";
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (12,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,40): error CS9058: Feature 'lambda optional parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lambda2 = static (string f = nameof(Field)) => f;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(12, 40),
-                // (13,43): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "=").WithArguments("lambda optional parameters", "12.0").WithLocation(12, 40),
+                // (13,43): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lambda3 = static () => nameof(Event.Invoke);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 43),
-                // (14,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Event").WithArguments("instance member in 'nameof'", "12.0").WithLocation(13, 43),
+                // (14,40): error CS9058: Feature 'lambda optional parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(14, 40),
-                // (14,49): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "=").WithArguments("lambda optional parameters", "12.0").WithLocation(14, 40),
+                // (14,49): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 49));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Event").WithArguments("instance member in 'nameof'", "12.0").WithLocation(14, 49));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1950,15 +1950,15 @@ public class C1
                 """;
             var expectedOutput = "Property,Field,Invoke,Invoke";
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (13,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,42): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         static string local3() => nameof(Event.Invoke);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 42),
-                // (14,48): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Event").WithArguments("instance member in 'nameof'", "12.0").WithLocation(13, 42),
+                // (14,48): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         static string local4(string i = nameof(Event.Invoke)) => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 48));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Event").WithArguments("instance member in 'nameof'", "12.0").WithLocation(14, 48));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1970,12 +1970,12 @@ public class C
 {
     public string S { get; } = nameof(S.Length);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "Length").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,39): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public string S { get; } = nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 39));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1995,12 +1995,12 @@ public class C
                 // var p = new C().P; // 1
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9)
             };
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,29): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     [System.Obsolete(nameof(S.Length))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 29));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2014,12 +2014,12 @@ public class C
     public C() : this(nameof(S.Length)){}
     public string S { get; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "Length").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,30): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public C() : this(nameof(S.Length)){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(6, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2040,12 +2040,12 @@ public struct S
         Console.WriteLine(func());
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "Length").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (12,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,42): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         Func<string> func = () => nameof(P.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(12, 42));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "P").WithArguments("instance member in 'nameof'", "12.0").WithLocation(12, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2059,12 +2059,12 @@ public class C
     public static int StaticProp { get; }
     public string M() => nameof(Prop.StaticProp);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "StaticProp").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,33): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop.StaticProp").WithArguments("instance member in 'nameof'", "12.0").WithLocation(7, 33));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2078,15 +2078,15 @@ public class C
     public static int StaticProp { get; }
     public static string M() => nameof(Prop.StaticProp);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "StaticProp").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 40),
-                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop").WithArguments("instance member in 'nameof'", "12.0").WithLocation(7, 40),
+                // (7,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 40));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop.StaticProp").WithArguments("instance member in 'nameof'", "12.0").WithLocation(7, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2099,12 +2099,12 @@ public class C
     public C Prop { get; }
     public static string M() => nameof(Prop.M);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "M").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "M").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "M").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(Prop.M);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(6, 40));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop").WithArguments("instance member in 'nameof'", "12.0").WithLocation(6, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2118,7 +2118,7 @@ public class C
     public static void StaticMethod(){}
     public string M() => nameof(Prop.StaticMethod);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "StaticMethod").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
@@ -2133,9 +2133,9 @@ public class C
     public static string M() => nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 40));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2147,9 +2147,9 @@ public class C
     public string S { get; } = nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,39): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public string S { get; } = nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2163,9 +2163,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (4,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,29): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     [System.Obsolete(nameof(S.Length))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2179,9 +2179,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,30): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public C() : this(nameof(S.Length)){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2199,9 +2199,9 @@ public struct S
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (9,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,42): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         Func<string> func = () => nameof(P.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(9, 42));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "P").WithArguments("instance member in 'nameof'", "12.0").WithLocation(9, 42));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2215,9 +2215,9 @@ public class C
     public string M() => nameof(Prop.StaticProp);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,33): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public string M() => nameof(Prop.StaticProp);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop.StaticProp").WithArguments("instance member in 'nameof'", "12.0").WithLocation(6, 33));
         }
 
         [Fact]
@@ -2274,12 +2274,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "StaticMethod").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,18): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     [Attr(nameof(Prop.StaticMethod))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop").WithArguments("instance member in 'nameof'", "12.0").WithLocation(7, 18));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2299,12 +2299,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "Prop").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,18): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     [Attr(nameof(Prop.Prop))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "Prop.Prop").WithArguments("instance member in 'nameof'", "12.0").WithLocation(7, 18));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2324,12 +2324,12 @@ class Attr : Attribute
     public readonly string S;
     public Attr(string s) { S = s; }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "Prop").VerifyDiagnostics();
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,14): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,14): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // [Attr(nameof(C.Prop.Prop))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C.Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(5, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "C.Prop.Prop").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 14));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -2348,7 +2348,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 //     [Attr(nameof(Method().Method))]
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18)
             };
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -2369,7 +2369,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 //     [Attr(nameof(Method<C>().Method))]
                 Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18)
             };
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
         }

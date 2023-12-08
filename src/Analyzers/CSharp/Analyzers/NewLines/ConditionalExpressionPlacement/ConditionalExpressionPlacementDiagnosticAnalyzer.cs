@@ -29,33 +29,37 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInConditionalExpression;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
             if (node is ConditionalExpressionSyntax conditionalExpression)
-                ProcessConditionalExpression(context, severity, conditionalExpression);
+                ProcessConditionalExpression(context, notificationOption, conditionalExpression);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!);
+                    Recurse(context, notificationOption, child.AsNode()!);
             }
         }
 
         private void ProcessConditionalExpression(
-            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConditionalExpressionSyntax conditionalExpression)
+            SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, ConditionalExpressionSyntax conditionalExpression)
         {
             // Don't bother analyzing nodes whose parent have syntax errors in them.
             if (conditionalExpression.GetRequiredParent().GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 conditionalExpression.QuestionToken.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
 

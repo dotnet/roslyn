@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Dim generatedDiagnostics As Boolean = False
                                         Dim data As VisualBasicAttributeData = (New EarlyWellKnownAttributeBinder(Me, binder)).GetAttribute(attr, attributeType, generatedDiagnostics)
                                         If Not data.HasErrors AndAlso Not generatedDiagnostics AndAlso
-                                           data.IsTargetAttribute(Me, AttributeDescription.MyGroupCollectionAttribute) Then
+                                           data.IsTargetAttribute(AttributeDescription.MyGroupCollectionAttribute) Then
                                             ' Looks like we've found MyGroupCollectionAttribute
                                             If attributeData IsNot Nothing Then
                                                 ' Ambiguity, the attribute cannot be applied multiple times. Let's ignore all of them,
@@ -289,8 +289,9 @@ DoneWithBindingAttributes:
 
         Private Shared Function MyGroupCollectionCandidateHasPublicParameterlessConstructor(candidate As SourceNamedTypeSymbol) As Boolean
             ' Simply calling HasPublicParameterlessConstructor might get us in a cycle.
+            Debug.Assert(candidate.TypeKind = TypeKind.Class)
             If candidate.MembersHaveBeenCreated Then
-                Return HasPublicParameterlessConstructor(candidate)
+                Return HasPublicParameterlessConstructor(candidate) = ConstructorConstraintError.None
             Else
                 Return candidate.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
             End If
@@ -300,7 +301,12 @@ DoneWithBindingAttributes:
         Protected Overrides Sub VerifyMembers()
             If Me.TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
-                Debug.Assert(HasPublicParameterlessConstructor(Me) = InferFromSyntaxIfClassWillHavePublicParameterlessConstructor())
+                Dim constructorConstraintError As ConstructorConstraintError = HasPublicParameterlessConstructor(Me)
+                If InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.None OrElse constructorConstraintError = ConstructorConstraintError.HasRequiredMembers)
+                Else
+                    Debug.Assert(constructorConstraintError = ConstructorConstraintError.NoPublicParameterlessConstructor)
+                End If
             End If
         End Sub
 #End If

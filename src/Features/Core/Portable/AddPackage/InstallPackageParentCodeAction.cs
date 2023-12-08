@@ -18,31 +18,26 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// the lightbulb.  It will have children to 'Install Latest', 
     /// 'Install Version 'X' ..., and 'Install with package manager'.
     /// </summary>
-    internal class InstallPackageParentCodeAction : CodeAction.CodeActionWithNestedActions
+    /// <remarks>
+    /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
+    /// We want to the experience of having the top level item the user has to see and
+    /// navigate through, and we don't want our child items confusingly being added to the
+    /// top level light-bulb where it's not clear what effect they would have if invoked.
+    /// </remarks>
+    internal class InstallPackageParentCodeAction(
+        IPackageInstallerService installerService,
+        string source,
+        string packageName,
+        bool includePrerelease,
+        Document document) : CodeAction.CodeActionWithNestedActions(string.Format(FeaturesResources.Install_package_0, packageName),
+               CreateNestedActions(installerService, source, packageName, includePrerelease, document),
+               isInlinable: false)
     {
         /// <summary>
         /// This code action only works by installing a package.  As such, it requires a non document change (and is
         /// thus restricted in which hosts it can run).
         /// </summary>
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
-
-        /// <summary>
-        /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
-        /// We want to the experience of having the top level item the user has to see and
-        /// navigate through, and we don't want our child items confusingly being added to the
-        /// top level light-bulb where it's not clear what effect they would have if invoked.
-        /// </summary>
-        public InstallPackageParentCodeAction(
-            IPackageInstallerService installerService,
-            string source,
-            string packageName,
-            bool includePrerelease,
-            Document document)
-            : base(string.Format(FeaturesResources.Install_package_0, packageName),
-                   CreateNestedActions(installerService, source, packageName, includePrerelease, document),
-                   isInlinable: false)
-        {
-        }
 
         private static ImmutableArray<CodeAction> CreateNestedActions(
             IPackageInstallerService installerService,

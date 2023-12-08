@@ -12,24 +12,14 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigValueSerializer<T> : IEditorConfigValueSerializer
+    internal sealed class EditorConfigValueSerializer<T>(
+        Func<string, Optional<T>> parseValue,
+        Func<T, string> serializeValue) : IEditorConfigValueSerializer
     {
         public static readonly EditorConfigValueSerializer<T> Unsupported = new(
             parseValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"),
             serializeValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"));
-
-        private readonly Func<string, Optional<T>> _parseValue;
-        private readonly Func<T, string> _serializeValue;
-
         private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = new();
-
-        public EditorConfigValueSerializer(
-            Func<string, Optional<T>> parseValue,
-            Func<T, string> serializeValue)
-        {
-            _parseValue = parseValue;
-            _serializeValue = serializeValue;
-        }
 
         bool IEditorConfigValueSerializer.TryParse(string value, out object? result)
         {
@@ -45,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         internal bool TryParseValue(string value, [MaybeNullWhen(false)] out T result)
         {
-            var optionalValue = _cachedValues.GetOrAdd(value, _parseValue);
+            var optionalValue = _cachedValues.GetOrAdd(value, parseValue);
             if (optionalValue.HasValue)
             {
                 result = optionalValue.Value;
@@ -60,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public string GetEditorConfigStringValue(T value)
         {
-            var editorConfigStringForValue = _serializeValue(value);
+            var editorConfigStringForValue = serializeValue(value);
             Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
             return editorConfigStringForValue;
         }

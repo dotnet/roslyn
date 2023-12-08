@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // If the LHS is a readonly ref and the result is used later we cannot stack
                 // schedule since we may be converting a writeable value on the RHS to a readonly
                 // one on the LHS.
-                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                if (localSymbol.RefKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn &&
                     (_context == ExprContext.Address || _context == ExprContext.Value))
                 {
                     ShouldNotSchedule(localSymbol);
@@ -1106,46 +1106,109 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitCall(BoundCall node)
         {
-            var receiver = node.ReceiverOpt;
-            MethodSymbol method = node.Method;
-
-            // matches or a bit stronger than EmitReceiverRef
-            // if there are any doubts that receiver is a ref type,
-            // assume we will need an address (that will prevent scheduling of receiver).
-            if (method.RequiresInstanceReceiver)
+            if (node.ReceiverOpt is BoundCall receiver)
             {
-                receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
+                int prevStack = StackDepth();
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+
+                node = receiver;
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                BoundExpression rewrittenReceiver = visitReceiver(node);
+
+                while (true)
+                {
+                    rewrittenReceiver = visitArgumentsAndUpdateCall(node, rewrittenReceiver);
+
+                    receiver = node;
+                    if (!calls.TryPop(out node))
+                    {
+                        break;
+                    }
+
+                    CheckCallReceiver(receiver, node); // VisitCallOrConditionalAccessReceiver does this
+
+                    // VisitExpressionCore does this after visiting each node
+                    _counter++;
+                    SetStackDepth(prevStack);
+                    PushEvalStack(receiver, GetReceiverContext(receiver));
+                }
+
+                calls.Free();
+
+                return rewrittenReceiver;
             }
             else
             {
-                Debug.Assert(method.IsStatic);
+                BoundExpression rewrittenReceiver = visitReceiver(node);
+                return visitArgumentsAndUpdateCall(node, rewrittenReceiver);
+            }
 
-                _counter += 1;
+            BoundExpression visitReceiver(BoundCall node)
+            {
+                var receiver = node.ReceiverOpt;
+                MethodSymbol method = node.Method;
 
-                if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                // matches or a bit stronger than EmitReceiverRef
+                // if there are any doubts that receiver is a ref type,
+                // assume we will need an address (that will prevent scheduling of receiver).
+                if (method.RequiresInstanceReceiver)
                 {
-                    receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
-                        typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
+                    receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
                 }
                 else
                 {
-                    receiver = null;
+                    Debug.Assert(method.IsStatic);
+
+                    _counter += 1;
+
+                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    {
+                        receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                            typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
+                    }
+                    else
+                    {
+                        receiver = null;
+                    }
                 }
+
+                return receiver;
             }
 
-            var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters, node.ArgumentRefKindsOpt);
-
-            return node.Update(receiver, method, rewrittenArguments);
+            BoundCall visitArgumentsAndUpdateCall(BoundCall node, BoundExpression receiver)
+            {
+                var rewrittenArguments = VisitArguments(node.Arguments, node.Method.Parameters, node.ArgumentRefKindsOpt);
+                return node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, rewrittenArguments);
+            }
         }
 
         private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
         {
             var receiverType = receiver.Type;
 
-            if (callOpt is { } call &&
-                CodeGenerator.IsRef(receiver) &&
-                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
-                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+            if (callOpt is { } call)
+            {
+                CheckCallReceiver(receiver, call);
+            }
+
+            ExprContext context = GetReceiverContext(receiver);
+
+            receiver = VisitExpression(receiver, context);
+            return receiver;
+        }
+
+        private void CheckCallReceiver(BoundExpression receiver, BoundCall call)
+        {
+            if (CodeGenerator.IsRef(receiver) &&
+                                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
+                                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
             {
                 var unwrappedSequence = receiver;
 
@@ -1159,7 +1222,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     ShouldNotSchedule(localSymbol); // Otherwise CodeGenerator is unable to apply proper fixups
                 }
             }
+        }
 
+        private static ExprContext GetReceiverContext(BoundExpression receiver)
+        {
+            var receiverType = receiver.Type;
             ExprContext context;
 
             if (receiverType.IsReferenceType)
@@ -1181,8 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 context = ExprContext.Address;
             }
 
-            receiver = VisitExpression(receiver, context);
-            return receiver;
+            return context;
         }
 
         private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
@@ -2133,30 +2199,76 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #nullable enable
         public override BoundNode VisitCall(BoundCall node)
         {
-            BoundExpression? receiverOpt = node.ReceiverOpt;
-
-            if (node.Method.RequiresInstanceReceiver)
+            if (node.ReceiverOpt is BoundCall receiver1)
             {
-                receiverOpt = (BoundExpression?)this.Visit(receiverOpt);
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+
+                node = receiver1;
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                BoundExpression? rewrittenReceiver = visitReceiver(node);
+
+                while (true)
+                {
+                    rewrittenReceiver = visitArgumentsAndUpdateCall(node, rewrittenReceiver);
+
+                    if (!calls.TryPop(out node!))
+                    {
+                        break;
+                    }
+
+                    // Visit does this after visiting each node
+                    _nodeCounter++;
+                }
+
+                calls.Free();
+
+                return rewrittenReceiver;
             }
             else
             {
-                _nodeCounter++;
-
-                if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
-                {
-                    receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
-                        typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
-                }
-                else if (receiverOpt is not null)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
+                BoundExpression? rewrittenReceiver = visitReceiver(node);
+                return visitArgumentsAndUpdateCall(node, rewrittenReceiver);
             }
 
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+            BoundExpression? visitReceiver(BoundCall node)
+            {
+                BoundExpression? receiverOpt = node.ReceiverOpt;
+
+                if (node.Method.RequiresInstanceReceiver)
+                {
+                    receiverOpt = (BoundExpression?)this.Visit(receiverOpt);
+                }
+                else
+                {
+                    _nodeCounter++;
+
+                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    {
+                        receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                            typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
+                    }
+                    else if (receiverOpt is not null)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }
+
+                return receiverOpt;
+            }
+
+            BoundExpression visitArgumentsAndUpdateCall(BoundCall node, BoundExpression? receiverOpt)
+            {
+                ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+                TypeSymbol? type = this.VisitType(node.Type);
+                return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+            }
         }
 #nullable disable
 
@@ -2299,6 +2411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             throw new NotImplementedException();
         }
+
+        internal override bool HasSourceLocation => false;
 
         public override RefKind RefKind
         {

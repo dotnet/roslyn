@@ -4,38 +4,29 @@
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal readonly struct LineColumnDelta
+    internal readonly struct LineColumnDelta(int lines, int spaces)
     {
         public static LineColumnDelta Default = new(lines: 0, spaces: 0, whitespaceOnly: true, forceUpdate: false);
 
         /// <summary>
         /// relative line number between calls
         /// </summary>
-        public readonly int Lines;
+        public readonly int Lines = lines;
 
         /// <summary>
         /// relative spaces between calls
         /// </summary>
-        public readonly int Spaces;
+        public readonly int Spaces = spaces;
 
         /// <summary>
         /// there is only whitespace in this space
         /// </summary>
-        public readonly bool WhitespaceOnly;
+        public readonly bool WhitespaceOnly = true;
 
         /// <summary>
         /// force text change regardless line and space changes
         /// </summary>
-        public readonly bool ForceUpdate;
-
-        public LineColumnDelta(int lines, int spaces)
-        {
-            this.Lines = lines;
-            this.Spaces = spaces;
-
-            this.WhitespaceOnly = true;
-            this.ForceUpdate = false;
-        }
+        public readonly bool ForceUpdate = false;
 
         public LineColumnDelta(int lines, int spaces, bool whitespaceOnly)
             : this(lines, spaces)

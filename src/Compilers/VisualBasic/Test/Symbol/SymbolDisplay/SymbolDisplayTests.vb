@@ -5285,6 +5285,34 @@ End Class
                 SymbolDisplayPartKind.Keyword)
         End Sub
 
+        <Fact>
+        Public Sub RefReadonlyParameter()
+            Dim source =
+"public class C
+{
+    public void M(ref readonly int p) { }
+}"
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp = CreateCSharpCompilation(source, parseOptions).VerifyDiagnostics()
+            Dim m = comp.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()
+            ' Ref modifiers are not included: https://github.com/dotnet/roslyn/issues/14683
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut)
+            Verify(ToDisplayParts(m, format), "Public Sub M(p As Integer)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation)
+        End Sub
+
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
         <WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")>
         <Fact()>

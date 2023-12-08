@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     foreach (var group in Locations.GroupBy(l => l.Document))
                     {
                         var document = group.Key;
-                        var oldSource = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldSource = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                         var newSource = oldSource.WithChanges(group.Select(l => new TextChange(l.TextSpan, replacementText)));
                         newSolution = newSolution.WithDocumentText(document.Id, newSource);
                     }

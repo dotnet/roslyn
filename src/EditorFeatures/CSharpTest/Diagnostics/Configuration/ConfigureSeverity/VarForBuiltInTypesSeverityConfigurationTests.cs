@@ -36,33 +36,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
             Assert.False(CSharpCodeStyleOptions.VarForBuiltInTypes.DefaultValue.Value);
             Assert.Equal(NotificationOption2.Silent, CSharpCodeStyleOptions.VarForBuiltInTypes.DefaultValue.Notification);
 
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-[|int|] x = 1;
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
-[*.cs]
-csharp_style_var_for_built_in_types = true:suggestion
-dotnet_diagnostic.IDE0007.severity = suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\file.cs">
+                [|int|] x = 1;
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
+                [*.cs]
+                csharp_style_var_for_built_in_types = true:suggestion
+                dotnet_diagnostic.IDE0007.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-int x = 1;
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
-[*.cs]
-csharp_style_var_for_built_in_types = true:none
-dotnet_diagnostic.IDE0007.severity = none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                         <Document FilePath="z:\\file.cs">
+                int x = 1;
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
+                [*.cs]
+                csharp_style_var_for_built_in_types = true:none
+                dotnet_diagnostic.IDE0007.severity = none
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }

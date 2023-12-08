@@ -23,19 +23,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static ValueTask ItemCompletedAsync(this IStreamingProgressTracker tracker, CancellationToken cancellationToken)
             => tracker.ItemsCompletedAsync(1, cancellationToken);
 
-        private class StreamingProgressDisposer : IAsyncDisposable
+        private class StreamingProgressDisposer(IStreamingProgressTracker progressTracker, CancellationToken cancellationToken) : IAsyncDisposable
         {
-            private readonly IStreamingProgressTracker _progressTracker;
-            private readonly CancellationToken _cancellationToken;
-
-            public StreamingProgressDisposer(IStreamingProgressTracker progressTracker, CancellationToken cancellationToken)
-            {
-                _progressTracker = progressTracker;
-                _cancellationToken = cancellationToken;
-            }
-
             public async ValueTask DisposeAsync()
-                => await _progressTracker.ItemCompletedAsync(_cancellationToken).ConfigureAwait(false);
+                => await progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

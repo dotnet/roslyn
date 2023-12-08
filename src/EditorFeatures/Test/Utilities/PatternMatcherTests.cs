@@ -414,6 +414,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
+        [Fact]
+        public void TestCachingOfPriorResult()
+        {
+            using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, allowFuzzyMatching: true);
+            matcher.Matches("Go");
+
+            // Ensure that the above call ended up caching the result.
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: true, candidateText: "Go"));
+
+            matcher.Matches("DefNotAMatch");
+            Assert.True(((PatternMatcher.SimplePatternMatcher)matcher).GetTestAccessor().LastCacheResultIs(areSimilar: false, candidateText: "DefNotAMatch"));
+        }
+
         private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
         {
             using var result = TemporaryArray<string>.Empty;
@@ -439,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var spans);
 
             var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
                 .GetFirstMatch(candidate);
@@ -458,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var expectedSpans);
 
             using var matches = TemporaryArray<PatternMatch>.Empty;
             PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());

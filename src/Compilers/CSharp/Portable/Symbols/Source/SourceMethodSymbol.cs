@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
                 }
-                else if (parameter.Type.IsUnsafe())
+                else if (parameter.Type.IsPointerOrFunctionPointer())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
                 }
@@ -83,5 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
     }
 }

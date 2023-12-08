@@ -4,50 +4,39 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class InstallWithPackageManagerCodeAction : CodeAction
+        private sealed class InstallWithPackageManagerCodeAction(
+            IPackageInstallerService installerService,
+            string packageName) : CodeAction
         {
-            private readonly IPackageInstallerService _installerService;
-            private readonly string _packageName;
-
-            public InstallWithPackageManagerCodeAction(
-                IPackageInstallerService installerService,
-                string packageName)
-            {
-                _installerService = installerService;
-                _packageName = packageName;
-            }
+            private readonly IPackageInstallerService _installerService = installerService;
+            private readonly string _packageName = packageName;
 
             public override string Title => FeaturesResources.Install_with_package_manager;
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
+                return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(
                     new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
             }
 
-            private class InstallWithPackageManagerCodeActionOperation : CodeActionOperation
+            private class InstallWithPackageManagerCodeActionOperation(
+                IPackageInstallerService installerService,
+                string packageName) : CodeActionOperation
             {
-                private readonly IPackageInstallerService _installerService;
-                private readonly string _packageName;
-
-                public InstallWithPackageManagerCodeActionOperation(
-                    IPackageInstallerService installerService,
-                    string packageName)
-                {
-                    _installerService = installerService;
-                    _packageName = packageName;
-                }
+                private readonly IPackageInstallerService _installerService = installerService;
+                private readonly string _packageName = packageName;
 
                 public override string Title => FeaturesResources.Install_with_package_manager;
 

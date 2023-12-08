@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (directReference != null)
             {
-                await AddReferencingSymbols(directReference, isDirect: true).ConfigureAwait(false);
+                await AddReferencingSymbolsAsync(directReference, isDirect: true).ConfigureAwait(false);
             }
 
             foreach (var indirectReference in indirectReferences)
             {
-                await AddReferencingSymbols(indirectReference, isDirect: false).ConfigureAwait(false);
+                await AddReferencingSymbolsAsync(indirectReference, isDirect: false).ConfigureAwait(false);
             }
 
             return results;
 
-            async Task AddReferencingSymbols(ReferencedSymbol reference, bool isDirect)
+            async Task AddReferencingSymbolsAsync(ReferencedSymbol reference, bool isDirect)
             {
                 var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var (callingSymbol, locations) in result)

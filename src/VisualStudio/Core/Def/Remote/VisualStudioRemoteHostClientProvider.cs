@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
@@ -30,26 +28,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), WorkspaceKind.Host), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly IAsyncServiceProvider _vsServiceProvider;
+            private readonly VisualStudioWorkspace _vsWorkspace;
+            private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
             private readonly IGlobalOptionService _globalOptions;
             private readonly IThreadingContext _threadingContext;
 
             private readonly object _gate = new();
-            private VisualStudioRemoteHostClientProvider? _cachedInstance;
+            private VisualStudioRemoteHostClientProvider? _cachedVSInstance;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
-                SVsServiceProvider vsServiceProvider,
+                VisualStudioWorkspace vsWorkspace,
+                IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
                 AsynchronousOperationListenerProvider listenerProvider,
                 IGlobalOptionService globalOptions,
                 IThreadingContext threadingContext,
                 [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
-                _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _globalOptions = globalOptions;
+                _vsWorkspace = vsWorkspace;
+                _brokeredServiceContainer = brokeredServiceContainer;
                 _listenerProvider = listenerProvider;
                 _threadingContext = threadingContext;
                 _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
@@ -62,6 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Avoids proffering brokered services on the client instance.
                 if (!_globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit) ||
                     workspaceServices.Workspace is not (VisualStudioWorkspace or PreviewWorkspace) ||
+                    // If the host services are different, then we can't use the cached VS instance, fall back to in-proc.
+                    // This can happen for preview workspace in Tools|Options.
+                    workspaceServices.SolutionServices.WorkspaceServices.HostServices != _vsWorkspace.Services.HostServices ||
                     workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
                     // Run code in the current process
@@ -70,13 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    // Either we have no client provider, or we should be asking to get the client for a workspace that
-                    // also shares our services.  This should always be true as we only support this for the VS and
-                    // Preview workspaces, and the latter is created with the services of the former.
-                    Debug.Assert(_cachedInstance is null || _cachedInstance.Services.WorkspaceServices.HostServices == workspaceServices.SolutionServices.WorkspaceServices.HostServices);
+                    // If we have a cached vs instance, then we can return that instance since we know they have the same host services.
+                    // Otherwise, create and cache an instance based on vs workspace for future callers with same services.
+                    if (_cachedVSInstance is null)
+                        _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _threadingContext, _listenerProvider, _callbackDispatchers);
 
-                    _cachedInstance ??= new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
-                    return _cachedInstance;
+                    return _cachedVSInstance;
                 }
             }
         }
@@ -84,23 +87,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public readonly SolutionServices Services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
-        private readonly IAsyncServiceProvider _vsServiceProvider;
-        private readonly IThreadingContext _threadingContext;
+        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
             SolutionServices services,
             IGlobalOptionService globalOptions,
-            IAsyncServiceProvider vsServiceProvider,
+            IVsService<IBrokeredServiceContainer> brokeredServiceContainer,
             IThreadingContext threadingContext,
             AsynchronousOperationListenerProvider listenerProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             Services = services;
             _globalOptions = globalOptions;
-            _vsServiceProvider = vsServiceProvider;
-            _threadingContext = threadingContext;
+            _brokeredServiceContainer = brokeredServiceContainer;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
 
@@ -113,11 +114,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+                var brokeredServiceContainer = await _brokeredServiceContainer.GetValueAsync().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =
-                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClrFeatureFlag) ? RemoteProcessConfiguration.Core : 0) |
+                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr) ? RemoteProcessConfiguration.Core : 0) |
                     (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0) |
                     (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler) ? RemoteProcessConfiguration.EnableSolutionCrawler : 0);
 

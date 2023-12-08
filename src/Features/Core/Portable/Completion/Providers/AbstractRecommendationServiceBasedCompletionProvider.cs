@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where TSyntaxContext : SyntaxContext
     {
         protected abstract Task<bool> ShouldPreselectInferredTypesAsync(CompletionContext? completionContext, int position, CompletionOptions options, CancellationToken cancellationToken);
+        protected abstract Task<bool> ShouldProvideAvailableSymbolsInCurrentContextAsync(CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken);
+
         protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<SymbolAndSelectionInfo> symbols, TSyntaxContext context);
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
         protected abstract bool IsInstrinsic(ISymbol symbol);
@@ -32,6 +34,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected sealed override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
+            var shouldProvideSymbols = await ShouldProvideAvailableSymbolsInCurrentContextAsync(completionContext, context, position, options, cancellationToken).ConfigureAwait(false);
+            if (!shouldProvideSymbols)
+                return ImmutableArray<SymbolAndSelectionInfo>.Empty;
+
             var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
@@ -250,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (text[characterPosition] != '.')
                 return null;
 

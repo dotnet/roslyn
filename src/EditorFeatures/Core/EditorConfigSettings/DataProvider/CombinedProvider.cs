@@ -8,14 +8,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
-    internal class CombinedProvider<T> : ISettingsProvider<T>
+    internal class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> providers) : ISettingsProvider<T>
     {
-        private readonly ImmutableArray<ISettingsProvider<T>> _providers;
-
-        public CombinedProvider(ImmutableArray<ISettingsProvider<T>> providers)
-        {
-            _providers = providers;
-        }
+        private readonly ImmutableArray<ISettingsProvider<T>> _providers = providers;
 
         public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
         {

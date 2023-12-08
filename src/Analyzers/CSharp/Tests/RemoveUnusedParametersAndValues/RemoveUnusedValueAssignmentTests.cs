@@ -9135,13 +9135,12 @@ class C
                 }
                 """;
 
-            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
             var fixedSource = """
                 class C
                 {
                     void M(string[] ss)
                     {
-                        if (ss is [ []])
+                        if (ss is [[]])
                         {
 
                         }
@@ -9178,13 +9177,12 @@ class C
                 }
                 """;
 
-            // Formatter bug tracked in https://github.com/dotnet/roslyn/issues/67516
             var fixedSource = """
                 class C
                 {
                     void M(string[] ss)
                     {
-                        if (ss is [ []])
+                        if (ss is [[]])
                         {
 
                         }
@@ -9202,6 +9200,30 @@ class C
                 },
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
+        public async Task TestPrimaryConstructorParameterAssignment()
+        {
+            var source = """
+                class C(string str) {
+                	public void Reset() {
+                		str = string.Empty;
+                	}
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             }.RunAsync();
         }
     }

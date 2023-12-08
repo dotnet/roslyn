@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private static readonly DiagnosticDescriptor s_missingHeaderDescriptor = CreateDescriptorForFileHeader(s_missingHeaderTitle, s_missingHeaderMessage);
 
         private static DiagnosticDescriptor CreateDescriptorForFileHeader(LocalizableString title, LocalizableString message)
-            => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, title, message);
+            => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, hasAnyCodeStyleOption: true, title, message);
 
         protected AbstractFileHeaderDiagnosticAnalyzer()
             : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
@@ -36,10 +36,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(HandleSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => HandleSyntaxTree(treeContext, context.Compilation.Options)));
 
-        private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void HandleSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
+            if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
+                return;
+
             var tree = context.Tree;
             var root = tree.GetRoot(context.CancellationToken);
 
@@ -56,6 +60,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
+
+            if (!context.ShouldAnalyzeSpan(fileHeader.GetLocation(tree).SourceSpan))
+            {
+                return;
+            }
+
             if (fileHeader.IsMissing)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_missingHeaderDescriptor, fileHeader.GetLocation(tree)));

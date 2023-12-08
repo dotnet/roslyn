@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
             CodeActionOptionsProvider options,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // all projects must be of the same language
@@ -46,7 +48,8 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                 return solution;
             }
 
-            var fixAllContext = await GetFixAllContextAsync(solution, CodeFixProvider, diagnosticsByProject, options, cancellationToken).ConfigureAwait(false);
+            var fixAllContext = await GetFixAllContextAsync(
+                solution, CodeFixProvider, diagnosticsByProject, options, progressTracker, cancellationToken).ConfigureAwait(false);
             var fixAllProvider = CodeFixProvider.GetFixAllProvider();
             RoslynDebug.AssertNotNull(fixAllProvider);
 
@@ -93,6 +96,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
             CodeActionOptionsProvider options,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var diagnosticProvider = new DiagnosticProvider(diagnosticsByProject);
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider,
                     options),
-                new ProgressTracker(),
+                progressTracker,
                 cancellationToken);
         }
 
@@ -140,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             RoslynDebug.AssertNotNull(fixAllAction);
 
             var operations = await fixAllAction.GetOperationsAsync(
-                fixAllContext.Solution, fixAllContext.ProgressTracker, cancellationToken).ConfigureAwait(false);
+                fixAllContext.Solution, fixAllContext.Progress, cancellationToken).ConfigureAwait(false);
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
             RoslynDebug.AssertNotNull(applyChangesOperation);
 
@@ -173,8 +177,8 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
-                return _diagnosticsByProject.ContainsKey(project)
-                    ? Task.FromResult<IEnumerable<Diagnostic>>(_diagnosticsByProject[project])
+                return _diagnosticsByProject.TryGetValue(project, out var diagnostics)
+                    ? Task.FromResult<IEnumerable<Diagnostic>>(diagnostics)
                     : EmptyDiagnosticResult;
             }
         }

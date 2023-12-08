@@ -30,18 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterColonInConstructorInitializer;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -50,17 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
                 return;
 
             if (node is ConstructorInitializerSyntax initializer)
-                ProcessConstructorInitializer(context, severity, initializer);
+                ProcessConstructorInitializer(context, notificationOption, initializer);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!);
+                    Recurse(context, notificationOption, child.AsNode()!);
             }
         }
 
         private void ProcessConstructorInitializer(
-            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ConstructorInitializerSyntax initializer)
+            SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, ConstructorInitializerSyntax initializer)
         {
             var sourceText = context.Tree.GetText(context.CancellationToken);
 
@@ -87,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 colonToken.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: null));
         }

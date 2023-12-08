@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -37,25 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// is performed only after testing that the value is of that type).
     /// </para>
     /// <para>
-    /// In order to build this automaton, we start (in
-    /// <see cref="MakeBoundDecisionDag(SyntaxNode, ArrayBuilder{StateForCase})"/>
-    /// by computing a description of the initial state in a <see cref="DagState"/>, and then
-    /// for each such state description we decide what the test or evaluation will be at
-    /// that state, and compute the successor state descriptions.
-    /// A state description represented by a <see cref="DagState"/> is a collection of partially matched
-    /// cases represented
-    /// by <see cref="StateForCase"/>, in which some number of the tests have already been performed
-    /// for each case.
-    /// When we have computed <see cref="DagState"/> descriptions for all of the states, we create a new
-    /// <see cref="BoundDecisionDagNode"/> for each of them, containing
-    /// the state transitions (including the test to perform at each node and the successor nodes) but
-    /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
-    /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// In order to build this automaton, we start (in <see cref="MakeBoundDecisionDag"/>) by computing a description of
+    /// the initial state in a <see cref="DagState"/>, and then for each such state description we decide what the test
+    /// or evaluation will be at that state, and compute the successor state descriptions. A state description
+    /// represented by a <see cref="DagState"/> is a collection of partially matched cases represented by <see
+    /// cref="StateForCase"/>. When we have computed <see cref="DagState"/> descriptions for all of the states, we
+    /// create a new <see cref="BoundDecisionDagNode"/> for each of them, containing the state transitions (including
+    /// the test to perform at each node and the successor nodes) but not the state descriptions. A <see
+    /// cref="BoundDecisionDag"/> containing this set of nodes becomes part of the bound nodes (e.g. in <see
+    /// cref="BoundSwitchStatement"/> and <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic
+    /// analysis and lowering.
     /// </para>
     /// </summary>
     internal sealed partial class DecisionDagBuilder
     {
+        private static readonly ObjectPool<PooledDictionary<DagState, DagState>> s_uniqueStatePool =
+            PooledDictionary<DagState, DagState>.CreatePool(DagStateEquivalence.Instance);
+
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
@@ -132,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            var builder = ArrayBuilder<StateForCase>.GetInstance(1);
+
+            using var builder = TemporaryArray<StateForCase>.Empty;
             builder.Add(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel));
-            var result = MakeBoundDecisionDag(syntax, builder);
-            builder.Free();
-            return result;
+
+            return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(switchGoverningExpression);
             int i = 0;
-            var builder = ArrayBuilder<StateForCase>.GetInstance(switchSections.Length);
+            using var builder = TemporaryArray<StateForCase>.GetInstance(switchSections.Length);
             foreach (BoundSwitchSection section in switchSections)
             {
                 foreach (BoundSwitchLabel label in section.SwitchLabels)
@@ -158,9 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = MakeBoundDecisionDag(syntax, builder);
-            builder.Free();
-            return result;
+            return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
 
         /// <summary>
@@ -173,13 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(switchExpressionInput);
             int i = 0;
-            var builder = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
+            using var builder = TemporaryArray<StateForCase>.GetInstance(switchArms.Length);
             foreach (BoundSwitchExpressionArm arm in switchArms)
                 builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
 
-            var result = MakeBoundDecisionDag(syntax, builder);
-            builder.Free();
-            return result;
+            return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
 
         /// <summary>
@@ -684,10 +679,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
-            Debug.Assert(rel.Value.Type is not null);
+            var type = rel.Value.Type ?? input.Type;
+            Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
@@ -712,15 +708,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// decision when no decision appears to match. This implementation is nonrecursive to avoid
         /// overflowing the compiler's evaluation stack when compiling a large switch statement.
         /// </summary>
-        private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ArrayBuilder<StateForCase> cases)
+        private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ref TemporaryArray<StateForCase> cases)
         {
-            // A work list of DagStates whose successors need to be computed
-            var workList = ArrayBuilder<DagState>.GetInstance();
+            // A mapping used to make each DagState unique (i.e. to de-dup identical states).
+            PooledDictionary<DagState, DagState> uniqueState = s_uniqueStatePool.Allocate();
 
             // Build the state machine underlying the decision dag
-            DecisionDag decisionDag = MakeDecisionDag(cases, workList);
-
-            workList.Free();
+            DecisionDag decisionDag = MakeDecisionDag(ref cases, uniqueState);
 
             // Note: It is useful for debugging the dag state table construction to set a breakpoint
             // here and view `decisionDag.Dump()`.
@@ -734,6 +728,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+
+            // Now go and clean up all the dag states we created
+            foreach (var kvp in uniqueState)
+            {
+                Debug.Assert(kvp.Key == kvp.Value);
+                kvp.Key.ClearAndFree();
+            }
+
+            uniqueState.Free();
+
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share the same ID.
@@ -781,11 +785,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// and return the node for the root.
         /// </summary>
         private DecisionDag MakeDecisionDag(
-            ArrayBuilder<StateForCase> casesForRootNode,
-            ArrayBuilder<DagState> workList)
+            ref TemporaryArray<StateForCase> casesForRootNode,
+            Dictionary<DagState, DagState> uniqueState)
         {
-            // A mapping used to make each DagState unique (i.e. to de-dup identical states).
-            var uniqueState = new Dictionary<DagState, DagState>(DagStateEquivalence.Instance);
+            // A work list of DagStates whose successors need to be computed.  In practice (measured in roslyn and in
+            // tests, >75% of the time this worklist never goes past 4 items, so a TemporaryArray is a good choice here
+            // to keep everything on the stack.
+            using var workList = TemporaryArray<DagState>.Empty;
 
             // We "intern" the states, so that we only have a single object representing one
             // semantic state. Because the decision automaton may contain states that have more than one
@@ -793,13 +799,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that it is processed only once. This object identity uniqueness will be important later when we
             // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
             // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-            DagState uniquifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            DagState uniquifyState(FrozenArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
-                var state = new DagState(cases, remainingValues);
+                var state = DagState.GetInstance(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
-                    // We found an existing state that matches.  Update its set of possible remaining values
-                    // of each temp by taking the union of the sets on each incoming edge.
+                    // We found an existing state that matches. Return the state we just created back to the pool and
+                    // use the existing one instead.  Null out the 'state' local so that any attempts to use it will
+                    // fail fast.
+                    state.ClearAndFree();
+                    state = null;
+
+                    // Update its set of possible remaining values of each temp by taking the union of the sets on each
+                    // incoming edge.
                     var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
@@ -817,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
                         if (!workList.Contains(existingState))
-                            workList.Push(existingState);
+                            workList.Add(existingState);
                     }
 
                     return existingState;
@@ -827,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // When we add a new unique state, we add it to a work list so that we
                     // will process it to compute its successors.
                     uniqueState.Add(state, state);
-                    workList.Push(state);
+                    workList.Add(state);
                     return state;
                 }
             }
@@ -844,17 +856,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var initialState = uniquifyState(rewrittenCases.ToImmutableAndFree(), ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+            var initialState = uniquifyState(new
+                FrozenArrayBuilder<StateForCase>(rewrittenCases),
+                ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
 
             // Go through the worklist of DagState nodes for which we have not yet computed
             // successor states.
             while (workList.Count != 0)
             {
-                DagState state = workList.Pop();
+                DagState state = workList.RemoveLast();
                 RoslynDebug.Assert(state.SelectedTest == null);
                 RoslynDebug.Assert(state.TrueBranch == null);
                 RoslynDebug.Assert(state.FalseBranch == null);
-                if (state.Cases.IsDefaultOrEmpty)
+                if (state.Cases.Count == 0)
                 {
                     // If this state has no more cases that could possibly match, then
                     // we know there is no case that will match and this node represents a "default"
@@ -907,10 +921,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTest d:
                             bool foundExplicitNullTest = false;
                             SplitCases(state, d,
-                                out ImmutableArray<StateForCase> whenTrueDecisions,
-                                out ImmutableArray<StateForCase> whenFalseDecisions,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
-                                out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+                                out var whenTrueDecisions, out var whenTrueValues,
+                                out var whenFalseDecisions, out var whenFalseValues,
                                 ref foundExplicitNullTest);
                             state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
@@ -964,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
-                if (state.Cases.IsDefaultOrEmpty)
+                if (state.Cases.Count == 0)
                 {
                     state.Dag = defaultDecision;
                     continue;
@@ -1046,15 +1058,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SplitCases(
             DagState state,
             BoundDagTest test,
-            out ImmutableArray<StateForCase> whenTrue,
-            out ImmutableArray<StateForCase> whenFalse,
+            out FrozenArrayBuilder<StateForCase> whenTrue,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
+            out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
             ref bool foundExplicitNullTest)
         {
-            ImmutableArray<StateForCase> cases = state.Cases;
-            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
-            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            var cases = state.Cases;
+            var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
+            var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             (whenTrueValues, whenFalseValues, bool whenTruePossible, bool whenFalsePossible) = SplitValues(state.RemainingValues, test);
             // whenTruePossible means the test could possibly have succeeded.  whenFalsePossible means it could possibly have failed.
             // Tests that are either impossible or tautological (i.e. either of these false) given
@@ -1079,8 +1091,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenFalseBuilder.Add(whenFalseState);
             }
 
-            whenTrue = whenTrueBuilder.ToImmutableAndFree();
-            whenFalse = whenFalseBuilder.ToImmutableAndFree();
+            whenTrue = AsFrozen(whenTrueBuilder);
+            whenFalse = AsFrozen(whenFalseBuilder);
         }
 
         private static (
@@ -1165,9 +1177,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (OriginalInput(input), lengthTemp, index);
         }
 
-        private static ImmutableArray<StateForCase> RemoveEvaluation(ImmutableArray<StateForCase> cases, BoundDagEvaluation e)
+        private static FrozenArrayBuilder<StateForCase> RemoveEvaluation(FrozenArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
         {
-            var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             foreach (var stateForCase in cases)
             {
                 var remainingTests = stateForCase.RemainingTests.RemoveEvaluation(e);
@@ -1185,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return AsFrozen(builder);
         }
 
         /// <summary>
@@ -1586,24 +1598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A successor function used to topologically sort the DagState set.
             /// </summary>
-            private static ImmutableArray<DagState> Successor(DagState state)
+            private static void AddSuccessor(ref TemporaryArray<DagState> builder, DagState state)
             {
-                if (state.TrueBranch != null && state.FalseBranch != null)
-                {
-                    return ImmutableArray.Create(state.FalseBranch, state.TrueBranch);
-                }
-                else if (state.TrueBranch != null)
-                {
-                    return ImmutableArray.Create(state.TrueBranch);
-                }
-                else if (state.FalseBranch != null)
-                {
-                    return ImmutableArray.Create(state.FalseBranch);
-                }
-                else
-                {
-                    return ImmutableArray<DagState>.Empty;
-                }
+                builder.AddIfNotNull(state.TrueBranch);
+                builder.AddIfNotNull(state.FalseBranch);
             }
 
             /// <summary>
@@ -1613,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns>True if the graph was acyclic.</returns>
             public bool TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> result)
             {
-                return TopologicalSort.TryIterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor, out result);
+                return TopologicalSort.TryIterativeSort(this.RootNode, AddSuccessor, out result);
             }
 
 #if DEBUG
@@ -1653,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (DagState state in allStates)
                 {
-                    bool isFail = state.Cases.IsEmpty;
+                    bool isFail = state.Cases.Count == 0;
                     bool starred = isFail || state.Cases.First().PatternIsSatisfied;
                     result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : ""));
                     var remainingValues = state.RemainingValues.Select(kvp => $"{tempName(kvp.Key)}:{kvp.Value}");
@@ -1743,6 +1741,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        private static FrozenArrayBuilder<T> AsFrozen<T>(ArrayBuilder<T> builder)
+            => new FrozenArrayBuilder<T>(builder);
+
+        /// <summary>
+        /// This is a readonly wrapper around an array builder.  It ensures we can benefit from the pooling an array builder provides, without having to incur 
+        /// intermediary allocations for <see cref="ImmutableArray"/>s.
+        /// </summary>
+        private readonly struct FrozenArrayBuilder<T>
+        {
+            private readonly ArrayBuilder<T> _arrayBuilder;
+
+            public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
+            {
+                Debug.Assert(arrayBuilder != null);
+                if (arrayBuilder.Capacity >= ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Count < ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Capacity >= arrayBuilder.Count * 2)
+                {
+                    // An ArrayBuilder<T> meeting these conditions will satisfy the following:
+                    //
+                    // 1. The current backing array is too large to be returned to the pool (i.e. it will be garbage
+                    //    collected whenever no longer used).
+                    // 2. The resized backing array from trimming is small enough to be returned to the pool (i.e. it
+                    //    will not be wasted after this builder is freed).
+                    // 3. At least half of the storage of the current builder is unused.
+                    //
+                    // If we can save half the space without wasting an array that would fit in the pool, go ahead and
+                    // do so by trimming the array builder.
+                    arrayBuilder.Capacity = arrayBuilder.Count;
+                }
+
+                _arrayBuilder = arrayBuilder;
+            }
+
+#if DEBUG
+
+            public bool IsDefault
+                => _arrayBuilder is null;
+
+#endif
+
+            public void Free()
+                => _arrayBuilder.Free();
+
+            public int Count => _arrayBuilder.Count;
+
+            public T this[int i] => _arrayBuilder[i];
+
+            public T First() => _arrayBuilder.First();
+
+            public ArrayBuilder<T>.Enumerator GetEnumerator() => _arrayBuilder.GetEnumerator();
+
+            public FrozenArrayBuilder<T> RemoveAt(int index)
+            {
+                var builder = ArrayBuilder<T>.GetInstance(this.Count - 1);
+
+                for (int i = 0; i < index; i++)
+                    builder.Add(this[i]);
+
+                for (int i = index + 1, n = this.Count; i < n; i++)
+                    builder.Add(this[i]);
+
+                return AsFrozen(builder);
+            }
+        }
+
         /// <summary>
         /// The state at a given node of the decision finite state automaton. This is used during computation of the state
         /// machine (<see cref="BoundDecisionDag"/>), and contains a representation of the meaning of the state. Because we always make
@@ -1751,6 +1815,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DagState
         {
+            private static readonly ObjectPool<DagState> s_dagStatePool = new ObjectPool<DagState>(static () => new DagState());
+
             /// <summary>
             /// For each dag temp of a type for which we track such things (the integral types, floating-point types, and bool),
             /// the possible values it can take on when control reaches this state.
@@ -1759,18 +1825,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// as the set of possible values can affect successor states.
             /// A <see cref="BoundDagTemp"/> absent from this dictionary means that all values of the type are possible.
             /// </summary>
-            public ImmutableDictionary<BoundDagTemp, IValueSet> RemainingValues { get; private set; }
+            public ImmutableDictionary<BoundDagTemp, IValueSet> RemainingValues { get; private set; } = null!;
 
             /// <summary>
             /// The set of cases that may still match, and for each of them the set of tests that remain to be tested.
             /// </summary>
-            public readonly ImmutableArray<StateForCase> Cases;
-
-            public DagState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
-            {
-                this.Cases = cases;
-                this.RemainingValues = remainingValues;
-            }
+            public FrozenArrayBuilder<StateForCase> Cases { get; private set; }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
             // decision automaton.
@@ -1784,6 +1844,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // After the entire graph of DagState objects is complete, we translate each into its Dag node.
             public BoundDecisionDagNode? Dag;
+
+            private DagState()
+            {
+            }
+
+            /// <summary>
+            /// Created an instance of <see cref="DagState"/>.  Will take ownership of <paramref name="cases"/>.  That
+            /// <see cref="ArrayBuilder{StateForCase}"/> will be returned to its pool when <see cref="ClearAndFree"/> is
+            /// called on this.
+            /// </summary>
+            public static DagState GetInstance(FrozenArrayBuilder<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            {
+                var dagState = s_dagStatePool.Allocate();
+
+#if DEBUG
+
+                Debug.Assert(dagState.Cases.IsDefault);
+                Debug.Assert(dagState.RemainingValues is null);
+                Debug.Assert(dagState.SelectedTest is null);
+                Debug.Assert(dagState.TrueBranch is null);
+                Debug.Assert(dagState.FalseBranch is null);
+                Debug.Assert(dagState.Dag is null);
+
+#endif
+
+                dagState.Cases = cases;
+                dagState.RemainingValues = remainingValues;
+
+                return dagState;
+            }
+
+            public void ClearAndFree()
+            {
+                Cases.Free();
+                Cases = default;
+                RemainingValues = null!;
+                SelectedTest = null;
+                TrueBranch = null;
+                FalseBranch = null;
+                Dag = null;
+
+                s_dagStatePool.Free(this);
+            }
 
             /// <summary>
             /// Decide on what test to use at this node of the decision dag. This is the principal
@@ -1819,12 +1922,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(x is { });
                 RoslynDebug.Assert(y is { });
-                return x == y || x.Cases.SequenceEqual(y.Cases, static (a, b) => a.Equals(b));
+                if (x == y)
+                    return true;
+
+                if (x.Cases.Count != y.Cases.Count)
+                    return false;
+
+                for (int i = 0, n = x.Cases.Count; i < n; i++)
+                {
+                    if (!x.Cases[i].Equals(y.Cases[i]))
+                        return false;
+                }
+
+                return true;
             }
 
             public int GetHashCode(DagState x)
             {
-                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Length);
+                var hashCode = 0;
+                foreach (var value in x.Cases)
+                    hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+
+                return Hash.Combine(hashCode, x.Cases.Count);
             }
         }
 

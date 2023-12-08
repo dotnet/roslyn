@@ -16,16 +16,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptFindUsagesService : IFindUsagesService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesService underlyingService) : IFindUsagesService
     {
-        private readonly IVSTypeScriptFindUsagesService _underlyingService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesService underlyingService)
-        {
-            _underlyingService = underlyingService;
-        }
+        private readonly IVSTypeScriptFindUsagesService _underlyingService = underlyingService;
 
         public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
             => _underlyingService.FindReferencesAsync(document, position, new Context(context), cancellationToken);
@@ -33,14 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
             => _underlyingService.FindImplementationsAsync(document, position, new Context(context), cancellationToken);
 
-        private sealed class Context : IVSTypeScriptFindUsagesContext
+        private sealed class Context(IFindUsagesContext context) : IVSTypeScriptFindUsagesContext
         {
-            private readonly IFindUsagesContext _context;
-
-            public Context(IFindUsagesContext context)
-            {
-                _context = context;
-            }
+            private readonly IFindUsagesContext _context = context;
 
             public IVSTypeScriptStreamingProgressTracker ProgressTracker
                 => new ProgressTracker(_context.ProgressTracker);
@@ -61,14 +51,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 => ValueTaskFactory.CompletedTask;
         }
 
-        private sealed class ProgressTracker : IVSTypeScriptStreamingProgressTracker
+        private sealed class ProgressTracker(IStreamingProgressTracker progressTracker) : IVSTypeScriptStreamingProgressTracker
         {
-            private readonly IStreamingProgressTracker _progressTracker;
-
-            public ProgressTracker(IStreamingProgressTracker progressTracker)
-            {
-                _progressTracker = progressTracker;
-            }
+            private readonly IStreamingProgressTracker _progressTracker = progressTracker;
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _progressTracker.AddItemsAsync(count, cancellationToken);

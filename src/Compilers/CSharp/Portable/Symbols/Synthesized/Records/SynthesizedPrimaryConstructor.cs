@@ -15,23 +15,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedPrimaryConstructor : SourceConstructorSymbolBase
     {
         private IReadOnlyDictionary<ParameterSymbol, FieldSymbol>? _capturedParameters = null;
+        private IReadOnlySet<ParameterSymbol>? _parametersPassedToTheBase = null;
 
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
              TypeDeclarationSyntax syntax) :
-             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
+             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false, MakeModifiersAndFlags(containingType, syntax))
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
 
-            this.MakeFlags(
-                MethodKind.Constructor,
-                containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
-                returnsVoid: true,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
+            if (syntax.PrimaryConstructorBaseTypeIfClass is not PrimaryConstructorBaseTypeSyntax { ArgumentList.Arguments.Count: not 0 })
+            {
+                _parametersPassedToTheBase = SpecializedCollections.EmptyReadOnlySet<ParameterSymbol>();
+            }
+        }
+
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, TypeDeclarationSyntax syntax)
+        {
+            Debug.Assert(syntax.ParameterList != null);
+
+            DeclarationModifiers declarationModifiers = containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public;
+            Flags flags = MakeFlags(
+                                    MethodKind.Constructor,
+                                    RefKind.None,
+                                    declarationModifiers,
+                                    returnsVoid: true,
+                                    returnsVoidIsSet: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isVarArg: syntax.ParameterList.IsVarArg(),
+                                    isNullableAnalysisEnabled: false, // IsNullableAnalysisEnabled uses containing type instead.
+                                    isExplicitInterfaceImplementation: false);
+
+            return (declarationModifiers, flags);
         }
 
         internal TypeDeclarationSyntax GetSyntax()
@@ -68,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public new SourceMemberContainerTypeSymbol ContainingType => (SourceMemberContainerTypeSymbol)base.ContainingType;
 
         protected override bool AllowRefOrOut => !(ContainingType is { IsRecord: true } or { IsRecordStruct: true });
-
-        internal override bool IsExpressionBodied => false;
 
         internal override bool IsNullableAnalysisEnabled()
         {
@@ -167,6 +184,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             target.GetLocation(), target.ToString(), (AttributeOwner.AllowedAttributeLocations & ~AttributeLocation.Method).ToDisplayString());
 
             return false;
+        }
+
+        public IReadOnlySet<ParameterSymbol> GetParametersPassedToTheBase()
+        {
+            if (_parametersPassedToTheBase != null)
+            {
+                return _parametersPassedToTheBase;
+            }
+
+            TryGetBodyBinder().BindConstructorInitializer(GetSyntax().PrimaryConstructorBaseTypeIfClass, BindingDiagnosticBag.Discarded);
+
+            if (_parametersPassedToTheBase is null)
+            {
+                _parametersPassedToTheBase = SpecializedCollections.EmptyReadOnlySet<ParameterSymbol>();
+            }
+
+            return _parametersPassedToTheBase;
+        }
+
+        internal void SetParametersPassedToTheBase(IReadOnlySet<ParameterSymbol> value)
+        {
+#if DEBUG
+            var oldSet = _parametersPassedToTheBase;
+
+            if (oldSet is not null)
+            {
+                int count = oldSet.Count;
+                Debug.Assert(count == value.Count);
+
+                if (count != 0)
+                {
+                    foreach (ParameterSymbol p in Parameters)
+                    {
+                        if (value.Contains(p))
+                        {
+                            count--;
+                            Debug.Assert(oldSet.Contains(p));
+                        }
+                    }
+
+                    Debug.Assert(count == 0);
+                }
+            }
+#endif
+            _parametersPassedToTheBase = value;
         }
     }
 }

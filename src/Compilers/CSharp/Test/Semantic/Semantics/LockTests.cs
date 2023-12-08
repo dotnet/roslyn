@@ -449,22 +449,23 @@ class D
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1026: ) expected
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "object"),
-                // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object"),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "object").WithLocation(6, 26),
                 // (6,32): error CS1001: Identifier expected
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-                // (6,32): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 32),
+                // (6,32): error CS1003: Syntax error, ',' expected
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (6,32): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 32),
+                // (6,33): error CS1002: ; expected
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 33),
                 // (6,19): error CS0103: The name 'varnew' does not exist in the current context
                 //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew"));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew").WithLocation(6, 19),
+                // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             lock (varnew object)
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, @"object)
+").WithLocation(6, 26));
         }
 
         [Fact]

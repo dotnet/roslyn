@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
             }
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var triggerText = sourceText.ToString(triggerToken.Span);
 
             return new SymbolicRenameInfo(

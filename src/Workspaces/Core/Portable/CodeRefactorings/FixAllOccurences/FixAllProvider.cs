@@ -91,20 +91,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
         }
 
-        private sealed class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
+        private sealed class CallbackDocumentBasedFixAllProvider(
+            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+            ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
         {
-            private readonly Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> _fixAllAsync;
-
-            public CallbackDocumentBasedFixAllProvider(
-                Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
-                ImmutableArray<FixAllScope> supportedFixAllScopes)
-                : base(supportedFixAllScopes)
-            {
-                _fixAllAsync = fixAllAsync;
-            }
-
             protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
-                => _fixAllAsync(context, document, fixAllSpans);
+                => fixAllAsync(context, document, fixAllSpans);
         }
     }
 }

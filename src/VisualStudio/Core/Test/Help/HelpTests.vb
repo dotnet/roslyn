@@ -2249,6 +2249,15 @@ Module Program
     End Sub
 End Module]]></a>.Value, "System.Int32.ToString")
         End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68003")>
+        Public Async Function TestNameOfExpression() As Task
+            Await TestAsync(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        Dim x = NameOf[||](args)
+    End Sub
+End Module]]></a>.Value, "vb.NameOf")
+        End Function
     End Class
 End Namespace
 

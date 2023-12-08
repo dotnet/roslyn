@@ -37,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 [option] As CodeStyleOption2(Of AccessibilityModifiersRequired),
                 member As StatementSyntax)
 
+            If Not context.ShouldAnalyzeSpan(member.Span) Then
+                Return
+            End If
+
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
                 ProcessMembers(context, [option], namespaceBlock.Members)
@@ -62,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
-                [option].Notification.Severity,
+                [option].Notification,
                 additionalLocations:=additionalLocations,
                 If(modifiersAdded, ModifiersAddedProperties, Nothing)))
         End Sub

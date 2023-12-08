@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,39 +21,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private class GenerateConstructorWithDialogCodeAction : CodeActionWithOptions
+        private class GenerateConstructorWithDialogCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            Accessibility? desiredAccessibility,
+            ImmutableArray<ISymbol> viableMembers,
+            ImmutableArray<PickMembersOption> pickMembersOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly Accessibility? _desiredAccessibility;
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly TextSpan _textSpan;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly Document _document = document;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
-            internal ImmutableArray<ISymbol> ViableMembers { get; }
-            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; }
+            internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
+            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
 
             public override string Title => FeaturesResources.Generate_constructor;
-
-            public GenerateConstructorWithDialogCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                Accessibility? desiredAccessibility,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _textSpan = textSpan;
-                _containingType = containingType;
-                _desiredAccessibility = desiredAccessibility;
-                ViableMembers = viableMembers;
-                PickMembersOptions = pickMembersOptions;
-                _fallbackOptions = fallbackOptions;
-            }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
@@ -65,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, CancellationToken cancellationToken)
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -76,10 +64,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
                 if (addNullChecksOption != null)
                 {
+                    // ILegacyGlobalOptionsWorkspaceService is guaranteed to be not null here because we have checked it before the code action is provided.
+                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                     globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
                 }
 
@@ -102,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
                         var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
-                        return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                        return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                     }
 
                     var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
@@ -118,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
                         : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
 
-                    return await codeAction.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                    return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

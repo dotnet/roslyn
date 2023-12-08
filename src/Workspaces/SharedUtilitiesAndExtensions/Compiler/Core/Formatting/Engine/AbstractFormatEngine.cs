@@ -131,31 +131,35 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            List<IndentBlockOperation> indentBlockOperation = new();
-            List<SuppressOperation> suppressOperation = new();
-            List<AlignTokensOperation> alignmentOperation = new();
-            List<AnchorIndentationOperation> anchorIndentationOperations = new();
+            var nodeOperations = new NodeOperations();
 
-            List<IndentBlockOperation> indentBlockOperationScratch = new();
-            List<SuppressOperation> suppressOperationScratch = new();
-            List<AlignTokensOperation> alignmentOperationScratch = new();
-            List<AnchorIndentationOperation> anchorIndentationOperationsScratch = new();
+            var indentBlockOperation = new List<IndentBlockOperation>();
+            var suppressOperation = new List<SuppressOperation>();
+            var alignmentOperation = new List<AlignTokensOperation>();
+            var anchorIndentationOperations = new List<AnchorIndentationOperation>();
+
+            // Cache delegates out here to avoid allocation overhead.
+
+            var addIndentBlockOperations = _formattingRules.AddIndentBlockOperations;
+            var addSuppressOperation = _formattingRules.AddSuppressOperations;
+            var addAlignTokensOperations = _formattingRules.AddAlignTokensOperations;
+            var addAnchorIndentationOperations = _formattingRules.AddAnchorIndentationOperations;
 
             // iterating tree is very expensive. only do it once.
             foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                AddOperations(indentBlockOperation, indentBlockOperationScratch, node, _formattingRules.AddIndentBlockOperations);
-                AddOperations(suppressOperation, suppressOperationScratch, node, _formattingRules.AddSuppressOperations);
-                AddOperations(alignmentOperation, alignmentOperationScratch, node, _formattingRules.AddAlignTokensOperations);
-                AddOperations(anchorIndentationOperations, anchorIndentationOperationsScratch, node, _formattingRules.AddAnchorIndentationOperations);
+                AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperation, node, addIndentBlockOperations);
+                AddOperations(nodeOperations.SuppressOperation, suppressOperation, node, addSuppressOperation);
+                AddOperations(nodeOperations.AlignmentOperation, alignmentOperation, node, addAlignTokensOperations);
+                AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperations, node, addAnchorIndentationOperations);
             }
 
             // make sure we order align operation from left to right
-            alignmentOperation.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
+            alignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
 
-            return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
+            return nodeOperations;
         }
 
         private static void AddOperations<T>(List<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)

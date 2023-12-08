@@ -25,7 +25,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
     [ExportWorkspaceService(typeof(IDesignerAttributeDiscoveryService)), Shared]
-    internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider) : IDesignerAttributeDiscoveryService
     {
         /// <summary>
         /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<bool>> s_metadataIdToDesignerAttributeInfo = new();
 
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
         /// <summary>
         /// Protects mutable state in this type.
@@ -45,13 +47,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// don't change.
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
-        }
 
         private static async ValueTask<bool> HasDesignerCategoryTypeAsync(Project project, CancellationToken cancellationToken)
         {
@@ -89,7 +84,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 var asyncLazy = s_metadataIdToDesignerAttributeInfo.GetValue(
                     metadataId, _ => AsyncLazy.Create(cancellationToken =>
-                        ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken), cacheResult: true));
+                        ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken)));
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -159,7 +154,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // The top level project version for this project.  We only care if anything top level changes here.
             // Downstream impact will already happen due to us keying off of the references a project has (which will
             // change if anything it depends on changes).
-            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
+            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
 
             // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
             // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are

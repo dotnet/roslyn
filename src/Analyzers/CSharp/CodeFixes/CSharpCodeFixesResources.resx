@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Remove_Unnecessary_Usings" xml:space="preserve">
-    <value>Remove Unnecessary Usings</value>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
   </data>
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
@@ -244,5 +244,17 @@
   <data name="Make_property_required" xml:space="preserve">
     <value>Make property 'required'</value>
     <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Use_primary_constructor_and_remove_members" xml:space="preserve">
+    <value>Use primary constructor (and remove members)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_fields" xml:space="preserve">
+    <value>Use primary constructor (and remove fields)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_properties" xml:space="preserve">
+    <value>Use primary constructor (and remove properties)</value>
+  </data>
+  <data name="Use_collection_expression" xml:space="preserve">
+    <value>Use collection expression</value>
   </data>
 </root>

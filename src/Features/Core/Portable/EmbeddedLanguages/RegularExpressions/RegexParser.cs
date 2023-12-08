@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private static bool IsEscapedMinus([NotNullWhen(true)] RegexNode? node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
-        private readonly bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
+        private static bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private readonly bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
+        private static bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
         {
             switch (component.Kind)
             {
