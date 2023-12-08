@@ -12,6 +12,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
+using Microsoft.VisualStudio.Search.UI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using WindowsInput;
@@ -109,8 +110,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.NavigateTo], cancellationToken);
             // Since the all-in-one search experience populates its results asychronously we need
             // to give it time to update the UI. Note: This is not a perfect solution.
-            await Task.Delay(1000);
-            await WaitForApplicationIdleAsync(cancellationToken);
+            await TestServices.JoinableTaskFactory.RunAsync(async () =>
+            {
+                var searchControlBroker = await TestServices.Shell.GetComponentModelServiceAsync<ISearchControlBroker>(cancellationToken);
+                await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var searchControl = searchControlBroker.GetFocusedSearchControl();
+                await searchControl.WaitForSearchToCompleteAsync();
+            });
         }
 
         internal async Task MoveMouseAsync(Point point, CancellationToken cancellationToken)

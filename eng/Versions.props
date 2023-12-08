@@ -157,6 +157,7 @@
     <MicrosoftVisualStudioDiagnosticsMeasurementVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioDiagnosticsMeasurementVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>17.8.36726</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
+    <MicrosoftVisualStudioSearchVersion>17.5.0-preview-1-33102-208</MicrosoftVisualStudioSearchVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>
     <MicrosoftVisualStudioExtensibilityTestingXunitVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
