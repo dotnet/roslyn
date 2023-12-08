@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -83,26 +82,17 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true)
         {
-            var savedCulture = CultureInfo.CurrentCulture;
-            try
-            {
-                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
-                var emitData = GetEmitData();
-                emitData.RuntimeData.ExecuteRequested = true;
-                var (exitCode, output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
+            var emitData = GetEmitData();
+            emitData.RuntimeData.ExecuteRequested = true;
+            var (exitCode, output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
 
-                if (expectedOutput != null)
-                {
-                    if (trimOutput ? (expectedOutput.Trim() != output.Trim()) : (expectedOutput != output))
-                        throw new ExecutionException(expectedOutput, output, moduleName);
-                }
-
-                return exitCode;
-            }
-            finally
+            if (expectedOutput != null)
             {
-                CultureInfo.CurrentCulture = savedCulture;
+                if (trimOutput ? (expectedOutput.Trim() != output.Trim()) : (expectedOutput != output))
+                    throw new ExecutionException(expectedOutput, output, moduleName);
             }
+
+            return exitCode;
         }
 
         private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit before calling this method");
