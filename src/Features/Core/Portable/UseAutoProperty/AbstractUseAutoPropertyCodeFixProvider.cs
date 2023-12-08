@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
                 fieldSymbol, propertySymbol.Name,
-                nonConflictSymbolKeys: default,// nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)),
+                nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)),
                 context.Options, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
