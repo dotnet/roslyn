@@ -203,7 +203,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == WorkspaceKind.Host);
+        var (hostWorkspace, hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind is WorkspaceKind.Host);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
         return (hostWorkspace, hostWorkspaceSolution);

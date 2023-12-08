@@ -637,4 +637,7 @@
   <data name="Allow_blank_line_after_token_in_arrow_expression_clause" xml:space="preserve">
     <value>Allow blank line after token in arrow expression clause</value>
   </data>
+  <data name="SemanticSearch" xml:space="preserve">
+    <value>Semantic Search</value>
+  </data>
 </root>

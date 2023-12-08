@@ -77,7 +77,11 @@ internal partial class StreamingFindUsagesPresenter
 
             using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
-            if (definition.SourceSpans.Length == 1 && definition.MetadataLocations.IsEmpty)
+            if (definition.SourceSpans.IsEmpty && definition.MetadataLocations.IsEmpty)
+            {
+                entries.Add(new NonNavigableDefinitionItemEntry(this, definitionBucket));
+            }
+            else if (definition.SourceSpans.Length == 1 && definition.MetadataLocations.IsEmpty)
             {
                 // If we only have a single location, then use the DisplayParts of the
                 // definition as what to show.  That way we show enough information for things
