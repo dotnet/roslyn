@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static void LogResetStates(CountLogAggregator<object> logAggregator)
             => logAggregator.IncreaseCount(ResetStates);
 
-        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers)
+        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator)
         {
             Logger.Log(FunctionId.IncrementalAnalyzerProcessor_Shutdown, KeyValueLogMessage.Create(m =>
             {

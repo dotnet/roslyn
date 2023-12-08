@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             // all accumultation is done in VS side and we only send statistics to VS telemetry otherwise, it is too much
                             // data to send
                             UnitTestingSolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
-                                Processor._registration.CorrelationId, oldSolution, Processor._logAggregator, Analyzers);
+                                Processor._registration.CorrelationId, oldSolution, Processor._logAggregator);
 
                             Processor.ResetLogAggregator();
                         }
