@@ -6399,7 +6399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expanded)
             {
-                expandParamsArray(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
+                expandParamsCollection(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
             }
             else
             {
@@ -6596,7 +6596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                        };
             }
 
-            static void expandParamsArray(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
+            static void expandParamsCollection(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
             {
                 // It looks like in some error scenarios we can get here without params array created.
                 // At the moment, there is only one test that gets here like that - Microsoft.CodeAnalysis.CSharp.UnitTests.AttributeTests.TestBadParamsCtor.
@@ -6618,6 +6618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            // PROTOTYPE(ParamsCollections): Add meaningful tests to verify that conversions are handled properly etc.
                             elements = ((BoundCollectionExpression)((BoundConversion)argument).Operand).UnconvertedCollectionExpression.Elements.CastArray<BoundExpression>();
                         }
 
