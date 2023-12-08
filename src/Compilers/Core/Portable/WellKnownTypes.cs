@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Collections_IList,
         System_Collections_ICollection,
+        System_Collections_Immutable_ImmutableArray_T,
         System_Collections_Generic_EqualityComparer_T,
         System_Collections_Generic_List_T,
         System_Collections_Generic_IDictionary_KV,
@@ -251,10 +253,10 @@ namespace Microsoft.CodeAnalysis
 
         System_ValueTuple,
         System_ValueTuple_T1,
-        System_ValueTuple_T2,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
         System_ValueTuple_T5,
@@ -313,6 +315,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
         System_Runtime_InteropServices_MemoryMarshal,
+        System_Runtime_InteropServices_CollectionsMarshal,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal,
 
         System_Text_StringBuilder,
 
@@ -517,6 +521,7 @@ namespace Microsoft.CodeAnalysis
 
             "System.Collections.IList",
             "System.Collections.ICollection",
+            "System.Collections.Immutable.ImmutableArray`1",
             "System.Collections.Generic.EqualityComparer`1",
             "System.Collections.Generic.List`1",
             "System.Collections.Generic.IDictionary`2",
@@ -577,10 +582,10 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple",
             "System.ValueTuple`1",
-            "System.ValueTuple`2",
 
             "", // extension marker
 
+            "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
             "System.ValueTuple`5",
@@ -640,6 +645,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
             "System.Runtime.InteropServices.MemoryMarshal",
+            "System.Runtime.InteropServices.CollectionsMarshal",
+            "System.Runtime.InteropServices.ImmutableCollectionsMarshal",
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",

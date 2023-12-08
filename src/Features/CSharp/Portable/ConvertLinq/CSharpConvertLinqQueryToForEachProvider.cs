@@ -436,8 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         // a = new List<T>(); or var a = new List<T>();
                         // foreach(...)
                         variableLocal = variableExpression;
-                        nodesBeforeLocal = new[] { parentStatement.ReplaceNode(invocationExpression, initializer.WithAdditionalAnnotations(Simplifier.Annotation)) };
-                        nodesAfterLocal = new StatementSyntax[] { };
+                        nodesBeforeLocal = [parentStatement.ReplaceNode(invocationExpression, initializer.WithAdditionalAnnotations(Simplifier.Annotation))];
+                        nodesAfterLocal = [];
                     }
                     else
                     {
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         // IReadOnlyList<int> a = list;
                         variableLocal = SyntaxFactory.IdentifierName(symbolName);
                         nodesBeforeLocal = new[] { CreateLocalDeclarationStatement(symbolName, initializer, generateTypeFromExpression: false) };
-                        nodesAfterLocal = new StatementSyntax[] { parentStatement.ReplaceNode(invocationExpression, variableLocal.WithAdditionalAnnotations(Simplifier.Annotation)) };
+                        nodesAfterLocal = [parentStatement.ReplaceNode(invocationExpression, variableLocal.WithAdditionalAnnotations(Simplifier.Annotation))];
                     }
                 }
 

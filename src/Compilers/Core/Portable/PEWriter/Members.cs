@@ -484,8 +484,14 @@ namespace Microsoft.Cci
         /// </summary>
         ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
-        ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
-        ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        ImmutableArray<EncClosureInfo> ClosureDebugInfo { get; }
+        ImmutableArray<EncLambdaInfo> LambdaDebugInfo { get; }
+
+        /// <summary>
+        /// Ordered by <see cref="LambdaRuntimeRudeEditInfo.LambdaId"/>.
+        /// </summary>
+        ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits { get; }
+
         StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
         /// <summary>
@@ -506,21 +512,25 @@ namespace Microsoft.Cci
     internal interface IMethodDefinition : ITypeDefinitionMember, IMethodReference
     {
         /// <summary>
+        /// True if the method definition has a body.
+        /// </summary>
+        /// <remarks>
+        /// Returns true regardless of whether the body ends up actually emitted or not.
+        /// </remarks>
+        bool HasBody { get; }
+
+        /// <summary>
         /// A container for a list of IL instructions providing the implementation (if any) of this method.
         /// </summary>
         /// <remarks>
-        /// When emitting metadata-only assemblies this returns null even if <see cref="Cci.Extensions.HasBody"/> returns true.
+        /// When emitting metadata-only assemblies this returns null even if <see cref="HasBody"/> returns true.
         /// </remarks>
-        IMethodBody GetBody(EmitContext context);
+        IMethodBody? GetBody(EmitContext context);
 
         /// <summary>
         /// If the method is generic then this list contains the type parameters.
         /// </summary>
-        IEnumerable<IGenericMethodParameter> GenericParameters
-        {
-            get;
-            // ^ requires this.IsGeneric;
-        }
+        IEnumerable<IGenericMethodParameter> GenericParameters { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
@@ -923,17 +933,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The number of generic parameters of the method. Zero if the referenced method is not generic.
         /// </summary>
-        ushort GenericParameterCount
-        {
-            get;
-            // ^ ensures !this.IsGeneric ==> result == 0;
-            // ^ ensures this.IsGeneric ==> result > 0;
-        }
-
-        /// <summary>
-        /// True if the method has generic parameters;
-        /// </summary>
-        bool IsGeneric { get; }
+        ushort GenericParameterCount { get; }
 
         /// <summary>
         /// The method being referred to.
@@ -986,17 +986,22 @@ namespace Microsoft.Cci
         new string Name { get; }
     }
 
-    internal static class Extensions
+    /// <summary>
+    /// Default implementations for interface methods.
+    /// </summary>
+    internal static class DefaultImplementations
     {
-        internal static bool HasBody(this IMethodDefinition methodDef)
+        internal static bool HasBody(IMethodDefinition methodDef)
         {
             // Method definition has body if it is a non-abstract, non-extern method.
             // Additionally, methods within COM types have no body.
 
-            return !methodDef.IsAbstract && !methodDef.IsExternal &&
-                (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
+            return !methodDef.IsAbstract && !methodDef.IsExternal && !methodDef.ContainingTypeDefinition.IsComObject;
         }
+    }
 
+    internal static class Extensions
+    {
         /// <summary>
         /// When emitting ref assemblies, some members will not be included.
         /// </summary>

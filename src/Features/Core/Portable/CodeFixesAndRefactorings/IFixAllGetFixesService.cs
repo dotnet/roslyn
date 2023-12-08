@@ -27,7 +27,15 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// <summary>
         /// Previews the changes that would occur after a code fix and returns the updated solution with those changes.
         /// </summary>
-        Solution? PreviewChanges(Solution currentSolution, Solution newSolution, string fixAllPreviewChangesTitle, string fixAllTopLevelHeader,
-            FixAllKind fixAllKind, string? languageOpt, Workspace workspace, int? correlationId = null, CancellationToken cancellationToken = default);
+        Solution? PreviewChanges(
+            Workspace workspace,
+            Solution currentSolution,
+            Solution newSolution,
+            FixAllKind fixAllKind,
+            string previewChangesTitle,
+            string topLevelHeader,
+            string? language,
+            int? correlationId,
+            CancellationToken cancellationToken);
     }
 }

@@ -20,7 +20,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
+    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
+        : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport>
     {
         public AbstractDocumentPullDiagnosticHandler(
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
         /// </summary>
-        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
+        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource);
 
         protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
                     additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                     additionalDiagnostic.Range = GetRange(location);
-                    additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
+                    additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
                     diagnosticsBuilder.Add(additionalDiagnostic);
                 }
 
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
             else
             {
-                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : new DiagnosticTag[] { DiagnosticTag.Unnecessary };
+                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : [DiagnosticTag.Unnecessary];
                 var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
                 {
                     Location = new LSP.Location
@@ -400,24 +401,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
-                    Tags = ConvertTags(diagnosticData),
+                    Tags = ConvertTags(diagnosticData, diagnosticSource.IsLiveSource()),
                     DiagnosticRank = ConvertRank(diagnosticData),
+                    Range = GetRange(diagnosticData.DataLocation)
                 };
-
-                diagnostic.Range = GetRange(diagnosticData.DataLocation);
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
                     diagnostic.DiagnosticType = diagnosticData.Category;
                     diagnostic.ExpandedMessage = diagnosticData.Description;
-                    diagnostic.Projects = new[]
-                    {
+                    diagnostic.Projects =
+                    [
                         new VSDiagnosticProjectInformation
                         {
                             ProjectIdentifier = project.Id.Id.ToString(),
                             ProjectName = project.Name,
                         },
-                    };
+                    ];
 
                     // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
                     // to be merged from separate projects if they have the same code, filepath, range, and message.
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
+        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -540,8 +540,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticData.CustomTags.Contains(PullDiagnosticConstants.TaskItemCustomTag))
                 result.Add(VSDiagnosticTags.TaskItem);
 
+            // Let the host know that these errors represent potentially stale information from the past that should
+            // be superseded by fresher info.
             if (potentialDuplicate)
                 result.Add(VSDiagnosticTags.PotentialDuplicate);
+
+            // Mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
+            // override it.
+            if (!isLiveSource)
+                result.Add(VSDiagnosticTags.BuildError);
 
             result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
                 ? VSDiagnosticTags.BuildError

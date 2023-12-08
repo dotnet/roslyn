@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
@@ -93,8 +92,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
                     newSetAccessor == null
-                        ? new SyntaxNode[] { newGetAccessor }
-                        : new SyntaxNode[] { newGetAccessor, newSetAccessor })
+                        ? [newGetAccessor]
+                        : [newGetAccessor, newSetAccessor])
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
 

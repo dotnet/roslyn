@@ -551,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return 1;
                 default:
                     return 0;
@@ -597,7 +599,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReturningCallAndAwait:
                 case ErrorCode.ERR_SpecialByRefInLambda:
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
@@ -613,6 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
                 case ErrorCode.ERR_InterceptorArityNotCompatible:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -1883,8 +1887,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadDynamicAwaitForEach:
                 case ErrorCode.ERR_NoConvToIAsyncDispWrongAsync:
                 case ErrorCode.ERR_NoConvToIDispWrongAsync:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis:
                 case ErrorCode.ERR_AttributeNotOnEventAccessor:
@@ -2403,6 +2405,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.ERR_ExpectedInterpolatedString:
                 case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
+                case ErrorCode.ERR_InvalidExperimentalDiagID:
+                case ErrorCode.ERR_SpreadMissingMember:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
@@ -2443,6 +2450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
+                case ErrorCode.ERR_DefaultValueUsedWithAttributes:
+                case ErrorCode.ERR_ExplicitParamArray:
                     return false;
                 default:
                     return true;

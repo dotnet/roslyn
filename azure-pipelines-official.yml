@@ -46,11 +46,7 @@ variables:
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
-  # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
-  # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  - group: DotNet-Blob-Feed
-  - group: DotNet-Symbol-Server-Pats
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
@@ -200,12 +196,7 @@ stages:
                    /p:RepositoryName=$(Build.Repository.Name)
                    /p:VisualStudioDropName=$(VisualStudio.DropName)
                    /p:DotNetSignType=$(SignType)
-                   /p:DotNetPublishToBlobFeed=true
-                   /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                   /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
                    /p:PublishToSymbolServer=true
-                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
@@ -309,21 +300,6 @@ stages:
         PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
         ArtifactName: 'PackageArtifacts'
       condition: succeeded()
-
-    # Publish language server package
-    - powershell: Write-Host "##vso[task.setvariable variable=NPMFileName]$((ls -file $(Build.SourcesDirectory)\artifacts\packages\Release\NPM\ | select -First 1).FullName)"
-      displayName: Setting NPM Package Variable
-
-    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
-    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
-    - task: npmAuthenticate@0
-      displayName: Authenticate NPM Feed
-      inputs:
-        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/DevKit/Impl/.npmrc
-        customEndpoint: devdiv-vs-green-npm-package-feed
-
-    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\DevKit\Impl\.npmrc $(NPMFileName)
-      displayName: Publish Language Server NPM Package
 
     # Publish Asset Manifests for Build Asset Registry job
     - task: PublishBuildArtifacts@1

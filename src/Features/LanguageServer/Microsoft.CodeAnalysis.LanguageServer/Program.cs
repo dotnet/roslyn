@@ -74,7 +74,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
+    logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
+
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -177,12 +179,6 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var sharedDependenciesOption = new CliOption<string?>("--sharedDependencies")
-    {
-        Description = "Full path of the directory containing shared assemblies (optional).",
-        Required = false
-    };
-
     var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension", "--extensions") // TODO: remove plural form
     {
         Description = "Full paths of extension assemblies to load (optional).",
@@ -197,7 +193,6 @@ static CliRootCommand CreateCommandLineParser()
         starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
-        sharedDependenciesOption,
         extensionAssemblyPathsOption,
         extensionLogDirectoryOption
     };
@@ -208,7 +203,6 @@ static CliRootCommand CreateCommandLineParser()
         var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
-        var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
@@ -218,7 +212,6 @@ static CliRootCommand CreateCommandLineParser()
             StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
-            SharedDependenciesPath: sharedDependenciesPath,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             ExtensionLogDirectory: extensionLogDirectory);
 
@@ -233,7 +226,10 @@ static (string clientPipe, string serverPipe) CreateNewPipeNames()
     const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
     const string WINDOWS_DOTNET_PREFIX = @"\\.\";
 
-    var pipeName = Guid.NewGuid().ToString();
+    // The pipe name constructed by some systems is very long (due to temp path).
+    // Shorten the unique id for the pipe. 
+    var newGuid = Guid.NewGuid().ToString();
+    var pipeName = newGuid.Split('-')[0];
 
     return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)

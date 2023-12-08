@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -390,6 +391,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsClosureScope(SyntaxNode node)
             => LambdaUtilities.IsClosureScope(node);
+
+        internal override SyntaxNode GetCapturedParameterScope(SyntaxNode methodOrLambda)
+            => methodOrLambda switch
+            {
+                // lambda/local function parameter:
+                AnonymousFunctionExpressionSyntax lambda => lambda.Body,
+                // ctor parameter captured by a lambda in a ctor initializer:
+                ConstructorDeclarationSyntax ctor => ctor,
+                // block statement or arrow expression:
+                BaseMethodDeclarationSyntax method => method.Body ?? (SyntaxNode?)method.ExpressionBody!,
+                // primary constructor parameter:
+                ParameterListSyntax parameters => parameters.Parent!,
+                // top-level args:
+                CompilationUnitSyntax top => top,
+                _ => throw ExceptionUtilities.UnexpectedValue(methodOrLambda)
+            };
 
         protected override LambdaBody? FindEnclosingLambdaBody(SyntaxNode encompassingAncestor, SyntaxNode node)
         {
@@ -2310,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var node = displayNode ?? _newNode ?? _oldNode;
                 var displayName = GetDisplayName(node!, _kind);
 
-                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
+                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: [displayName]));
             }
 
             private TextSpan GetSpan()
@@ -2560,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     rudeEditKind,
                     GetDiagnosticSpan(newNode, EditKind.Insert),
                     newNode,
-                    arguments: new[] { GetDisplayName(newNode, EditKind.Insert) }));
+                    arguments: [GetDisplayName(newNode, EditKind.Insert)]));
             }
         }
 

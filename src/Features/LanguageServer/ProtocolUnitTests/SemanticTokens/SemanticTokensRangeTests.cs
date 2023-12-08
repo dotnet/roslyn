@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +12,8 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+
+#pragma warning disable format // We want to force explicit column spacing within the collection literals in this file, so we disable formatting.
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
@@ -40,8 +40,8 @@ static class C { }
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
@@ -49,12 +49,12 @@ static class C { }
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
@@ -62,7 +62,7 @@ static class C { }
                        0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
@@ -130,8 +130,8 @@ var z = 1;
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        12,    0,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
                        0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],         0, // 'z'
@@ -141,12 +141,12 @@ var z = 1;
                        17,    3,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
                        0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],         0, // 'x'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        12,    0,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
                        0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],               0, // 'z'
@@ -156,7 +156,7 @@ var z = 1;
                        17,    3,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
                        0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],               0, // 'x'
                        0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
@@ -184,27 +184,27 @@ static class C { }
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
                        0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
                        0,     7,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
@@ -234,8 +234,8 @@ three */ }
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],   0, // 'C'
@@ -244,12 +244,12 @@ three */ }
                        2,     0,     3,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'two'
                        1,     0,     8,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'three */'
                        0,     9,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   0, // 'C'
@@ -258,7 +258,7 @@ three */ }
                        2,     0,     3,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'two'
                        1,     0,     8,    tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // 'three */'
                        0,     9,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
@@ -293,8 +293,8 @@ three"";
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],             0, // 'C'
@@ -314,12 +314,12 @@ three"";
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
                        1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'class'
                        0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],             0, // 'C'
@@ -339,7 +339,7 @@ three"";
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
                        1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
@@ -374,8 +374,8 @@ class C
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
                        0,     6,     6,    tokenTypeToIndex[ClassificationTypeNames.NamespaceName],         0, // 'System'
@@ -408,12 +408,12 @@ class C
                        0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
                        1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
                        0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
@@ -446,7 +446,7 @@ class C
                        0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // }
                        1,     0,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // }
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
@@ -483,8 +483,8 @@ class C
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
                        0,     6,     6,    tokenTypeToIndex[ClassificationTypeNames.NamespaceName],         0, // 'System'
@@ -523,12 +523,12 @@ class C
                        0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
                        1,     0,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // }
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'using'
                        0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],         0, // 'System'
@@ -567,7 +567,7 @@ class C
                        0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // ';'
                        1,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // }
                        1,     0,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // }
-                };
+                ];
             }
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);

@@ -187,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsClosureScope(node)
         End Function
 
+        Friend Overrides Function GetCapturedParameterScope(methodOrLambda As SyntaxNode) As SyntaxNode
+            Return methodOrLambda
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(encompassingAncestor As SyntaxNode, node As SyntaxNode) As LambdaBody
             While node IsNot encompassingAncestor And node IsNot Nothing
                 Dim body As SyntaxNode = Nothing
@@ -618,8 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' declarations that never have a block
 
                 Case SyntaxKind.ModifiedIdentifier
-                    Contract.ThrowIfFalse(
-                        parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+                    ' Field defined in a field declaration, or a locla variable defined in local declaration, For Each, For, Using, etc.
                     Return syntax
 
                 Case SyntaxKind.VariableDeclarator

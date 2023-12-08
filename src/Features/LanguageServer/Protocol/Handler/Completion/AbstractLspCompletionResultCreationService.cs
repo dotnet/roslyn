@@ -65,17 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
-            // By default, Roslyn would treat continuous alphabetical text as a single word for completion purpose.
-            // e.g. when user triggers completion at the location of {$} in "pub{$}class", the span would cover "pubclass",
-            // which is used for subsequent matching and commit.
-            // This works fine for VS async-completion, where we have full control of entire completion process.
-            // However, the insert mode in VSCode (i.e. the mode our LSP server supports) expects us to return TextEdit that only
-            // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
-            // adjust the span accordingly.
-            var defaultSpan = !capabilityHelper.SupportVSInternalClientCapabilities && position < list.Span.End
-                ? new(list.Span.Start, length: position - list.Span.Start)
-                : list.Span;
-
+            var defaultSpan = list.Span;
             var typedText = documentText.GetSubText(defaultSpan).ToString();
             foreach (var item in list.ItemsList)
             {

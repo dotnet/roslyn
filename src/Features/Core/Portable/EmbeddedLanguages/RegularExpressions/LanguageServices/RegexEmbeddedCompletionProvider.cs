@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,26 +93,28 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 return;
             }
 
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var properties);
             foreach (var embeddedItem in embeddedContext.Items)
             {
+                properties.Clear();
+
                 var change = embeddedItem.Change;
                 var textChange = change.TextChange;
 
-                var properties = ImmutableDictionary.CreateBuilder<string, string>();
-                properties.Add(StartKey, textChange.Span.Start.ToString());
-                properties.Add(LengthKey, textChange.Span.Length.ToString());
-                properties.Add(NewTextKey, textChange.NewText);
-                properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(new KeyValuePair<string, string>(StartKey, textChange.Span.Start.ToString()));
+                properties.Add(new KeyValuePair<string, string>(LengthKey, textChange.Span.Length.ToString()));
+                properties.Add(new KeyValuePair<string, string>(NewTextKey, textChange.NewText));
+                properties.Add(new KeyValuePair<string, string>(DescriptionKey, embeddedItem.FullDescription));
+                properties.Add(new KeyValuePair<string, string>(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
                 if (change.NewPosition != null)
                 {
-                    properties.Add(NewPositionKey, change.NewPosition.ToString());
+                    properties.Add(new KeyValuePair<string, string>(NewPositionKey, change.NewPosition.ToString()));
                 }
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");
-                context.AddItem(CompletionItem.Create(
+                context.AddItem(CompletionItem.CreateInternal(
                     displayText: embeddedItem.DisplayText,
                     inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
@@ -446,12 +449,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             // These values have always been added by us.
-            var startString = item.Properties[StartKey];
-            var lengthString = item.Properties[LengthKey];
-            var newText = item.Properties[NewTextKey];
+            var startString = item.GetProperty(StartKey);
+            var lengthString = item.GetProperty(LengthKey);
+            var newText = item.GetProperty(NewTextKey);
 
             // This value is optionally added in some cases and may not always be there.
-            item.Properties.TryGetValue(NewPositionKey, out var newPositionString);
+            item.TryGetProperty(NewPositionKey, out var newPositionString);
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
@@ -460,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(DescriptionKey, out var description))
+            if (!item.TryGetProperty(DescriptionKey, out var description))
             {
                 return SpecializedTasks.Null<CompletionDescription>();
             }

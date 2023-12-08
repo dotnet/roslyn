@@ -501,14 +501,14 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements)
 
                 Assert.True(result.HasChanges)
-                Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
-                Assert.NotNull(syntaxMap)
+                Dim syntaxMaps = result.SemanticEdits(0).SyntaxMaps
+                Assert.True(syntaxMaps.HasMap)
 
                 Dim newStatementSpan = result.ActiveStatements(0).Span
                 Dim newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan)
                 Dim newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan)
 
-                Dim oldStatementSyntaxMapped = syntaxMap(newStatementSyntax)
+                Dim oldStatementSyntaxMapped = syntaxMaps.MatchingNodes(newStatementSyntax)
                 Assert.Same(oldStatementSyntax, oldStatementSyntaxMapped)
             End Using
         End Function

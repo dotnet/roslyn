@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -49,24 +50,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     moduleUpdate.UpdatedMethods);
             }
 
-            if (Diagnostics.Length > 0)
+            foreach (var projectDiagnostics in Diagnostics)
             {
-                var firstProjectDiagnostic = Diagnostics[0];
-
-                log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
-                    Diagnostics.Length,
-                    firstProjectDiagnostic.ProjectId,
-                    firstProjectDiagnostic.Diagnostics[0]);
+                foreach (var diagnostic in projectDiagnostics.Diagnostics)
+                {
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    {
+                        log.Write("Project {0} update error: {1}", projectDiagnostics.ProjectId, diagnostic);
+                    }
+                }
             }
 
-            if (DocumentsWithRudeEdits.Length > 0)
+            foreach (var documentWithRudeEdits in DocumentsWithRudeEdits)
             {
-                var firstDocumentWithRudeEdits = DocumentsWithRudeEdits[0];
-
-                log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
-                    DocumentsWithRudeEdits.Length,
-                    firstDocumentWithRudeEdits.DocumentId,
-                    firstDocumentWithRudeEdits.Diagnostics[0].Kind);
+                foreach (var rudeEdit in documentWithRudeEdits.Diagnostics)
+                {
+                    log.Write("Document {0} rude edit: {1} {2}", documentWithRudeEdits.DocumentId, rudeEdit.Kind, rudeEdit.SyntaxKind);
+                }
             }
         }
     }

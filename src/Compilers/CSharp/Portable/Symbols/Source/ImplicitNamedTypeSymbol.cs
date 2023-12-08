@@ -148,6 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable();
@@ -184,6 +190,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             methodName = null;
             return false;
         }
-#nullable disable
     }
 }
