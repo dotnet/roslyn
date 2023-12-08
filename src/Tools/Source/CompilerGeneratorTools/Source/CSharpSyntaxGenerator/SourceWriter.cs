@@ -63,7 +63,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
             OpenBlock();
             WriteLine();
-
             this.WriteRedTypes();
             CloseBlock();
         }
