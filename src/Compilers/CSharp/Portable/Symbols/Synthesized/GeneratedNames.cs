@@ -465,12 +465,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (generation > 0) ? name + GeneratedNameConstants.GenerationSeparator + generation : name;
         }
 
-        internal static string MakeSynthesizedReadOnlyListEnumeratorName(int generation)
-        {
-            var name = "<>z__ReadOnlySingletonListEnumerator";
-            return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
-        }
-
         internal static string MakeSynthesizedReadOnlyListName(SynthesizedReadOnlyListKind kind, int generation)
         {
             Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');

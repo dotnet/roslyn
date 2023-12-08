@@ -11,30 +11,29 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed partial class SynthesizedReadOnlyListTypeSymbol
 {
-    internal sealed class SynthesizedReadOnlyListEnumeratorTypeSymbol : NamedTypeSymbol
+    private sealed class EnumeratorTypeSymbol : NamedTypeSymbol
     {
-        internal static NamedTypeSymbol Create(SourceModuleSymbol containingModule, string name)
+        internal static NamedTypeSymbol Create(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
         {
-            return new SynthesizedReadOnlyListEnumeratorTypeSymbol(containingModule, name);
+            return new EnumeratorTypeSymbol(containingType, typeParameter);
         }
 
-        private readonly SourceModuleSymbol _containingModule;
+        private readonly SynthesizedReadOnlyListTypeSymbol _containingType;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
         private readonly ImmutableArray<Symbol> _members;
         private readonly FieldSymbol _itemField;
         private readonly FieldSymbol _moveNextCalledField;
 
-        private SynthesizedReadOnlyListEnumeratorTypeSymbol(SourceModuleSymbol containingModule, string name)
+        private EnumeratorTypeSymbol(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
         {
-            var compilation = containingModule.DeclaringCompilation;
+            _containingType = containingType;
 
-            _containingModule = containingModule;
-            Name = name;
-            var typeParameter = new SynthesizedReadOnlyListTypeParameterSymbol(this);
-            TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
-            var typeArgs = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            var compilation = containingType.DeclaringCompilation;
+            var typeArgs = containingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             _itemField = new SynthesizedFieldSymbol(this, typeParameter, "_item", isReadOnly: true);
             _moveNextCalledField = new SynthesizedFieldSymbol(this, compilation.GetSpecialType(SpecialType.System_Boolean), "_moveNextCalled", isReadOnly: false);
@@ -51,16 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             membersBuilder.Add(_itemField);
             membersBuilder.Add(_moveNextCalledField);
             membersBuilder.Add(
-                new SynthesizedReadOnlyListEnumeratorConstructor(this, typeParameter));
+                new SynthesizedReadOnlyListTypeSymbol.EnumeratorConstructor(this, typeParameter));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
                     (PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
+                        // return (object)_item;
                         return f.Return(f.Convert(method.ReturnType, itemFieldReference));
                     }));
             addProperty(membersBuilder,
@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__Current)).AsMember(iEnumeratorT),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
+                        // return _item;
                         return f.Return(itemFieldReference);
                     }));
             membersBuilder.Add(
@@ -80,9 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
+                        // return _moveNextCalled ? false : (_moveNextCalled = true);
                         return f.Return(
                             f.Conditional(
                                 moveNextCalledFieldReference,
@@ -98,9 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Reset)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (EnumeratorTypeSymbol)method.ContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
+                        // _moveNextField = false;
+                        // return;
                         return f.Block(f.Assignment(moveNextCalledFieldReference, f.Literal(false)), f.Return());
                     }));
             membersBuilder.Add(
@@ -119,19 +123,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override int Arity => 1;
+        public override int Arity => 0;
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
         public override bool MightContainExtensionMethods => false;
 
-        public override string Name { get; }
+        public override string Name => "Enumerator";
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Internal;
+        public override Accessibility DeclaredAccessibility => Accessibility.Private;
 
         public override bool IsSerializable => false;
 
@@ -143,11 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReadOnly => false;
 
-        public override Symbol? ContainingSymbol => _containingModule.GlobalNamespace;
+        public override Symbol ContainingSymbol => _containingType;
 
-        internal override ModuleSymbol ContainingModule => _containingModule;
+        internal override ModuleSymbol ContainingModule => _containingType.ContainingModule;
 
-        public override AssemblySymbol ContainingAssembly => _containingModule.ContainingAssembly;
+        public override AssemblySymbol ContainingAssembly => _containingType.ContainingAssembly;
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 

@@ -1925,16 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (typeAdapter is null)
             {
-                NamedTypeSymbol? enumeratorType = null;
-                if (kind == SynthesizedReadOnlyListKind.Singleton)
-                {
-                    var name = GeneratedNames.MakeSynthesizedReadOnlyListEnumeratorName(CurrentGenerationOrdinal);
-                    enumeratorType = SynthesizedReadOnlyListEnumeratorTypeSymbol.Create(SourceModule, name);
-                    privateImplClass.TryAddSynthesizedType(enumeratorType.GetCciAdapter());
-                    var adapter = privateImplClass.GetSynthesizedType(name)!;
-                    enumeratorType = (NamedTypeSymbol)adapter.GetInternalSymbol()!;
-                }
-                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind, enumeratorType);
+                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
                 privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
                 typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }

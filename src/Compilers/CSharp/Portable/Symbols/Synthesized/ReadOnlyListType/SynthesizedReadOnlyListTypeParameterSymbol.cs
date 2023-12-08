@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedReadOnlyListTypeParameterSymbol : TypeParameterSymbol
     {
-        private readonly NamedTypeSymbol _containingType;
+        private readonly SynthesizedReadOnlyListTypeSymbol _containingType;
 
-        internal SynthesizedReadOnlyListTypeParameterSymbol(NamedTypeSymbol containingType)
+        internal SynthesizedReadOnlyListTypeParameterSymbol(SynthesizedReadOnlyListTypeSymbol containingType)
         {
             _containingType = containingType;
         }
