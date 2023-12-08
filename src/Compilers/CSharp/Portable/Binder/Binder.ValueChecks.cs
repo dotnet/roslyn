@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsArray(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
             var accessorForDefaultArguments = useSetAccessor
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     if (expr is BoundIndexerAccess indexerAccess)
                     {
-                        expr = BindIndexerDefaultArgumentsAndParamsArray(indexerAccess, valueKind, diagnostics);
+                        expr = BindIndexerDefaultArgumentsAndParamsCollection(indexerAccess, valueKind, diagnostics);
                     }
                     break;
 
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    expr = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)expr, valueKind, diagnostics);
+                    expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:

@@ -5369,7 +5369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
