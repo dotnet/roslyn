@@ -7,9 +7,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal sealed class NoOpLspLogger : AbstractLspLogger, ILspServiceLogger
+    internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
     {
-        public static readonly ILspServiceLogger Instance = new NoOpLspLogger();
+        public static readonly NoOpLspLogger Instance = new NoOpLspLogger();
 
         private NoOpLspLogger() { }
 

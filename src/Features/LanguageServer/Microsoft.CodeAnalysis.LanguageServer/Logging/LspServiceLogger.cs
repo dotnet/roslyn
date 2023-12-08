@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 /// <summary>
-/// Implements <see cref="ILspServiceLogger"/> by sending LSP log messages back to the client.
+/// Implements <see cref="AbstractLspLogger"/> by sending LSP log messages back to the client.
 /// </summary>
-internal sealed class LspServiceLogger : AbstractLspLogger, ILspServiceLogger
+internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
 {
     private readonly ILogger _hostLogger;
 
