@@ -17,11 +17,28 @@
   </ItemGroup>
   <ItemGroup>
     <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Utilities\CaseInsensitiveComparison.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Utilities\Debug.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="Utilities\Index.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="Utilities\InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="Utilities\Range.cs" />
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\SourceGeneration\IndentingStringBuilder.cs" Link="Utilities\IndentingStringBuilder.cs" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ArrayBuilder.cs" Link="Utilities\ArrayBuilder.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ArrayBuilder.Enumerator.cs" Link="Utilities\ArrayBuilder.Enumerator.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs" Link="Utilities\ObjectPool`1.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs" Link="Utilities\PooledStringBuilder.cs" />
 
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utilities\" />
   </ItemGroup>
 </Project>
