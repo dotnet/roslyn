@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            // We faced a slice pattern with a declaration pattern os the same narrowed type inside, e.g. `[<pattern>, ..var between, <pattern>]`
+                            // We faced a slice pattern with a declaration pattern of the same narrowed type inside, e.g. `[<pattern>, ..var between, <pattern>]`
                             // This pattern always evaluates to true, but causes slicing operation and even may allocate (e.g. when slicing an array or string)
                             // Thus it makes sense to hold it and "evaluate" after all other patterns in the list matched
                             if (slicePattern.Kind == BoundKind.DeclarationPattern && slicePattern.InputType.Equals(slicePattern.NarrowedType))
