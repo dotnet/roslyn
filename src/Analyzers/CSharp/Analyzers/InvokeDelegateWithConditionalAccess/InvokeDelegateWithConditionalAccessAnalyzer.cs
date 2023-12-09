@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail if the user has disabled this feature.
                 return;
@@ -94,12 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
-            var severity = styleOption.Notification.Severity;
             var condition = (BinaryExpressionSyntax)ifStatement.Condition;
             if (TryCheckVariableAndIfStatementForm(
                     syntaxContext, ifStatement, condition,
                     expressionStatement, invocationExpression,
-                    severity))
+                    styleOption.Notification))
             {
                 return;
             }
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             TryCheckSingleIfStatementForm(
                 syntaxContext, ifStatement, condition,
                 expressionStatement, invocationExpression,
-                severity);
+                styleOption.Notification);
         }
 
         private bool TryCheckSingleIfStatementForm(
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            ReportDiagnostic severity)
+            NotificationOption2 notificationOption)
         {
             // Look for the form:  "if (someExpr != null) someExpr()"
             if (condition.Left.IsKind(SyntaxKind.NullLiteralExpression) ||
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
                     ReportDiagnostics(
                         syntaxContext, ifStatement, ifStatement,
-                        expressionStatement, severity, additionalLocations,
+                        expressionStatement, notificationOption, additionalLocations,
                         Constants.SingleIfStatementForm);
 
                     return true;
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             StatementSyntax firstStatement,
             IfStatementSyntax ifStatement,
             ExpressionStatementSyntax expressionStatement,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             ImmutableArray<Location> additionalLocations,
             string kind)
         {
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 fadeLocation,
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                 additionalLocations,
                 additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
                 properties));
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 expressionStatement.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
@@ -203,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     fadeLocation,
-                    ReportDiagnostic.Default,
+                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                     additionalLocations,
                     additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
                     properties));
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            ReportDiagnostic severity)
+            NotificationOption2 notificationOption)
         {
             var cancellationToken = syntaxContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
@@ -324,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             ReportDiagnostics(syntaxContext,
                 localDeclarationStatement, ifStatement, expressionStatement,
-                severity, additionalLocations, Constants.VariableAndIfStatementForm);
+                notificationOption, additionalLocations, Constants.VariableAndIfStatementForm);
 
             return true;
         }

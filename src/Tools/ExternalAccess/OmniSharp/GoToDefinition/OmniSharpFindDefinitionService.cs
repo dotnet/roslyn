@@ -6,21 +6,23 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation;
-using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition;
+
+internal static class OmniSharpFindDefinitionService
 {
-    internal static class OmniSharpFindDefinitionService
+    internal static async Task<ImmutableArray<OmniSharpNavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        internal static async Task<ImmutableArray<OmniSharpNavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IFindDefinitionService>();
-            var result = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return await result.NullToEmpty().SelectAsArrayAsync(
-                async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
-                document.Project.Solution,
-                cancellationToken).ConfigureAwait(false);
-        }
+        var service = document.GetLanguageService<INavigableItemsService>();
+        if (service is null)
+            return ImmutableArray<OmniSharpNavigableItem>.Empty;
+
+        var result = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
+        return await result.NullToEmpty().SelectAsArrayAsync(
+            async (original, solution, cancellationToken) => new OmniSharpNavigableItem(original.DisplayTaggedParts, await original.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false), original.SourceSpan),
+            document.Project.Solution,
+            cancellationToken).ConfigureAwait(false);
     }
 }

@@ -3491,9 +3491,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
-                        var collectionType = initializer.AddMethod.ContainingType;
-
-                        var completion = VisitCollectionElementInitializer(initializer, collectionType,
+                        Debug.Assert(node.Placeholder is { });
+                        var completion = VisitCollectionElementInitializer(
+                            initializer,
+                            containingType: node.Placeholder.Type,
                             delayCompletionForType: false /* All collection expressions are target-typed */);
 
                         Debug.Assert(completion is null);

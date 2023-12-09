@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
 
-        private ImmutableDictionary<string, IHistogram<int>> _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+        private ImmutableDictionary<string, IHistogram<long>> _histograms = ImmutableDictionary<string, IHistogram<long>>.Empty;
 
         /// <summary>
         /// Creates a new aggregating telemetry log
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
                 throw ExceptionUtilities.Unreachable();
 
-            var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<int>(metricName, _histogramConfiguration));
+            var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<long>(metricName, _histogramConfiguration));
 
             histogram.Record(value);
 
@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
             foreach (var histogram in _histograms.Values)
             {
                 var telemetryEvent = new TelemetryEvent(_eventName);
-                var histogramEvent = new TelemetryHistogramEvent<int>(telemetryEvent, histogram);
+                var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
 
                 session.PostMetricEvent(histogramEvent);
             }
 
-            _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+            _histograms = ImmutableDictionary<string, IHistogram<long>>.Empty;
         }
     }
 }
