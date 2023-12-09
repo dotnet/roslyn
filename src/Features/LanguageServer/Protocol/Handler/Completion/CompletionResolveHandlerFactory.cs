@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
-            var documentCache = lspServices.GetRequiredService<DocumentCache>();
-            return new CompletionResolveHandler(_globalOptions, completionListCache, documentCache);
+            return new CompletionResolveHandler(_globalOptions, completionListCache);
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Features.Workspaces;
@@ -26,9 +27,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".xaml", s_xamlLanguageInformation },
         };
 
-        public LanguageInformation? GetLanguageInformation(string documentPath, string? lspLanguageId)
+        public LanguageInformation GetLanguageInformation(string documentPath, string? lspLanguageId)
         {
-            if (s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(documentPath), out var languageInformation))
+            var extension = Path.GetExtension(documentPath);
+            if (s_extensionToLanguageInformation.TryGetValue(extension, out var languageInformation))
             {
                 return languageInformation;
             }
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 "fsharp" => s_csharpLanguageInformation,
                 "vb" => s_vbLanguageInformation,
                 "xaml" => s_xamlLanguageInformation,
-                _ => null,
+                _ => throw new InvalidOperationException($"Unsupported extension '{extension}' and LSP language id '{lspLanguageId}'")
             };
         }
     }

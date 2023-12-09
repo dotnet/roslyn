@@ -413,7 +413,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Returns a Roslyn language name for the given URI.
     /// </summary>
-    internal string? GetLanguageForUri(Uri uri)
+    internal string GetLanguageForUri(Uri uri)
     {
         string? languageId = null;
         if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
@@ -422,7 +422,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId)?.LanguageName;
+        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId).LanguageName;
     }
 
     /// <summary>

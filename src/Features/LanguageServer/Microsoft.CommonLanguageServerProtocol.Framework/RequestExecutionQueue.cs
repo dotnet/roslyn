@@ -152,11 +152,25 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         string methodName,
         TRequest request,
         ILspServices lspServices,
-        CancellationToken cancellationToken) => QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
+        CancellationToken cancellationToken)
+    {
+        var uri = GetUriForRequest<TRequest>(methodName, request);
+        var language = GetLanguageForRequest<TRequest>(methodName, request);
+
+        return QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
+            language,
+            uri,
             request,
             lspServices,
             _logger,
             cancellationToken);
+    }
+
+    protected virtual Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
+        => null;
+
+    protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
+        => LanguageServerConstants.DefaultLanguageName;
 
     private async Task ProcessQueueAsync()
     {
@@ -292,10 +306,10 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     /// <summary>
-    /// Choose the method handler for the given request. By default this uses the <see cref="AbstractHandlerProvider"/> with <see cref="LanguageServerConstants.DefaultLanguageName"/>.
+    /// Choose the method handler for the given request. By default this calls the <see cref="AbstractHandlerProvider"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
-        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, LanguageServerConstants.DefaultLanguageName);
+        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, work.Language);
 
     /// <summary>
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,

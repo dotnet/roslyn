@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
     /// Provides the intermediate data passed from CompletionHandler to CompletionResolveHandler.
     /// Passed along via <see cref="CompletionItem.Data"/>.
     /// <param name="ResultId">the resultId associated with the completion created on original request.</param>
-    /// <param name="DocumentId">the text document id associated with the completion item to resolve.</param>
+    /// <param name="TextDocument">the text document associated with the completion request to resolve.</param>
     /// </summary>
-    internal sealed record CompletionResolveData(long ResultId, long DocumentId) : DocumentIdResolveData(DocumentId);
+    internal sealed record CompletionResolveData(long ResultId, TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);
 }

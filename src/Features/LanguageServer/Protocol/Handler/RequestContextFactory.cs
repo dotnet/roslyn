@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -11,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
+internal class RequestContextFactory : AbstractRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 
@@ -20,7 +19,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         _lspServices = lspServices;
     }
 
-    public Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -32,46 +31,23 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
             throw new InvalidOperationException($"ClientCapabilities was null for a request other than {Methods.InitializeName}.");
         }
 
-        TextDocumentIdentifier? textDocumentIdentifier;
-        var handler = queueItem.MethodHandler;
-        var textDocumentIdentifierHandler = handler as ITextDocumentIdentifierHandler;
-        if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
+        var textDocumentIdentifier = queueItem.RequestUri is null ? null : new TextDocumentIdentifier
         {
-            textDocumentIdentifier = tHandler.GetTextDocumentIdentifier(requestParam);
-        }
-        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier?> nullHandler)
-        {
-            textDocumentIdentifier = nullHandler.GetTextDocumentIdentifier(requestParam);
-        }
-        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, Uri> uHandler)
-        {
-            var uri = uHandler.GetTextDocumentIdentifier(requestParam);
-            textDocumentIdentifier = new TextDocumentIdentifier
-            {
-                Uri = uri,
-            };
-        }
-        else if (textDocumentIdentifierHandler is null)
-        {
-            textDocumentIdentifier = null;
-        }
-        else
-        {
-            throw new NotImplementedException($"TextDocumentIdentifier in an unrecognized type for method: {queueItem.MethodName}");
-        }
+            Uri = queueItem.RequestUri,
+        };
 
         bool requiresLSPSolution;
-        if (handler is ISolutionRequiredHandler requiredHandler)
+        if (methodHandler is ISolutionRequiredHandler requiredHandler)
         {
             requiresLSPSolution = requiredHandler.RequiresLSPSolution;
         }
         else
         {
-            throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {handler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
+            throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
         return RequestContext.CreateAsync(
-            handler.MutatesSolutionState,
+            methodHandler.MutatesSolutionState,
             requiresLSPSolution,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,

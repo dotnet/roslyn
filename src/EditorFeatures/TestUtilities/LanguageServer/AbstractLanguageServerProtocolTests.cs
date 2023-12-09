@@ -253,7 +253,6 @@ namespace Roslyn.Test.Utilities
             string? sortText = null,
             string? filterText = null,
             long resultId = 0,
-            long documentId = 0,
             bool vsResolveTextEditOnCommit = false,
             LSP.CompletionItemLabelDetails? labelDetails = null)
         {
@@ -271,7 +270,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JObject.FromObject(new CompletionResolveData(resultId, documentId)),
+                Data = JObject.FromObject(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document))),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails

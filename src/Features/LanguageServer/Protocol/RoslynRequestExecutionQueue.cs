@@ -3,19 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
-        private readonly ConcurrentDictionary<RequestHandlerMetadata, IMethodHandler> _handlerCache = new();
         private readonly IInitializeManager _initializeManager;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
 
@@ -45,53 +44,48 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        /// <inheritdoc/>
-        protected override IMethodHandler GetHandlerForRequest(IQueueItem<RequestContext> work)
+        protected override string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
         {
-            var defaultHandlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, LanguageServerConstants.DefaultLanguageName);
-            var defaultHandler = _handlerCache.GetOrAdd(defaultHandlerMetadata, metadata => _handlerProvider.GetMethodHandler(metadata.MethodName, metadata.RequestType, metadata.ResponseType, metadata.Language));
-            var identifier = RoslynRequestExecutionQueue.GetTextDocumentIdentifier(work, defaultHandler);
-            if (identifier is null)
+            var uri = GetUriForRequest(methodName, request);
+            if (uri is not null)
             {
-                return defaultHandler;
+                return _lspWorkspaceManager.GetLanguageForUri(uri);
             }
 
-            var language = _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
-            if (language is null || language == LanguageServerConstants.DefaultLanguageName)
-            {
-                return defaultHandler;
-            }
-
-            var handlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, language);
-            var handler = _handlerCache.GetOrAdd(handlerMetadata, metadata => _handlerProvider.GetMethodHandler(metadata.MethodName, metadata.RequestType, metadata.ResponseType, metadata.Language));
-
-            return handler;
+            return base.GetLanguageForRequest(methodName, request);
         }
 
-        private static TextDocumentIdentifier? GetTextDocumentIdentifier(IQueueItem<RequestContext> work, IMethodHandler handler)
+        protected override Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
         {
-            var textIdentifier = work.GetTextDocumentIdentifier<TextDocumentIdentifier>(handler);
-            if (textIdentifier != null)
+            if (request is ITextDocumentParams textDocumentParams)
             {
-                return textIdentifier;
+                return textDocumentParams.TextDocument.Uri;
             }
 
-            var nullIdentifier = work.GetTextDocumentIdentifier<TextDocumentIdentifier?>(handler);
-            if (nullIdentifier != null)
+            if (IsDocumentResolveMethod(methodName))
             {
-                return nullIdentifier;
-            }
-
-            var uri = work.GetTextDocumentIdentifier<Uri?>(handler);
-            if (uri != null)
-            {
-                return new TextDocumentIdentifier
+                var dataToken = (JToken)request.GetType().GetProperty("Data")?.GetValue(request);
+                var resolveData = dataToken.ToObject<DocumentResolveData>();
+                if (resolveData is null)
                 {
-                    Uri = uri,
-                };
+                    throw new InvalidOperationException($"{methodName} requires resolve data object to derive from {nameof(DocumentResolveData)}.");
+                }
+
+                return resolveData.TextDocument.Uri;
             }
 
-            return null;
+            return base.GetUriForRequest(methodName, request);
+
+            static bool IsDocumentResolveMethod(string methodName)
+                => methodName switch
+                {
+                    Methods.CodeActionResolveName => true,
+                    Methods.CodeLensResolveName => true,
+                    Methods.DocumentLinkResolveName => true,
+                    Methods.InlayHintResolveName => true,
+                    Methods.TextDocumentCompletionResolveName => true,
+                    _ => false,
+                };
         }
 
         /// <summary>

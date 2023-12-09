@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -22,17 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        protected override IMethodHandler GetHandlerForRequest(IQueueItem<RequestContext> work)
+        protected override Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
         {
-            var methodHandler = base.GetHandlerForRequest(work);
-            var textDocument = work.GetTextDocumentIdentifier<TextDocumentIdentifier>(methodHandler);
-
-            if (textDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+            if (request is ITextDocumentParams textDocumentParams &&
+                textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
             {
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
+                return documentUri;
             }
 
-            return methodHandler;
+            return base.GetUriForRequest(methodName, request);
         }
     }
 }

@@ -27,21 +27,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
         private readonly CompletionListCache _completionListCache;
-        private readonly DocumentCache _documentCache;
         private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache, DocumentCache documentCache)
+        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
         {
             _globalOptions = globalOptions;
             _completionListCache = completionListCache;
-            _documentCache = documentCache;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => GetTextDocumentCacheEntry(request);
+            => CompletionResolveHandler.GetTextDocumentCacheEntry(request);
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -89,24 +87,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
         }
 
-        private LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
+        private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);
-            var resolveData = ((JToken)request.Data).ToObject<DocumentIdResolveData>();
-            if (resolveData?.DocumentId == null)
+            var resolveData = ((JToken)request.Data).ToObject<DocumentResolveData>();
+            if (resolveData is null)
             {
-                Contract.Fail("Document id should always be provided when resolving a completion item we returned.");
+                Contract.Fail("Document should always be provided when resolving a completion item request.");
                 return null;
             }
 
-            var document = _documentCache.GetCachedEntry(resolveData.DocumentId);
-            if (document == null)
-            {
-                // No cache for associated document id. Log some telemetry so we can understand how frequently this actually happens.
-                Logger.Log(FunctionId.LSP_DocumentIdCacheMiss, KeyValueLogMessage.NoProperty);
-            }
-
-            return document;
+            return resolveData.TextDocument;
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)

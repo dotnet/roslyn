@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
-            AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
+            AddBaseServiceFromFunc<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
             AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());

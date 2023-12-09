@@ -23,8 +23,7 @@ internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILs
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var resolveDataCache = lspServices.GetRequiredService<ResolveDataCache>();
-        var documentCache = lspServices.GetRequiredService<DocumentCache>();
-        var resolveDataService = new ResolveCachedDataService(resolveDataCache, documentCache);
+        var resolveDataService = new ResolveCachedDataService(resolveDataCache);
 
         return CreateHandler(_xamlRequestHandler, resolveDataService);
     }
@@ -32,18 +31,16 @@ internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILs
     private sealed class ResolveCachedDataService : IResolveCachedDataService
     {
         private readonly ResolveDataCache _resolveDataCache;
-        private readonly DocumentCache _documentCache;
 
-        public ResolveCachedDataService(ResolveDataCache resolveDataCache, DocumentCache documentCache)
+        public ResolveCachedDataService(ResolveDataCache resolveDataCache)
         {
             _resolveDataCache = resolveDataCache ?? throw new ArgumentNullException(nameof(resolveDataCache));
-            _documentCache = documentCache ?? throw new ArgumentNullException(nameof(documentCache));
         }
 
         public object ToResolveData(object data, LSP.TextDocumentIdentifier document)
-            => ResolveDataConversions.ToCachedResolveData(data, document, _resolveDataCache, _documentCache);
+            => ResolveDataConversions.ToCachedResolveData(data, document, _resolveDataCache);
 
         public (object? data, LSP.TextDocumentIdentifier? document) FromResolveData(object? lspData)
-            => ResolveDataConversions.FromCachedResolveData(lspData, _resolveDataCache, _documentCache);
+            => ResolveDataConversions.FromCachedResolveData(lspData, _resolveDataCache);
     }
 }

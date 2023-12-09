@@ -31,19 +31,27 @@ public interface IQueueItem<TRequestContext>
     Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the identifier of the document from the request, if the request provides one.
+    /// Provides access to LSP services.
     /// </summary>
-    /// <typeparam name="TTextDocumentIdentifier">The type of the text document identifier.</typeparam>
-    /// <param name="handler">The handler for the request.</param>
-    /// <returns>The text document identifier.</returns>
-    TTextDocumentIdentifier? GetTextDocumentIdentifier<TTextDocumentIdentifier>(IMethodHandler handler);
-
     ILspServices LspServices { get; }
 
     /// <summary>
     /// The method being executed.
     /// </summary>
     string MethodName { get; }
+
+    /// <summary>
+    /// The language of the request. The default is <see cref="LanguageServerConstants.DefaultLanguageName"/>
+    /// </summary>
+    string Language { get; }
+
+    /// <summary>
+    /// The URI for the request if an override of <see cref="RequestExecutionQueue{TRequestContext}.GetUriForRequest{TRequest}(string, TRequest)"/> provides one.
+    /// </summary>
+    /// <remarks>
+    /// The default is <see langword="null"/>.
+    /// </remarks>
+    Uri? RequestUri { get; }
 
     /// <summary>
     /// The type of the request.
@@ -54,9 +62,4 @@ public interface IQueueItem<TRequestContext>
     /// The type of the response.
     /// </summary>
     Type? ResponseType { get; }
-
-    /// <summary>
-    /// The handler which will run this operation. It is initialized during <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/>.
-    /// </summary>
-    IMethodHandler MethodHandler { get; }
 }
