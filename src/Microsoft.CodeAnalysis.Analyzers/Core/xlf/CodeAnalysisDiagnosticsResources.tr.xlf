@@ -119,27 +119,27 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Bu C# derleyici uzantısı, Microsoft.CodeAnalysis.VisualBasic başvurusu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.VisualBasic derlemesi, C# derleme senaryoları sırasında her zaman sağlanmaz, bu nedenle ona yapılan başvurular derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Bu derleyici uzantısı, Microsoft.CodeAnalysis.Çalışma Alanları başvurusunu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.Çalışma Alanları derlemesi, komut satırı derleme senaryoları sırasında sağlanmaz, dolayısıyla buna yapılan başvurular, derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Bu Visual Basic derleyici uzantısı, Microsoft.CodeAnalysis.CSharp başvurusunu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.CSharp derlemesi, Visual Basic derleme senaryoları sırasında her zaman sağlanmaz, bu nedenle derlemeye yapılan başvurular derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <target state="translated">Derleyici uzantı noktalarını uygulayan türler, tüm derleme senaryoları tarafından sağlanmayan derlemelere başvurular içeren derlemelerde bildirilmemelidir. Bunu yapmak, özelliğin öngörülemeyen şekilde davranmasına neden olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <target state="translated">Derleyici uzantıları, derleyici tarafından sağlanan referanslara sahip derlemelerde uygulanmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
