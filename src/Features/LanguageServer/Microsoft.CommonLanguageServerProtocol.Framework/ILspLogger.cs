@@ -6,6 +6,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
+[Obsolete("Use AbstractLspLogger instead")]
 public interface ILspLogger
 {
     void LogStartContext(string message, params object[] @params);
