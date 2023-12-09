@@ -51,6 +51,28 @@ public class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
     }
 
     [Fact]
+    public async Task TestTwoInvocationExpressionsThreeLines()
+    {
+        // The inner argument list should be collapsible, but the outer one shouldn't.
+        var testInner = """
+            var x = M(M$${|span:(
+                "",
+                "")|});
+            """;
+
+        await VerifyBlockSpansAsync(testInner,
+            Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+        var testOuter = """
+            var x = M$$(M(
+                "",
+                ""));
+            """;
+
+        await VerifyBlockSpansAsync(testOuter);
+    }
+
+    [Fact]
     public async Task TestObjectCreationSingleLine()
     {
         var code = """
