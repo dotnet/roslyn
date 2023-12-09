@@ -2214,6 +2214,80 @@ class Test
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatTwo_ReadOnlySpan_SideEffect()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    private static int stringCounter;
+                    private static int charCounterPlusOne = 1;
+
+                    static void Main()
+                    {
+                        Console.WriteLine(M1());
+                        Console.WriteLine(M2());
+                    }
+
+                    static string M1() => GetStringWithSideEffect() + GetCharWithSideEffect();
+                    static string M2() => GetCharWithSideEffect() + GetStringWithSideEffect();
+
+                    private static string GetStringWithSideEffect()
+                    {
+                        Console.Write(stringCounter++);
+                        return "s";
+                    }
+
+                    private static char GetCharWithSideEffect()
+                    {
+                        Console.Write(charCounterPlusOne++);
+                        return 'c';
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                01sc
+                21cs
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? expectedOutput : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "char Test.GetCharWithSideEffect()"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0017:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001c:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M2", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001c:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
         [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
         [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
@@ -2455,6 +2529,126 @@ class Test
                   IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0022:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0027:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatThree_ReadOnlySpan_SideEffect()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    private static int stringCounter;
+                    private static int charCounterPlusOne = 1;
+
+                    static void Main()
+                    {
+                        Console.WriteLine(M1());
+                        Console.WriteLine(M2());
+                        Console.WriteLine(M3());
+                        Console.WriteLine(M4());
+                    }
+
+                    static string M1() => GetCharWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect();
+                    static string M2() => GetStringWithSideEffect() + GetCharWithSideEffect() + GetStringWithSideEffect();
+                    static string M3() => GetStringWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect();
+                    static string M4() => GetCharWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect();
+
+                    private static string GetStringWithSideEffect()
+                    {
+                        Console.Write(stringCounter++);
+                        return "s";
+                    }
+                
+                    private static char GetCharWithSideEffect()
+                    {
+                        Console.Write(charCounterPlusOne++);
+                        return 'c';
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                101css
+                223scs
+                453ssc
+                465csc
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? expectedOutput : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  3
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0026:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M2", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  3
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "char Test.GetCharWithSideEffect()"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0026:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M3", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  3
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "string Test.GetStringWithSideEffect()"
+                  IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0014:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0019:  stloc.0
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0021:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0026:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M4", """
+                {
+                  // Code size       42 (0x2a)
+                  .maxstack  3
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "char Test.GetCharWithSideEffect()"
+                  IL_001c:  stloc.0
+                  IL_001d:  ldloca.s   V_0
+                  IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0024:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0029:  ret
                 }
                 """);
         }
@@ -2909,6 +3103,204 @@ class Test
                   IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_002d:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatFour_ReadOnlySpan_SideEffect()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    private static int stringCounter;
+                    private static int charCounterPlusOne = 1;
+
+                    static void Main()
+                    {
+                        Console.WriteLine(M1());
+                        Console.WriteLine(M2());
+                        Console.WriteLine(M3());
+                        Console.WriteLine(M4());
+                        Console.WriteLine(M5());
+                        Console.WriteLine(M6());
+                        Console.WriteLine(M7());
+                    }
+
+                    static string M1() => GetCharWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect();
+                    static string M2() => GetStringWithSideEffect() + GetCharWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect();
+                    static string M3() => GetStringWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect() + GetStringWithSideEffect();
+                    static string M4() => GetStringWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect();
+                    static string M5() => GetCharWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect() + GetStringWithSideEffect();
+                    static string M6() => GetStringWithSideEffect() + GetCharWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect();
+                    static string M7() => GetCharWithSideEffect() + GetStringWithSideEffect() + GetStringWithSideEffect() + GetCharWithSideEffect();
+
+                    private static string GetStringWithSideEffect()
+                    {
+                        Console.Write(stringCounter++);
+                        return "s";
+                    }
+                
+                    private static char GetCharWithSideEffect()
+                    {
+                        Console.Write(charCounterPlusOne++);
+                        return 'c';
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                1012csss
+                3245scss
+                6738sscs
+                910114sssc
+                512613cscs
+                147158scsc
+                9161710cssc
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? expectedOutput : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0026:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0030:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M2", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "char Test.GetCharWithSideEffect()"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0026:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0030:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M3", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "string Test.GetStringWithSideEffect()"
+                  IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0014:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0019:  stloc.0
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0021:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0026:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0030:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M4", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "string Test.GetStringWithSideEffect()"
+                  IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0014:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0019:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001e:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_002b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0030:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M5", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "char Test.GetCharWithSideEffect()"
+                  IL_001c:  stloc.0
+                  IL_001d:  ldloca.s   V_0
+                  IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0024:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0029:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0033:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M6", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  call       "char Test.GetCharWithSideEffect()"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0026:  stloc.0
+                  IL_0027:  ldloca.s   V_0
+                  IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0033:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M7", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  4
+                  .locals init (char V_0)
+                  IL_0000:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string Test.GetStringWithSideEffect()"
+                  IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0017:  call       "string Test.GetStringWithSideEffect()"
+                  IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0021:  call       "char Test.GetCharWithSideEffect()"
+                  IL_0026:  stloc.0
+                  IL_0027:  ldloca.s   V_0
+                  IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0033:  ret
                 }
                 """);
         }
