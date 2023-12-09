@@ -45,38 +45,31 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
 
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            CloseBlock();
         }
 
         private void WriteSyntax()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine();
             this.WriteRedTypes();
-            CloseBlock();
         }
 
         private void WriteMain()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
-            CloseBlock();
         }
 
         private void WriteGreenTypes()
