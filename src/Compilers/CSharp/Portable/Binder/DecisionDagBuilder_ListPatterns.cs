@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(slice.ArgumentPlaceholder is not null);
 
                     var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index,
-                    slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
+                        slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
 
                     tests.Add(new Tests.One(sliceEvaluation));
                     var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
