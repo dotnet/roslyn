@@ -119,27 +119,27 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">이 C# 컴파일러 확장은 Microsoft.CodeAnalysis.VisualBasic에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.VisualBasic 어셈블리는 C# 컴파일 시나리오 중에 항상 제공되는 것은 아니기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">이 컴파일러 확장은 Microsoft.CodeAnalysis.Workspaces에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.Workspaces 어셈블리는 명령줄 컴파일 시나리오 중에 제공되지 않기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">이 Visual Basic 컴파일러 확장은 Microsoft.CodeAnalysis.CSharp에 대한 참조를 포함하는 어셈블리에서 구현되면 안 됩니다. Microsoft.CodeAnalysis.CSharp 어셈블리는 Visual Basic 컴파일 시나리오 중에 항상 제공되는 것은 아니기 때문에 이를 참조하면 컴파일러 확장이 예기치 않게 동작할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <target state="translated">컴파일러 확장 지점을 구현하는 형식은 모든 컴파일 시나리오에서 제공되는 어셈블리에 대한 참조를 포함하는 어셈블리에서 선언해야 합니다. 그렇지 않으면 기능이 예기치 않게 동작할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <target state="translated">컴파일러 확장은 컴파일러 제공 참조가 있는 어셈블리에서 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
