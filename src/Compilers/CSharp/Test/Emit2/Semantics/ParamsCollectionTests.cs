@@ -132,6 +132,44 @@ Arguments(1):
         }
 
         [Fact]
+        public void ReadOnlySpan()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params System.ReadOnlySpan<long> a)
+    {
+        if (a.Length == 0)
+        {
+            System.Console.WriteLine(a.Length);
+        }
+        else
+        {
+            System.Console.WriteLine(""{0}: {1} ... {2}"", a.Length, a[0], a[^1]);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void String()
         {
             var src = @"
@@ -232,6 +270,178 @@ class Program
 1: 1 ... 1
 2: 2 ... 3
 ")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerable()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array = new List<object>();
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("IEnumerable<long>")]
+        [InlineData("IReadOnlyCollection<long>")]
+        [InlineData("IReadOnlyList<long>")]
+        [InlineData("ICollection<long>")]
+        [InlineData("IList<long>")]
+        public void ArrayInterfaces(string @interface)
+        {
+            var src = """
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params 
+""" +
+                            @interface +
+"""
+                                         a)
+    {
+        var array = a.ToArray();
+        if (array.Length == 0)
+        {
+            System.Console.WriteLine(array.Length);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", array.Length, array[0], array[^1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEnumerable()
+        {
+            var src = """
+using System.Collections;
+
+class Program
+{
+    static void Test(params IEnumerable a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (5,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params IEnumerable a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 22)
+                );
         }
 
         [Fact]

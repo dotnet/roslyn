@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             protected set
             {
-                Debug.Assert((_attributes & BoundNodeAttributes.ParamsCollection) == 0, "ParamsArray flag should not be set twice or reset");
+                Debug.Assert((_attributes & BoundNodeAttributes.ParamsCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsCollection)} flag should not be set twice or reset");
                 Debug.Assert(value || !IsParamsCollection);
                 Debug.Assert(!value ||
                              this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or
