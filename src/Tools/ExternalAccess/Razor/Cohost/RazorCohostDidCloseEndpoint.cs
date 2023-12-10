@@ -32,11 +32,14 @@ internal sealed class RazorCohostDidCloseEndpoint([Import(AllowDefault = true)] 
         await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        didCloseHandler?.Handle(request.TextDocument.Uri);
+        if (didCloseHandler is not null)
+        {
+            await didCloseHandler.HandleAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 
 internal interface IRazorCohostDidCloseHandler
 {
-    void Handle(Uri uri);
+    Task HandleAsync(Uri uri, CancellationToken cancellationToken);
 }

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
@@ -28,7 +27,7 @@ internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)]
     public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParams request)
         => request.TextDocument;
 
-    public Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
@@ -42,13 +41,16 @@ internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)]
         context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        didChangeHandler?.Handle(request.TextDocument.Uri, request.TextDocument.Version, text);
+        if (didChangeHandler is not null)
+        {
+            await didChangeHandler.HandleAsync(request.TextDocument.Uri, request.TextDocument.Version, text, cancellationToken).ConfigureAwait(false);
+        }
 
-        return SpecializedTasks.Default<object>();
+        return null;
     }
 }
 
 internal interface IRazorCohostDidChangeHandler
 {
-    void Handle(Uri uri, int version, SourceText text);
+    Task HandleAsync(Uri uri, int version, SourceText sourceText, CancellationToken cancellationToken);
 }

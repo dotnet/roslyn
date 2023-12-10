@@ -35,11 +35,14 @@ internal sealed class RazorCohostDidOpenEndpoint([Import(AllowDefault = true)] I
         await context.StartTrackingAsync(request.TextDocument.Uri, sourceText, request.TextDocument.LanguageId, cancellationToken).ConfigureAwait(false);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        didOpenHandler?.Handle(request.TextDocument.Uri, sourceText);
+        if (didOpenHandler is not null)
+        {
+            await didOpenHandler.HandleAsync(request.TextDocument.Uri, request.TextDocument.Version, sourceText, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 
 internal interface IRazorCohostDidOpenHandler
 {
-    void Handle(Uri uri, SourceText text);
+    Task HandleAsync(Uri uri, int version, SourceText sourceText, CancellationToken cancellationToken);
 }
