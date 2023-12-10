@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
@@ -36,51 +33,3 @@ internal abstract class AbstractRazorCohostRequestHandler<TRequestType, TRespons
 
     protected abstract Task<TResponseType> HandleRequestAsync(TRequestType request, RazorCohostRequestContext context, CancellationToken cancellationToken);
 }
-
-internal abstract class AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType> : AbstractRazorCohostRequestHandler<TRequestType, TResponseType>, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>
-{
-    TextDocumentIdentifier? ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>.GetTextDocumentIdentifier(TRequestType request)
-    {
-        var razorIdentifier = GetRazorTextDocumentIdentifier(request);
-        if (razorIdentifier == null)
-        {
-            return null;
-        }
-
-        var textDocumentIdentifier = new VSTextDocumentIdentifier
-        {
-            Uri = razorIdentifier.Value.Uri,
-        };
-
-        if (razorIdentifier.Value.ProjectContextId != null)
-        {
-            textDocumentIdentifier.ProjectContext = new VSProjectContext
-            {
-                Id = razorIdentifier.Value.ProjectContextId
-            };
-        }
-
-        return textDocumentIdentifier;
-    }
-
-    protected abstract RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TRequestType request);
-}
-
-internal readonly struct RazorCohostRequestContext(RequestContext context)
-{
-    internal string Method => context.Method;
-    internal Uri? Uri => context.TextDocument?.GetURI();
-    /// <inheritdoc cref="RequestContext.Workspace"/>
-    internal Workspace? Workspace => context.Workspace;
-    /// <inheritdoc cref="RequestContext.Solution"/>
-    internal Solution? Solution => context.Solution;
-    /// <inheritdoc cref="RequestContext.Document"/>
-    internal TextDocument? TextDocument => context.TextDocument;
-
-    internal T GetRequiredService<T>() where T : class => context.GetRequiredService<T>();
-}
-
-/// <summary>
-/// Custom type containing information in a <see cref="VSProjectContext"/> to avoid coupling LSP protocol versions.
-/// </summary>
-internal record struct RazorTextDocumentIdentifier(Uri Uri, string? ProjectContextId);
