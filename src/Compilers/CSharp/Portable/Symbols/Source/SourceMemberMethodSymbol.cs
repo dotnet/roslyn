@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled,
             bool isVarArg,
             bool isExplicitInterfaceImplementation,
-            bool hasThisInitializer = false)
+            bool hasThisInitializer)
         {
             return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation, hasThisInitializer);
         }

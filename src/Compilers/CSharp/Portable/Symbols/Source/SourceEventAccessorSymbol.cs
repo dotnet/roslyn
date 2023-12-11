@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 isExtensionMethod: false,
                                                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                                 isVarArg: false,
-                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation)))
+                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation,
+                                                hasThisInitializer: false)))
         {
             _event = @event;
 
