@@ -29,6 +29,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
+    using static SyntaxFactory;
+
     internal partial class CSharpMethodExtractor
     {
         private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, SyntaxNode, CSharpCodeGenerationOptions>
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: AnalyzerResult.ReturnType,
-                    refKind: RefKind.None,
+                    refKind: AnalyzerResult.ReturnsByRef ? RefKind.Ref : RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
@@ -571,47 +573,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
-                var arguments = new List<ArgumentSyntax>();
                 var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
+
+                using var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);
 
                 foreach (var argument in AnalyzerResult.MethodParameters)
                 {
                     if (!isLocalFunction || !argument.CanBeCapturedByLocalFunction)
                     {
                         var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
-                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                        var refOrOut = modifier == SyntaxKind.None ? default : Token(modifier);
+                        arguments.Add(Argument(IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
                     }
                 }
 
-                var invocation = SyntaxFactory.InvocationExpression(methodName,
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
-
-                var shouldPutAsyncModifier = this.SelectionResult.ShouldPutAsyncModifier();
-                if (!shouldPutAsyncModifier)
+                var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList(SeparatedList(arguments)));
+                if (this.SelectionResult.ShouldPutAsyncModifier())
                 {
-                    return invocation;
-                }
-
-                if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
-                {
-                    if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
-                        {
-                            Name: nameof(Task.ConfigureAwait),
-                            Parameters: { Length: 1 } parameters
-                        } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
+                    if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
                     {
-                        invocation = SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                invocation,
-                                SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                        if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
+                            {
+                                Name: nameof(Task.ConfigureAwait),
+                                Parameters: [{ Type.SpecialType: SpecialType.System_Boolean }],
+                            }))
+                        {
+                            invocation = InvocationExpression(
+                                MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    invocation,
+                                    IdentifierName(nameof(Task.ConfigureAwait))),
+                                ArgumentList(SingletonSeparatedList(
+                                    Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                        }
                     }
+
+                    invocation = AwaitExpression(invocation);
                 }
 
-                return SyntaxFactory.AwaitExpression(invocation);
+                if (AnalyzerResult.ReturnsByRef)
+                    invocation = RefExpression(invocation);
+
+                return invocation;
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)

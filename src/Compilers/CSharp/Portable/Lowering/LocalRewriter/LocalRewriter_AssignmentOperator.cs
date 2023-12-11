@@ -270,8 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
             BoundExpression? rewrittenReceiver,

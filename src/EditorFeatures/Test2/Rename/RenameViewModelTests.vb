@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -618,6 +619,7 @@ class D : B
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
@@ -625,6 +627,7 @@ class D : B
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
+                    editorFormatMapService,
                     threadingContext,
                     listenerProvider)
 

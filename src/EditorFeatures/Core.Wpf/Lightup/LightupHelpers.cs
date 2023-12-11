@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -311,11 +312,11 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Type '{type}' is not assignable to type '{typeof(T)}'");
         }
 
-        var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
-        if (method == null)
+        var method = type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method =>
         {
-            return CreateFallbackFunction<T, TArg, TResult>(defaultValue);
-        }
+            var parameters = method.GetParameters();
+            return parameters is [{ ParameterType: var parameterType }] && parameterType == argType;
+        });
 
         var parameters = method.GetParameters();
         if (argType != parameters[0].ParameterType)
@@ -341,8 +342,13 @@ internal static class LightupHelpers
 
         var expression =
             Expression.Lambda<Func<T, TArg, TResult>>(
-                Expression.Convert(Expression.Call(instance, method, convertedArgument), typeof(TResult)),
-                parameter);
+                Expression.Convert(
+                    Expression.Call(
+                        instance,
+                        method,
+                        convertedArgument), typeof(TResult)),
+                parameter,
+                argument);
         return expression.Compile();
     }
 
