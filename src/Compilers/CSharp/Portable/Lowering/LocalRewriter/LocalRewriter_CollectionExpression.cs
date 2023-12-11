@@ -1076,8 +1076,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
                 var element = elements[i];
-                var rewrittenExpression = rewrittenExpressions[i];
-
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
                     var collectionPlaceholder = spreadElement.ExpressionPlaceholder;

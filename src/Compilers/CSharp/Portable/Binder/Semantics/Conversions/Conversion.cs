@@ -106,18 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class CollectionExpressionUncommonData : NestedUncommonData
         {
-            internal CollectionExpressionUncommonData(CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol? elementType, ImmutableArray<Conversion> elementConversions) :
+            internal CollectionExpressionUncommonData(CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol elementType, ImmutableArray<Conversion> elementConversions) :
                 base(elementConversions)
             {
+                Debug.Assert(collectionExpressionTypeKind != CollectionExpressionTypeKind.None);
                 CollectionExpressionTypeKind = collectionExpressionTypeKind;
                 ElementType = elementType;
             }
 
             internal readonly CollectionExpressionTypeKind CollectionExpressionTypeKind;
-            internal readonly TypeSymbol? ElementType;
+            internal readonly TypeSymbol ElementType;
         }
 
-        internal static Conversion CreateCollectionExpressionConversion(CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol? elementType, ImmutableArray<Conversion> elementConversions)
+        internal static Conversion CreateCollectionExpressionConversion(CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol elementType, ImmutableArray<Conversion> elementConversions)
         {
             return new Conversion(
                 ConversionKind.CollectionExpression,

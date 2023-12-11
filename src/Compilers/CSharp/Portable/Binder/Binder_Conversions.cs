@@ -824,30 +824,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-            if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
+            switch (collectionTypeKind)
             {
-                Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
-                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
-                {
-                    Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
-                    return;
-                }
-                Debug.Assert(elementTypeWithAnnotations.HasType);
-            }
-
-            var elementType = elementTypeWithAnnotations.Type;
-            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT
-                && findSingleIEnumerableTImplementation(targetType, Compilation) is { } implementation)
-            {
-                // If we have a single IEnumerable<T> implementation, we can report conversion errors against that element type below
-                elementType = implementation.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
+                    if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
+                    {
+                        Debug.Assert(collectionTypeKind != CollectionExpressionTypeKind.ImplementsIEnumerable);
+                        Error(
+                            diagnostics,
+                            collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder ?
+                                ErrorCode.ERR_CollectionBuilderNoElementType :
+                                ErrorCode.ERR_CollectionExpressionTargetNoElementType,
+                            node.Syntax,
+                            targetType);
+                        return;
+                    }
+                    Debug.Assert(elementTypeWithAnnotations.HasType);
+                    break;
             }
 
             bool reportedErrors = false;
 
-            if (collectionTypeKind != CollectionExpressionTypeKind.None &&
-                elementType is { })
+            if (collectionTypeKind != CollectionExpressionTypeKind.None)
             {
+                var elementType = elementTypeWithAnnotations.Type;
+                Debug.Assert(elementType is { });
+
                 var elements = node.Elements;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
@@ -889,27 +894,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
-
-            static NamedTypeSymbol? findSingleIEnumerableTImplementation(TypeSymbol targetType, CSharpCompilation compilation)
-            {
-                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                var ienumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                NamedTypeSymbol? singleIEnumerableImplementation = null;
-                foreach (var @interface in allInterfaces)
-                {
-                    if (ReferenceEquals(@interface.OriginalDefinition, ienumerableType))
-                    {
-                        if (singleIEnumerableImplementation is not null)
-                        {
-                            return null;
-                        }
-
-                        singleIEnumerableImplementation = @interface;
-                    }
-                }
-
-                return singleIEnumerableImplementation;
-            }
         }
 
         private MethodSymbol? GetCollectionBuilderMethod(
