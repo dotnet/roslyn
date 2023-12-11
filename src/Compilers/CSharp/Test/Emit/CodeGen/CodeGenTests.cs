@@ -723,6 +723,7 @@ class M
         public void TestGeneratingLocals()
         {
             var source = @"
+using System.Globalization;
 class C 
 { 
     public static void Main() 
@@ -740,8 +741,8 @@ class C
         System.Console.WriteLine(k);
         System.Console.WriteLine(b);
         System.Console.WriteLine(c);
-        System.Console.WriteLine(f);
-        System.Console.WriteLine(d);
+        System.Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
         System.Console.WriteLine(s);
         System.Console.WriteLine(x);
     }
@@ -758,16 +759,17 @@ abcdef
 True
 ");
 
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       94 (0x5e)
+            compilation.VerifyIL("C.Main", """
+{
+  // Code size      115 (0x73)
   .maxstack  2
   .locals init (int V_0, //i
-  int V_1, //k
-  byte V_2, //c
-  float V_3, //f
-  double V_4, //d
-  string V_5, //s
-  bool V_6) //x
+                int V_1, //k
+                byte V_2, //c
+                float V_3, //f
+                double V_4, //d
+                string V_5, //s
+                bool V_6) //x
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4     0x7fffffff
@@ -779,28 +781,32 @@ True
   IL_0015:  stloc.3
   IL_0016:  ldc.r8     2.71828
   IL_001f:  stloc.s    V_4
-  IL_0021:  ldstr      ""abcdef""
+  IL_0021:  ldstr      "abcdef"
   IL_0026:  stloc.s    V_5
   IL_0028:  ldc.i4.1
   IL_0029:  stloc.s    V_6
   IL_002b:  ldloc.0
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  call       "void System.Console.WriteLine(int)"
   IL_0031:  ldloc.1
-  IL_0032:  call       ""void System.Console.WriteLine(int)""
-  IL_0037:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  call       "void System.Console.WriteLine(int)"
+  IL_0037:  call       "void System.Console.WriteLine(int)"
   IL_003c:  ldloc.2
-  IL_003d:  call       ""void System.Console.WriteLine(int)""
-  IL_0042:  ldloc.3
-  IL_0043:  call       ""void System.Console.WriteLine(float)""
-  IL_0048:  ldloc.s    V_4
-  IL_004a:  call       ""void System.Console.WriteLine(double)""
-  IL_004f:  ldloc.s    V_5
-  IL_0051:  call       ""void System.Console.WriteLine(string)""
-  IL_0056:  ldloc.s    V_6
-  IL_0058:  call       ""void System.Console.WriteLine(bool)""
-  IL_005d:  ret
+  IL_003d:  call       "void System.Console.WriteLine(int)"
+  IL_0042:  ldloca.s   V_3
+  IL_0044:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_0049:  call       "string float.ToString(System.IFormatProvider)"
+  IL_004e:  call       "void System.Console.WriteLine(string)"
+  IL_0053:  ldloca.s   V_4
+  IL_0055:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_005a:  call       "string double.ToString(System.IFormatProvider)"
+  IL_005f:  call       "void System.Console.WriteLine(string)"
+  IL_0064:  ldloc.s    V_5
+  IL_0066:  call       "void System.Console.WriteLine(string)"
+  IL_006b:  ldloc.s    V_6
+  IL_006d:  call       "void System.Console.WriteLine(bool)"
+  IL_0072:  ret
 }
-");
+""");
         }
 
         [WorkItem(546749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546749")]
@@ -8368,6 +8374,7 @@ class C
         {
             string source = @"
 using System;
+using System.Globalization;
 
 public class Program
 {
@@ -8390,7 +8397,7 @@ public class Program
 
     public static void Print(decimal val)
     {
-        Console.WriteLine(val);
+        Console.WriteLine(val.ToString(CultureInfo.InvariantCulture));
     }
 }
 ";
@@ -10640,12 +10647,13 @@ partial class program
         public void DecimalLiteral01()
         {
             string source = @"using System;
+using System.Globalization;
 public class MyClass {
     public static void Main()
     {
-        Console.WriteLine(0E-10M);
-        Console.WriteLine(1E-30M);
-        Console.WriteLine(10E-1M);
+        Console.WriteLine((0E-10M).ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine((1E-30M).ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine((10E-1M).ToString(CultureInfo.InvariantCulture));
     }
 }
 ";
@@ -10695,23 +10703,26 @@ public class MyClass {
         {
             string source =
 @"using System;
+using System.Globalization;
 class C
 {
     static void Main()
     {
-        Console.WriteLine(3.0500000000000000000001e-27m); // 3.05e-27m + 1e-49m [Dev11/Roslyn rounds]
-        Console.WriteLine(3.05000000000000000000001e-27m);  // 3.05e-27m + 1e-50m [Dev11 rounds, Roslyn does not]
-        Console.WriteLine();
-        Console.WriteLine(5.00000000000000000001e-29m); // 5.0e-29m + 1e-49m [Dev11/Roslyn rounds]
-        Console.WriteLine(5.0000000000000000000000000000001e-29m); // 5.0e-29m + 1e-60m [Dev11 rounds, Roslyn does not]
-        Console.WriteLine();
-        Console.WriteLine(-5.00000000000000000001e-29m); // -5.0e-29m + 1e-49m [Dev11/Roslyn rounds]
-        Console.WriteLine(-5.0000000000000000000000000000001e-29m); // -5.0e-29m + 1e-60m [Dev11 rounds, Roslyn does not]
-        Console.WriteLine();
+        WriteLine(3.0500000000000000000001e-27m); // 3.05e-27m + 1e-49m [Dev11/Roslyn rounds]
+        WriteLine(3.05000000000000000000001e-27m);  // 3.05e-27m + 1e-50m [Dev11 rounds, Roslyn does not]
+        WriteLine();
+        WriteLine(5.00000000000000000001e-29m); // 5.0e-29m + 1e-49m [Dev11/Roslyn rounds]
+        WriteLine(5.0000000000000000000000000000001e-29m); // 5.0e-29m + 1e-60m [Dev11 rounds, Roslyn does not]
+        WriteLine();
+        WriteLine(-5.00000000000000000001e-29m); // -5.0e-29m + 1e-49m [Dev11/Roslyn rounds]
+        WriteLine(-5.0000000000000000000000000000001e-29m); // -5.0e-29m + 1e-60m [Dev11 rounds, Roslyn does not]
+        WriteLine();
         //                         10        20        30        40        50
-        Console.WriteLine(.10000000000000000000000000005000000000000000000001m); // [Dev11 chops at 50 digits and rounds, Roslyn does not round]
-        Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
+        WriteLine(.10000000000000000000000000005000000000000000000001m); // [Dev11 chops at 50 digits and rounds, Roslyn does not round]
+        WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
+    static void WriteLine() => Console.WriteLine();
+    static void WriteLine(decimal d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
             if (ExecutionConditionUtil.IsCoreClr)
             {
@@ -11141,6 +11152,7 @@ class C
         {
             string source = @"
 using System;
+using System.Globalization;
 
 class C
 {
@@ -11149,26 +11161,34 @@ class C
         decimal myMoney = 99.9m;
         double x = (double)myMoney;
         myMoney = (decimal)x;
-        System.Console.Write(myMoney);
+        System.Console.Write(myMoney.ToString(CultureInfo.InvariantCulture));
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "99.9");
-            compilation.VerifyIL("C.Main",
-@"{
-  // Code size       31 (0x1f)
-  .maxstack  5
-  IL_0000:  ldc.i4     0x3e7
-  IL_0005:  ldc.i4.0
-  IL_0006:  ldc.i4.0
+            compilation.VerifyIL("C.Main", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  6
+  .locals init (decimal V_0) //myMoney
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4     0x3e7
   IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_000e:  call       ""double decimal.op_Explicit(decimal)""
-  IL_0013:  conv.r8
-  IL_0014:  call       ""decimal decimal.op_Explicit(double)""
-  IL_0019:  call       ""void System.Console.Write(decimal)""
-  IL_001e:  ret
-}");
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       "decimal..ctor(int, int, int, bool, byte)"
+  IL_0010:  ldloc.0
+  IL_0011:  call       "double decimal.op_Explicit(decimal)"
+  IL_0016:  conv.r8
+  IL_0017:  call       "decimal decimal.op_Explicit(double)"
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_0024:  call       "string decimal.ToString(System.IFormatProvider)"
+  IL_0029:  call       "void System.Console.Write(string)"
+  IL_002e:  ret
+}
+""");
         }
 
         [Fact]
@@ -11520,34 +11540,37 @@ False
         public void DecimalUnaryOp_01()
         {
             string source = @"
+using System.Globalization;
 class C
 {
         static void Main(string[] args)
         {
             var x1 = +123.456M;
-            System.Console.WriteLine(x1);
+            WriteLine(x1);
 
             var x2 = -123.456M;
-            System.Console.WriteLine(x2);
+            WriteLine(x2);
 
             var x3 = +x1;
-            System.Console.WriteLine(x3);
+            WriteLine(x3);
 
             var x4 = -x1;
-            System.Console.WriteLine(x4);
+            WriteLine(x4);
 
             var x5 = ++x1;
-            System.Console.WriteLine(x5);
+            WriteLine(x5);
 
             var x6 = x1++;
-            System.Console.WriteLine(x6);
+            WriteLine(x6);
 
             var x7 = x1--;
-            System.Console.WriteLine(x7);
+            WriteLine(x7);
 
             var x8 = --x1;
-            System.Console.WriteLine(x8);
+            WriteLine(x8);
         }
+
+        static void WriteLine(decimal d) => System.Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
 123.456
@@ -11560,7 +11583,7 @@ class C
 123.456
 ");
             compilation.VerifyIL("C.Main",
-@"
+"""
 {
   // Code size      111 (0x6f)
   .maxstack  6
@@ -11571,44 +11594,44 @@ class C
   IL_0008:  ldc.i4.0
   IL_0009:  ldc.i4.0
   IL_000a:  ldc.i4.3
-  IL_000b:  call       ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000b:  call       "decimal..ctor(int, int, int, bool, byte)"
   IL_0010:  ldloc.0
-  IL_0011:  call       ""void System.Console.WriteLine(decimal)""
+  IL_0011:  call       "void C.WriteLine(decimal)"
   IL_0016:  ldc.i4     0x1e240
   IL_001b:  ldc.i4.0
   IL_001c:  ldc.i4.0
   IL_001d:  ldc.i4.1
   IL_001e:  ldc.i4.3
-  IL_001f:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0024:  call       ""void System.Console.WriteLine(decimal)""
+  IL_001f:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+  IL_0024:  call       "void C.WriteLine(decimal)"
   IL_0029:  ldloc.0
-  IL_002a:  call       ""void System.Console.WriteLine(decimal)""
+  IL_002a:  call       "void C.WriteLine(decimal)"
   IL_002f:  ldloc.0
-  IL_0030:  call       ""decimal decimal.op_UnaryNegation(decimal)""
-  IL_0035:  call       ""void System.Console.WriteLine(decimal)""
+  IL_0030:  call       "decimal decimal.op_UnaryNegation(decimal)"
+  IL_0035:  call       "void C.WriteLine(decimal)"
   IL_003a:  ldloc.0
-  IL_003b:  call       ""decimal decimal.op_Increment(decimal)""
+  IL_003b:  call       "decimal decimal.op_Increment(decimal)"
   IL_0040:  dup
   IL_0041:  stloc.0
-  IL_0042:  call       ""void System.Console.WriteLine(decimal)""
+  IL_0042:  call       "void C.WriteLine(decimal)"
   IL_0047:  ldloc.0
   IL_0048:  dup
-  IL_0049:  call       ""decimal decimal.op_Increment(decimal)""
+  IL_0049:  call       "decimal decimal.op_Increment(decimal)"
   IL_004e:  stloc.0
-  IL_004f:  call       ""void System.Console.WriteLine(decimal)""
+  IL_004f:  call       "void C.WriteLine(decimal)"
   IL_0054:  ldloc.0
   IL_0055:  dup
-  IL_0056:  call       ""decimal decimal.op_Decrement(decimal)""
+  IL_0056:  call       "decimal decimal.op_Decrement(decimal)"
   IL_005b:  stloc.0
-  IL_005c:  call       ""void System.Console.WriteLine(decimal)""
+  IL_005c:  call       "void C.WriteLine(decimal)"
   IL_0061:  ldloc.0
-  IL_0062:  call       ""decimal decimal.op_Decrement(decimal)""
+  IL_0062:  call       "decimal decimal.op_Decrement(decimal)"
   IL_0067:  dup
   IL_0068:  stloc.0
-  IL_0069:  call       ""void System.Console.WriteLine(decimal)""
+  IL_0069:  call       "void C.WriteLine(decimal)"
   IL_006e:  ret
 }
-");
+""");
         }
 
         [Fact]
@@ -12815,6 +12838,7 @@ TrueFalseTrueFalse");
         {
             var source = @"
 using System;
+using System.Globalization;
 
 public class C
 {
@@ -12824,10 +12848,10 @@ public class C
         decimal d2 = (decimal)1.712f;
         decimal d3 = (decimal)1.712;
         decimal d4 = (decimal)(double)1.712f;
-        Console.WriteLine(d1);
-        Console.WriteLine(d2);
-        Console.WriteLine(d3);
-        Console.WriteLine(d4);
+        Console.WriteLine(d1.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine(d2.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine(d3.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine(d4.ToString(CultureInfo.InvariantCulture));
         Console.WriteLine(d1 == d2);
         Console.WriteLine(d2 == d3);
         Console.WriteLine(d3 == d4);
@@ -12850,25 +12874,28 @@ False");
         {
             var source =
 @"using System;
+using System.Globalization;
 class C
 {
     static void Main()
     {
-        Console.WriteLine((decimal)2147483648f);
-        Console.WriteLine((decimal)2147483648d);
-        Console.WriteLine((decimal)9.22337203685478e18f);
-        Console.WriteLine((decimal)9.22337203685478e18d);
-        Console.WriteLine((decimal)3.96140812571322e28f);
-        Console.WriteLine((decimal)3.96140812571322e28d);
-        Console.WriteLine((decimal)3.96140812663555e28f);
-        Console.WriteLine((decimal)3.96140812663555e28d);
-        Console.WriteLine((decimal)0.2147483648f);
-        Console.WriteLine((decimal)0.2147483648d);
-        Console.WriteLine((decimal)-0.0922337203685478f);
-        Console.WriteLine((decimal)-0.0922337203685478d);
-        Console.WriteLine((decimal)-3.96140812571322f);
-        Console.WriteLine((decimal)-3.96140812571322d);
+        WriteLine((decimal)2147483648f);
+        WriteLine((decimal)2147483648d);
+        WriteLine((decimal)9.22337203685478e18f);
+        WriteLine((decimal)9.22337203685478e18d);
+        WriteLine((decimal)3.96140812571322e28f);
+        WriteLine((decimal)3.96140812571322e28d);
+        WriteLine((decimal)3.96140812663555e28f);
+        WriteLine((decimal)3.96140812663555e28d);
+        WriteLine((decimal)0.2147483648f);
+        WriteLine((decimal)0.2147483648d);
+        WriteLine((decimal)-0.0922337203685478f);
+        WriteLine((decimal)-0.0922337203685478d);
+        WriteLine((decimal)-3.96140812571322f);
+        WriteLine((decimal)-3.96140812571322d);
     }
+
+    static void WriteLine(decimal d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
             CompileAndVerify(source, expectedOutput:
 @"2147484000

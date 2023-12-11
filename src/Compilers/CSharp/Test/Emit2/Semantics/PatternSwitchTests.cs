@@ -1135,6 +1135,7 @@ sasquatch";
         {
             var source =
 @"using System;
+using System.Globalization;
 
 class Program
 {
@@ -1196,13 +1197,13 @@ class Program
                 Console.WriteLine(""double.NaN !"");
                 break;
             case float f when f is float g:
-                Console.WriteLine(""float "" + g);
+                Console.WriteLine(""float "" + g.ToString(CultureInfo.InvariantCulture));
                 break;
             case double d when d is double e:
-                Console.WriteLine(""double "" + e);
+                Console.WriteLine(""double "" + e.ToString(CultureInfo.InvariantCulture));
                 break;
             case decimal d when d is decimal e:
-                Console.WriteLine(""decimal "" + e);
+                Console.WriteLine(""decimal "" + e.ToString(CultureInfo.InvariantCulture));
                 break;
             case null:
                 Console.WriteLine(""null"");

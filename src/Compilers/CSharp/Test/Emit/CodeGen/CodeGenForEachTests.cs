@@ -88,6 +88,7 @@ class C
         public void TestForEachMultiDimensionalArray()
         {
             var source = @"
+using System.Globalization;
 class C
 {
     static void Main()
@@ -99,7 +100,7 @@ class C
 
         foreach (var x in values)
         {
-            System.Console.WriteLine(x);
+            System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
         }
     }
 }";
