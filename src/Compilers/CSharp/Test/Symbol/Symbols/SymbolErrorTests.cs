@@ -3099,7 +3099,7 @@ abstract class C<T>
         }
 
         [Fact]
-        public void CS0225ERR_ParamsMustBeArray01()
+        public void CS0225ERR_ParamsMustBeCollection01()
         {
             var text = @"
 using System.Collections.Generic;
@@ -3122,9 +3122,11 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 8, Column = 46 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 13, Column = 28 });
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (13,28): error CS0225: The params parameter must have a valid collection type
+                //     public static void Goo(params int a) {}
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(13, 28)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
             // TODO...

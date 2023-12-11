@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Argument is a param array created by compilers for the matching C# params or VB ParamArray parameter. 
         /// Note, the value is a an array creation expression that encapsulates all the elements, if any.
         /// </summary>
-        ParamArray = 0x2,
+        ParamArray = 0x2, // PROTOTYPE(ParamsCollections): Reuse or add a special kind for non-array params collections?
 
         /// <summary>
         /// Argument is a default value supplied automatically by the compilers.

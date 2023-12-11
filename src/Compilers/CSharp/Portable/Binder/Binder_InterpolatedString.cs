@@ -892,6 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      or
                                                      {
                                                          IsParams: true,
+                                                         // PROTOTYPE(ParamsCollections): Adjust
                                                          Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } },
                                                          InterpolatedStringHandlerArgumentIndexes.IsEmpty: true
                                                      });
@@ -924,6 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     interpolatedStringConversion,
                     isCast: false,
                     conversionGroupOpt: null,
+                    // PROTOTYPE(ParamsCollections): Adjust
                     interpolatedStringParameter.IsParams ? ((ArrayTypeSymbol)interpolatedStringParameter.Type).ElementType : interpolatedStringParameter.Type,
                     diagnostics);
             }
@@ -997,7 +999,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If it is optional, then they could otherwise not specify the parameter and that's an error
                             var originalParameterIndex = handlerParameterIndexes[i];
                             var parameter = parameters[originalParameterIndex];
-                            if (parameter.IsOptional || (originalParameterIndex + 1 == parameters.Length && OverloadResolution.IsValidParamsParameter(parameter)))
+                            if (parameter.IsOptional ||
+                                (memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm && originalParameterIndex + 1 == parameters.Length))
                             {
                                 // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
                                 diagnostics.Add(

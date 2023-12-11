@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 argumentKind = ArgumentKind.DefaultValue;
             }
-            else if (argument.IsParamsArray)
+            else if (argument.IsParamsCollection)
             {
                 argumentKind = ArgumentKind.ParamArray;
             }

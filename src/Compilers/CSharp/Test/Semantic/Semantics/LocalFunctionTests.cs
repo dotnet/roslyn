@@ -2550,9 +2550,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
         }
 

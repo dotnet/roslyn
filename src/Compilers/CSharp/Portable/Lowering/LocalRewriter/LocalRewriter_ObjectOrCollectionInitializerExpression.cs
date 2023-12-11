@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
-                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArray) == (memberInit.Expanded ? 1 : 0));
+                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsCollection) == (memberInit.Expanded ? 1 : 0)); // PROTOTYPE(ParamsCollections): Adjust?
 
                             var args = EvaluateSideEffectingArgumentsToTemps(
                                 memberInit.Arguments,
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (rewrittenArrayAccess is BoundArrayAccess arrayAccess)
                         {
-                            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+                            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsCollection));
 
                             var indices = EvaluateSideEffectingArgumentsToTemps(
                                 arrayAccess.Indices,
@@ -530,7 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var argument in initializerMember.Arguments)
                     {
-                        if (argument is BoundArrayCreation { IsParamsArray: true, InitializerOpt: var initializers })
+                        // PROTOTYPE(ParamsCollections): Do we need to do the same special case for collections other than arrays?
+                        if (argument is BoundArrayCreation { IsParamsCollection: true, InitializerOpt: var initializers })
                         {
                             Debug.Assert(initializers is not null);
                             foreach (var element in initializers.Initializers)
@@ -588,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression replacement;
 
-                if (arg.IsParamsArray)
+                if (arg.IsParamsCollection) // PROTOTYPE(ParamsCollections): Do we need to recreate the same special handling for collections other than arrays?
                 {
                     // Capturing the array instead is going to lead to an observable behavior difference. Not just an IL difference,
                     // see Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.ObjectAndCollectionInitializerTests.DictionaryInitializerTestSideeffects001param for example.

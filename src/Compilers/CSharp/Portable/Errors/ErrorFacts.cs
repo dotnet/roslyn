@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CheckedOverflow:
                 case ErrorCode.ERR_ConstOutOfRangeChecked:
                 case ErrorCode.ERR_BadVarargs:
-                case ErrorCode.ERR_ParamsMustBeArray:
+                case ErrorCode.ERR_ParamsMustBeCollection:
                 case ErrorCode.ERR_IllegalArglist:
                 case ErrorCode.ERR_IllegalUnsafe:
                 case ErrorCode.ERR_AmbigMember:

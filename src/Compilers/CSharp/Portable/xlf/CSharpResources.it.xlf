@@ -1502,6 +1502,11 @@
         <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">I modificatori di accessibilità devono essere identici in entrambe le dichiarazioni di metodo parziale.</target>
@@ -6106,11 +6111,6 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">Un metodo con vararg non può essere generico, non può essere in un tipo generico né contenere una matrice di parametri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Il parametro params deve essere una matrice unidimensionale</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

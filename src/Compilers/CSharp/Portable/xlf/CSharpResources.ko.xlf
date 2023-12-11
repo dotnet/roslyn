@@ -1502,6 +1502,11 @@
         <target state="translated">'parameter null-checking' 기능은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">두 부분 메서드 선언에는 동일한 접근성 한정자가 있어야 합니다.</target>
@@ -6106,11 +6111,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">vararg가 있는 메서드는 제네릭이거나 제네릭 형식일 수 없으며 params 매개 변수를 포함할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">매개 변수 배열은 1차원 배열이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

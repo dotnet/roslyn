@@ -1502,6 +1502,11 @@
         <target state="translated">不支持 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">两个分部方法声明必须具有相同的可访问性修饰符。</target>
@@ -6106,11 +6111,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">带有 vararg 的方法不能是泛型，不能属于泛型类型，也不能具有 params 参数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">params 参数必须是一维数组</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

@@ -3472,14 +3472,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
-            var type = parameters[paramNum].TypeWithAnnotations;
 
             if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
-                type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
+                Debug.Assert(result.ParamsElementTypeOpt.HasType);
+                Debug.Assert(result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                return result.ParamsElementTypeOpt;
             }
 
-            return type;
+            return parameters[paramNum].TypeWithAnnotations;
         }
 
         private BoundExpression BindArrayCreationExpression(ArrayCreationExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -4525,7 +4526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     var baseParameter = GetCorrespondingParameter(i, resultMember.Parameters, argsToParamsOpt, expanded: true);
 
-                                    if (baseParameter.Ordinal == resultMember.ParameterCount - 1 && OverloadResolution.IsValidParamsParameter(baseParameter))
+                                    if (baseParameter.Ordinal == resultMember.ParameterCount - 1)
                                     {
                                         continue;
                                     }
@@ -4544,7 +4545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                     }
 
-                    BindDefaultArgumentsAndParamsArray(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+                    BindDefaultArgumentsAndParamsCollection(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -5368,7 +5369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -6166,7 +6167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+                BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -10050,6 +10051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
+            // PROTOTYPE(ParamsCollections): Adjust
             var hasParamsArray = parameters is [.., { IsParams: true } p] && p.Type.IsSZArray();
 
             Debug.Assert(ContainingMemberOrLambda is { });

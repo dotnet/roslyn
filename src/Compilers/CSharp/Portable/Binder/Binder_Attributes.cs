@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArgumentsAndParamsArray(
+                    attributeArgumentBinder.BindDefaultArgumentsAndParamsCollection(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
 
-                Debug.Assert(arguments.Count(a => a.IsParamsArray) == (boundAttribute.ConstructorExpanded ? 1 : 0));
+                Debug.Assert(arguments.Count(a => a.IsParamsCollection) == (boundAttribute.ConstructorExpanded ? 1 : 0));
 
                 // make source indices if we have anything that doesn't map 1:1 from arguments to parameters:
                 // 1. implicit default arguments
@@ -375,7 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                     constructorArgumentSourceIndices[paramIndex] =
                         defaultArguments[argIndex] ||
-                            (arguments[argIndex].IsParamsArray && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
+                            // PROTOTYPE(ParamsCollections): Adjust?
+                            (arguments[argIndex].IsParamsCollection && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
                         -1 : argIndex;
                 }
                 return constructorArgumentSourceIndices.ToImmutableAndFree();

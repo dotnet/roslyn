@@ -8316,15 +8316,15 @@ public class C : CodeAccessSecurityAttribute
                 // (21,14): error CS0534: 'B' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
                 // public class B : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(21, 14),
-                // (16,14): error CS0225: The params parameter must be a single dimensional array
+                // (16,14): error CS0225: The params parameter must have a valid collection type
                 //     public A(params SecurityAction)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(16, 14),
-                // (23,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(16, 14),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
                 //     public B(int p1, params SecurityAction p2)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(23, 22),
-                // (30,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22),
+                // (30,22): error CS0225: The params parameter must have a valid collection type
                 //     public C(int p1, params SecurityAction p2, string p3)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(30, 22),
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 22),
                 // (7,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [B(p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "B").WithLocation(7, 6),

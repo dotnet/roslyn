@@ -1059,8 +1059,8 @@
   <data name="ERR_BadVarargs" xml:space="preserve">
     <value>A method with vararg cannot be generic, be in a generic type, or have a params parameter</value>
   </data>
-  <data name="ERR_ParamsMustBeArray" xml:space="preserve">
-    <value>The params parameter must be a single dimensional array</value>
+  <data name="ERR_ParamsMustBeCollection" xml:space="preserve">
+    <value>The params parameter must have a valid collection type</value>
   </data>
   <data name="ERR_IllegalArglist" xml:space="preserve">
     <value>An __arglist expression may only appear inside of a call or new expression</value>
