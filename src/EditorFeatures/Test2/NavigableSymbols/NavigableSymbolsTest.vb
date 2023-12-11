@@ -7,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.NavigableSymbols
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -44,31 +43,29 @@ class {|target:C|}
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCharpLiteral() As Task
-            Dim markup = "int x = 1$$23;"
+            Dim markup = "int x = {|highlighted:1$$23|};"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestCharpStringLiteral() As Task
-            Dim markup = "string x = ""w$$ow"";"
+            Dim markup = "string x = {|highlighted:""w$$ow""|};"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
 
@@ -90,27 +87,27 @@ End Class"
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBLiteral() As Task
-            Dim markup = "Dim x as Integer = 1$$23"
+            Dim markup = "Dim x as Integer = {|highlighted:1$$23|}"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVBStringLiteral() As Task
-            Dim markup = "Dim x as String = ""w$$ow"";"
+            Dim markup = "Dim x as String = {|highlighted:""w$$ow""|};"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
 
@@ -129,7 +126,6 @@ End Class"
             Dim symbol = Await ExtractSymbol(workspace, position)
 
             Dim highlightedSpan = spans("highlighted").First()
-            Dim navigationTarget = spans("target").First()
 
             Assert.NotNull(symbol)
             Assert.Equal(highlightedSpan.ToSpan(), symbol.SymbolSpan.Span)
@@ -142,12 +138,11 @@ End Class"
             Assert.Equal(True, navigationService.TryNavigateToLineAndOffsetReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToPositionReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToSpanReturnValue)
-            Assert.Equal(navigationTarget, navigationService.ProvidedTextSpan)
-        End Function
 
-        Private Shared Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer) As Task
-            Dim symbol = Await ExtractSymbol(workspace, position)
-            Assert.Null(symbol)
+            Dim value As ImmutableArray(Of TextSpan) = Nothing
+            If spans.TryGetValue("target", value) Then
+                Assert.Equal(value.First(), navigationService.ProvidedTextSpan)
+            End If
         End Function
     End Class
 End Namespace

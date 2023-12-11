@@ -4,8 +4,6 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal interface IInitializeManager : ILspService

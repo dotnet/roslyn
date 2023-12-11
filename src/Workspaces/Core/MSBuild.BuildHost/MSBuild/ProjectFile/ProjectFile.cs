@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
+            var packageReferences = project.GetPackageReferences();
+
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
             var isSdkStyle = IsSdkStyleProject(loadedProject);
@@ -189,6 +191,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
+                packageReferences,
                 projectCapabilities,
                 contentFileInfo,
                 isSdkStyle);

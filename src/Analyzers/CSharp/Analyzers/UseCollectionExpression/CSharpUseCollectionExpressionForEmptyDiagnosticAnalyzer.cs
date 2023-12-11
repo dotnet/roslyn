@@ -24,17 +24,17 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
 
-    private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+    private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -48,13 +48,13 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
             properties: null));
 

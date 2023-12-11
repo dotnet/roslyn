@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeSyntaxTree(treeContext, context.Compilation.Options)));
 
         /// <summary>
         /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
@@ -35,8 +36,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public override bool IsHighPriority => true;
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
+            if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
+                return;
+
             var options = context.GetAnalyzerOptions().GetSyntaxFormattingOptions(SyntaxFormatting);
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormatting, Descriptor, options);
         }
