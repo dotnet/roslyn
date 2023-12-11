@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             if (IsDocumentResolveMethod(methodName))
             {
-                var dataToken = (JToken)request.GetType().GetProperty("Data")?.GetValue(request);
-                var resolveData = dataToken.ToObject<DocumentResolveData>();
+                var dataToken = (JToken)request?.GetType().GetProperty("Data")?.GetValue(request);
+                var resolveData = dataToken?.ToObject<DocumentResolveData>();
                 if (resolveData is null)
                 {
                     throw new InvalidOperationException($"{methodName} requires resolve data object to derive from {nameof(DocumentResolveData)}.");
