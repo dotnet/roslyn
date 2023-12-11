@@ -11639,6 +11639,7 @@ class C
         {
             string source = @"
 using System;
+using System.Globalization;
 
 class C
 {
@@ -11660,7 +11661,7 @@ class C
         try
         {
             toBeIncr++;
-            System.Console.WriteLine(toBeIncr);
+            System.Console.WriteLine(toBeIncr.ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception ex)
         {
@@ -11671,7 +11672,7 @@ class C
         try
         {
             toBeDecr--;
-            System.Console.WriteLine(toBeDecr);
+            System.Console.WriteLine(toBeDecr.ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception ex)
         {
