@@ -40,11 +40,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Odejmowanie musi być ostatnim elementem w klasie znaków</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">Uzyskanie dostępu do przechwyconej zmiennej elementu „{0}”, do którego nie uzyskano dostępu wcześniej w {1}, wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Dodaj atrybut "DebuggerDisplay"</target>
@@ -113,11 +108,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">Dodanie elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Dodawanie elementu {0}, który uzyskuje dostęp do przechwyconych zmiennych „{1}" i „{2}" zadeklarowanych w różnych zakresach, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -365,24 +355,9 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">Przechwytywanie zmiennej "{0}", która nie została przechwycona wcześniej, wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">Zaprzestanie dostępu do przechwyconej zmiennej "{0}" w {1} wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
         <target state="translated">Próba przechwycenia podstawowego parametru konstruktora '{0}' '{1}' wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Zaprzestanie przechwytywania zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -668,11 +643,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Usunięcie {0} wymaga ponownego uruchomienia aplikacji, ponieważ nie jest to obsługiwane przez środowisko uruchomieniowe.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">Usuwanie przechwyconej zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Directives_from_0">
@@ -2563,11 +2533,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">Usuń nieużywane zmienne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Usunięcie elementu {0}, który uzyskał dostęp do przechwyconych zmiennych „{1}" i „{2}" deklarowanych w różnych zakresach, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">

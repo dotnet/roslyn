@@ -55,7 +55,8 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
             semanticModel, syntaxFacts, invocationExpression, valuePattern: default, initializedSymbol: null);
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        if (AnalyzeInvocation(text, state, invocationExpression, addMatches: true, cancellationToken) is not { } analysisResult)
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
+        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, addMatches: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace `new[] { 1, 2, 3 }.Concat(x).Add(y).ToArray()` with the new collection expression.  To do

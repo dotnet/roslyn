@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Concurrent
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
@@ -16,13 +14,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Inherits AbstractUseAutoPropertyAnalyzer(Of
             SyntaxKind,
             PropertyBlockSyntax,
+            ConstructorBlockSyntax,
             FieldDeclarationSyntax,
             ModifiedIdentifierSyntax,
-            ExpressionSyntax)
+            ExpressionSyntax,
+            IdentifierNameSyntax)
 
         Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -132,37 +132,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return GetNodeToRemove(identifier)
         End Function
-
-        Protected Overrides Sub RegisterNonConstructorFieldWrites(
-                fieldNames As HashSet(Of String),
-                fieldWrites As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
-                semanticModel As SemanticModel,
-                codeBlock As SyntaxNode,
-                cancellationToken As CancellationToken)
-
-            ' the property doesn't have a setter currently. check all the types the field is 
-            ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the property widely 
-            ' (in accessibility terms) in a way the user would not want.
-
-            ' Always fine to convert an prop to an auto-prop if its field was only written in a constructor.
-            If codeBlock.AncestorsAndSelf().Contains(Function(node) node.Kind() = SyntaxKind.ConstructorBlock) Then
-                Return
-            End If
-
-            For Each node In codeBlock.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)
-                If Not fieldNames.Contains(node.Identifier.ValueText) Then
-                    Continue For
-                End If
-
-                Dim field = TryCast(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol, IFieldSymbol)
-                If field IsNot Nothing AndAlso
-                   node.IsWrittenTo(semanticModel, cancellationToken) Then
-
-                    AddFieldWrite(fieldWrites, field, node)
-                End If
-            Next
-        End Sub
     End Class
 End Namespace

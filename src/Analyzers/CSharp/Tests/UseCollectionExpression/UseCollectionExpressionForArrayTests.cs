@@ -4168,4 +4168,207 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        var f = () => new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<int[]>> f = () => new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70998")]
+    public async Task ForMismatchedTupleNames1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M()
+                    {
+                        return [|[|new|][]|] { (A: 1, 2) };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M()
+                    {
+                        return [(A: 1, 2)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70998")]
+    public async Task ForMismatchedTupleNames2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M = [|{|] (A: 1, 2) };
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M = [(A: 1, 2)];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70816")]
+    public async Task NotWithInvalidNumericInference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual(new byte[] { 0, 1 });
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixAllImplicitArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { [|[|new|][]|] { 1 }, [|[|new|][]|] { 1 } };
+                    }
+                }
+                """,
+            // Fixing just validates each fix in order, iteratively.  After the first item is fixed, the second can't be.
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { [1], new[] { 1 } };
+                    }
+                }
+                """,
+            // Batch fixing runs the fixer against all diagnostics at once.  That fixer goes from innermost (lowest) to
+            // highest. So we end up fixing the second.  After that one is fixed, the first can't be.
+            BatchFixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { new[] { 1 }, [1] };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

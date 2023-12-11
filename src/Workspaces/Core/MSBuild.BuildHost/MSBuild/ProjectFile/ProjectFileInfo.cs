@@ -133,6 +133,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         [DataMember(Order = 17)]
         public string? ProjectAssetsFilePath { get; }
 
+        /// <summary>
+        /// Any package references defined on the project.
+        /// </summary>
+        [DataMember(Order = 18)]
+        public ImmutableArray<PackageReference> PackageReferences { get; }
+
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
@@ -154,6 +160,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
             bool isSdkStyle)
@@ -175,6 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.AdditionalDocuments = additionalDocuments;
             this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
+            this.PackageReferences = packageReferences;
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
             this.IsSdkStyle = isSdkStyle;
@@ -195,6 +203,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
             ImmutableArray<string> contentFilePaths,
             bool isSdkStyle)
@@ -214,6 +223,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments,
                 analyzerConfigDocuments,
                 projectReferences,
+                packageReferences,
                 projectCapabilities,
                 contentFilePaths,
                 isSdkStyle);
@@ -235,6 +245,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
+                packageReferences: ImmutableArray<PackageReference>.Empty,
                 projectCapabilities: ImmutableArray<string>.Empty,
                 contentFilePaths: ImmutableArray<string>.Empty,
                 isSdkStyle: false);

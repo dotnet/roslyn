@@ -312,10 +312,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 RenameFile: false);
 
             var initialLocations = await Renamer.FindRenameLocationsAsync(
-                solution, field, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                solution, field, options, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
-                field, finalName, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                field, finalName, nonConflictSymbolKeys: default, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 

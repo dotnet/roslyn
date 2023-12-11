@@ -698,6 +698,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
             }
         }
-#nullable disable
     }
 }

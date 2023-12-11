@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _throughAdditionalLocations = throughAdditionalLocations;
                 _rule = new(
                     diagnosticId, "test", "test", "test", DiagnosticSeverity.Error, true,
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary: true, isConfigurable: false, EnforceOnBuild.Never));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary: true, isConfigurable: false, isCustomConfigurable: false, EnforceOnBuild.Never));
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         c.ReportDiagnostic(DiagnosticHelper.Create(
                             _rule, primaryLocation,
-                            ReportDiagnostic.Error,
+                            NotificationOption2.Error,
                             additionalLocations: null,
                             properties: null));
                     }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                         c.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                             _rule, primaryLocation,
-                            ReportDiagnostic.Error,
+                            NotificationOption2.Error,
                             additionalLocations,
                             additionalUnnecessaryLocations));
                     }

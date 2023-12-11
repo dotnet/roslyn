@@ -10,12 +10,14 @@ efforts behind them.
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
+| [Params-collections](https://github.com/dotnet/csharplang/issues/7700) | [ParamsCollections](https://github.com/dotnet/roslyn/tree/features/ParamsCollections) | [In Progress](https://github.com/dotnet/roslyn/issues/71137) | [AlekseyTs](https://github.com/AlekseyTs) | [RikkiGibson](https://github.com/RikkiGibson), [333fred](https://github.com/333fred) |  |  [MadsTorgersen](https://github.com/MadsTorgersen), [AlekseyTs](https://github.com/AlekseyTs) |
 | [Semi-auto-properties](https://github.com/dotnet/csharplang/issues/140) | [semi-auto-props](https://github.com/dotnet/roslyn/tree/features/semi-auto-props) | [In Progress](https://github.com/dotnet/roslyn/issues/57012) | [Youssef1313](https://github.com/Youssef1313) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) |  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Params Span\<T> + Stackalloc any array type](https://github.com/dotnet/csharplang/issues/1757) | [params-span](https://github.com/dotnet/roslyn/tree/features/params-span) | [In Progress](https://github.com/dotnet/roslyn/issues/57049) | [cston](https://github.com/cston) | TBD |  | [jaredpar](https://github.com/jaredpar) |
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) |  | [jcouv](https://github.com/jcouv) |
 | [Roles/Extensions](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) |  | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Escape character](https://github.com/dotnet/csharplang/issues/7400) | N/A | [In Progress](https://github.com/dotnet/roslyn/pull/70497) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | 
 | [Method group natural type improvements](https://github.com/dotnet/csharplang/blob/main/proposals/method-group-natural-type-improvements.md) | main | In Progress | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [cston](https://github.com/cston) |  | [jcouv](https://github.com/jcouv) |
+| Implicit indexer access in object initializers | main | Merged into 17.9p3 | [jcouv](https://github.com/jcouv) |  |  |  |
 
 # C# 12.0
 
