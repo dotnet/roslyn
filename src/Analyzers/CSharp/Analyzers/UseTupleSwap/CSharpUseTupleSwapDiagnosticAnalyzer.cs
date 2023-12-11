@@ -63,10 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         {
             var cancellationToken = syntaxContext.CancellationToken;
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
-
-            var severity = styleOption.Notification.Severity;
 
             // `var expr_temp = expr_a`;
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)syntaxContext.Node;
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localDeclarationStatement.GetFirstToken().GetLocation(),
-                severity,
+                styleOption.Notification,
                 additionalLocations,
                 properties: null));
         }

@@ -9,6 +9,11 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\BitOperations.cs" Link="Hashing\BitOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\NonCryptographicHashAlgorithm.cs" Link="Hashing\NonCryptographicHashAlgorithm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash128.cs" Link="Hashing\XxHash128.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash64.State.cs" Link="Hashing\XxHash64.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHashShared.cs" Link="Hashing\XxHashShared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentDictionaryExtensions.cs" Link="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConfiguredYieldAwaitable.cs" Link="InternalUtilities\ConfiguredYieldAwaitable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
@@ -29,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" Link="InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SingleInitNullable.cs" Link="InternalUtilities\SingleInitNullable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
@@ -239,6 +245,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions_Shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
@@ -483,8 +490,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\BitOperations.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\NonCryptographicHashAlgorithm.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
@@ -537,6 +542,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticEquivalence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SignatureComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpecializedTasks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
@@ -549,9 +555,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TopologicalSorter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\XxHash128.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\XxHash64.State.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\XxHashShared.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AccessibilityUtilities.cs" />
@@ -613,7 +616,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Hashing\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Utilities\Hashing\" />
   </ItemGroup>
 </Project>

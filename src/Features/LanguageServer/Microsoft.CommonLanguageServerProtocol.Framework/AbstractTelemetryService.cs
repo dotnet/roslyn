@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CommonLanguageServerProtocol.Framework;
+namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+public abstract class AbstractTelemetryService
 {
-
-    internal interface ILspServiceLogger : ILspLogger, ILspService
-    {
-    }
+    public abstract AbstractRequestScope CreateRequestScope(string lspMethodName);
 }

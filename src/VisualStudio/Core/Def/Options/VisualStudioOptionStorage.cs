@@ -300,7 +300,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_highlight_keywords", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"dotnet_display_line_separators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
 #pragma warning restore
-        {"dotnet_navigate_asynchronously", new RoamingProfileStorage("TextEditor.NavigateAsynchronously")},
         {"dotnet_navigate_to_decompiled_sources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"dotnet_navigate_to_source_link_and_embedded_sources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"dotnet_offer_remove_unused_references", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
@@ -431,7 +430,6 @@ internal abstract class VisualStudioOptionStorage
         {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"visual_studio_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"visual_studio_workspace_partial_load_mode", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
-        {"dotnet_disable_shared_syntax_trees", new FeatureFlagStorage(@"Roslyn.DisableSharedSyntaxTrees")},
         {"dotnet_disable_recoverable_text", new FeatureFlagStorage(@"Roslyn.DisableRecoverableText")},
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_run_source_generators_in_same_process_only", new FeatureFlagStorage(@"Roslyn.RunSourceGeneratorsInSameProcessOnly")},

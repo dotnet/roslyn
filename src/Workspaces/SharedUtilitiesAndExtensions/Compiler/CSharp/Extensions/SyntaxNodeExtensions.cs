@@ -917,31 +917,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInExpressionTree(
             [NotNullWhen(returnValue: true)] this SyntaxNode? node,
             SemanticModel semanticModel,
-            [NotNullWhen(returnValue: true)] INamedTypeSymbol? expressionTypeOpt,
+            [NotNullWhen(returnValue: true)] INamedTypeSymbol? expressionType,
             CancellationToken cancellationToken)
         {
-            if (expressionTypeOpt != null)
+            if (expressionType != null)
             {
                 for (var current = node; current != null; current = current.Parent)
                 {
                     if (current.IsAnyLambda())
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
-                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        if (expressionType.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                             return true;
                     }
                     else if (current is SelectOrGroupClauseSyntax or
                              OrderingSyntax)
                     {
                         var info = semanticModel.GetSymbolInfo(current, cancellationToken);
-                        if (TakesExpressionTree(info, expressionTypeOpt))
+                        if (TakesExpressionTree(info, expressionType))
                             return true;
                     }
                     else if (current is QueryClauseSyntax queryClause)
                     {
                         var info = semanticModel.GetQueryClauseInfo(queryClause, cancellationToken);
-                        if (TakesExpressionTree(info.CastInfo, expressionTypeOpt) ||
-                            TakesExpressionTree(info.OperationInfo, expressionTypeOpt))
+                        if (TakesExpressionTree(info.CastInfo, expressionType) ||
+                            TakesExpressionTree(info.OperationInfo, expressionType))
                         {
                             return true;
                         }

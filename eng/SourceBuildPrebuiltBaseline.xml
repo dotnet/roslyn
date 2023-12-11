@@ -3,8 +3,6 @@
 
 <UsageData>
   <IgnorePatterns>
-    <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
-
     <!-- These are cases where the component chooses, when built in isolation, to 
          remain dependent on stable versions. These versions may not have source build intermediates associated with them.
          They cannot be source build reference packages because they actually provide functionality. In full source build, these versions are

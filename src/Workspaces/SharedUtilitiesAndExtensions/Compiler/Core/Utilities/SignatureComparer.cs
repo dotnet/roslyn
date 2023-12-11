@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal class SignatureComparer
+    internal sealed class SignatureComparer
     {
         public static readonly SignatureComparer Instance = new(SymbolEquivalenceComparer.Instance);
         public static readonly SignatureComparer IgnoreAssembliesInstance = new(SymbolEquivalenceComparer.IgnoreAssembliesInstance);

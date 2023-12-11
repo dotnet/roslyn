@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2297,7 +2298,7 @@ class C
 
     void F()
     {
-        
+
     }
 }
 ";
@@ -2317,9 +2318,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291")]
@@ -2360,8 +2361,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2397,8 +2399,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2453,8 +2456,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2488,9 +2492,9 @@ class C(int x)
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2541,8 +2545,9 @@ class C(int x)
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2686,8 +2691,8 @@ class C
                 { int x3 = 0, y3 = 0;      // Group #2 
                                            
                     G(a => x3 + x1);       
-                    G(a => x0 + y0 + x2);
-                    G(a => x);
+                    G(b => x0 + y0 + x2);
+                    G(c => x);
                 }
             }
         }
@@ -2714,15 +2719,15 @@ class C
                 { int x3 = 0, y3 = 0;       // Group #2 
                                             
                     G(a => x3 + x1);        
-                    G(a => x0 + y0 + x2);
-                    G(a => x);
+                    G(b => x0 + y0 + x2);
+                    G(c => x);
 
-                    G(a => x);              // OK
-                    G(a => x0 + y0);        // OK
-                    G(a => x1 + y0);        // error - connecting Group #1 and Group #2
-                    G(a => x3 + x1);        // error - multi-scope (conservative)
-                    G(a => x + y0);         // error - connecting Group #0 and Group #1
-                    G(a => x + x3);         // error - connecting Group #0 and Group #2
+                    G(d => x);              // OK
+                    G(e => x0 + y0);        // OK
+                    G(f => x1 + y0);        // runtime rude edit - connecting Group #1 and Group #2
+                    G(g => x3 + x1);        // runtime rude edit - multi-scope (conservative)
+                    G(h => x + y0);         // runtime rude edit - connecting Group #0 and Group #1
+                    G(i => x + x3);         // runtime rude edit - connecting Group #0 and Group #2
                 }
             }
         }
@@ -2731,19 +2736,15 @@ class C
 ";
             var insert = GetTopEdits(src1, src2);
 
-            insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "y0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.lambda, "this", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "this", "x3"));
+            insert.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
 
             var delete = GetTopEdits(src2, src1);
 
-            delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.lambda, "this", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "this", "x3"));
+            delete.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2784,15 +2785,16 @@ class C
             G(a => x0);   
             G(a => x1);
 
-            G(a => x0 + x1);             // error: connecting previously disconnected closures
+            G(a => x0 + x1);             // runtime rude edit: connecting previously disconnected closures
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2824,14 +2826,15 @@ class C
     {               
         int x0 = 0;                              // Group #0  
         foreach (int x1 in new[] { 1 })          // Group #1            
-            G(a => x0, a => x1, a => x0 + x1);   // error: connecting previously disconnected closures            
+            G(a => x0, a => x1, a => x0 + x1);   // runtime rude edit: connecting previously disconnected closures            
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2869,15 +2872,15 @@ class C
             G(a => x2); 
 
             G(a => x0 + x1);  // ok
-            G(a => x0 + x2);  // error: connecting previously disconnected closures
+            G(a => x0 + x2);  // runtime rude edit: connecting previously disconnected closures
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x2", CSharpFeaturesResources.lambda, "x0", "x2"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2942,16 +2945,16 @@ class C
                 x0 = 1;
                 x1 = 2;
                 G(() => x0 + x1);       // ok
-                G(() => x0 + x2);       // error
+                G(() => x0 + x2);       // runtime rude edit
                 break;
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.lambda, "x2", "x0"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2963,7 +2966,7 @@ using System;
 class C
 {
     static bool G<T>(Func<T> f) => true;
-    static int F(object a, object b) => 1;
+    static int H(object a, object b) => 1;
 
     static IDisposable D() => null;
     
@@ -2986,7 +2989,7 @@ using System;
 class C
 {
     static bool G<T>(Func<T> f) => true;
-    static int F(object a, object b) => 1;
+    static int H(object a, object b) => 1;
 
     static IDisposable D() => null;
     
@@ -3000,16 +3003,16 @@ class C
             G(() => y0);
             G(() => x1);
 
-            G(() => F(x0, y0)); // ok
-            G(() => F(x0, x1)); // error
+            G(() => H(x0, y0)); // ok
+            G(() => H(x0, x1)); // runtime rude edit
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -3021,7 +3024,7 @@ using System;
 class C
 {
     static bool G<T>(Func<T> f) => true;
-    static int F(object a, object b) => 1;
+    static int H(object a, object b) => 1;
     
     static void F()                       
     {                              
@@ -3043,7 +3046,7 @@ using System;
 class C
 {
     static bool G<T>(Func<T> f) => true;
-    static int F(object a, object b) => 1;
+    static int H(object a, object b) => 1;
     
     static void F()                       
     {                              
@@ -3057,15 +3060,15 @@ class C
             G(() => x1);
 
             G(() => x0); //ok
-            G(() => F(x0, x1)); //error
+            G(() => H(x0, x1)); // runtime rude edit
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1504")]
@@ -3109,7 +3112,7 @@ class C
         }
         catch (Exception x0) when (G(() => x0) && 
                                    G(() => x0) &&    // ok
-                                   G(() => x0 != x1)) // error
+                                   G(() => x0 != x1)) // runtime rude edit
         {
             G(() => x0); // ok
         }
@@ -3117,10 +3120,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.lambda, "x1", "x0")
-                );
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4105,7 +4107,7 @@ class C
 
     void F()
     {
-        var f = new Func<int, int>(a => a + x);
+        var f = new Func<int, int>(<N:0>a => a + x</N:0>);
     }
 }
 ";
@@ -4114,18 +4116,19 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
    
     void F()
     {
-        var f = new Func<int, int>(a => a);
+        var f = new Func<int, int>(<N:0>a => a</N:0>);
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4166,8 +4169,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // y is no longer captured in f2
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "y", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -4190,9 +4193,12 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -4220,8 +4226,12 @@ class C
                 "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35",
                 "Update [=> new Func<int>(() => { return a + 1; })()]@51 -> [=> new Func<int>(() => { return 2; })()]@51");
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -4249,8 +4259,12 @@ class C
                 "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35",
                 "Update [=> new Func<int>(delegate { return a + 1; })()]@51 -> [=> new Func<int>(delegate { return 2; })()]@51");
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4273,9 +4287,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -4304,9 +4317,14 @@ partial class C
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 [
-                    DocumentResults(diagnostics: [Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a")]),
+                    DocumentResults(
+                        semanticEdits: [
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true),
+                        ]),
                     DocumentResults(),
-                ]);
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4330,8 +4348,14 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "get", "a1"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item"))
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4361,8 +4385,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
@@ -4385,9 +4409,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4410,9 +4433,12 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4436,9 +4462,12 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a1", "a1", "int"),
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4462,9 +4491,12 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
-                Diagnostic(RudeEditKind.DeletingCapturedVariable, "{", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4488,9 +4520,12 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"),
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4535,10 +4570,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"),
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a3", "a3"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
@@ -4569,9 +4602,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_D")));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
@@ -4602,9 +4634,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
@@ -4635,9 +4666,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "add", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.add_D")));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
@@ -4650,7 +4680,7 @@ class C
 {
     event Action D
     {
-        add {  }
+        add { }
         remove { new Action(() => { Console.Write(value); }).Invoke(); }
     }
 }
@@ -4668,9 +4698,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D")));
         }
 
         [Fact]
@@ -4681,9 +4710,8 @@ class C
             var src2 = "class C { C(int x) : this(() => 1) {} C(Func<int> f) {} }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Name: "x" }]), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4695,8 +4723,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
         [Theory]
@@ -4709,8 +4737,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
         [Theory]
@@ -4723,8 +4751,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int y", "y"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
         [Theory]
@@ -4738,8 +4766,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4750,8 +4778,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "M", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4827,8 +4855,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // y is no longer captured in f2
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeletingCapturedVariable, "{", "y").WithFirstLine("{ // error"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4852,8 +4880,11 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true)
+                ]);
         }
 
         [Fact]
@@ -4877,8 +4908,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4901,9 +4932,14 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4927,8 +4963,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4959,9 +4995,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4992,9 +5028,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5007,7 +5043,7 @@ class C
 {
     event Action D
     {
-        add {  }
+        add { }
         remove {  }
     }
 }
@@ -5026,8 +5062,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5056,9 +5093,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5081,9 +5117,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5106,9 +5141,12 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5141,9 +5179,12 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5180,9 +5221,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5193,9 +5233,9 @@ class C
             var src2 = "class C { C(int x) : this(() => x) {} C(Func<int> f) {} }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Name: "x" }]), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5206,9 +5246,8 @@ class C
             var src2 = "class C : B { C(int x) : base(() => x) {} } class B { public B(Func<int> f) {} }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
         [Theory]
@@ -5220,9 +5259,9 @@ class C
             var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => x; }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Theory]
@@ -5234,9 +5273,9 @@ class C
             var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => x + y; }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Theory]
@@ -5249,9 +5288,9 @@ class C
             var src2 = keyword + " C(int x, int y) : B(() => x);";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5261,9 +5300,8 @@ class C
             var src2 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5302,7 +5340,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_PrimaryParameterOutsideOfLambda()
         {
@@ -5363,9 +5401,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5406,12 +5443,11 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this").WithFirstLine("partial void F()  // impl"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, preserveLocalVariables: true, partialType: "C"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_StaticToPrimaryParameterOnly_Partial()
         {
@@ -5449,8 +5485,8 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x").WithFirstLine("partial class C(int x)"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, preserveLocalVariables: true, partialType: "C"));
         }
 
         [Fact]
@@ -5486,11 +5522,11 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "this", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_StaticToPrimaryParameterOnly3()
         {
@@ -5519,9 +5555,8 @@ class C(int x)
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5550,9 +5585,8 @@ class C(int x)
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5592,9 +5626,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.lambda).WithFirstLine("x+ // 1"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.lambda).WithFirstLine("x; // 2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5631,9 +5664,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5713,9 +5745,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: better diagnostics - identify a1 that causes the capture vs. a1 that doesn't
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1").WithFirstLine("var f1 = new Func<int, int>(a1 =>"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5754,9 +5785,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5808,9 +5838,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "x0", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5865,8 +5894,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5921,13 +5950,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: "a => x + x0" is matched with "a => y1 + x0", hence we report more errors.
-            // Including statement distance when matching would help.
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "this", CSharpFeaturesResources.lambda).WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y1", "y1", CSharpFeaturesResources.lambda).WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "this", CSharpFeaturesResources.lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"),
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "y1", CSharpFeaturesResources.lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -5969,17 +5993,16 @@ class C
 
                 G(a => b => x0);      // ok
                 G(a => b => x1);      // ok
-                G(a => b => x0 + x1); // error
+                G(a => b => x0 + x1); // runtime rude edit
             }
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5991,10 +6014,10 @@ using System;
 class C
 {
     static void F()
-    {
+    <N:0>{
         int x = 1;
         Func<int> f = () => x;
-    }
+    }</N:0>
 }";
             var src2 = @"
 using System;
@@ -6002,16 +6025,20 @@ using System;
 class C
 {
     static void F()
-    {
+    <N:0>{
         int X = 1;
         Func<int> f = () => X;
-    }
+    }</N:0>
 }";
 
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (8, 13), ["x", "X"])
+                ]));
         }
 
         [Fact]
@@ -6023,10 +6050,10 @@ using System;
 class C
 {
     static void F()
-    {
+    <N:0>{
         int x = 1;
-        Func<int> f = () => x;
-    }
+        Func<int> f = <N:1>() => x</N:1>;
+    }</N:0>
 }";
             var src2 = @"
 using System;
@@ -6034,20 +6061,24 @@ using System;
 class C
 {
     static void F()
-    {
+    <N:0>{
         byte x = 1;
-        Func<int> f = () => x;
-    }
+        Func<int> f = <N:1>() => x</N:1>;
+    }</N:0>
 }";
 
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "int"));
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+            edits.VerifySemantics(
+                SemanticEdit(
+                    SemanticEditKind.Update,
+                    c => c.GetMember("C.F"),
+                    syntaxMap,
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.ChangingCapturedVariableType, (8, 14), ["x", "int"])]));
         }
 
         [Fact]
-        public void Lambdas_CapturedParameter_Rename()
+        public void Lambdas_CapturedParameter_Rename_BlockBody()
         {
             var src1 = @"
 using System;
@@ -6055,9 +6086,9 @@ using System;
 class C
 {
     static void F(int x)
-    {
-        Func<int> f = () => x;
-    }
+    <N:0>{
+        Func<int> f = <N:1>() => x</N:1>;
+    }</N:0>
 }";
             var src2 = @"
 using System;
@@ -6065,15 +6096,200 @@ using System;
 class C
 {
     static void F(int X)
+    <N:0>{
+        Func<int> f = <N:1>() => X</N:1>;
+    }</N:0>
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
+                        rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (6, 23), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename_ExpressionBody()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void G(Func<int> f) {}
+    static void F(int x) <N:0>=> G(<N:1>() => x</N:1>)</N:0>;
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void G(Func<int> f) {}
+    static void F(int X) <N:0>=> G(<N:1>() => X</N:1>)</N:0>;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
+                        rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (7, 23), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename_Lambda_BlockBody()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void F()    
+    <N:0>{
+        Func<int> f1 = <N:1>x =>
+        <N:2>{
+            Func<int> f2 = <N:3>() => x</N:3>;
+        }</N:1,2>;
+    }</N:0>
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void F()    
+    <N:0>{
+        Func<int> f1 = <N:1>X =>
+        <N:2>{
+            Func<int> f2 = <N:3>() => X</N:3>;
+        }</N:1,2>;
+    }</N:0>
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
+                        rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, (8, 29), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename_Lambda_ExpressionBody()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static int G(Func<int> f) => 1;
+
+    static void F()    
     {
-        Func<int> f = () => X;
+        Func<int, int> <N:0>f1 = <N:1>x => <N:2>G(<N:3>() => x</N:3>)</N:0,1,2>;
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    static int G(Func<int> f) => 1;
+
+    static void F()    
+    {
+        Func<int, int> <N:0>f1 = <N:1>X => <N:2>G(<N:3>() => X</N:3>)</N:0,1,2>;
     }
 }";
 
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
+                        rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, (10, 39), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename_ConstructorDeclaration()
+        {
+            var src1 = @"
+using System;
+
+class B(Func<int> f);
+
+class C
+{
+    <N:0>C(int x, int y) : base(() => x)
+    {
+        Func<int> g = () => y;
+    }</N:0>
+}";
+            var src2 = @"
+using System;
+
+class B(Func<int> f);
+
+class C
+{
+    <N:0>C(int X, int Y) : base(() => X)
+    {
+        Func<int> g = () => Y;
+    }</N:0>
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), syntaxMap,
+                        // only the first rude edit is reported for each node:
+                        rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (8, 16), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
+        }
+
+        [Fact]
+        public void Lambdas_CapturedParameter_Rename_PrimaryConstructorDeclaration()
+        {
+            var src1 = @"
+using System;
+
+class B(Func<int> f);
+
+<N:0>class C(int x) : B(() => x);</N:0>
+";
+            var src2 = @"
+using System;
+
+class B(Func<int> f);
+
+<N:0>class C(int X) : B(() => X);</N:0>
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2)[0];
+
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), syntaxMap,
+                        rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (6, 18), ["x", "X"])]),
+                ],
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
@@ -6103,8 +6319,12 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "x", "x", "int"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6128,8 +6348,14 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a", "a", "int"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item"))
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6153,8 +6379,14 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingCapturedVariableType, "a", "a", "int"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6792,9 +7024,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1291"), WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6835,8 +7067,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6874,9 +7107,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6931,8 +7164,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -6991,10 +7225,10 @@ class C
 
                     int f4(int a) => x;         // OK
                     int f5(int a) => x0 + y0;   // OK
-                    int f6(int a) => x1 + y0;   // error - connecting Group #1 and Group #2
-                    int f7(int a) => x3 + x1;   // error - multi-scope (conservative)
-                    int f8(int a) => x + y0;    // error - connecting Group #0 and Group #1
-                    int f9(int a) => x + x3;    // error - connecting Group #0 and Group #2
+                    int f6(int a) => x1 + y0;   // runtime rude edit - connecting Group #1 and Group #2
+                    int f7(int a) => x3 + x1;   // runtime rude edit - multi-scope (conservative)
+                    int f8(int a) => x + y0;    // runtime rude edit - connecting Group #0 and Group #1
+                    int f9(int a) => x + x3;    // runtime rude edit - connecting Group #0 and Group #2
                 }
             }
         }
@@ -7002,20 +7236,14 @@ class C
 }
 ";
             var insert = GetTopEdits(src1, src2);
-
-            insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "y0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.local_function, "this", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "this", "x3"));
+            insert.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
 
             var delete = GetTopEdits(src2, src1);
-
-            delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.local_function, "this", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "this", "x3"));
+            delete.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7026,6 +7254,8 @@ using System;
 
 class C
 {
+    void G(Func<int, int> f) {}
+
     void F()                       
     {                              
         foreach (int x0 in new[] { 1 })  // Group #0             
@@ -7054,15 +7284,15 @@ class C
             int f0(int a) => x0;
             int f1(int a) => x1;
 
-            int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
+            int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7127,16 +7357,16 @@ class C
                 x0 = 1;
                 x1 = 2;
                 int f01() => x0 + x1;   // ok
-                int f02() => x0 + x2;   // error
+                int f02() => x0 + x2;   // runtime rude edit
                 break;
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.local_function, "x2", "x0"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7178,15 +7408,15 @@ class C
             int f1() => x1;
 
             int f00() => x0; //ok
-            int f01() => F(x0, x1); //error
+            int f01() => F(x0, x1); // runtime rude edit
         }
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -7243,7 +7473,7 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
 
     void F()
     {
@@ -7252,9 +7482,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -7693,8 +7922,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // y is no longer captured in f2
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "f2", "y", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7717,9 +7946,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7748,9 +7976,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7787,9 +8014,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7820,9 +8046,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_D")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7853,9 +8078,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7886,9 +8110,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "add", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.add_D")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7901,7 +8124,7 @@ class C
 {
     event Action D
     {
-        add {  }
+        add { }
         remove { void f() { Console.Write(value); } f(); }
     }
 }
@@ -7919,9 +8142,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D")));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7960,8 +8182,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeletingCapturedVariable, "{", "y"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7985,8 +8207,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8010,8 +8232,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8042,9 +8264,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "set", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8075,9 +8297,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8090,7 +8312,7 @@ class C
 {
     event Action D
     {
-        add {  }
+        add { }
         remove {  }
     }
 }
@@ -8108,9 +8330,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.remove_D"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8139,9 +8361,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8178,9 +8399,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8213,9 +8433,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8256,9 +8475,8 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, preserveLocalVariables: true, partialType: "C"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8293,9 +8511,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "f1", "this", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8335,9 +8552,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.local_function),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -8374,9 +8590,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", CSharpFeaturesResources.local_function));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -8455,9 +8670,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -8505,31 +8719,38 @@ class C
 using System;
 using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main()
-    {
+    static void F()
+    <N:0>{
         int x = 1;
         int f() => x;
-    }
+    }</N:0>
 }";
             var src2 = @"
 using System;
 using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main()
-    {
+    static void F()
+    <N:0>{
         int X = 1;
         int f() => X;
-    }
+    }</N:0>
 }";
 
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+                    [
+                        RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (9, 13), ["x", "X"])
+                    ])
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -8539,29 +8760,36 @@ class Program
 using System;
 using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main(int x)
-    {
+    static void F(int x)
+    <N:0>{
         int f() => x;
-    }
+    }</N:0>
 }";
             var src2 = @"
 using System;
 using System.Diagnostics;
 
-class Program
+class C
 {
-    static void Main(int X)
-    {
+    static void F(int X)
+    <N:0>{
         int f() => X;
-    }
+    }</N:0>
 }";
 
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+            edits.VerifySemantics(
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+                    [
+                        RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (7, 23), ["x", "X"])
+                    ])
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
@@ -10539,10 +10767,8 @@ class C
     }
 }";
             var edits = GetTopEdits(src1, src2);
-
-            // TODO: better location (the variable, not the from clause)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "from b in new[] { 2 }", "b"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -10587,9 +10813,8 @@ class C
     }
 }";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -10669,8 +10894,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.select_clause));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -10709,9 +10934,9 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.select_clause),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.lambda));
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -10752,8 +10977,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "select", "a", CSharpFeaturesResources.select_clause));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -10792,9 +11017,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.select_clause),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -12940,10 +13164,8 @@ using System;
 var x = new Func<string[]>(() => args);
 ";
             var edits = GetTopEdits(src1, src2);
-
-            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "var x = new Func<string[]>(() => args);", "args"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -12960,10 +13182,8 @@ using System;
 var x = new Func<string[]>(() => null);
 ";
             var edits = GetTopEdits(src1, src2);
-
-            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "var x = new Func<string[]>(() => null);", "args"));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -12990,8 +13210,8 @@ var f1 = new Func<int, int>(a1 =>
             var edits = GetTopEdits(src1, src2);
 
             // y is no longer captured in f2
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "args", CSharpFeaturesResources.lambda));
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -13018,13 +13238,14 @@ foreach (int x0 in new[] { 1 })  // Group #0
     int f0(int a) => x0;
     int f1(int a) => x1;
 
-    int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
+    int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 
         #endregion

@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Public Overrides Function GetCapturedVariables(model As SemanticModel) As ImmutableArray(Of ISymbol)
-            Return model.AnalyzeDataFlow(OtherActiveStatementContainer).Captured
+            Return model.AnalyzeDataFlow(OtherActiveStatementContainer).CapturedInside
         End Function
 
         Public NotOverridable Overrides Function GetStateMachineInfo() As StateMachineInfo

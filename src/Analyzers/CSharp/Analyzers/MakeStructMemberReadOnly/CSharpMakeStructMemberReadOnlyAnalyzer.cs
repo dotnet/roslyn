@@ -46,13 +46,13 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 var methodToDiagnostic = PooledDictionary<IMethodSymbol, Diagnostic>.GetInstance();
 
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification.Severity, methodToDiagnostic));
+                    context => AnalyzeBlock(context, option.Notification, methodToDiagnostic));
 
                 context.RegisterSymbolEndAction(
                     context => ProcessResults(context, option.Notification.Severity, methodToDiagnostic));
             }, SymbolKind.NamedType);
 
-            static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+            bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
             {
                 // Only run on non-readonly structs.  If the struct is already readonly, no need to make the members readonly.
                 if (context.Symbol is not INamedTypeSymbol
@@ -70,7 +70,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
                 option = options.PreferReadOnlyStructMember;
-                if (!option.Value)
+                if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
                     return false;
 
                 // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.
@@ -131,7 +131,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        ReportDiagnostic severity,
+        NotificationOption2 notificationOption,
         Dictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
     {
         var cancellationToken = context.CancellationToken;
@@ -161,7 +161,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
                 Descriptor,
                 location,
-                severity,
+                notificationOption,
                 additionalLocations: ImmutableArray.Create(additionalLocation),
                 properties: null);
         }

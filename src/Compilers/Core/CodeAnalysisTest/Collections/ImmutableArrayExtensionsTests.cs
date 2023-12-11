@@ -508,5 +508,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Trying to cast from base to derived. "As" should return null (default)
             Assert.True(new C[] { new C() }.AsImmutableOrNull().As<D>().IsDefault);
         }
+
+        [Theory]
+        [InlineData(new int[0], new[] { 1 })]
+        [InlineData(new[] { 1 }, new[] { 3, 1, 1, 3, 4 })]
+        [InlineData(new[] { 3, 1 }, new[] { 1, 2, 2, 3, 4 })]
+        [InlineData(new[] { 3, 3, 3 }, new[] { 1, 2, 3, 4 })]
+        [InlineData(new[] { 2, 4, 1, 2 }, new[] { 1, 2, 3, 4 })]
+        public void IsSubsetOf_Strict(int[] array, int[] other)
+        {
+            Assert.True(array.ToImmutableArray().IsSubsetOf(other.ToImmutableArray()));
+            Assert.False(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
+        }
+
+        [Theory]
+        [InlineData(new int[0], new int[0])]
+        [InlineData(new[] { 1 }, new[] { 1 })]
+        [InlineData(new[] { 1, 1 }, new[] { 1, 1, 1, 1 })]
+        [InlineData(new[] { 1, 1, 1 }, new[] { 1, 1 })]
+        public void IsSubsetOf_Equal(int[] array, int[] other)
+        {
+            Assert.True(array.ToImmutableArray().IsSubsetOf(other.ToImmutableArray()));
+            Assert.True(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
+        }
     }
 }

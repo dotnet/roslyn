@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
@@ -64,17 +62,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         AwaitStatementUpdate = 46,
         ChangingAccessibility = 47,
 
-        CapturingVariable = 48,
-        NotCapturingVariable = 49,
-        DeletingCapturedVariable = 50,
+        // CapturingVariable = 48,
+        // NotCapturingVariable = 49,
+        // DeletingCapturedVariable = 50,
         ChangingCapturedVariableType = 51,
         ChangingCapturedVariableScope = 52,
         ChangingLambdaParameters = 53,
         ChangingLambdaReturnType = 54,
-        AccessingCapturedVariableInLambda = 55,
-        NotAccessingCapturedVariableInLambda = 56,
-        InsertLambdaWithMultiScopeCapture = 57,
-        DeleteLambdaWithMultiScopeCapture = 58,
+        // AccessingCapturedVariableInLambda = 55,
+        // NotAccessingCapturedVariableInLambda = 56,
+        // InsertLambdaWithMultiScopeCapture = 57,
+        // DeleteLambdaWithMultiScopeCapture = 58,
         ChangingQueryLambdaType = 59,
 
         InsertAroundActiveStatement = 60,
