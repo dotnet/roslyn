@@ -1,0 +1,5 @@
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext
+Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext.RequestContext() -> void
+Microsoft.CommonLanguageServerProtocol.Framework.IExtensionMethodHandler
+Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext
+Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext.SimpleRequestContext() -> void

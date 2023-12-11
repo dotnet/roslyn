@@ -180,6 +180,21 @@ internal class HandlerProvider : IHandlerProvider
         }
     }
 
+    private static IMethodHandler LoadExternalDlls()
+    {
+        var dllPath = @"C:\Users\beccam\source\repos\ExtensionTesting\ExtensionTesting\bin\Debug\net7.0\ExtensionTesting.dll";
+
+        // Load the external assembly
+        Assembly externalAssembly = Assembly.LoadFrom(dllPath);
+
+        Type type = externalAssembly.GetType("IMethodHandler");
+
+        // Create an instance of the found type using reflection
+        IMethodHandler instance = (IMethodHandler)Activator.CreateInstance(type);
+
+        return instance;
+    }
+
     private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
 
     private record HandlerTypes(Type? RequestType, Type? ResponseType, Type RequestContext);
