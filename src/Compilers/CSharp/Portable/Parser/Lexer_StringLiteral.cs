@@ -1033,11 +1033,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 goto default;
                             }
                         case ':':
-                            if (_lexer.TextWindow.PeekChar(1) == ':' || _lexer.TextWindow.PeekChar(-1) == ':')
+                            // If we have two consecutive colons, it's not a format specifier. It might be
+                            // alias qualified name, e.g, global::Something
+                            // In this case, we advance two characters.
+                            if (_lexer.TextWindow.PeekChar(1) == ':')
                             {
-                                goto default;
+                                _lexer.TextWindow.AdvanceChar();
+                                _lexer.TextWindow.AdvanceChar();
+                                continue;
                             }
 
+                            // the first colon not nested within matching delimiters is the start of the format string
                             if (isHole)
                             {
                                 Debug.Assert(colonRange.Equals(default(Range)));
