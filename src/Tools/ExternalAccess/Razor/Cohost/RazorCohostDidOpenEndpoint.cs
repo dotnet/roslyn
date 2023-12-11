@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [ExportRazorStatelessLspService(typeof(RazorCohostDidOpenEndpoint)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorCohostDidOpenEndpoint([Import(AllowDefault = true)] IRazorCohostDidOpenHandler? didOpenHandler) : ILspServiceNotificationHandler<DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, Uri>
+internal sealed class RazorCohostDidOpenEndpoint(
+    [Import(AllowDefault = true)] IRazorCohostDidOpenHandler? didOpenHandler,
+    [Import(AllowDefault = true)] IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService)
+    : ILspServiceNotificationHandler<DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, Uri>
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
@@ -28,6 +31,13 @@ internal sealed class RazorCohostDidOpenEndpoint([Import(AllowDefault = true)] I
 
     public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
+        // VS platform doesn't seem to honour the fact that we don't want to receive didOpen notifications if the Cohost server is disabled
+        // so we have to check again here to avoid doing unnecessary work.
+        if (razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
+        {
+            return;
+        }
+
         context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
         var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
