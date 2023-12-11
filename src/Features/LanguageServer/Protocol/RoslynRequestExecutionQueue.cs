@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             if (IsDocumentResolveMethod(methodName))
             {
-                var dataToken = (JToken)request?.GetType().GetProperty("Data")?.GetValue(request);
+                var dataToken = (JToken?)request?.GetType().GetProperty("Data")?.GetValue(request);
                 var resolveData = dataToken?.ToObject<DocumentResolveData>();
                 if (resolveData is null)
                 {

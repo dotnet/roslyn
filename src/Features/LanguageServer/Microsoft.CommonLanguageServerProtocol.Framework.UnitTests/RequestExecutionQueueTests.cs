@@ -39,7 +39,7 @@ public class RequestExecutionQueueTests
 
     private static TestLspServices GetLspServices()
         => new(
-            services: new[] { (typeof(IRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
+            services: new[] { (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
             supportsGetRegisteredServices: false);
 
     [Fact]
