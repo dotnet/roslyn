@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 goto default;
                             }
-                        case ':':
+                        case ':' when _lexer.TextWindow.PeekChar(1) != ':':
                             // the first colon not nested within matching delimiters is the start of the format string
                             if (isHole)
                             {
