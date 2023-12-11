@@ -91,7 +91,7 @@ End Module";
     End Sub", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/71088")]
         public async Task ExtractViaCodeAction()
         {
             await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);

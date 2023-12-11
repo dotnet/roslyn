@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
+using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the keyword for the kind of the identifier name.</summary>
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.IdentifierNameSyntax)this.Green).identifier, Position, 0);
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.IdentifierNameSyntax)this.Green).identifier, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public NameSyntax Left => GetRedAtZero(ref this.left)!;
 
         /// <summary>SyntaxToken representing the dot.</summary>
-        public SyntaxToken DotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.QualifiedNameSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DotToken => new SyntaxToken(this, ((InternalSyntax.QualifiedNameSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the qualified name.</summary>
         public SimpleNameSyntax Right => GetRed(ref this.right, 2)!;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the name of the identifier of the generic name.</summary>
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.GenericNameSyntax)this.Green).identifier, Position, 0);
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.GenericNameSyntax)this.Green).identifier, Position, 0);
 
         /// <summary>TypeArgumentListSyntax node representing the list of type arguments of the generic name.</summary>
         public TypeArgumentListSyntax TypeArgumentList => GetRed(ref this.typeArgumentList, 1)!;
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing less than.</summary>
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.TypeArgumentListSyntax)this.Green).lessThanToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of TypeSyntax node representing the type arguments.</summary>
         public SeparatedSyntaxList<TypeSyntax> Arguments
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing greater than.</summary>
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IdentifierNameSyntax Alias => GetRedAtZero(ref this.alias)!;
 
         /// <summary>SyntaxToken representing colon colon.</summary>
-        public SyntaxToken ColonColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AliasQualifiedNameSyntax)this.Green).colonColonToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ColonColonToken => new SyntaxToken(this, ((InternalSyntax.AliasQualifiedNameSyntax)this.Green).colonColonToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SimpleNameSyntax node representing the name that is being alias qualified.</summary>
         public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken which represents the keyword corresponding to the predefined type.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PredefinedTypeSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.PredefinedTypeSyntax)this.Green).keyword, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.ArrayRankSpecifierSyntax)this.Green).openBracketToken, Position, 0);
 
         public SeparatedSyntaxList<ExpressionSyntax> Sizes
         {
@@ -441,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.sizes, 1)! : null;
 
@@ -489,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeSyntax ElementType => GetRedAtZero(ref this.elementType)!;
 
         /// <summary>SyntaxToken representing the asterisk.</summary>
-        public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken AsteriskToken => new SyntaxToken(this, ((InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
@@ -531,10 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the delegate keyword.</summary>
-        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).delegateKeyword, Position, 0);
+        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((InternalSyntax.FunctionPointerTypeSyntax)this.Green).delegateKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the asterisk.</summary>
-        public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken AsteriskToken => new SyntaxToken(this, ((InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Node representing the optional calling convention.</summary>
         public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the less than token.</summary>
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
         public SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters
@@ -611,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the greater than token.</summary>
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
-        public SyntaxToken ManagedOrUnmanagedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedOrUnmanagedKeyword, Position, 0);
+        public SyntaxToken ManagedOrUnmanagedKeyword => new SyntaxToken(this, ((InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedOrUnmanagedKeyword, Position, 0);
 
         /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
         public FunctionPointerUnmanagedCallingConventionListSyntax? UnmanagedCallingConventionList => GetRed(ref this.unmanagedCallingConventionList, 1);
@@ -707,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing open bracket.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
         public SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions
@@ -720,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing close bracket.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.callingConventions, 1)! : null;
 
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the calling convention identifier.</summary>
-        public SyntaxToken Name => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
+        public SyntaxToken Name => new SyntaxToken(this, ((InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -808,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeSyntax ElementType => GetRedAtZero(ref this.elementType)!;
 
         /// <summary>SyntaxToken representing the question mark.</summary>
-        public SyntaxToken QuestionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableTypeSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken QuestionToken => new SyntaxToken(this, ((InternalSyntax.NullableTypeSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
@@ -850,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleTypeSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.TupleTypeSyntax)this.Green).openParenToken, Position, 0);
 
         public SeparatedSyntaxList<TupleElementSyntax> Elements
         {
@@ -862,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
@@ -958,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the omitted type argument.</summary>
-        public SyntaxToken OmittedTypeArgumentToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OmittedTypeArgumentSyntax)this.Green).omittedTypeArgumentToken, Position, 0);
+        public SyntaxToken OmittedTypeArgumentToken => new SyntaxToken(this, ((InternalSyntax.OmittedTypeArgumentSyntax)this.Green).omittedTypeArgumentToken, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -998,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken RefKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).refKeyword, Position, 0);
+        public SyntaxToken RefKeyword => new SyntaxToken(this, ((InternalSyntax.RefTypeSyntax)this.Green).refKeyword, Position, 0);
 
         /// <summary>Gets the optional "readonly" keyword.</summary>
         public SyntaxToken ReadOnlyKeyword
@@ -1052,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ScopedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
+        public SyntaxToken ScopedKeyword => new SyntaxToken(this, ((InternalSyntax.ScopedTypeSyntax)this.Green).scopedKeyword, Position, 0);
 
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
@@ -1113,13 +1114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedExpressionSyntax)this.Green).openParenToken, Position, 0);
 
         /// <summary>ExpressionSyntax node representing the expression enclosed within the parenthesis.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
@@ -1162,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.TupleExpressionSyntax)this.Green).openParenToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
         public SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -1175,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -1228,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PrefixUnaryExpressionSyntax)this.Green).operatorToken, Position, 0);
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.PrefixUnaryExpressionSyntax)this.Green).operatorToken, Position, 0);
 
         /// <summary>ExpressionSyntax representing the operand of the prefix unary expression.</summary>
         public ExpressionSyntax Operand => GetRed(ref this.operand, 1)!;
@@ -1273,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
-        public SyntaxToken AwaitKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
+        public SyntaxToken AwaitKeyword => new SyntaxToken(this, ((InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
 
         /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
@@ -1323,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Operand => GetRedAtZero(ref this.operand)!;
 
         /// <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.operand)! : null;
 
@@ -1370,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
         /// <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
         public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
@@ -1432,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
         /// <summary>SyntaxToken representing the question mark.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConditionalAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.ConditionalAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>ExpressionSyntax node representing the access expression to be executed when the object is not null.</summary>
         public ExpressionSyntax WhenNotNull => GetRed(ref this.whenNotNull, 2)!;
@@ -1490,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing dot.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MemberBindingExpressionSyntax)this.Green).operatorToken, Position, 0);
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.MemberBindingExpressionSyntax)this.Green).operatorToken, Position, 0);
 
         /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
         public SimpleNameSyntax Name => GetRed(ref this.name, 1)!;
@@ -1582,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax? LeftOperand => GetRedAtZero(ref this.leftOperand);
 
         /// <summary>SyntaxToken representing the operator of the range expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
         public ExpressionSyntax? RightOperand => GetRed(ref this.rightOperand, 2);
@@ -1708,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Left => GetRedAtZero(ref this.left)!;
 
         /// <summary>SyntaxToken representing the operator of the binary expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BinaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.BinaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>ExpressionSyntax node representing the expression on the right of the binary operator.</summary>
         public ExpressionSyntax Right => GetRed(ref this.right, 2)!;
@@ -1782,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Left => GetRedAtZero(ref this.left)!;
 
         /// <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AssignmentExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.AssignmentExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
         public ExpressionSyntax Right => GetRed(ref this.right, 2)!;
@@ -1845,13 +1846,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExpressionSyntax Condition => GetRedAtZero(ref this.condition)!;
 
         /// <summary>SyntaxToken representing the question mark.</summary>
-        public SyntaxToken QuestionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConditionalExpressionSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken QuestionToken => new SyntaxToken(this, ((InternalSyntax.ConditionalExpressionSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is true.</summary>
         public ExpressionSyntax WhenTrue => GetRed(ref this.whenTrue, 2)!;
 
         /// <summary>SyntaxToken representing the colon.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConditionalExpressionSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.ConditionalExpressionSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
 
         /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is false.</summary>
         public ExpressionSyntax WhenFalse => GetRed(ref this.whenFalse, 4)!;
@@ -1921,7 +1922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the this keyword.</summary>
-        public SyntaxToken Token => new SyntaxToken(this, ((Syntax.InternalSyntax.ThisExpressionSyntax)this.Green).token, Position, 0);
+        public SyntaxToken Token => new SyntaxToken(this, ((InternalSyntax.ThisExpressionSyntax)this.Green).token, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -1961,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the base keyword.</summary>
-        public SyntaxToken Token => new SyntaxToken(this, ((Syntax.InternalSyntax.BaseExpressionSyntax)this.Green).token, Position, 0);
+        public SyntaxToken Token => new SyntaxToken(this, ((InternalSyntax.BaseExpressionSyntax)this.Green).token, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -2009,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
-        public SyntaxToken Token => new SyntaxToken(this, ((Syntax.InternalSyntax.LiteralExpressionSyntax)this.Green).token, Position, 0);
+        public SyntaxToken Token => new SyntaxToken(this, ((InternalSyntax.LiteralExpressionSyntax)this.Green).token, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -2050,16 +2051,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the MakeRefKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Argument of the primary function.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2103,16 +2104,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the RefTypeKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Argument of the primary function.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2157,22 +2158,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the RefValueKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Typed reference expression.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
         /// <summary>Comma separating the arguments.</summary>
-        public SyntaxToken Comma => new SyntaxToken(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).comma, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken Comma => new SyntaxToken(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).comma, GetChildPosition(3), GetChildIndex(3));
 
         /// <summary>The type of the value.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 4)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RefValueExpressionSyntax)this.Green).closeParenToken, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.RefValueExpressionSyntax)this.Green).closeParenToken, GetChildPosition(5), GetChildIndex(5));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -2231,16 +2232,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the checked or unchecked keyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Argument of the primary function.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
@@ -2284,16 +2285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the DefaultKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Argument of the primary function.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2337,16 +2338,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the TypeOfKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>The expression to return type of.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2390,16 +2391,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the SizeOfKeyword.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).keyword, Position, 0);
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Argument of the primary function.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
@@ -2580,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArgumentListSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ArgumentListSyntax)this.Green).openParenToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
         public override SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -2593,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -2640,7 +2641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing open bracket.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.BracketedArgumentListSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
         public override SeparatedSyntaxList<ArgumentSyntax> Arguments
@@ -2653,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing close bracket.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -2785,7 +2786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
 
@@ -2832,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
         /// <summary>SyntaxToken representing colon.</summary>
-        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -2933,13 +2934,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CastExpressionSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.CastExpressionSyntax)this.Green).openParenToken, Position, 0);
 
         /// <summary>TypeSyntax node representing the type to which the expression is being cast.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CastExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.CastExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>ExpressionSyntax node representing the expression that is being casted.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
@@ -3047,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the delegate keyword.</summary>
-        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).delegateKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).delegateKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
         public ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 2);
@@ -3184,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParameterSyntax Parameter => GetRed(ref this.parameter, 2)!;
 
         /// <summary>SyntaxToken representing equals greater than.</summary>
-        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
 
         /// <summary>
         /// BlockSyntax node representing the body of the lambda.
@@ -3280,7 +3281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken RefKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RefExpressionSyntax)this.Green).refKeyword, Position, 0);
+        public SyntaxToken RefKeyword => new SyntaxToken(this, ((InternalSyntax.RefExpressionSyntax)this.Green).refKeyword, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -3344,7 +3345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
         /// <summary>SyntaxToken representing equals greater than.</summary>
-        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>
         /// BlockSyntax node representing the body of the lambda.
@@ -3448,7 +3449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the open brace.</summary>
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).openBraceToken, Position, 0);
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.InitializerExpressionSyntax)this.Green).openBraceToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
         public SeparatedSyntaxList<ExpressionSyntax> Expressions
@@ -3461,7 +3462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the close brace.</summary>
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expressions, 1)! : null;
 
@@ -3533,7 +3534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
-        public override SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+        public override SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.ImplicitObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
         public override ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
@@ -3602,7 +3603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
-        public override SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+        public override SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.ObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>TypeSyntax representing the type of the object being created.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -3680,7 +3681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-        public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken WithKeyword => new SyntaxToken(this, ((InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
         public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 2)!;
@@ -3797,10 +3798,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
-        public SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+        public SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the open brace.</summary>
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
         public SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers
@@ -3813,7 +3814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the close brace.</summary>
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.initializers, 2)! : null;
 
@@ -3860,7 +3861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
-        public SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+        public SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.ArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>ArrayTypeSyntax node representing the type of the array.</summary>
         public ArrayTypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -3923,10 +3924,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
-        public SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
+        public SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the open bracket.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SyntaxList of SyntaxToken representing the commas in the implicit array creation expression.</summary>
         public SyntaxTokenList Commas
@@ -3939,7 +3940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the close bracket.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.ImplicitArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
 
         /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
         public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 4)!;
@@ -3991,7 +3992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-        public SyntaxToken StackAllocKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.StackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
+        public SyntaxToken StackAllocKeyword => new SyntaxToken(this, ((InternalSyntax.StackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
 
         /// <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
@@ -4052,13 +4053,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-        public SyntaxToken StackAllocKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
+        public SyntaxToken StackAllocKeyword => new SyntaxToken(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the open bracket.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).openBracketToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SyntaxToken representing the close bracket.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
         public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 3)!;
@@ -4105,7 +4106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.CollectionExpressionSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
         public SeparatedSyntaxList<CollectionElementSyntax> Elements
@@ -4117,7 +4118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CollectionExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.CollectionExpressionSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
@@ -4207,7 +4208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SpreadElementSyntax)this.Green).operatorToken, Position, 0);
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.SpreadElementSyntax)this.Green).operatorToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -4386,14 +4387,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken FromKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).fromKeyword, Position, 0);
+        public SyntaxToken FromKeyword => new SyntaxToken(this, ((InternalSyntax.FromClauseSyntax)this.Green).fromKeyword, Position, 0);
 
         public TypeSyntax? Type => GetRed(ref this.type, 1);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.FromClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken InKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FromClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken InKeyword => new SyntaxToken(this, ((InternalSyntax.FromClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 4)!;
 
@@ -4450,12 +4451,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken LetKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).letKeyword, Position, 0);
+        public SyntaxToken LetKeyword => new SyntaxToken(this, ((InternalSyntax.LetClauseSyntax)this.Green).letKeyword, Position, 0);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.LetClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LetClauseSyntax)this.Green).equalsToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.LetClauseSyntax)this.Green).equalsToken, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
@@ -4503,22 +4504,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken JoinKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).joinKeyword, Position, 0);
+        public SyntaxToken JoinKeyword => new SyntaxToken(this, ((InternalSyntax.JoinClauseSyntax)this.Green).joinKeyword, Position, 0);
 
         public TypeSyntax? Type => GetRed(ref this.type, 1);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.JoinClauseSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken InKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken InKeyword => new SyntaxToken(this, ((InternalSyntax.JoinClauseSyntax)this.Green).inKeyword, GetChildPosition(3), GetChildIndex(3));
 
         public ExpressionSyntax InExpression => GetRed(ref this.inExpression, 4)!;
 
-        public SyntaxToken OnKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).onKeyword, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken OnKeyword => new SyntaxToken(this, ((InternalSyntax.JoinClauseSyntax)this.Green).onKeyword, GetChildPosition(5), GetChildIndex(5));
 
         public ExpressionSyntax LeftExpression => GetRed(ref this.leftExpression, 6)!;
 
-        public SyntaxToken EqualsKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinClauseSyntax)this.Green).equalsKeyword, GetChildPosition(7), GetChildIndex(7));
+        public SyntaxToken EqualsKeyword => new SyntaxToken(this, ((InternalSyntax.JoinClauseSyntax)this.Green).equalsKeyword, GetChildPosition(7), GetChildIndex(7));
 
         public ExpressionSyntax RightExpression => GetRed(ref this.rightExpression, 8)!;
 
@@ -4587,10 +4588,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken IntoKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinIntoClauseSyntax)this.Green).intoKeyword, Position, 0);
+        public SyntaxToken IntoKeyword => new SyntaxToken(this, ((InternalSyntax.JoinIntoClauseSyntax)this.Green).intoKeyword, Position, 0);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.JoinIntoClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.JoinIntoClauseSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -4630,7 +4631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken WhereKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WhereClauseSyntax)this.Green).whereKeyword, Position, 0);
+        public SyntaxToken WhereKeyword => new SyntaxToken(this, ((InternalSyntax.WhereClauseSyntax)this.Green).whereKeyword, Position, 0);
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
@@ -4672,7 +4673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OrderByKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.OrderByClauseSyntax)this.Green).orderByKeyword, Position, 0);
+        public SyntaxToken OrderByKeyword => new SyntaxToken(this, ((InternalSyntax.OrderByClauseSyntax)this.Green).orderByKeyword, Position, 0);
 
         public SeparatedSyntaxList<OrderingSyntax> Orderings
         {
@@ -4773,7 +4774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken SelectKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.SelectClauseSyntax)this.Green).selectKeyword, Position, 0);
+        public SyntaxToken SelectKeyword => new SyntaxToken(this, ((InternalSyntax.SelectClauseSyntax)this.Green).selectKeyword, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -4816,11 +4817,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken GroupKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.GroupClauseSyntax)this.Green).groupKeyword, Position, 0);
+        public SyntaxToken GroupKeyword => new SyntaxToken(this, ((InternalSyntax.GroupClauseSyntax)this.Green).groupKeyword, Position, 0);
 
         public ExpressionSyntax GroupExpression => GetRed(ref this.groupExpression, 1)!;
 
-        public SyntaxToken ByKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.GroupClauseSyntax)this.Green).byKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ByKeyword => new SyntaxToken(this, ((InternalSyntax.GroupClauseSyntax)this.Green).byKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax ByExpression => GetRed(ref this.byExpression, 3)!;
 
@@ -4876,10 +4877,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken IntoKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.QueryContinuationSyntax)this.Green).intoKeyword, Position, 0);
+        public SyntaxToken IntoKeyword => new SyntaxToken(this, ((InternalSyntax.QueryContinuationSyntax)this.Green).intoKeyword, Position, 0);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.QueryContinuationSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.QueryContinuationSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
         public QueryBodySyntax Body => GetRed(ref this.body, 2)!;
 
@@ -4925,7 +4926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the omitted array size expression.</summary>
-        public SyntaxToken OmittedArraySizeExpressionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OmittedArraySizeExpressionSyntax)this.Green).omittedArraySizeExpressionToken, Position, 0);
+        public SyntaxToken OmittedArraySizeExpressionToken => new SyntaxToken(this, ((InternalSyntax.OmittedArraySizeExpressionSyntax)this.Green).omittedArraySizeExpressionToken, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -4965,13 +4966,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
-        public SyntaxToken StringStartToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
+        public SyntaxToken StringStartToken => new SyntaxToken(this, ((InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
 
         /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
         public SyntaxList<InterpolatedStringContentSyntax> Contents => new SyntaxList<InterpolatedStringContentSyntax>(GetRed(ref this.contents, 1));
 
         /// <summary>The closing quote of the interpolated string.</summary>
-        public SyntaxToken StringEndToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken StringEndToken => new SyntaxToken(this, ((InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.contents, 1)! : null;
 
@@ -5019,7 +5020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
         public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-        public SyntaxToken IsKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.IsPatternExpressionSyntax)this.Green).isKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken IsKeyword => new SyntaxToken(this, ((InternalSyntax.IsPatternExpressionSyntax)this.Green).isKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
         public PatternSyntax Pattern => GetRed(ref this.pattern, 2)!;
@@ -5075,7 +5076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ThrowKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ThrowExpressionSyntax)this.Green).throwKeyword, Position, 0);
+        public SyntaxToken ThrowKeyword => new SyntaxToken(this, ((InternalSyntax.ThrowExpressionSyntax)this.Green).throwKeyword, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5117,7 +5118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken WhenKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WhenClauseSyntax)this.Green).whenKeyword, Position, 0);
+        public SyntaxToken WhenKeyword => new SyntaxToken(this, ((InternalSyntax.WhenClauseSyntax)this.Green).whenKeyword, Position, 0);
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
@@ -5166,7 +5167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken UnderscoreToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, Position, 0);
+        public SyntaxToken UnderscoreToken => new SyntaxToken(this, ((InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -5260,7 +5261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken VarKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.VarPatternSyntax)this.Green).varKeyword, Position, 0);
+        public SyntaxToken VarKeyword => new SyntaxToken(this, ((InternalSyntax.VarPatternSyntax)this.Green).varKeyword, Position, 0);
 
         public VariableDesignationSyntax Designation => GetRed(ref this.designation, 1)!;
 
@@ -5380,7 +5381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.PositionalPatternClauseSyntax)this.Green).openParenToken, Position, 0);
 
         public SeparatedSyntaxList<SubpatternSyntax> Subpatterns
         {
@@ -5391,7 +5392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
@@ -5434,7 +5435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).openBraceToken, Position, 0);
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.PropertyPatternClauseSyntax)this.Green).openBraceToken, Position, 0);
 
         public SeparatedSyntaxList<SubpatternSyntax> Subpatterns
         {
@@ -5445,7 +5446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
@@ -5583,11 +5584,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedPatternSyntax)this.Green).openParenToken, Position, 0);
 
         public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedPatternSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedPatternSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1)! : null;
 
@@ -5629,7 +5630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the operator of the relational pattern.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RelationalPatternSyntax)this.Green).operatorToken, Position, 0);
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.RelationalPatternSyntax)this.Green).operatorToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5715,7 +5716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public PatternSyntax Left => GetRedAtZero(ref this.left)!;
 
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
         public PatternSyntax Right => GetRed(ref this.right, 2)!;
 
@@ -5770,7 +5771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UnaryPatternSyntax)this.Green).operatorToken, Position, 0);
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.UnaryPatternSyntax)this.Green).operatorToken, Position, 0);
 
         public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
@@ -5813,7 +5814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
 
         public SeparatedSyntaxList<PatternSyntax> Patterns
         {
@@ -5824,7 +5825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 3);
 
@@ -5882,7 +5883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken DotDotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
+        public SyntaxToken DotDotToken => new SyntaxToken(this, ((InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
 
         public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
 
@@ -5932,7 +5933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>The text contents of a part of the interpolated string.</summary>
-        public SyntaxToken TextToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringTextSyntax)this.Green).textToken, Position, 0);
+        public SyntaxToken TextToken => new SyntaxToken(this, ((InternalSyntax.InterpolatedStringTextSyntax)this.Green).textToken, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -5974,7 +5975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -5985,7 +5986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
         /// </summary>
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -6042,7 +6043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken CommaToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)this.Green).commaToken, Position, 0);
+        public SyntaxToken CommaToken => new SyntaxToken(this, ((InternalSyntax.InterpolationAlignmentClauseSyntax)this.Green).commaToken, Position, 0);
 
         public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
@@ -6083,10 +6084,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationFormatClauseSyntax)this.Green).colonToken, Position, 0);
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.InterpolationFormatClauseSyntax)this.Green).colonToken, Position, 0);
 
         /// <summary>The text contents of the format specifier for an interpolation.</summary>
-        public SyntaxToken FormatStringToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationFormatClauseSyntax)this.Green).formatStringToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken FormatStringToken => new SyntaxToken(this, ((InternalSyntax.InterpolationFormatClauseSyntax)this.Green).formatStringToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6217,11 +6218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BlockSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.BlockSyntax)this.Green).openBraceToken, GetChildPosition(1), GetChildIndex(1));
 
         public SyntaxList<StatementSyntax> Statements => new SyntaxList<StatementSyntax>(GetRed(ref this.statements, 2));
 
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.BlockSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -6300,7 +6301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeSyntax ReturnType => GetRed(ref this.returnType, 2)!;
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.LocalFunctionStatementSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.LocalFunctionStatementSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -6445,7 +6446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 4)!;
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, GetChildPosition(5), GetChildIndex(5));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -6573,7 +6574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.VariableDeclaratorSyntax)this.Green).identifier, Position, 0);
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.VariableDeclaratorSyntax)this.Green).identifier, Position, 0);
 
         public BracketedArgumentListSyntax? ArgumentList => GetRed(ref this.argumentList, 1);
 
@@ -6636,7 +6637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EqualsValueClauseSyntax)this.Green).equalsToken, Position, 0);
+        public SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.EqualsValueClauseSyntax)this.Green).equalsToken, Position, 0);
 
         public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
@@ -6685,7 +6686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.SingleVariableDesignationSyntax)this.Green).identifier, Position, 0);
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.SingleVariableDesignationSyntax)this.Green).identifier, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6723,7 +6724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken UnderscoreToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DiscardDesignationSyntax)this.Green).underscoreToken, Position, 0);
+        public SyntaxToken UnderscoreToken => new SyntaxToken(this, ((InternalSyntax.DiscardDesignationSyntax)this.Green).underscoreToken, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -6762,7 +6763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).openParenToken, Position, 0);
 
         public SeparatedSyntaxList<VariableDesignationSyntax> Variables
         {
@@ -6773,7 +6774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.variables, 1)! : null;
 
@@ -6821,7 +6822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -6880,7 +6881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EmptyStatementSyntax)this.Green).semicolonToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.EmptyStatementSyntax)this.Green).semicolonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -6929,10 +6930,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.LabeledStatementSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.LabeledStatementSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 3)!;
 
@@ -7003,7 +7004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the goto keyword.
         /// </summary>
-        public SyntaxToken GotoKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.GotoStatementSyntax)this.Green).gotoKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken GotoKeyword => new SyntaxToken(this, ((InternalSyntax.GotoStatementSyntax)this.Green).gotoKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>
         /// Gets a SyntaxToken that represents the case or default keywords if any exists.
@@ -7025,7 +7026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the semi-colon at the end of the statement.
         /// </summary>
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.GotoStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.GotoStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -7086,9 +7087,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken BreakKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken BreakKeyword => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -7135,9 +7136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken ContinueKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ContinueKeyword => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -7185,11 +7186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken ReturnKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).returnKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ReturnKeyword => new SyntaxToken(this, ((InternalSyntax.ReturnStatementSyntax)this.Green).returnKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public ExpressionSyntax? Expression => GetRed(ref this.expression, 2);
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ReturnStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ReturnStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -7250,11 +7251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken ThrowKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).throwKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ThrowKeyword => new SyntaxToken(this, ((InternalSyntax.ThrowStatementSyntax)this.Green).throwKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public ExpressionSyntax? Expression => GetRed(ref this.expression, 2);
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ThrowStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ThrowStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -7316,13 +7317,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken YieldKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).yieldKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken YieldKeyword => new SyntaxToken(this, ((InternalSyntax.YieldStatementSyntax)this.Green).yieldKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken ReturnOrBreakKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).returnOrBreakKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ReturnOrBreakKeyword => new SyntaxToken(this, ((InternalSyntax.YieldStatementSyntax)this.Green).returnOrBreakKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax? Expression => GetRed(ref this.expression, 3);
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.YieldStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.YieldStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -7385,13 +7386,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken WhileKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).whileKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken WhileKeyword => new SyntaxToken(this, ((InternalSyntax.WhileStatementSyntax)this.Green).whileKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.WhileStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 3)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WhileStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.WhileStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -7459,19 +7460,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken DoKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).doKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DoKeyword => new SyntaxToken(this, ((InternalSyntax.DoStatementSyntax)this.Green).doKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 2)!;
 
-        public SyntaxToken WhileKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).whileKeyword, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken WhileKeyword => new SyntaxToken(this, ((InternalSyntax.DoStatementSyntax)this.Green).whileKeyword, GetChildPosition(3), GetChildIndex(3));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).openParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.DoStatementSyntax)this.Green).openParenToken, GetChildPosition(4), GetChildIndex(4));
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 5)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.DoStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DoStatementSyntax)this.Green).semicolonToken, GetChildPosition(7), GetChildIndex(7));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.DoStatementSyntax)this.Green).semicolonToken, GetChildPosition(7), GetChildIndex(7));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -7542,9 +7543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken ForKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).forKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ForKeyword => new SyntaxToken(this, ((InternalSyntax.ForStatementSyntax)this.Green).forKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ForStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
         public VariableDeclarationSyntax? Declaration => GetRed(ref this.declaration, 3);
 
@@ -7557,11 +7558,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken FirstSemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).firstSemicolonToken, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken FirstSemicolonToken => new SyntaxToken(this, ((InternalSyntax.ForStatementSyntax)this.Green).firstSemicolonToken, GetChildPosition(5), GetChildIndex(5));
 
         public ExpressionSyntax? Condition => GetRed(ref this.condition, 6);
 
-        public SyntaxToken SecondSemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).secondSemicolonToken, GetChildPosition(7), GetChildIndex(7));
+        public SyntaxToken SecondSemicolonToken => new SyntaxToken(this, ((InternalSyntax.ForStatementSyntax)this.Green).secondSemicolonToken, GetChildPosition(7), GetChildIndex(7));
 
         public SeparatedSyntaxList<ExpressionSyntax> Incrementors
         {
@@ -7572,7 +7573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForStatementSyntax)this.Green).closeParenToken, GetChildPosition(9), GetChildIndex(9));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ForStatementSyntax)this.Green).closeParenToken, GetChildPosition(9), GetChildIndex(9));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 10)!;
 
@@ -7703,20 +7704,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken ForEachKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken ForEachKeyword => new SyntaxToken(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
         public TypeSyntax Type => GetRed(ref this.type, 4)!;
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
 
-        public override SyntaxToken InKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, GetChildPosition(6), GetChildIndex(6));
+        public override SyntaxToken InKeyword => new SyntaxToken(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, GetChildPosition(6), GetChildIndex(6));
 
         public override ExpressionSyntax Expression => GetRed(ref this.expression, 7)!;
 
-        public override SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, GetChildPosition(8), GetChildIndex(8));
+        public override SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, GetChildPosition(8), GetChildIndex(8));
 
         public override StatementSyntax Statement => GetRed(ref this.statement, 9)!;
 
@@ -7807,9 +7808,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken ForEachKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken ForEachKeyword => new SyntaxToken(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
         /// <summary>
         /// The variable(s) of the loop. In correct code this is a tuple
@@ -7819,11 +7820,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         public ExpressionSyntax Variable => GetRed(ref this.variable, 4)!;
 
-        public override SyntaxToken InKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, GetChildPosition(5), GetChildIndex(5));
+        public override SyntaxToken InKeyword => new SyntaxToken(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, GetChildPosition(5), GetChildIndex(5));
 
         public override ExpressionSyntax Expression => GetRed(ref this.expression, 6)!;
 
-        public override SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, GetChildPosition(7), GetChildIndex(7));
+        public override SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, GetChildPosition(7), GetChildIndex(7));
 
         public override StatementSyntax Statement => GetRed(ref this.statement, 8)!;
 
@@ -7913,15 +7914,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken UsingKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken UsingKeyword => new SyntaxToken(this, ((InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, GetChildPosition(3), GetChildIndex(3));
 
         public VariableDeclarationSyntax? Declaration => GetRed(ref this.declaration, 4);
 
         public ExpressionSyntax? Expression => GetRed(ref this.expression, 5);
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, GetChildPosition(6), GetChildIndex(6));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 7)!;
 
@@ -7993,13 +7994,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken FixedKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).fixedKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken FixedKeyword => new SyntaxToken(this, ((InternalSyntax.FixedStatementSyntax)this.Green).fixedKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.FixedStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
         public VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 3)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FixedStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.FixedStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -8068,7 +8069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CheckedStatementSyntax)this.Green).keyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.CheckedStatementSyntax)this.Green).keyword, GetChildPosition(1), GetChildIndex(1));
 
         public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -8132,7 +8133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken UnsafeKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.UnsafeStatementSyntax)this.Green).unsafeKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken UnsafeKeyword => new SyntaxToken(this, ((InternalSyntax.UnsafeStatementSyntax)this.Green).unsafeKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -8197,13 +8198,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken LockKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).lockKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken LockKeyword => new SyntaxToken(this, ((InternalSyntax.LockStatementSyntax)this.Green).lockKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.LockStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LockStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.LockStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
         public StatementSyntax Statement => GetRed(ref this.statement, 5)!;
 
@@ -8278,12 +8279,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the if keyword.
         /// </summary>
-        public SyntaxToken IfKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken IfKeyword => new SyntaxToken(this, ((InternalSyntax.IfStatementSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>
         /// Gets a SyntaxToken that represents the open parenthesis before the if statement's condition expression.
         /// </summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.IfStatementSyntax)this.Green).openParenToken, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>
         /// Gets an ExpressionSyntax that represents the condition of the if statement.
@@ -8293,7 +8294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the close parenthesis after the if statement's condition expression.
         /// </summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.IfStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.IfStatementSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>
         /// Gets a StatementSyntax the represents the statement to be executed when the condition is true.
@@ -8372,7 +8373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a syntax token
         /// </summary>
-        public SyntaxToken ElseKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ElseClauseSyntax)this.Green).elseKeyword, Position, 0);
+        public SyntaxToken ElseKeyword => new SyntaxToken(this, ((InternalSyntax.ElseClauseSyntax)this.Green).elseKeyword, Position, 0);
 
         public StatementSyntax Statement => GetRed(ref this.statement, 1)!;
 
@@ -8422,7 +8423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the switch keyword.
         /// </summary>
-        public SyntaxToken SwitchKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken SwitchKeyword => new SyntaxToken(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>
         /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
@@ -8456,7 +8457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the open braces preceding the switch sections.
         /// </summary>
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).openBraceToken, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).openBraceToken, GetChildPosition(5), GetChildIndex(5));
 
         /// <summary>
         /// Gets a SyntaxList of SwitchSectionSyntax's that represents the switch sections of the switch statement.
@@ -8466,7 +8467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Gets a SyntaxToken that represents the open braces following the switch sections.
         /// </summary>
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeBraceToken, GetChildPosition(7), GetChildIndex(7));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.SwitchStatementSyntax)this.Green).closeBraceToken, GetChildPosition(7), GetChildIndex(7));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -8622,7 +8623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the case keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).keyword, Position, 0);
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>
         /// Gets a PatternSyntax that represents the pattern that gets matched for the case label.
@@ -8631,7 +8632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public WhenClauseSyntax? WhenClause => GetRed(ref this.whenClause, 2);
 
-        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.CasePatternSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -8689,14 +8690,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the case keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).keyword, Position, 0);
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.CaseSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
         /// <summary>
         /// Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label.
         /// </summary>
         public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
-        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1)! : null;
 
@@ -8740,9 +8741,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the default keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultSwitchLabelSyntax)this.Green).keyword, Position, 0);
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.DefaultSwitchLabelSyntax)this.Green).keyword, Position, 0);
 
-        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.DefaultSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -8787,9 +8788,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax GoverningExpression => GetRedAtZero(ref this.governingExpression)!;
 
-        public SyntaxToken SwitchKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken SwitchKeyword => new SyntaxToken(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
 
         public SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms
         {
@@ -8800,7 +8801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -8863,7 +8864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public WhenClauseSyntax? WhenClause => GetRed(ref this.whenClause, 1);
 
-        public SyntaxToken EqualsGreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EqualsGreaterThanToken => new SyntaxToken(this, ((InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
@@ -8926,7 +8927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
-        public SyntaxToken TryKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.TryStatementSyntax)this.Green).tryKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken TryKeyword => new SyntaxToken(this, ((InternalSyntax.TryStatementSyntax)this.Green).tryKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public BlockSyntax Block => GetRed(ref this.block, 2)!;
 
@@ -9000,7 +9001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken CatchKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchClauseSyntax)this.Green).catchKeyword, Position, 0);
+        public SyntaxToken CatchKeyword => new SyntaxToken(this, ((InternalSyntax.CatchClauseSyntax)this.Green).catchKeyword, Position, 0);
 
         public CatchDeclarationSyntax? Declaration => GetRed(ref this.declaration, 1);
 
@@ -9065,7 +9066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.CatchDeclarationSyntax)this.Green).openParenToken, Position, 0);
 
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
@@ -9078,7 +9079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
 
@@ -9120,13 +9121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken WhenKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).whenKeyword, Position, 0);
+        public SyntaxToken WhenKeyword => new SyntaxToken(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).whenKeyword, Position, 0);
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         public ExpressionSyntax FilterExpression => GetRed(ref this.filterExpression, 2)!;
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.filterExpression, 2)! : null;
 
@@ -9168,7 +9169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken FinallyKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FinallyClauseSyntax)this.Green).finallyKeyword, Position, 0);
+        public SyntaxToken FinallyKeyword => new SyntaxToken(this, ((InternalSyntax.FinallyClauseSyntax)this.Green).finallyKeyword, Position, 0);
 
         public BlockSyntax Block => GetRed(ref this.block, 1)!;
 
@@ -9225,7 +9226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 3));
 
-        public SyntaxToken EndOfFileToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CompilationUnitSyntax)this.Green).endOfFileToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken EndOfFileToken => new SyntaxToken(this, ((InternalSyntax.CompilationUnitSyntax)this.Green).endOfFileToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -9292,16 +9293,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the extern keyword.</summary>
-        public SyntaxToken ExternKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).externKeyword, Position, 0);
+        public SyntaxToken ExternKeyword => new SyntaxToken(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).externKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the alias keyword.</summary>
-        public SyntaxToken AliasKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).aliasKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken AliasKeyword => new SyntaxToken(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).aliasKeyword, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>SyntaxToken representing the semicolon token.</summary>
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExternAliasDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ExternAliasDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -9353,7 +9354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken UsingKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).usingKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken UsingKeyword => new SyntaxToken(this, ((InternalSyntax.UsingDirectiveSyntax)this.Green).usingKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public SyntaxToken StaticKeyword
         {
@@ -9377,7 +9378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public TypeSyntax NamespaceOrType => GetRed(ref this.namespaceOrType, 5)!;
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -9518,11 +9519,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public override NameSyntax Name => GetRed(ref this.name, 3)!;
 
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).openBraceToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).openBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new SyntaxList<ExternAliasDirectiveSyntax>(GetRed(ref this.externs, 5));
 
@@ -9530,7 +9531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 7));
 
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).closeBraceToken, GetChildPosition(8), GetChildIndex(8));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.NamespaceDeclarationSyntax)this.Green).closeBraceToken, GetChildPosition(8), GetChildIndex(8));
 
         /// <summary>Gets the optional semicolon token.</summary>
         public SyntaxToken SemicolonToken
@@ -9639,11 +9640,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public override NameSyntax Name => GetRed(ref this.name, 3)!;
 
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
         public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new SyntaxList<ExternAliasDirectiveSyntax>(GetRed(ref this.externs, 5));
 
@@ -9734,7 +9735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open bracket token.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeListSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.AttributeListSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>Gets the optional construct targeted by the attribute.</summary>
         public AttributeTargetSpecifierSyntax? Target => GetRed(ref this.target, 1);
@@ -9750,7 +9751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close bracket token.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeListSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.AttributeListSyntax)this.Green).closeBracketToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -9807,10 +9808,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).identifier, Position, 0);
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).identifier, Position, 0);
 
         /// <summary>Gets the colon token.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.AttributeTargetSpecifierSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -9915,7 +9916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open paren token.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.AttributeArgumentListSyntax)this.Green).openParenToken, Position, 0);
 
         /// <summary>Gets the arguments syntax list.</summary>
         public SeparatedSyntaxList<AttributeArgumentSyntax> Arguments
@@ -9928,7 +9929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close paren token.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
@@ -10038,7 +10039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the identifier name.</summary>
         public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-        public SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -10080,7 +10081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the &lt; token.</summary>
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.TypeParameterListSyntax)this.Green).lessThanToken, Position, 0);
 
         /// <summary>Gets the parameter list.</summary>
         public SeparatedSyntaxList<TypeParameterSyntax> Parameters
@@ -10093,7 +10094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the &gt; token.</summary>
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -10150,7 +10151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.TypeParameterSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
@@ -10307,9 +10308,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the class keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.ClassDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ClassDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.ClassDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10473,9 +10474,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the struct keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10639,9 +10640,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the interface keyword token.</summary>
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.InterfaceDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.InterfaceDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
 
@@ -10804,7 +10805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.RecordDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
         public SyntaxToken ClassOrStructKeyword
         {
@@ -10815,7 +10816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.RecordDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.RecordDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -10977,9 +10978,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the enum keyword token.</summary>
-        public SyntaxToken EnumKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).enumKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EnumKeyword => new SyntaxToken(this, ((InternalSyntax.EnumDeclarationSyntax)this.Green).enumKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.EnumDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.EnumDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 4);
 
@@ -11116,13 +11117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the "delegate" keyword.</summary>
-        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).delegateKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken DelegateKeyword => new SyntaxToken(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).delegateKeyword, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>Gets the return type.</summary>
         public TypeSyntax ReturnType => GetRed(ref this.returnType, 3)!;
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
         public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -11133,7 +11134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new SyntaxList<TypeParameterConstraintClauseSyntax>(GetRed(ref this.constraintClauses, 7));
 
         /// <summary>Gets the semicolon token.</summary>
-        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DelegateDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(8), GetChildIndex(8));
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.DelegateDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(8), GetChildIndex(8));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -11225,7 +11226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.EnumMemberDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.EnumMemberDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
         public EqualsValueClauseSyntax? EqualsValue => GetRed(ref this.equalsValue, 3);
 
@@ -11290,7 +11291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the colon token.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BaseListSyntax)this.Green).colonToken, Position, 0);
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.BaseListSyntax)this.Green).colonToken, Position, 0);
 
         /// <summary>Gets the base type references.</summary>
         public SeparatedSyntaxList<BaseTypeSyntax> Types
@@ -11455,13 +11456,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken WhereKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).whereKeyword, Position, 0);
+        public SyntaxToken WhereKeyword => new SyntaxToken(this, ((InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).whereKeyword, Position, 0);
 
         /// <summary>Gets the identifier.</summary>
         public IdentifierNameSyntax Name => GetRed(ref this.name, 1)!;
 
         /// <summary>Gets the colon token.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.TypeParameterConstraintClauseSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>Gets the constraints list.</summary>
         public SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints
@@ -11537,13 +11538,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the "new" keyword.</summary>
-        public SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).newKeyword, Position, 0);
+        public SyntaxToken NewKeyword => new SyntaxToken(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>Gets the open paren keyword.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>Gets the close paren keyword.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorConstraintSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ConstructorConstraintSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -11586,7 +11587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
-        public SyntaxToken ClassOrStructKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, Position, 0);
+        public SyntaxToken ClassOrStructKeyword => new SyntaxToken(this, ((InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, Position, 0);
 
         /// <summary>SyntaxToken representing the question mark.</summary>
         public SyntaxToken QuestionToken
@@ -11678,7 +11679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the "default" keyword.</summary>
-        public SyntaxToken DefaultKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
+        public SyntaxToken DefaultKeyword => new SyntaxToken(this, ((InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -11757,7 +11758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 2)!;
 
-        public override SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.FieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -11834,11 +11835,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken EventKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EventKeyword => new SyntaxToken(this, ((InternalSyntax.EventFieldDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public override VariableDeclarationSyntax Declaration => GetRed(ref this.declaration, 3)!;
 
-        public override SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.EventFieldDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -11906,7 +11907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public NameSyntax Name => GetRedAtZero(ref this.name)!;
 
-        public SyntaxToken DotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DotToken => new SyntaxToken(this, ((InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -12014,7 +12015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.MethodDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.MethodDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
         public TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
@@ -12162,7 +12163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
         /// <summary>Gets the "operator" keyword.</summary>
-        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>Gets the "checked" keyword.</summary>
         public SyntaxToken CheckedKeyword
@@ -12175,7 +12176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the operator token.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(6), GetChildIndex(6));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(6), GetChildIndex(6));
 
         public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 7)!;
 
@@ -12303,12 +12304,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the "implicit" or "explicit" token.</summary>
-        public SyntaxToken ImplicitOrExplicitKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).implicitOrExplicitKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ImplicitOrExplicitKeyword => new SyntaxToken(this, ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).implicitOrExplicitKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
         /// <summary>Gets the "operator" token.</summary>
-        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>Gets the "checked" keyword.</summary>
         public SyntaxToken CheckedKeyword
@@ -12448,7 +12449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.ConstructorDeclarationSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
         public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
@@ -12558,10 +12559,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the colon token.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorInitializerSyntax)this.Green).colonToken, Position, 0);
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.ConstructorInitializerSyntax)this.Green).colonToken, Position, 0);
 
         /// <summary>Gets the "this" or "base" keyword.</summary>
-        public SyntaxToken ThisOrBaseKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConstructorInitializerSyntax)this.Green).thisOrBaseKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ThisOrBaseKeyword => new SyntaxToken(this, ((InternalSyntax.ConstructorInitializerSyntax)this.Green).thisOrBaseKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 2)!;
 
@@ -12622,10 +12623,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the tilde token.</summary>
-        public SyntaxToken TildeToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DestructorDeclarationSyntax)this.Green).tildeToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken TildeToken => new SyntaxToken(this, ((InternalSyntax.DestructorDeclarationSyntax)this.Green).tildeToken, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.DestructorDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.DestructorDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 4)!;
 
@@ -12782,7 +12783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.PropertyDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.PropertyDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
 
         public override AccessorListSyntax? AccessorList => GetRed(ref this.accessorList, 5);
 
@@ -12881,7 +12882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArrowExpressionClauseSyntax)this.Green).arrowToken, Position, 0);
+        public SyntaxToken ArrowToken => new SyntaxToken(this, ((InternalSyntax.ArrowExpressionClauseSyntax)this.Green).arrowToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
@@ -12937,14 +12938,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken EventKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EventKeyword => new SyntaxToken(this, ((InternalSyntax.EventDeclarationSyntax)this.Green).eventKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public override TypeSyntax Type => GetRed(ref this.type, 3)!;
 
         public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 4);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.EventDeclarationSyntax)this.Green).identifier, GetChildPosition(5), GetChildIndex(5));
 
         public override AccessorListSyntax? AccessorList => GetRed(ref this.accessorList, 6);
 
@@ -13053,7 +13054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => GetRed(ref this.explicitInterfaceSpecifier, 3);
 
-        public SyntaxToken ThisKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.IndexerDeclarationSyntax)this.Green).thisKeyword, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken ThisKeyword => new SyntaxToken(this, ((InternalSyntax.IndexerDeclarationSyntax)this.Green).thisKeyword, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>Gets the parameter list.</summary>
         public BracketedParameterListSyntax ParameterList => GetRed(ref this.parameterList, 5)!;
@@ -13153,11 +13154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AccessorListSyntax)this.Green).openBraceToken, Position, 0);
+        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((InternalSyntax.AccessorListSyntax)this.Green).openBraceToken, Position, 0);
 
         public SyntaxList<AccessorDeclarationSyntax> Accessors => new SyntaxList<AccessorDeclarationSyntax>(GetRed(ref this.accessors, 1));
 
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.accessors, 1)! : null;
 
@@ -13221,7 +13222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
-        public SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.AccessorDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.AccessorDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
         /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
         public BlockSyntax? Body => GetRed(ref this.body, 3);
@@ -13327,7 +13328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open paren token.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterListSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.ParameterListSyntax)this.Green).openParenToken, Position, 0);
 
         public override SeparatedSyntaxList<ParameterSyntax> Parameters
         {
@@ -13339,7 +13340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close paren token.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -13386,7 +13387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open bracket token.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.BracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
 
         public override SeparatedSyntaxList<ParameterSyntax> Parameters
         {
@@ -13398,7 +13399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close bracket token.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -13491,7 +13492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override TypeSyntax? Type => GetRed(ref this.type, 2);
 
         /// <summary>Gets the identifier.</summary>
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
         public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 4);
 
@@ -13756,7 +13757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxList<XmlNodeSyntax> Content => new SyntaxList<XmlNodeSyntax>(GetRed(ref this.content, 0));
 
-        public SyntaxToken EndOfComment => new SyntaxToken(this, ((Syntax.InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken EndOfComment => new SyntaxToken(this, ((InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.content)! : null;
 
@@ -13866,7 +13867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public TypeSyntax Container => GetRedAtZero(ref this.container)!;
 
-        public SyntaxToken DotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.QualifiedCrefSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DotToken => new SyntaxToken(this, ((InternalSyntax.QualifiedCrefSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
         public MemberCrefSyntax Member => GetRed(ref this.member, 2)!;
 
@@ -14007,7 +14008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ThisKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.IndexerMemberCrefSyntax)this.Green).thisKeyword, Position, 0);
+        public SyntaxToken ThisKeyword => new SyntaxToken(this, ((InternalSyntax.IndexerMemberCrefSyntax)this.Green).thisKeyword, Position, 0);
 
         public CrefBracketedParameterListSyntax? Parameters => GetRed(ref this.parameters, 1);
 
@@ -14060,7 +14061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorKeyword, Position, 0);
+        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorKeyword, Position, 0);
 
         public SyntaxToken CheckedKeyword
         {
@@ -14072,7 +14073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the operator token.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(2), GetChildIndex(2));
 
         public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 3);
 
@@ -14127,9 +14128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken ImplicitOrExplicitKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).implicitOrExplicitKeyword, Position, 0);
+        public SyntaxToken ImplicitOrExplicitKeyword => new SyntaxToken(this, ((InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).implicitOrExplicitKeyword, Position, 0);
 
-        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).operatorKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).operatorKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public SyntaxToken CheckedKeyword
         {
@@ -14227,7 +14228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open paren token.</summary>
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.CrefParameterListSyntax)this.Green).openParenToken, Position, 0);
 
         public override SeparatedSyntaxList<CrefParameterSyntax> Parameters
         {
@@ -14239,7 +14240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close paren token.</summary>
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -14288,7 +14289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the open bracket token.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((InternalSyntax.CrefBracketedParameterListSyntax)this.Green).openBracketToken, Position, 0);
 
         public override SeparatedSyntaxList<CrefParameterSyntax> Parameters
         {
@@ -14300,7 +14301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the close bracket token.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -14483,13 +14484,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlElementStartTagSyntax)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.XmlElementStartTagSyntax)this.Green).lessThanToken, Position, 0);
 
         public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
         public SyntaxList<XmlAttributeSyntax> Attributes => new SyntaxList<XmlAttributeSyntax>(GetRed(ref this.attributes, 2));
 
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlElementStartTagSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.XmlElementStartTagSyntax)this.Green).greaterThanToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -14545,11 +14546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken LessThanSlashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).lessThanSlashToken, Position, 0);
+        public SyntaxToken LessThanSlashToken => new SyntaxToken(this, ((InternalSyntax.XmlElementEndTagSyntax)this.Green).lessThanSlashToken, Position, 0);
 
         public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
@@ -14591,13 +14592,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlEmptyElementSyntax)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((InternalSyntax.XmlEmptyElementSyntax)this.Green).lessThanToken, Position, 0);
 
         public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
         public SyntaxList<XmlAttributeSyntax> Attributes => new SyntaxList<XmlAttributeSyntax>(GetRed(ref this.attributes, 2));
 
-        public SyntaxToken SlashGreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlEmptyElementSyntax)this.Green).slashGreaterThanToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken SlashGreaterThanToken => new SyntaxToken(this, ((InternalSyntax.XmlEmptyElementSyntax)this.Green).slashGreaterThanToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -14655,7 +14656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public XmlPrefixSyntax? Prefix => GetRedAtZero(ref this.prefix);
 
-        public SyntaxToken LocalName => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlNameSyntax)this.Green).localName, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken LocalName => new SyntaxToken(this, ((InternalSyntax.XmlNameSyntax)this.Green).localName, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.prefix) : null;
 
@@ -14694,9 +14695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken Prefix => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlPrefixSyntax)this.Green).prefix, Position, 0);
+        public SyntaxToken Prefix => new SyntaxToken(this, ((InternalSyntax.XmlPrefixSyntax)this.Green).prefix, Position, 0);
 
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlPrefixSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((InternalSyntax.XmlPrefixSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -14762,9 +14763,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
         public SyntaxTokenList TextTokens
         {
@@ -14775,7 +14776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -14827,13 +14828,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
         public CrefSyntax Cref => GetRed(ref this.cref, 3)!;
 
-        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCrefAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlCrefAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -14895,13 +14896,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override XmlNameSyntax Name => GetRedAtZero(ref this.name)!;
 
-        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken EqualsToken => new SyntaxToken(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken StartQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).startQuoteToken, GetChildPosition(2), GetChildIndex(2));
 
         public IdentifierNameSyntax Identifier => GetRed(ref this.identifier, 3)!;
 
-        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlNameAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((InternalSyntax.XmlNameAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -15006,7 +15007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken StartCDataToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCDataSectionSyntax)this.Green).startCDataToken, Position, 0);
+        public SyntaxToken StartCDataToken => new SyntaxToken(this, ((InternalSyntax.XmlCDataSectionSyntax)this.Green).startCDataToken, Position, 0);
 
         public SyntaxTokenList TextTokens
         {
@@ -15017,7 +15018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken EndCDataToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCDataSectionSyntax)this.Green).endCDataToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken EndCDataToken => new SyntaxToken(this, ((InternalSyntax.XmlCDataSectionSyntax)this.Green).endCDataToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15060,7 +15061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken StartProcessingInstructionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).startProcessingInstructionToken, Position, 0);
+        public SyntaxToken StartProcessingInstructionToken => new SyntaxToken(this, ((InternalSyntax.XmlProcessingInstructionSyntax)this.Green).startProcessingInstructionToken, Position, 0);
 
         public XmlNameSyntax Name => GetRed(ref this.name, 1)!;
 
@@ -15073,7 +15074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken EndProcessingInstructionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken EndProcessingInstructionToken => new SyntaxToken(this, ((InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, GetChildPosition(3), GetChildIndex(3));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
@@ -15116,7 +15117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken LessThanExclamationMinusMinusToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCommentSyntax)this.Green).lessThanExclamationMinusMinusToken, Position, 0);
+        public SyntaxToken LessThanExclamationMinusMinusToken => new SyntaxToken(this, ((InternalSyntax.XmlCommentSyntax)this.Green).lessThanExclamationMinusMinusToken, Position, 0);
 
         public SyntaxTokenList TextTokens
         {
@@ -15127,7 +15128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken MinusMinusGreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlCommentSyntax)this.Green).minusMinusGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken MinusMinusGreaterThanToken => new SyntaxToken(this, ((InternalSyntax.XmlCommentSyntax)this.Green).minusMinusGreaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15215,19 +15216,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken IfKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken IfKeyword => new SyntaxToken(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ifKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public override ExpressionSyntax Condition => GetRed(ref this.condition, 2)!;
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).IsActive;
 
-        public override bool BranchTaken => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).BranchTaken;
+        public override bool BranchTaken => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).BranchTaken;
 
-        public override bool ConditionValue => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue;
+        public override bool ConditionValue => ((InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue;
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
@@ -15275,19 +15276,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken ElifKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).elifKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ElifKeyword => new SyntaxToken(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).elifKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public override ExpressionSyntax Condition => GetRed(ref this.condition, 2)!;
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).IsActive;
 
-        public override bool BranchTaken => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).BranchTaken;
+        public override bool BranchTaken => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).BranchTaken;
 
-        public override bool ConditionValue => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue;
+        public override bool ConditionValue => ((InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue;
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
@@ -15334,15 +15335,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken ElseKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).elseKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ElseKeyword => new SyntaxToken(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).elseKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).IsActive;
 
-        public override bool BranchTaken => ((Syntax.InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).BranchTaken;
+        public override bool BranchTaken => ((InternalSyntax.ElseDirectiveTriviaSyntax)this.Green).BranchTaken;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15386,13 +15387,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken EndIfKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endIfKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken EndIfKeyword => new SyntaxToken(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endIfKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.EndIfDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15435,13 +15436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken RegionKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).regionKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken RegionKeyword => new SyntaxToken(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).regionKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.RegionDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15484,13 +15485,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken EndRegionKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endRegionKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken EndRegionKeyword => new SyntaxToken(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endRegionKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.EndRegionDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15533,13 +15534,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken ErrorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).errorKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ErrorKeyword => new SyntaxToken(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).errorKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.ErrorDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15582,13 +15583,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken WarningKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken WarningKeyword => new SyntaxToken(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.WarningDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15631,13 +15632,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).identifier, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.BadDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15680,15 +15681,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken DefineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).defineKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken DefineKeyword => new SyntaxToken(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).defineKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken Name => new SyntaxToken(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Name => new SyntaxToken(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.DefineDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15732,15 +15733,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken UndefKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).undefKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken UndefKeyword => new SyntaxToken(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).undefKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken Name => new SyntaxToken(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Name => new SyntaxToken(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).name, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.UndefDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15803,11 +15804,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken Line => new SyntaxToken(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
 
         public override SyntaxToken File
         {
@@ -15818,9 +15819,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.LineDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15867,15 +15868,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
 
-        public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken Line => new SyntaxToken(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken CommaToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CommaToken => new SyntaxToken(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken Character => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken Character => new SyntaxToken(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
 
-        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -15919,13 +15920,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public LineDirectivePositionSyntax Start => GetRed(ref this.start, 2)!;
 
-        public SyntaxToken MinusToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken MinusToken => new SyntaxToken(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
 
         public LineDirectivePositionSyntax End => GetRed(ref this.end, 4)!;
 
@@ -15938,11 +15939,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
+        public override SyntaxToken File => new SyntaxToken(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -16005,13 +16006,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken PragmaKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken PragmaKeyword => new SyntaxToken(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken WarningKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken WarningKeyword => new SyntaxToken(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).warningKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken DisableOrRestoreKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken DisableOrRestoreKeyword => new SyntaxToken(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, GetChildPosition(3), GetChildIndex(3));
 
         public SeparatedSyntaxList<ExpressionSyntax> ErrorCodes
         {
@@ -16022,9 +16023,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(5), GetChildIndex(5));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(5), GetChildIndex(5));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.errorCodes, 4)! : null;
 
@@ -16072,21 +16073,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken PragmaKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken PragmaKeyword => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).pragmaKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken ChecksumKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).checksumKeyword, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken ChecksumKeyword => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).checksumKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).file, GetChildPosition(3), GetChildIndex(3));
+        public SyntaxToken File => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).file, GetChildPosition(3), GetChildIndex(3));
 
-        public SyntaxToken Guid => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).guid, GetChildPosition(4), GetChildIndex(4));
+        public SyntaxToken Guid => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).guid, GetChildPosition(4), GetChildIndex(4));
 
-        public SyntaxToken Bytes => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).bytes, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken Bytes => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).bytes, GetChildPosition(5), GetChildIndex(5));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(6), GetChildIndex(6));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(6), GetChildIndex(6));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.PragmaChecksumDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16133,15 +16134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken ReferenceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).referenceKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ReferenceKeyword => new SyntaxToken(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).referenceKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken File => new SyntaxToken(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.ReferenceDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16185,15 +16186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken LoadKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).loadKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken LoadKeyword => new SyntaxToken(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).loadKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken File => new SyntaxToken(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).file, GetChildPosition(2), GetChildIndex(2));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.LoadDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16237,13 +16238,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken ExclamationToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).exclamationToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken ExclamationToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).exclamationToken, GetChildPosition(1), GetChildIndex(1));
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 
@@ -16286,11 +16287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken NullableKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken NullableKeyword => new SyntaxToken(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public SyntaxToken SettingToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken SettingToken => new SyntaxToken(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, GetChildPosition(2), GetChildIndex(2));
 
         public SyntaxToken TargetToken
         {
@@ -16301,9 +16302,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(4), GetChildIndex(4));
 
-        public override bool IsActive => ((Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive;
+        public override bool IsActive => ((InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive;
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;
 

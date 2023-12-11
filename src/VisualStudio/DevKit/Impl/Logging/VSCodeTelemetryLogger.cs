@@ -39,7 +39,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
         if (isDefaultSession)
         {
-            TelemetryService.SetDefaultSession(session);
+            VisualStudio.Telemetry.TelemetryService.SetDefaultSession(session);
         }
 
         session.Start();

@@ -2239,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 }
                 """,
                 testHost,
-                Class("var"));
+                Keyword("var"));
         }
 
         [Theory, WorkItem(9513, "DevDiv_Projects/Roslyn")]
@@ -2877,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -2922,7 +2922,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -2963,7 +2963,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory, CombinatorialData]
@@ -3233,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3278,7 +3278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3319,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]
@@ -3370,7 +3370,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory, CombinatorialData]

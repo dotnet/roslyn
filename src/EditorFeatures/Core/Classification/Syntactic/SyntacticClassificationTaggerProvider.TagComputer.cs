@@ -306,7 +306,9 @@ internal partial class SyntacticClassificationTaggerProvider
 
             lock (_gate)
             {
-                _lastProcessedData = (currentSnapshot, (SumType<SyntaxNode, Document>?)currentRoot ?? currentDocument);
+                SumType<SyntaxNode, Document> lastProcessedDocumentOrRoot =
+                    currentRoot is not null ? currentRoot : currentDocument;
+                _lastProcessedData = (currentSnapshot, lastProcessedDocumentOrRoot);
             }
 
             // Notify the editor now that there were changes.  Note: we do not need to go the
@@ -444,11 +446,19 @@ internal partial class SyntacticClassificationTaggerProvider
             // If we have a syntax root ready, use it.  Otherwise, get the root synchronously.  We do not want to do
             // anything async here as we'd have to block on that, potentially starving the UI thread while the
             // threadpool does work.
+            //
+            // If this is a language that does not support syntax, we have no choice but to try to get the
+            // classifications asynchronously, blocking on that result.
             var root = lastProcessedDocumentOrRoot.TryGetFirst(out var tempRoot)
                 ? tempRoot
-                : lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
+                : lastProcessedDocumentOrRoot.Second.SupportsSyntaxTree
+                    ? lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken)
+                    : null;
 
-            classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+            if (root != null)
+                classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+            else
+                classificationService.AddSyntacticClassificationsAsync(lastProcessedDocumentOrRoot.Second, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
 
             _lastLineCache.Update(span, tempList);
             classifiedSpans.AddRange(tempList);

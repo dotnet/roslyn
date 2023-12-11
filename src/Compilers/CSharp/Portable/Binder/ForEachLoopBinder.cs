@@ -841,7 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 spanType = spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations));
-                spanType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, collectionExpr.Syntax.GetLocation(), diagnostics));
 
                 if (!TypeSymbol.IsInlineArrayElementFieldSupported(elementField))
                 {
@@ -883,7 +882,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T, diagnostics, syntax: collectionExpr.Syntax);
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: collectionExpr.Syntax);
+                        var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: collectionExpr.Syntax);
+
+                        if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
+                        {
+                            method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(collectionExpr.Type), elementField.TypeWithAnnotations)).
+                                CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, collectionExpr.Syntax.GetLocation(), diagnostics));
+                        }
                     }
 
                     return result;

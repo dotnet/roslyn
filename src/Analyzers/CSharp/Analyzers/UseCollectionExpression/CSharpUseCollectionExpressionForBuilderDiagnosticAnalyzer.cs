@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,10 +31,12 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
-    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeInvocationExpression(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
@@ -41,17 +44,17 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             analysisResult.DiagnosticLocation,
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -66,7 +69,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: null));
@@ -83,7 +86,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties: null));
@@ -93,6 +96,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     public static AnalysisResult? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
+        INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
         // Looking for `XXX.CreateBuilder(...)`
@@ -187,7 +191,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Make sure we can actually use a collection expression in place of the created collection.
             if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                    semanticModel, creationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+                    semanticModel, creationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             {
                 return null;
             }
