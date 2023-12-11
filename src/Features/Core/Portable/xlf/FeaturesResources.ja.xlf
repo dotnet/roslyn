@@ -40,11 +40,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">減算は、文字クラスの最後の要素でなければなりません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">{1} でアクセスしたことがないキャプチャされた変数 '{0}' にアクセスするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' 属性の追加</target>
@@ -113,11 +108,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">{0} を追加するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">異なるスコープで宣言された、キャプチャした変数 '{0}' と '{1}' にアクセスする {2} を追加するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -365,24 +355,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">以前にキャプチャされていない変数 '{0}' をキャプチャするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">{1} にあるキャプチャした変数 '{0}' へのアクセスを中止するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
         <target state="translated">'{1}' のプライマリ コンストラクター パラメーター '{0}' をキャプチャするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">変数 '{0}' のキャプチャを中止するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -668,11 +643,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">ランタイムでサポートされていないため、{0} を削除するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">キャプチャした変数 '{0}' を削除するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Directives_from_0">
@@ -2563,11 +2533,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">未使用の変数を削除する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">異なるスコープで宣言された、キャプチャされた変数 '{1}' と '{2}' にアクセスした {0} を削除するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">

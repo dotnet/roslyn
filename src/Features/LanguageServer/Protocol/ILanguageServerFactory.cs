@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices);
     }
 }

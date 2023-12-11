@@ -719,8 +719,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         #region Additional File Addition/Removal
 
         // TODO: should AdditionalFiles have source code kinds?
-        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
+        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public bool ContainsAdditionalFile(string fullPath)
             => _additionalFiles.ContainsFile(fullPath);

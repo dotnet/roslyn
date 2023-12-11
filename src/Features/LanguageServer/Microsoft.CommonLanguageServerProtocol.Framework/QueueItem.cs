@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -19,9 +20,11 @@ internal sealed class NoValue
 
 internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TRequestContext>
 {
-    private readonly ILspLogger _logger;
-
     private readonly TRequest _request;
+
+    private readonly ILspLogger _logger;
+    private readonly AbstractRequestScope? _requestTelemetryScope;
+
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
@@ -61,6 +64,10 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         MethodName = methodName;
         Language = language;
         RequestUri = requestUri;
+
+        var telemetryService = lspServices.GetRequiredServices<AbstractTelemetryService>().FirstOrDefault();
+
+        _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
@@ -90,6 +97,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         cancellationToken.ThrowIfCancellationRequested();
 
         _methodHandler = handler;
+
+        _requestTelemetryScope?.RecordExecutionStart();
 
         var requestContextFactory = (AbstractRequestContextFactory<TRequestContext>?)LspServices.TryGetService(typeof(AbstractRequestContextFactory<TRequestContext>));
         if (requestContextFactory is not null)
@@ -132,7 +141,9 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
+                _requestTelemetryScope?.RecordWarning($"Could not get request context for {MethodName}");
                 _logger.LogWarning($"Could not get request context for {MethodName}");
+
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
             else if (_methodHandler is null)
@@ -173,6 +184,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
+            _requestTelemetryScope?.RecordCancellation();
             _logger.LogInformation($"{MethodName} - Canceled");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
@@ -181,12 +193,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         {
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
+            _requestTelemetryScope?.RecordException(ex);
             _logger.LogException(ex);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
+            _requestTelemetryScope?.Dispose();
             _logger.LogEndContext($"{MethodName}");
         }
 

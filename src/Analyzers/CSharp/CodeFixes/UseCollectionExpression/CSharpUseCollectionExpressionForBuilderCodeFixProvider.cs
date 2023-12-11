@@ -47,7 +47,8 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace the final invocation (`builder.ToImmutable()`) with `new()`.  That way we can call into
