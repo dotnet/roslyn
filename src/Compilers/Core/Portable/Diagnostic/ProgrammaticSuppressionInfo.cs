@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class ProgrammaticSuppressionInfo : IEquatable<ProgrammaticSuppressionInfo?>
     {
-        public ImmutableHashSet<(string Id, LocalizableString Justification)> Suppressions { get; }
+        public ImmutableHashSet<Suppression> Suppressions { get; }
 
-        internal ProgrammaticSuppressionInfo(ImmutableHashSet<(string Id, LocalizableString Justification)> suppressions)
+        internal ProgrammaticSuppressionInfo(ImmutableHashSet<Suppression> suppressions)
         {
             Suppressions = suppressions;
         }

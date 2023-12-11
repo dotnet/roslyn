@@ -360,7 +360,9 @@ namespace Microsoft.CodeAnalysis
                 attribute = null;
             }
 
-            return new SuppressionInfo(this.Id, attribute);
+            var suppressions = this.ProgrammaticSuppressionInfo?.Suppressions ?? ImmutableHashSet<Suppression>.Empty;
+
+            return new SuppressionInfo(this.Id, attribute, suppressions);
         }
 
         /// <summary>

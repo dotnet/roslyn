@@ -1151,16 +1151,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
             {
-                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<Suppression>.Builder>.GetInstance();
                 foreach (var programmaticSuppression in programmaticSuppressions)
                 {
                     if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
                     {
-                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
+                        set = ImmutableHashSet.CreateBuilder<Suppression>();
                         programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
                     }
 
-                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                    set.Add(programmaticSuppression);
                 }
 
                 var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
