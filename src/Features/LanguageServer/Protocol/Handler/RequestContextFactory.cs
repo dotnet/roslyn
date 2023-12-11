@@ -31,10 +31,39 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
             throw new InvalidOperationException($"ClientCapabilities was null for a request other than {Methods.InitializeName}.");
         }
 
-        var textDocumentIdentifier = queueItem.RequestUri is null ? null : new TextDocumentIdentifier
+        var textDocumentIdentifierHandler = methodHandler as ITextDocumentIdentifierHandler;
+        TextDocumentIdentifier? textDocumentIdentifier;
+        if (queueItem.RequestUri is not null)
         {
-            Uri = queueItem.RequestUri,
-        };
+            textDocumentIdentifier = new TextDocumentIdentifier
+            {
+                Uri = queueItem.RequestUri,
+            };
+        }
+        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
+        {
+            textDocumentIdentifier = tHandler.GetTextDocumentIdentifier(requestParam);
+        }
+        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier?> nullHandler)
+        {
+            textDocumentIdentifier = nullHandler.GetTextDocumentIdentifier(requestParam);
+        }
+        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, Uri> uHandler)
+        {
+            var uri = uHandler.GetTextDocumentIdentifier(requestParam);
+            textDocumentIdentifier = new TextDocumentIdentifier
+            {
+                Uri = uri,
+            };
+        }
+        else if (textDocumentIdentifierHandler is null)
+        {
+            textDocumentIdentifier = null;
+        }
+        else
+        {
+            throw new NotImplementedException($"TextDocumentIdentifier in an unrecognized type for method: {queueItem.MethodName}");
+        }
 
         bool requiresLSPSolution;
         if (methodHandler is ISolutionRequiredHandler requiredHandler)
