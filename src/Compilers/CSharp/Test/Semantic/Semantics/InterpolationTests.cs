@@ -18243,5 +18243,18 @@ class C
                 //     public A(int x, A a = M($"{1}")) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71203")]
+        public void TestAliasQualifiedNameShouldCompile()
+        {
+            var source =
+                """
+                using System;
+                Console.WriteLine($"Test: {global::System.Globalization.CultureInfo.CurrentCulture}");
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }
