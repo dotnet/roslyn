@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-////#define TRACKDEPTH
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -21,21 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             bool objectAndDynamicCompareEqually)
         {
 
-#if TRACKDEPTH
-            private int depth = 0;
-#endif
             public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
-#if TRACKDEPTH
-                try
-                { 
-                this.depth++;
-                if (depth > 100)
-                {
-                    throw new InvalidOperationException("Stack too deep.");
-                }
-#endif
-
                 if (ReferenceEquals(x, y))
                 {
                     return true;
@@ -65,14 +50,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
-
-#if TRACKDEPTH
-            }
-            finally
-            {
-                this.depth--;
-            }
-#endif
             }
 
             internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
@@ -138,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
-                => symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
+                => symbolEquivalenceComparer._assemblyComparer?.Equals(x, y) ?? true;
 
             private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
@@ -315,21 +292,36 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             /// <param name="y">The second type to compare</param>
             /// <param name="equivalentTypesWithDifferingAssemblies">
             /// Map of equivalent non-nested types to be populated, such that each key-value pair of named types are equivalent but reside in different assemblies.
-            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assemblyComparerOpt"/> is true.
+            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assemblyComparer"/> is true.
             /// </param>
             /// <returns>True if the two types are equivalent.</returns>
             private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
+                // If one is a tuple, both must be tuples.
                 if (x.IsTupleType != y.IsTupleType)
                     return false;
 
+                // If one is nint/nuint, the other must be as well.
                 if (x.IsNativeIntegerType != y.IsNativeIntegerType)
                     return false;
 
+                // If one is void, the other must be as well
+                if (x.IsSystemVoid() != y.IsSystemVoid())
+                    return false;
+
+                // If a tuple, make sure the members are equivalent.
                 if (x.IsTupleType)
                     return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
+
+                // If a native int, make sure the sign matches.
+                if (x.IsNativeIntegerType)
+                    return x.SpecialType == y.SpecialType;
+
+                // If both are void, they're equivalent.
+                if (x.IsSystemVoid())
+                    return true;
 
                 if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
@@ -529,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                if (x.IsGlobalNamespace && symbolEquivalenceComparer._assemblyComparerOpt == null)
+                if (x.IsGlobalNamespace && symbolEquivalenceComparer._assemblyComparer == null)
                 {
                     // No need to compare the containers of global namespace when assembly identities are ignored.
                     return true;

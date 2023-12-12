@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               diagnosticInfo.MessageIdentifier,
                                                               diagnosticInfo.WarningLevel,
                                                               Location.None,
+                                                              diagnosticInfo.CustomTags,
                                                               options.WarningLevel,
                                                               ((CSharpCompilationOptions)options).NullableContextOptions,
                                                               options.GeneralDiagnosticOption,

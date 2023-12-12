@@ -8,8 +8,8 @@ using System.ComponentModel;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
@@ -18,7 +18,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     public static string GeneratingSuggestions => EditorFeaturesWpfResources.Generating_suggestions;
 
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-    private readonly ISmartRenameSession _smartRenameSession;
+    private readonly ISmartRenameSessionWrapper _smartRenameSession;
 #pragma warning restore CS0618 
 
     private readonly IThreadingContext _threadingContext;
@@ -31,15 +31,15 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
-    public bool IsAvailable => _smartRenameSession?.IsAvailable ?? false;
+    public bool IsAvailable => _smartRenameSession.IsAvailable;
 
-    public bool HasSuggestions => _smartRenameSession?.HasSuggestions ?? false;
+    public bool HasSuggestions => _smartRenameSession.HasSuggestions;
 
-    public bool IsInProgress => _smartRenameSession?.IsInProgress ?? false;
+    public bool IsInProgress => _smartRenameSession.IsInProgress;
 
-    public string StatusMessage => _smartRenameSession?.StatusMessage ?? string.Empty;
+    public string StatusMessage => _smartRenameSession.StatusMessage;
 
-    public bool StatusMessageVisibility => _smartRenameSession?.StatusMessageVisibility ?? false;
+    public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
 
     private string? _selectedSuggestedName;
 
@@ -64,7 +64,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        ISmartRenameSession smartRenameSession)
+        ISmartRenameSessionWrapper smartRenameSession)
 #pragma warning restore CS0618
     {
         _threadingContext = threadingContext;

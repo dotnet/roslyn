@@ -40,11 +40,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Una sustracción debe ser el último elemento de una clase de caracteres</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">Para acceder a la variable capturada "{0}" a la que no se ha accedido antes en {1} se requiere reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Agregar atributo de "DebuggerDisplay"</target>
@@ -113,11 +108,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">Para agregar {0} se requiere reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Para agregar {0} que tiene acceso a las variables capturadas "{1}" y "{2}" declaradas en distintos ámbitos es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -365,24 +355,9 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">Para capturar la variable "{0}" que no ha sido capturada antes, se requiere reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">Para dejar de acceder a la variable capturada "{0}" en {1} es necesario reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
         <target state="translated">Dejar de capturar el parámetro de constructor principal '{0}' de '{1}' requiere reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Para dejar de capturar la variable "{0}" es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -670,11 +645,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para eliminar {0} se requiere reiniciar la aplicación porque no es compatible con el tiempo de ejecución.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">Para eliminar la variable capturada "{0}" se requiere reiniciar la aplicación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">Directivas de '{0}'</target>
@@ -786,8 +756,8 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <note />
       </trans-unit>
       <trans-unit id="Fix_All_0">
-        <source>Fix All: '{0}'</source>
-        <target state="new">Fix All: '{0}'</target>
+        <source>Fix All: {0}</source>
+        <target state="new">Fix All: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2540,14 +2510,14 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">No se admite la eliminación del documento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Quitar importaciones o usos innecesarios</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Quitar conversiones innecesarias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="new">Remove unnecessary imports or usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2563,11 +2533,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">Quitar variables no utilizadas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Para quitar {0} que accedió a las variables capturadas "{1}" y "{2}" declaradas en distintos ámbitos, se requiere reiniciar la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">

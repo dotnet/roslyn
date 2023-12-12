@@ -17,18 +17,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForStackAlloc), Shared]
-internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
-    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
-        : base(CSharpCodeFixesResources.Use_collection_expression,
-               IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
-    {
-    }
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForStackAlloc), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
+    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>(
+        CSharpCodeFixesResources.Use_collection_expression,
+        IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
+{
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId);
 
     protected sealed override async Task FixAsync(
@@ -43,6 +40,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
         var matches = GetMatches();
         if (matches.IsDefault)
             return;
@@ -84,7 +82,8 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
                 // be added to the collection expression.
                 StackAllocArrayCreationExpressionSyntax arrayCreation
-                    => CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                    => CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
+                        semanticModel, arrayCreation, expressionType, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

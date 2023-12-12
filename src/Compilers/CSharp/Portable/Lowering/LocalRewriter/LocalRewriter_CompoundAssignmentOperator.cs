@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignmentOrRegularCompoundAssignment: isRegularCompoundAssignment,
+                cacheAllArgumentsOnly: false,
                 stores, temps);
 
             if (access is BoundIndexerAccess indexerAccess)

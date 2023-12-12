@@ -2622,6 +2622,59 @@ print Goodbye, World";
             // TODO: multiple files, quotes, etc.
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71022")]
+        public void ParseReferencesAlias()
+        {
+            assert(@"/r:a=util.dll", @"util.dll", ["a"], false);
+            assert(@"/r:""a=util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:""c:\users\app=exe\util.dll""", @"c:\users\app=exe\util.dll", [], false);
+            assert(@"/r:a=b=util.dll", @"b=util.dll", ["a"], false);
+            assert(@"/r:""a=b""=util.dll", @"a=b=util.dll", [], false);
+            assert(@"/r:\""a=b\""=util.dll", @"""a=b""=util.dll", [], false);
+            assert(@"/r:a""b=util.dll", "ab=util.dll", [], false);
+            assert(@"/r:a\""b=util.dll", @"a""b=util.dll", [], false);
+            assert(@"/r:""a""=""util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:\""a\""=\""util.dll""", @"""a""=""util.dll", [], false);
+
+            void assert(string arg, string expectedRef, string[] expectedAliases, bool expectedEmbed)
+            {
+                var result = parseRef(arg);
+                Assert.Equal(expectedRef, result.Reference);
+                Assert.Equal(expectedAliases, result.Properties.Aliases);
+                Assert.Equal(expectedEmbed, result.Properties.EmbedInteropTypes);
+            }
+
+            CommandLineReference parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                Assert.Equal(2, parsedArgs.MetadataReferences.Length);
+                Assert.Empty(parsedArgs.Errors);
+                return parsedArgs.MetadataReferences[1];
+            }
+        }
+
+        [Fact]
+        public void ParseReferencesAliasErrors()
+        {
+            parseRef(@"/reference:a\b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a\b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a$b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a$b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a=util.dll,util2.dll").Verify(
+                Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithLocation(1, 1));
+
+            parseRef(@"/reference:a=").Verify(
+                Diagnostic(ErrorCode.ERR_AliasMissingFile).WithArguments("a").WithLocation(1, 1));
+
+            ImmutableArray<Diagnostic> parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                return parsedArgs.Errors;
+            }
+        }
+
         [Fact]
         public void ParseAnalyzers()
         {
@@ -13035,22 +13088,29 @@ dotnet_analyzer_diagnostic.category-{category}.severity = none";
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
-        [InlineData(DiagnosticSeverity.Warning, false)]
-        [InlineData(DiagnosticSeverity.Info, true)]
-        [InlineData(DiagnosticSeverity.Info, false)]
-        [InlineData(DiagnosticSeverity.Hidden, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, true)]
+        [InlineData(DiagnosticSeverity.Info, true, false)]
+        [InlineData(DiagnosticSeverity.Info, false, false)]
+        [InlineData(DiagnosticSeverity.Info, true, true)]
+        [InlineData(DiagnosticSeverity.Info, false, true)]
+        [InlineData(DiagnosticSeverity.Hidden, false, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false, true)]
         [Theory]
-        public void TestBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog)
+        public void TestBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog, bool customConfigurable)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: false);
 
             var diagnosticId = analyzer.Descriptor.Id;
 
-            // Verify bulk configuration without any diagnostic ID configuration is respected.
+            // Verify bulk configuration without any diagnostic ID configuration is respected,
+            // unless analyzer reports 'CustomConfigurable' diagnostics, which explicitly disables bulk configuration.
+            var defaultReportDiagnostic = DiagnosticDescriptor.MapSeverityToReport(defaultSeverity);
+            var expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Error;
             var analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration does not get applied for suppressed diagnostic.
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
@@ -13065,44 +13125,55 @@ dotnet_analyzer_diagnostic.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
 
             // Verify bulk configuration before diagnostic ID configuration is not respected.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
+            expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Warn;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error
 dotnet_diagnostic.{diagnosticId}.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration after diagnostic ID configuration is not respected.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration to warning + /warnaserror reports errors.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
+            expectedDiagnosticSeverity = customConfigurable && defaultReportDiagnostic != ReportDiagnostic.Warn ? defaultReportDiagnostic : ReportDiagnostic.Error;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity, warnAsError: true);
 
             // Verify disabled by default analyzer is not enabled by bulk configuration.
-            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
+            // However, analyzer reporting 'CustomConfigurable' diagnostics is considered to be enabled.
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity, customConfigurable, throwOnAllNamedTypes: false);
+            expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             if (defaultSeverity == DiagnosticSeverity.Hidden ||
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog)
             {
                 // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
-                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
-                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+                // Unless the analyzer reports 'CustomConfigurable' diagnostics, in which case it is always executed.
+                expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: !customConfigurable);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity);
 
                 // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                // However, analyzer reporting 'CustomConfigurable' diagnostics is considered to be enabled.
+                expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
                 analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = none";
-                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
             }
         }
 
@@ -13395,19 +13466,19 @@ class C
         public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
             var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog, customConfigurable: false);
         }
 
         [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
         [CombinatorialData]
-        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog)
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog, bool customConfigurable)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning, customConfigurable, throwOnAllNamedTypes: false);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog, customConfigurable);
         }
 
-        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog)
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog, bool customConfigurable)
         {
             if (analyzerConfigSeverity == ReportDiagnostic.Default)
             {
@@ -13420,6 +13491,10 @@ class C
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
+
+            // Severity of 'CustomSeverityConfigurable' diagnostics should not be affected by editorconfig entries.
+            if (customConfigurable)
+                analyzerConfigSeverity = DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity);
 
             var arguments = new[] {
                 "/nologo",
@@ -13509,17 +13584,18 @@ generated_code = auto");
 
         [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
         [CombinatorialData, Theory]
-        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
+        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog, bool customConfigurable)
         {
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            var analyzerShouldBeSkipped = defaultSeverity == DiagnosticSeverity.Hidden ||
-                defaultSeverity == DiagnosticSeverity.Info && !errorlog;
+            // However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            var analyzerShouldBeSkipped = (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog) && !customConfigurable;
 
             // We use an analyzer that throws an exception on every analyzer callback.
             // So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: true);
 
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
@@ -13545,16 +13621,17 @@ generated_code = auto");
 
         [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
         [CombinatorialData, Theory]
-        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, bool customConfigurable)
         {
             // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
             // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            var analyzerShouldBeSkipped = !isEnabledByDefault ||
-                defaultSeverity == DiagnosticSeverity.Hidden ||
-                defaultSeverity == DiagnosticSeverity.Info;
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            // However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            var analyzerShouldBeSkipped = (!isEnabledByDefault ||
+                defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info) && !customConfigurable;
+
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, customConfigurable, throwOnAllNamedTypes: analyzerShouldBeSkipped);
             var diagnosticId = analyzer.Descriptor.Id;
 
             var dir = Temp.CreateDirectory();
@@ -13570,7 +13647,7 @@ generated_code = auto");
             Assert.Equal(expectedExitCode, exitCode);
 
             var output = outWriter.ToString();
-            if (analyzerShouldBeSkipped)
+            if (analyzerShouldBeSkipped || customConfigurable && defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info)
             {
                 Assert.Empty(output);
             }
@@ -13584,33 +13661,50 @@ generated_code = auto");
         [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
-        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
-        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when custom configured analyzer bumps severity to 'Warning'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file or custom configured setting is specified.
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
-        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
-        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' or 'Warning' and custom configured severity is 'Error'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
             bool useGlobalConfig,
             DiagnosticSeverity defaultSeverity,
             DiagnosticSeverity? severityInConfigFile,
+            DiagnosticSeverity? customConfiguredSeverityByAnalyzer,
             DiagnosticSeverity expectedEffectiveSeverity)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: false);
+            var customConfigurable = customConfiguredSeverityByAnalyzer.HasValue;
+            var reportedSeverity = customConfiguredSeverityByAnalyzer ?? defaultSeverity;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, reportedSeverity, customConfigurable, throwOnAllNamedTypes: false);
             var diagnosticId = analyzer.Descriptor.Id;
 
             var dir = Temp.CreateDirectory();

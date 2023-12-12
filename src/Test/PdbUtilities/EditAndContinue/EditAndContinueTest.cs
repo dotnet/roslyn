@@ -9,9 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -105,6 +107,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var readers = new List<MetadataReader>();
             int index = 0;
+            var exceptions = new List<ImmutableArray<Exception>>();
+
             foreach (var generation in _generations)
             {
                 if (readers.Count > 0)
@@ -116,10 +120,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
                 generation.Verifier(verifier);
 
+                exceptions.Add(verifier.Exceptions.ToImmutableArray());
+
                 index++;
             }
 
+            var assertMessage = GetAggregateMessage(exceptions);
+            Assert.True(assertMessage == "", assertMessage);
+
             return This;
+        }
+
+        private static string GetAggregateMessage(IReadOnlyList<ImmutableArray<Exception>> exceptions)
+        {
+            var builder = new StringBuilder();
+            for (int generation = 0; generation < exceptions.Count; generation++)
+            {
+                if (exceptions[generation].Any())
+                {
+                    builder.AppendLine($"-------------------------------------");
+                    builder.AppendLine($" Generation #{generation} failures");
+                    builder.AppendLine($"-------------------------------------");
+
+                    foreach (var exception in exceptions[generation])
+                    {
+                        builder.AppendLine(exception.Message);
+                        builder.AppendLine();
+                        builder.AppendLine(exception.StackTrace);
+                    }
+                }
+            }
+
+            return builder.ToString();
         }
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(
@@ -153,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     syntaxMap = null;
                 }
 
-                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap);
+                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.RudeEdits);
             }));
         }
 

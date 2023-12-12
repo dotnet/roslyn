@@ -84,10 +84,10 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetChecksum());
+                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
 
                 case WellKnownSynchronizationKind.SourceText:
-                    return Checksum.Create(((SourceText)value).GetChecksum());
+                    return Checksum.Create(((SourceText)value).GetContentHash());
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to

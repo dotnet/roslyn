@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
 
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverAsWithNullCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localStatement.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations,
                 properties: null));
         }

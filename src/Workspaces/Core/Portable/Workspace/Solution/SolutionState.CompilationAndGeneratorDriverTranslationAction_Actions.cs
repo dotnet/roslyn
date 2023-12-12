@@ -197,12 +197,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (!referencesToRemove.IsDefaultOrEmpty)
                     {
-                        generatorDriver = generatorDriver.RemoveGenerators(referencesToRemove.SelectMany(r => r.GetGenerators(language)).ToImmutableArray());
+                        generatorDriver = generatorDriver.RemoveGenerators(referencesToRemove.SelectManyAsArray(r => r.GetGenerators(language)));
                     }
 
                     if (!referencesToAdd.IsDefaultOrEmpty)
                     {
-                        generatorDriver = generatorDriver.AddGenerators(referencesToAdd.SelectMany(r => r.GetGenerators(language)).ToImmutableArray());
+                        generatorDriver = generatorDriver.AddGenerators(referencesToAdd.SelectManyAsArray(r => r.GetGenerators(language)));
                     }
 
                     return generatorDriver;

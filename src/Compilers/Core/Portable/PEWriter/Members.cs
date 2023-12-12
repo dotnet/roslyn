@@ -484,8 +484,14 @@ namespace Microsoft.Cci
         /// </summary>
         ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
-        ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
-        ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        ImmutableArray<EncClosureInfo> ClosureDebugInfo { get; }
+        ImmutableArray<EncLambdaInfo> LambdaDebugInfo { get; }
+
+        /// <summary>
+        /// Ordered by <see cref="LambdaRuntimeRudeEditInfo.LambdaId"/>.
+        /// </summary>
+        ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits { get; }
+
         StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
         /// <summary>

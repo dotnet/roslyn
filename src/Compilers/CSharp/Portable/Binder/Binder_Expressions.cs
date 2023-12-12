@@ -4733,32 +4733,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics, int nestingLevel = 0)
         {
+            const int MaxNestingLevel = 64;
+            if (nestingLevel >= MaxNestingLevel)
+            {
+                // An expression is too long or complex to compile
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, syntax.Location);
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType());
+            }
+
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                builder.Add(bindElement(element, diagnostics));
+                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
-            BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
                 return syntax switch
                 {
-                    ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
-                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
+                    ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
+                    ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
 
-            BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
-                var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+                var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
@@ -4779,13 +4788,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                var convertedExpression = ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+                var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
                 BoundExpression? lengthOrCount;
-                if (!TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
                 {
                     lengthOrCount = null;
                 }
@@ -4798,8 +4807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: lengthOrCount,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false)
-                { WasCompilerGenerated = true };
+                    hasErrors: false);
             }
         }
 #nullable disable
@@ -5391,6 +5399,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)boundMember;
+                    MessageID.IDS_ImplicitIndexerInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
+
+                    if (isRhsNestedInitializer && GetPropertySymbol(implicitIndexer, out _, out _) is { } property)
+                    {
+                        hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
+                    }
+
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
+
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
 
@@ -5969,12 +5988,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
-                syntax,
-                implicitReceiver,
-                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
-                diagnostics);
+            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
+                syntax.Expression,
+                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
+                hasEnumerableInitializerType: true,
+                collectionInitializerAddMethodBinder,
+                diagnostics,
+                implicitReceiver);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
@@ -8505,13 +8525,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
-                var spanMethod = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
-                if (spanMethod is { ContainingType: { Kind: SymbolKind.NamedType } spanType })
+                if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
                 {
-                    spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations)).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
+                    method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(expr.Type), elementField.TypeWithAnnotations)).
+                        CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
                 }
 
                 if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
@@ -9855,7 +9876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = candidate;
                     return true;
                 }
-                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
+                if (MemberSignatureComparer.CSharp10MethodGroupSignatureComparer.Equals(method, candidate))
                 {
                     return true;
                 }
@@ -9876,98 +9897,135 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
 
-            MethodSymbol? method = selectMethodForSignature(node);
-
-            if (method is null)
+            MethodSymbol? foundMethod = null;
+            var typeArguments = node.TypeArgumentsOpt;
+            if (node.ResultKind == LookupResultKind.Viable)
             {
-                return null;
-            }
-
-            int arity = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
-            if (method.Arity != arity)
-            {
-                return null;
-            }
-            else if (arity > 0)
-            {
-                return method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
-            }
-
-            return method;
-
-            static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
-            {
-                if (method is null)
+                foreach (var memberMethod in node.Methods)
                 {
-                    method = candidate;
-                    return true;
-                }
-                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
-                {
-                    return true;
-                }
-                method = null;
-                return false;
-            }
-
-            MethodSymbol? selectMethodForSignature(BoundMethodGroup node)
-            {
-                MethodSymbol? method = null;
-                if (node.ResultKind == LookupResultKind.Viable)
-                {
-                    foreach (var m in node.Methods)
+                    switch (node.ReceiverOpt)
                     {
-                        switch (node.ReceiverOpt)
+                        case BoundTypeExpression:
+                        case null: // if `using static Class` is in effect, the receiver is missing
+                            if (!memberMethod.IsStatic) continue;
+                            break;
+                        case BoundThisReference { WasCompilerGenerated: true }:
+                            break;
+                        default:
+                            if (memberMethod.IsStatic) continue;
+                            break;
+                    }
+
+                    int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
+                    if (memberMethod.Arity != arity)
+                    {
+                        // We have no way of inferring type arguments, so if the given type arguments
+                        // don't match the method's arity, the method is not a candidate
+                        continue;
+                    }
+
+                    var substituted = typeArguments.IsDefaultOrEmpty ? memberMethod : memberMethod.Construct(typeArguments);
+                    if (!satisfiesConstraintChecks(substituted))
+                    {
+                        continue;
+                    }
+
+                    if (!isCandidateUnique(ref foundMethod, substituted))
+                    {
+                        return null;
+                    }
+                }
+
+                if (foundMethod is not null)
+                {
+                    return foundMethod;
+                }
+            }
+
+            if (node.SearchExtensionMethods)
+            {
+                var receiver = node.ReceiverOpt!;
+                var methodGroup = MethodGroup.GetInstance();
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    methodGroup.Clear();
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
+                    foreach (var extensionMethod in methodGroup.Methods)
+                    {
+                        var substituted = typeArguments.IsDefaultOrEmpty ? extensionMethod : extensionMethod.Construct(typeArguments);
+
+                        var reduced = substituted.ReduceExtensionMethod(receiver.Type, Compilation, out bool wasFullyInferred);
+                        if (reduced is null)
                         {
-                            case BoundTypeExpression:
-                            case null: // if `using static Class` is in effect, the receiver is missing
-                                if (!m.IsStatic) continue;
-                                break;
-                            case BoundThisReference { WasCompilerGenerated: true }:
-                                break;
-                            default:
-                                if (m.IsStatic) continue;
-                                break;
+                            // Extension method was not applicable
+                            continue;
                         }
 
-                        if (!isCandidateUnique(ref method, m))
+                        if (!wasFullyInferred)
                         {
+                            continue;
+                        }
+
+                        if (!satisfiesConstraintChecks(reduced))
+                        {
+                            continue;
+                        }
+
+                        var wasUnique = isCandidateUnique(ref foundMethod, reduced);
+                        if (!wasUnique)
+                        {
+                            methodGroup.Free();
                             return null;
                         }
                     }
 
-                    if (method is not null)
+                    if (foundMethod is not null)
                     {
-                        return method;
-                    }
-                }
-
-                if (node.SearchExtensionMethods)
-                {
-                    var receiver = node.ReceiverOpt!;
-                    foreach (var scope in new ExtensionMethodScopes(this))
-                    {
-                        var methodGroup = MethodGroup.GetInstance();
-                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
-                        foreach (var m in methodGroup.Methods)
-                        {
-                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                                !isCandidateUnique(ref method, reduced))
-                            {
-                                methodGroup.Free();
-                                return null;
-                            }
-                        }
                         methodGroup.Free();
-
-                        if (method is not null)
-                        {
-                            return method;
-                        }
+                        return foundMethod;
                     }
                 }
+                methodGroup.Free();
+            }
 
-                return null;
+            return null;
+
+            static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)
+            {
+                if (foundMethod is null)
+                {
+                    foundMethod = candidate;
+                    return true;
+                }
+                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(foundMethod, candidate))
+                {
+                    return true;
+                }
+                foundMethod = null;
+                return false;
+            }
+
+            bool satisfiesConstraintChecks(MethodSymbol method)
+            {
+                if (method.Arity == 0)
+                {
+                    return true;
+                }
+
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+                    method,
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null),
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder);
+
+                diagnosticsBuilder.Free();
+                useSiteDiagnosticsBuilder?.Free();
+
+                return constraintsSatisfied;
             }
         }
 

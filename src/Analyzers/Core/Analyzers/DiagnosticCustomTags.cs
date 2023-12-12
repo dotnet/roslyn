@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static string[] Create(bool isUnnecessary, bool isConfigurable, EnforceOnBuild enforceOnBuild)
+        internal static string[] Create(bool isUnnecessary, bool isConfigurable, bool isCustomConfigurable, EnforceOnBuild enforceOnBuild)
         {
             Debug.Assert(isConfigurable || enforceOnBuild == EnforceOnBuild.Never);
 
@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (!isConfigurable)
             {
                 customTagsBuilder.Add(WellKnownDiagnosticTags.NotConfigurable);
+            }
+            else if (isCustomConfigurable)
+            {
+                customTagsBuilder.Add(WellKnownDiagnosticTags.CustomSeverityConfigurable);
             }
 
             if (isUnnecessary)
