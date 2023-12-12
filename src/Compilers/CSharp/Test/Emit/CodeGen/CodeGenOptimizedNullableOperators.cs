@@ -2415,18 +2415,31 @@ class Program
 }");
         }
 
-        private void NullableConstant(string type, string run, string code, string output, string il)
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Boolean_ET([CombinatorialValues("x == true", "true == x")] string code)
         {
             var source = $$"""
-                {{run}}
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
 
                 class C
                 {
-                    public static void Run({{type}}? x)
+                    public static void Run(bool? x)
                     {
                         System.Console.Write(M(x) ? 1 : 0);
                     }
-                    static bool M({{type}}? x) => {{code}};
+                    static bool M(bool? x) => {{code}};
+                }
+                """;
+            var output = "100";
+            var il = """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  1
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
+                  IL_0007:  ret
                 }
                 """;
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
@@ -2437,43 +2450,25 @@ class Program
             verifier.VerifyIL("C.M", il);
         }
 
-        private void NullableConstant_Boolean(string code, string output, string il)
-        {
-            NullableConstant("bool", """
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-                """, code, output, il);
-        }
-
-        private void NullableConstant_Int(string code, string output, string il)
-        {
-            NullableConstant("int", """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-                """, code, output, il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_ET([CombinatorialValues("x == true", "true == x")] string code)
-        {
-            NullableConstant_Boolean(code, "100", """
-                {
-                  // Code size        8 (0x8)
-                  .maxstack  1
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
-                  IL_0007:  ret
-                }
-                """);
-        }
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EF1()
         {
-            NullableConstant_Boolean("x == false", "010", """
+            var source = """
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => x == false;
+                }
+                """;
+            var output = "010";
+            var il = """
                 {
                   // Code size       23 (0x17)
                   .maxstack  2
@@ -2492,13 +2487,34 @@ class Program
                   IL_0015:  and
                   IL_0016:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EF2()
         {
-            NullableConstant_Boolean("false == x", "010", """
+            var source = """
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => false == x;
+                }
+                """;
+            var output = "010";
+            var il = """
                 {
                   // Code size       21 (0x15)
                   .maxstack  2
@@ -2514,13 +2530,34 @@ class Program
                   IL_0013:  and
                   IL_0014:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NT([CombinatorialValues("x != true", "true != x")] string code)
         {
-            NullableConstant_Boolean(code, "011", """
+            var source = $$"""
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => {{code}};
+                }
+                """;
+            var output = "011";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2530,13 +2567,34 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NF1()
         {
-            NullableConstant_Boolean("x != false", "101", """
+            var source = """
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => x != false;
+                }
+                """;
+            var output = "101";
+            var il = """
                 {
                   // Code size       26 (0x1a)
                   .maxstack  2
@@ -2557,13 +2615,34 @@ class Program
                   IL_0017:  ceq
                   IL_0019:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NF2()
         {
-            NullableConstant_Boolean("false != x", "101", """
+            var source = """
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => false != x;
+                }
+                """;
+            var output = "101";
+            var il = """
                 {
                   // Code size       24 (0x18)
                   .maxstack  2
@@ -2581,13 +2660,34 @@ class Program
                   IL_0015:  ceq
                   IL_0017:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EN([CombinatorialValues("x == null", "null == x")] string code)
         {
-            NullableConstant_Boolean(code, "001", """
+            var source = $$"""
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => {{code}};
+                }
+                """;
+            var output = "001";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2597,13 +2697,34 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NET([CombinatorialValues("!(x == true)", "!!!(x == true)")] string code)
         {
-            NullableConstant_Boolean(code, "011", """
+            var source = $$"""
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => {{code}};
+                }
+                """;
+            var output = "011";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2613,13 +2734,34 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NNT([CombinatorialValues("x != true", "!!(x != true)")] string code)
         {
-            NullableConstant_Boolean(code, "011", """
+            var source = $$"""
+                C.Run(true);
+                C.Run(false);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(bool? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(bool? x) => {{code}};
+                }
+                """;
+            var output = "011";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2629,13 +2771,35 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_E1()
         {
-            NullableConstant_Int("x == 1", "0100", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => x == 1;
+                }
+                """;
+            var output = "0100";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2645,13 +2809,35 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_1E()
         {
-            NullableConstant_Int("1 == x", "0100", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => 1 == x;
+                }
+                """;
+            var output = "0100";
+            var il = """
                 {
                   // Code size       11 (0xb)
                   .maxstack  2
@@ -2661,13 +2847,35 @@ class Program
                   IL_0008:  ceq
                   IL_000a:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_N1()
         {
-            NullableConstant_Int("x != 1", "1011", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => x != 1;
+                }
+                """;
+            var output = "1011";
+            var il = """
                 {
                   // Code size       14 (0xe)
                   .maxstack  2
@@ -2679,13 +2887,35 @@ class Program
                   IL_000b:  ceq
                   IL_000d:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_E0()
         {
-            NullableConstant_Int("x == 0", "1000", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => x == 0;
+                }
+                """;
+            var output = "1000";
+            var il = """
                 {
                   // Code size       23 (0x17)
                   .maxstack  2
@@ -2704,13 +2934,35 @@ class Program
                   IL_0015:  and
                   IL_0016:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_0E()
         {
-            NullableConstant_Int("0 == x", "1000", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => 0 == x;
+                }
+                """;
+            var output = "1000";
+            var il = """
                 {
                   // Code size       21 (0x15)
                   .maxstack  2
@@ -2726,13 +2978,35 @@ class Program
                   IL_0013:  and
                   IL_0014:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_L1()
         {
-            NullableConstant_Int("x < 1", "1000", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => x < 1;
+                }
+                """;
+            var output = "1000";
+            var il = """
                 {
                   // Code size       23 (0x17)
                   .maxstack  2
@@ -2751,13 +3025,35 @@ class Program
                   IL_0015:  and
                   IL_0016:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_GE1()
         {
-            NullableConstant_Int("x >= -1", "1110", """
+            var source = """
+                C.Run(0);
+                C.Run(1);
+                C.Run(2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(int? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(int? x) => x >= -1;
+                }
+                """;
+            var output = "1110";
+            var il = """
                 {
                   // Code size       26 (0x1a)
                   .maxstack  2
@@ -2778,7 +3074,13 @@ class Program
                   IL_0018:  and
                   IL_0019:  ret
                 }
-                """);
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
         }
     }
 }
