@@ -487,6 +487,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
+            if (IsPeVerifyCompatEnabled())
+            {
+                // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
+                return false;
+            }
+
             if (initializers.Any(static init => init.ConstantValueOpt == null))
             {
                 return false;
@@ -535,12 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // There's no start/length, so the length to use with a constructor is the element count.
                 lengthForConstructor = elementCount;
-            }
-
-            if (IsPeVerifyCompatEnabled())
-            {
-                // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
-                return false;
             }
 
             if (specialElementType.SizeInBytes() == 1)
@@ -689,7 +689,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(initializers.All(static init => init.ConstantValueOpt != null));
                 Debug.Assert(!elementType.IsEnumType());
 
-                ImmutableArray<ConstantValue> constants = initializers.Select(static init => init.ConstantValueOpt!).ToImmutableArray();
                 if (!tryGetReadOnlySpanArrayCtor(arrayCreation.Syntax, out var rosArrayCtor))
                 {
                     return false;
@@ -700,6 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
                 }
 
+                ImmutableArray<ConstantValue> constants = initializers.SelectAsArray(static init => init.ConstantValueOpt!);
                 Cci.IFieldReference cachingField = _builder.module.GetArrayCachingFieldForConstants(constants, _module.Translate(arrayType),
                     arrayCreation.Syntax, _diagnostics.DiagnosticBag);
 

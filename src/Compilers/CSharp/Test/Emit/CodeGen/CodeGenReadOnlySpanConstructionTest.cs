@@ -3082,6 +3082,65 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArrayOfConstants_SameValuesDifferentTypes()
+        {
+            var src = """
+var values = C.M();
+System.Console.Write($"{values.Length} {values[0]}");
+
+public class C
+{
+    public static System.ReadOnlySpan<nuint> M() => new nuint[] { 1 };
+    public static System.ReadOnlySpan<nint> M2() => new nint[] { 1 };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001a
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "System.UIntPtr"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
+  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
+  IL_001f:  ret
+}
+""");
+            verifier.VerifyIL("C.M2", """
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001a
+  IL_0008:  pop
+  IL_0009:  ldc.i4.1
+  IL_000a:  newarr     "System.IntPtr"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
+  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
+  IL_001f:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
         public void ReadOnlySpanFromArrayOfConstants_Decimals()
         {
             var src = """
