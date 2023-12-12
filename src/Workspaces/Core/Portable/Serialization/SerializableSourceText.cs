@@ -38,57 +38,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Text.GetContentHash();
         }
 
-//<<<<<<< HEAD
-//        public ImmutableArray<byte> GetChecksum()
-//        {
-//            return this.Text.GetChecksum();
-//=======
-//        private SerializableSourceText(ITemporaryTextStorageWithName? storage, SourceText? text)
-//        {
-//            Debug.Assert(storage is null != text is null);
-
-//            _storage = storage;
-//            _text = text;
-//        }
-
-//        /// <summary>
-//        /// Returns the strongly referenced SourceText if we have it, or tries to retrieve it from the weak reference if
-//        /// it's still being held there.
-//        /// </summary>
-//        /// <returns></returns>
-//        private SourceText? TryGetText()
-//            => _text ?? _computedText.GetTarget();
-
-//        public ImmutableArray<byte> GetContentHash()
-//        {
-//            return TryGetText()?.GetContentHash() ?? _storage!.GetContentHash();
-//        }
-
-//        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
-//        {
-//            var text = TryGetText();
-//            if (text != null)
-//                return text;
-
-//            // Read and cache the text from the storage object so that other requests may see it if still kept alive by something.
-//            text = await _storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-//            _computedText.SetTarget(text);
-//            return text;
-//        }
-
-//        public SourceText GetText(CancellationToken cancellationToken)
-//        {
-//            var text = TryGetText();
-//            if (text != null)
-//                return text;
-
-//            // Read and cache the text from the storage object so that other requests may see it if still kept alive by something.
-//            text = _storage!.ReadText(cancellationToken);
-//            _computedText.SetTarget(text);
-//            return text;
-//>>>>>>> upstream/main
-//        }
-
         public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
         {
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
