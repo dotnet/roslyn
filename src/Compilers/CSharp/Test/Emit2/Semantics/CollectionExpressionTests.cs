@@ -16581,7 +16581,7 @@ partial class Program
                 class Program
                 {
                     static List<object> F1(object x) => [x];
-                    static List<object> F2(List<object> y) => [..y];
+                    static List<object> F2(List<int> y) => [..y];
                 }
                 """;
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
@@ -16603,56 +16603,57 @@ partial class Program
                 """);
             verifier.VerifyIL("Program.F2", """
                 {
-                  // Code size       80 (0x50)
+                  // Code size       85 (0x55)
                   .maxstack  3
                   .locals init (int V_0,
                                 object[] V_1,
-                                System.Collections.Generic.IEnumerator<object> V_2,
-                                object V_3,
+                                System.Collections.Generic.IEnumerator<int> V_2,
+                                int V_3,
                                 System.IDisposable V_4)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
                   IL_0002:  stloc.0
                   IL_0003:  dup
-                  IL_0004:  callvirt   "int System.Collections.Generic.List<object>.Length.get"
+                  IL_0004:  callvirt   "int System.Collections.Generic.List<int>.Length.get"
                   IL_0009:  newarr     "object"
                   IL_000e:  stloc.1
-                  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<object> System.Collections.Generic.IEnumerable<object>.GetEnumerator()"
+                  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
                   IL_0014:  stloc.2
                   .try
                   {
-                    IL_0015:  br.s       IL_0026
+                    IL_0015:  br.s       IL_002b
                     IL_0017:  ldloc.2
-                    IL_0018:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
+                    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
                     IL_001d:  stloc.3
                     IL_001e:  ldloc.1
                     IL_001f:  ldloc.0
                     IL_0020:  ldloc.3
-                    IL_0021:  stelem.ref
-                    IL_0022:  ldloc.0
-                    IL_0023:  ldc.i4.1
-                    IL_0024:  add
-                    IL_0025:  stloc.0
-                    IL_0026:  ldloc.2
-                    IL_0027:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_002c:  brtrue.s   IL_0017
-                    IL_002e:  leave.s    IL_0044
+                    IL_0021:  box        "int"
+                    IL_0026:  stelem.ref
+                    IL_0027:  ldloc.0
+                    IL_0028:  ldc.i4.1
+                    IL_0029:  add
+                    IL_002a:  stloc.0
+                    IL_002b:  ldloc.2
+                    IL_002c:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0031:  brtrue.s   IL_0017
+                    IL_0033:  leave.s    IL_0049
                   }
                   finally
                   {
-                    IL_0030:  ldloc.2
-                    IL_0031:  isinst     "System.IDisposable"
-                    IL_0036:  stloc.s    V_4
-                    IL_0038:  ldloc.s    V_4
-                    IL_003a:  brfalse.s  IL_0043
-                    IL_003c:  ldloc.s    V_4
-                    IL_003e:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0043:  endfinally
+                    IL_0035:  ldloc.2
+                    IL_0036:  isinst     "System.IDisposable"
+                    IL_003b:  stloc.s    V_4
+                    IL_003d:  ldloc.s    V_4
+                    IL_003f:  brfalse.s  IL_0048
+                    IL_0041:  ldloc.s    V_4
+                    IL_0043:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0048:  endfinally
                   }
-                  IL_0044:  ldloc.1
-                  IL_0045:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-                  IL_004a:  call       "System.Collections.Generic.List<object> System.Collections.Generic.ListBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_004f:  ret
+                  IL_0049:  ldloc.1
+                  IL_004a:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_004f:  call       "System.Collections.Generic.List<object> System.Collections.Generic.ListBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0054:  ret
                 }
                 """);
         }
