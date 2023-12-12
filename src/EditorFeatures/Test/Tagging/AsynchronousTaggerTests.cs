@@ -67,11 +67,11 @@ public sealed class AsynchronousTaggerTests : TestBase
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
         var eventSource = CreateEventSource();
-        var taggerProvider = new TestTaggerProvider(
+        var taggerProvider = new TextMarkerTaggerProvider(
             workspace.GetService<IThreadingContext>(),
             (s, c) => Enumerable
                 .Range(0, tagsProduced)
-                .Select(i => new TagSpan<TestTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TestTag())),
+                .Select(i => new TagSpan<TextMarkerTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TextMarkerTag($"Test{i}"))),
             eventSource,
             workspace.GetService<IGlobalOptionService>(),
             asyncListener);
@@ -141,18 +141,16 @@ public sealed class AsynchronousTaggerTests : TestBase
         Assert.Equal(2, tags.Count());
     }
 
-    private static TestTaggerEventSource CreateEventSource()
+    private static TextMarkerTaggerEventSource CreateEventSource()
         => new();
 
-    private sealed class TestTag() : TextMarkerTag("Test");
-
-    private sealed class TestTaggerProvider(
+    private sealed class TextMarkerTaggerProvider(
         IThreadingContext threadingContext,
-        Func<SnapshotSpan, CancellationToken, IEnumerable<ITagSpan<TestTag>>> callback,
+        Func<SnapshotSpan, CancellationToken, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
         IGlobalOptionService globalOptions,
         IAsynchronousOperationListener asyncListener)
-        : AsynchronousTaggerProvider<TestTag>(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
+        : AsynchronousTaggerProvider<TextMarkerTag>(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
     {
         protected override TaggerDelay EventChangeDelay
             => TaggerDelay.NearImmediate;
@@ -161,7 +159,7 @@ public sealed class AsynchronousTaggerTests : TestBase
             => eventSource;
 
         protected override Task ProduceTagsAsync(
-            TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<TextMarkerTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             foreach (var tag in callback(snapshotSpan.SnapshotSpan, cancellationToken))
                 context.AddTag(tag);
@@ -169,11 +167,11 @@ public sealed class AsynchronousTaggerTests : TestBase
             return Task.CompletedTask;
         }
 
-        protected override bool TagEquals(TestTag tag1, TestTag tag2)
+        protected override bool TagEquals(TextMarkerTag tag1, TextMarkerTag tag2)
             => tag1 == tag2;
     }
 
-    private sealed class TestTaggerEventSource() : AbstractTaggerEventSource
+    private sealed class TextMarkerTaggerEventSource() : AbstractTaggerEventSource
     {
         public void SendUpdateEvent()
             => this.RaiseChanged();
