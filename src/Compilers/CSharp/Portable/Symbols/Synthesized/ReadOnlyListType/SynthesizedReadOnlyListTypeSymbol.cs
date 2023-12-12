@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 
-            _enumeratorType = kind == SynthesizedReadOnlyListKind.Singleton ? EnumeratorTypeSymbol.Create(this, typeParameter) : null;
+            _enumeratorType = kind == SynthesizedReadOnlyListKind.Singleton ? new EnumeratorTypeSymbol(this, typeParameter) : null;
             _field = new SynthesizedFieldSymbol(this, fieldType, kind == SynthesizedReadOnlyListKind.Singleton ? "_item" : "_items", isReadOnly: true);
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);

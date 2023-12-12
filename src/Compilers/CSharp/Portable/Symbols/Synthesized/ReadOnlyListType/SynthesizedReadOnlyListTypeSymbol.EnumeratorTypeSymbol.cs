@@ -17,18 +17,13 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
 {
     private sealed class EnumeratorTypeSymbol : NamedTypeSymbol
     {
-        internal static NamedTypeSymbol Create(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
-        {
-            return new EnumeratorTypeSymbol(containingType, typeParameter);
-        }
-
         private readonly SynthesizedReadOnlyListTypeSymbol _containingType;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
         private readonly ImmutableArray<Symbol> _members;
         private readonly FieldSymbol _itemField;
         private readonly FieldSymbol _moveNextCalledField;
 
-        private EnumeratorTypeSymbol(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
+        public EnumeratorTypeSymbol(SynthesizedReadOnlyListTypeSymbol containingType, SynthesizedReadOnlyListTypeParameterSymbol typeParameter)
         {
             _containingType = containingType;
 
