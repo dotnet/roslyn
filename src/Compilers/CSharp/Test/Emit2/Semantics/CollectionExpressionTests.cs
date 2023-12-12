@@ -9500,6 +9500,71 @@ static class Program
         }
 
         [Theory]
+        [InlineData(new SpecialType[0])]
+        [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyCollection_T })]
+        [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyList_T })]
+        [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
+            SpecialType.System_Collections_Generic_IReadOnlyList_T })]
+        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes(SpecialType[] missingTypes)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0];
+                        IEnumerable<int> y = [..x];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            foreach (var missingType in missingTypes)
+            {
+                comp.MakeTypeMissing(missingType);
+            }
+
+            var verifier = CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    verifyInterfaces(module, "<>z__ReadOnlyArray");
+                    verifyInterfaces(module, "<>z__ReadOnlyList");
+                });
+            verifier.VerifyDiagnostics();
+
+            void verifyInterfaces(ModuleSymbol module, string typeName)
+            {
+                var synthesizedType = module.GlobalNamespace.GetTypeMember(typeName);
+                var interfaces = synthesizedType.InterfacesNoUseSiteDiagnostics();
+                AssertEx.Equal(
+                    missingTypes is []
+                    ? new[]
+                    {
+                        "System.Collections.IEnumerable",
+                        "System.Collections.ICollection",
+                        "System.Collections.IList",
+                        "System.Collections.Generic.IEnumerable<T>",
+                        "System.Collections.Generic.IReadOnlyCollection<T>",
+                        "System.Collections.Generic.IReadOnlyList<T>",
+                        "System.Collections.Generic.ICollection<T>",
+                        "System.Collections.Generic.IList<T>",
+                    }
+                    : new[]
+                    {
+                        "System.Collections.IEnumerable",
+                        "System.Collections.ICollection",
+                        "System.Collections.IList",
+                        "System.Collections.Generic.IEnumerable<T>",
+                        "System.Collections.Generic.ICollection<T>",
+                        "System.Collections.Generic.IList<T>",
+                    },
+                    interfaces.ToTestDisplayStrings());
+            }
+        }
+
+        [Theory]
         [InlineData((int)SpecialMember.System_Collections_IEnumerable__GetEnumerator, "System.Collections.IEnumerable", "GetEnumerator")]
         [InlineData((int)SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator, "System.Collections.Generic.IEnumerable`1", "GetEnumerator")]
         public void SynthesizedReadOnlyList_MissingSpecialMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
