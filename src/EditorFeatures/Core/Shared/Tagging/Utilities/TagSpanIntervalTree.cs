@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
             => SegmentedListPool.ComputeList(
-                static (args, tags) => args.@this.AddIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
+                static (args, tags) => args.@this.AppendIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
                 (@this: this, snapshotSpan),
                 _: (ITagSpan<TTag>?)null);
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <paramref name="result"/>.  Note the sorted chunk of items are appended to <paramref name="result"/>.  This
         /// means that <paramref name="result"/> may not be sorted if there were already items in them.
         /// </summary>
-        private void AddIntersectingSpansInSortedOrder(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
+        private void AppendIntersectingSpansInSortedOrder(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
         {
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // Special case the case where there is only one requested span.  In that case, we don't
             // need to allocate any intermediate collections
             if (requestedSpans.Count == 1)
-                AddIntersectingSpansInSortedOrder(requestedSpans[0], tags);
+                AppendIntersectingSpansInSortedOrder(requestedSpans[0], tags);
             else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
                 AddTagsForSmallNumberOfSpans(requestedSpans, tags);
             else
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             SegmentedList<ITagSpan<TTag>> tags)
         {
             foreach (var span in requestedSpans)
-                AddIntersectingSpansInSortedOrder(span, tags);
+                AppendIntersectingSpansInSortedOrder(span, tags);
         }
 
         private void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             using var _1 = SegmentedListPool.GetPooledList<ITagSpan<TTag>>(out var tempList);
 
-            AddIntersectingSpansInSortedOrder(mergedSpan, tempList);
+            AppendIntersectingSpansInSortedOrder(mergedSpan, tempList);
             if (tempList.Count == 0)
                 return;
 
