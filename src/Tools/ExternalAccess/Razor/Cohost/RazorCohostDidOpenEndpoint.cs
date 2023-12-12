@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorCohostDidOpenEndpoint(
-    [Import(AllowDefault = true)] IRazorCohostDidOpenHandler? didOpenHandler,
-    [Import(AllowDefault = true)] IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService)
+    [Import(AllowDefault = true)] IRazorCohostDidOpenHandler? didOpenHandler)
     : ILspServiceNotificationHandler<DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, Uri>
 {
     public bool MutatesSolutionState => true;
@@ -31,13 +30,6 @@ internal sealed class RazorCohostDidOpenEndpoint(
 
     public async Task HandleNotificationAsync(DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        // VS platform doesn't seem to honour the fact that we don't want to receive didOpen notifications if the Cohost server is disabled
-        // so we have to check again here to avoid doing unnecessary work.
-        if (razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
-        {
-            return;
-        }
-
         context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
         var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);

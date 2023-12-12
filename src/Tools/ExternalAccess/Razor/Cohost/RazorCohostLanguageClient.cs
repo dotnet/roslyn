@@ -50,7 +50,7 @@ internal sealed class RazorCohostLanguageClient(
             // wasteful if we don't want to handle anything, as we'd track document content.
             return new()
             {
-                TextDocumentSync = null
+                TextDocumentSync = new TextDocumentSyncOptions { OpenClose = false, Change = TextDocumentSyncKind.None, Save = false, WillSave = false, WillSaveWaitUntil = false }
             };
         }
 
