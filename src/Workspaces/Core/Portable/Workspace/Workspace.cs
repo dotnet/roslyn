@@ -1470,7 +1470,8 @@ namespace Microsoft.CodeAnalysis
                     if (oldDoc.HasInfoChanged(newDoc))
                     {
                         var linkedDocumentIds = oldSolution.GetRequiredDocument(docId).GetLinkedDocumentIds();
-                        // For linked documents, 
+                        // For linked documents, when info get changed (e.g. name/folder/filePath)
+                        // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
                         if (linkedDocumentIds.All(linkedDocId => !infoChangedDocumentIds.Contains(linkedDocId)))
                         {
                             infoChangedDocumentIds.Add(docId);
