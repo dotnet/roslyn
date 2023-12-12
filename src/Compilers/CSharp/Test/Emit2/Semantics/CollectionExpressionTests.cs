@@ -25940,6 +25940,190 @@ partial class Program
             Assert.NotNull(model.GetOperation(collectionExpression));
         }
 
+        [Fact]
+        public void SynthesizedReadOnlyList_Singleton()
+        {
+            // Compare members of synthesized types to a similar type from source.
+            
+            var singleton =
+                """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                internal sealed class ReadOnlySingletonList<T> :
+                	IEnumerable,
+                	ICollection,
+                	IList,
+                	IEnumerable<T>,
+                	IReadOnlyCollection<T>,
+                	IReadOnlyList<T>,
+                	ICollection<T>,
+                	IList<T>
+                {
+                	private sealed class Enumerator : IDisposable, IEnumerator, IEnumerator<T>
+                	{
+                		private readonly T _item;
+                		private bool _moveNextCalled;
+                		object IEnumerator.Current => _item;
+                		T IEnumerator<T>.Current => _item;
+                		public Enumerator(T item) => _item = item;
+                		bool IEnumerator.MoveNext() => _moveNextCalled ? false : (_moveNextCalled = true);
+                		void IEnumerator.Reset() => _moveNextCalled = false;
+                		void IDisposable.Dispose() { }
+                	}
+                	private readonly T _item;
+                	int ICollection.Count => 1;
+                	bool ICollection.IsSynchronized => false;
+                	object ICollection.SyncRoot => this;
+                	object IList.this[int index]
+                	{
+                		get
+                		{
+                			if (index != 0)
+                			{
+                				throw new IndexOutOfRangeException();
+                			}
+                			return _item;
+                		}
+                		set => throw new NotSupportedException();
+                	}
+                	bool IList.IsFixedSize => true;
+                	bool IList.IsReadOnly => true;
+                	int IReadOnlyCollection<T>.Count => 1;
+                	T IReadOnlyList<T>.this[int index]
+                	{
+                		get
+                		{
+                			if (index != 0)
+                			{
+                				throw new IndexOutOfRangeException();
+                			}
+                			return _item;
+                		}
+                	}
+                
+                	int ICollection<T>.Count => 1;
+                	bool ICollection<T>.IsReadOnly => true;
+                	T IList<T>.this[int index]
+                	{
+                		get
+                		{
+                			if (index != 0)
+                			{
+                				throw new IndexOutOfRangeException();
+                			}
+                			return _item;
+                		}
+                		set
+                		{
+                			throw new NotSupportedException();
+                		}
+                	}
+                	public ReadOnlySingletonList(T item) => _item = item;
+                	IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_item);
+                	void ICollection.CopyTo(Array array, int index) => array.SetValue(_item, index);
+                	int IList.Add(object value) => throw new NotSupportedException();
+                	void IList.Clear() => throw new NotSupportedException();
+                	bool IList.Contains(object value) => EqualityComparer<T>.Default.Equals(_item, (T)value);
+                	int IList.IndexOf(object value)
+                	{
+                		if (!EqualityComparer<T>.Default.Equals(_item, (T)value))
+                		{
+                			return -1;
+                		}
+                		return 0;
+                	}
+                	void IList.Insert(int index, object value) => throw new NotSupportedException();
+                	void IList.Remove(object value) => throw new NotSupportedException();
+                	void IList.RemoveAt(int index) => throw new NotSupportedException();
+                	IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(_item);
+                	void ICollection<T>.Add(T item) => throw new NotSupportedException();
+                	void ICollection<T>.Clear() => throw new NotSupportedException();
+                	bool ICollection<T>.Contains(T item) => EqualityComparer<T>.Default.Equals(_item, item);
+                	void ICollection<T>.CopyTo(T[] array, int arrayIndex) => array[arrayIndex] = _item;
+                	bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
+                	int IList<T>.IndexOf(T item) => EqualityComparer<T>.Default.Equals(_item, item) ? 0 : -1;
+                	void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+                	void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
+                }
+                """;
+            
+            var source =
+                """
+                using System.Collections.Generic;
+                
+                IEnumerable<int> x = [1];
+                ReadOnlySingletonList<int> y = new(1);
+                x.Report(includeType: true);
+                y.Report(includeType: true);
+                """;
+
+            var compilation = CreateCompilation(new[] { s_collectionExtensions, singleton, source });
+            compilation.VerifyEmitDiagnostics();
+            string expectedOutput = "(<>z__ReadOnlySingletonList<System.Int32>) [1], (ReadOnlySingletonList<System.Int32>) [1], ";
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            var members = new[]
+            {
+                (".ctor(T)", null), 
+                ("Enumerator..ctor(T)", null),
+                
+                ("Enumerator.System.Collections.Generic.IEnumerator<T>.get_Current()", "Enumerator.System.Collections.Generic.IEnumerator<T>.Current.get"),
+                
+                ("Enumerator.System.Collections.IEnumerator.MoveNext()", null),
+                ("Enumerator.System.Collections.IEnumerator.Reset()", null),
+                ("Enumerator.System.Collections.IEnumerator.get_Current()", "Enumerator.System.Collections.IEnumerator.Current.get"),
+                
+                ("Enumerator.System.IDisposable.Dispose()", null),
+                
+                ("System.Collections.Generic.ICollection<T>.Add(T)", null),
+                ("System.Collections.Generic.ICollection<T>.Clear()", null),
+                ("System.Collections.Generic.ICollection<T>.Contains(T)", null),
+                ("System.Collections.Generic.ICollection<T>.CopyTo(T[], int)", null),
+                ("System.Collections.Generic.ICollection<T>.Remove(T)", null),
+                ("System.Collections.Generic.ICollection<T>.get_Count()", "System.Collections.Generic.ICollection<T>.Count.get"),
+                ("System.Collections.Generic.ICollection<T>.get_IsReadOnly()", "System.Collections.Generic.ICollection<T>.IsReadOnly.get"),
+                
+                ("System.Collections.Generic.IEnumerable<T>.GetEnumerator()", null),
+                
+                ("System.Collections.Generic.IList<T>.IndexOf(T)", null),
+                ("System.Collections.Generic.IList<T>.Insert(int, T)", null),
+                ("System.Collections.Generic.IList<T>.RemoveAt(int)", null),
+                ("System.Collections.Generic.IList<T>.get_Item(int)", "System.Collections.Generic.IList<T>.this[int].get"),
+                ("System.Collections.Generic.IList<T>.set_Item(int, T)", "System.Collections.Generic.IList<T>.this[int].set"),
+                
+                ("System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", "System.Collections.Generic.IReadOnlyCollection<T>.Count.get"),
+                ("System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", "System.Collections.Generic.IReadOnlyList<T>.this[int].get"),
+                
+                ("System.Collections.ICollection.CopyTo(System.Array, int)", null),
+                ("System.Collections.ICollection.get_Count()", "System.Collections.ICollection.Count.get"), 
+                ("System.Collections.ICollection.get_IsSynchronized()", "System.Collections.ICollection.IsSynchronized.get"),
+                ("System.Collections.ICollection.get_SyncRoot()", "System.Collections.ICollection.SyncRoot.get"),
+                
+                ("System.Collections.IEnumerable.GetEnumerator()", null),
+                
+                ("System.Collections.IList.Add(object)", null),
+                ("System.Collections.IList.Clear()", null),
+                ("System.Collections.IList.Contains(object)", null),
+                ("System.Collections.IList.IndexOf(object)", null),
+                ("System.Collections.IList.Insert(int, object)", null),
+                ("System.Collections.IList.Remove(object)", null),
+                ("System.Collections.IList.RemoveAt(int)", null),
+                ("System.Collections.IList.get_IsFixedSize()", "System.Collections.IList.IsFixedSize.get"),
+                ("System.Collections.IList.get_IsReadOnly()", "System.Collections.IList.IsReadOnly.get"),
+                ("System.Collections.IList.get_Item(int)", "System.Collections.IList.this[int].get"), 
+                ("System.Collections.IList.set_Item(int, object)", "System.Collections.IList.this[int].set"),
+            };
+            
+            foreach (var (memberName, sourceName) in members)
+            {
+                string expectedIl = verifier.VisualizeIL($"ReadOnlySingletonList<T>.{sourceName ?? memberName}")
+                    .Replace("ReadOnlySingletonList<T>", "<>z__ReadOnlySingletonList<T>");
+                verifier.VerifyIL($"<>z__ReadOnlySingletonList<T>.{memberName}", expectedIl);
+            }
+        }
+        
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_2()
         {
