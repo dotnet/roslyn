@@ -279,6 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_StringEscapeCharacter = MessageBase + 12839,
 
         IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+
+        IDS_ParamsCollections = MessageBase + 12900, // PROTOTYPE(ParamsCollections): pack numbers
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -461,6 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
                 case MessageID.IDS_ImplicitIndexerInitializer:
+                case MessageID.IDS_ParamsCollections:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.
