@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3836,6 +3837,166 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([NotNullIfNotNull(nameof(Name))] string name)
+                    {
+                        Name= name;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Diagnostics.CodeAnalysis;
+                
+                public class Goo([NotNullIfNotNull(nameof(Goo.Name))] string name)
+                {
+                    public string Name { get; } = name;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(Nested))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public class Nested { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.Nested))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public class Nested { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(E))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public event Action E;
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.E))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public event Action E;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(M))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public void M() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.M))] string name)
+                {
+                    public string Name { get; } = name;
+                
+                    public void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }
