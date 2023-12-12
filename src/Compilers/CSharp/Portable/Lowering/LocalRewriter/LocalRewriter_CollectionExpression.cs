@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
 
-                if (GetAsSpanMethod(spreadExpression.Type) is { } asSpanMethod)
+                if (TryGetSpanConversion(spreadExpression.Type, out var asSpanMethod))
                 {
                     var spanType = (asSpanMethod is null ? spreadExpression : CallAsSpanMethod(spreadExpression, asSpanMethod)).Type!.OriginalDefinition;
                     if ((tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray)
@@ -607,36 +607,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType);
         }
 
-        private MethodSymbol? GetAsSpanMethod(TypeSymbol type)
+        /// <summary>
+        /// Returns true if type is convertible to Span or ReadOnlySpan.
+        /// If non-identity conversion, also returns a non-null asSpanMethod.
+        /// </summary>
+        private bool TryGetSpanConversion(TypeSymbol type, out MethodSymbol? asSpanMethod)
         {
             if (type is NamedTypeSymbol spanType
                 && (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything)
                     || spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything)))
             {
-                return null;
+                asSpanMethod = null;
+                return true;
             }
 
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(WellKnownMember.System_Span_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
-                return spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
+                asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
+                return true;
             }
 
             if (type is NamedTypeSymbol immutableArrayType
                 && immutableArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
                 && _factory.WellKnownMethod(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan, isOptional: true) is { } immutableArrayAsSpanMethod)
             {
-                return immutableArrayAsSpanMethod!.AsMember(immutableArrayType);
+                asSpanMethod = immutableArrayAsSpanMethod!.AsMember(immutableArrayType);
+                return true;
             }
 
             if (type is NamedTypeSymbol listType
                 && listType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.ConsiderEverything)
                 && _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } collectionsMarshalAsSpanMethod)
             {
-                return collectionsMarshalAsSpanMethod.Construct(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                asSpanMethod = collectionsMarshalAsSpanMethod.Construct(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                return true;
             }
 
-            return null;
+            asSpanMethod = null;
+            return false;
         }
 
         private BoundExpression? TryConvertToSpanOrReadOnlySpan(BoundExpression expression)
@@ -644,19 +653,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = expression.Type;
             Debug.Assert(type is not null);
 
-            if (GetAsSpanMethod(type) is not { } asSpanMethod)
+            if (!TryGetSpanConversion(type, out var asSpanMethod))
             {
                 return null;
             }
 
-            if (asSpanMethod is null)
-            {
-                return expression;
-            }
-            else
-            {
-                return CallAsSpanMethod(expression, asSpanMethod);
-            }
+            return asSpanMethod is null ? expression : CallAsSpanMethod(expression, asSpanMethod);
         }
 
         private BoundExpression CallAsSpanMethod(BoundExpression spreadExpression, MethodSymbol asSpanMethod)

@@ -24998,7 +24998,6 @@ partial class Program
                 """;
 
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [4, 5, 6], [1, 2, 3, 4, 5, 6],"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
-            //System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
@@ -25090,7 +25089,6 @@ partial class Program
                 """;
 
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[D, D],"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
-            //System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
@@ -25287,7 +25285,6 @@ partial class Program
                 """;
 
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
             verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
             verifier.VerifyIL("C.M", """
                 {
@@ -25459,7 +25456,6 @@ partial class Program
                 """;
 
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
-            System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
             verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
             verifier.VerifyIL("C.M", """
                 {
