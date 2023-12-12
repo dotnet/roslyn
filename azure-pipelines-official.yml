@@ -189,7 +189,7 @@ stages:
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
-                   -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                   -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                    -officialSourceBranchName $(SourceBranchName)
                    -officialIbcDrop $(IbcDrop)
                    -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
