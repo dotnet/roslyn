@@ -487,12 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (IsPeVerifyCompatEnabled())
-            {
-                // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
-                return false;
-            }
-
             if (initializers.Any(static init => init.ConstantValueOpt == null))
             {
                 return false;
@@ -505,6 +499,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 return start is null && length is null
                     && tryEmitAsCachedArrayOfConstants(ac, arrayType, elementType, spanType, used, inPlaceTarget, out avoidInPlace);
+            }
+
+            if (IsPeVerifyCompatEnabled())
+            {
+                // After this point, we're emitting code that may cause PEVerify to warn, so stop if PEVerify compat is enabled.
+                return false;
             }
 
             // Get the data and number of elements that compose the initialization.
