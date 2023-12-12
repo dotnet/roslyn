@@ -41,6 +41,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
             var iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
             var iEnumerator = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator);
             var iEnumeratorT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(typeArgs);
+
             _interfaces = ImmutableArray.Create(
                 iDisposable,
                 iEnumerator,
@@ -103,7 +104,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
                         var containingType = (EnumeratorTypeSymbol)method.ContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
-                        // _moveNextField = false;
+                        // _moveNextCalled = false;
                         // return;
                         return f.Block(f.Assignment(moveNextCalledFieldReference, f.Literal(false)), f.Return());
                     }));
