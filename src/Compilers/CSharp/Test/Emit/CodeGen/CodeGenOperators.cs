@@ -3909,21 +3909,25 @@ False");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0f == -0f);
-        Console.WriteLine(1f / 0f);
-        Console.WriteLine(1f / -0f);
-        Console.WriteLine(-1f / 0f);
-        Console.WriteLine(-1f / -0f);
-        Console.WriteLine(1f / (1f * 0f));
-        Console.WriteLine(1f / (1f * -0f));
-        Console.WriteLine(1f / (-1f * 0f));
-        Console.WriteLine(1f / (-1f * -0f));
+        WriteLine(+0f == -0f);
+        WriteLine(1f / 0f);
+        WriteLine(1f / -0f);
+        WriteLine(-1f / 0f);
+        WriteLine(-1f / -0f);
+        WriteLine(1f / (1f * 0f));
+        WriteLine(1f / (1f * -0f));
+        WriteLine(1f / (-1f * 0f));
+        WriteLine(1f / (-1f * -0f));
     }
+
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(float f) => Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
