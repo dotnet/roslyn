@@ -49,7 +49,10 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps
+        ${{ if eq(parameters.helixApiAccessToken, '') }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
+        ${{ else }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
