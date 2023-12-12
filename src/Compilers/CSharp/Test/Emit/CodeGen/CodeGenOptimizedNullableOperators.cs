@@ -2456,7 +2456,7 @@ class Program
                 """, code, output, il);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_ET([CombinatorialValues("x == true", "true == x")] string code)
         {
             NullableConstant_Boolean(code, "100", """
@@ -2470,7 +2470,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EF1()
         {
             NullableConstant_Boolean("x == false", "010", """
@@ -2495,7 +2495,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EF2()
         {
             NullableConstant_Boolean("false == x", "010", """
@@ -2517,7 +2517,7 @@ class Program
                 """);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NT([CombinatorialValues("x != true", "true != x")] string code)
         {
             NullableConstant_Boolean(code, "011", """
@@ -2533,7 +2533,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NF1()
         {
             NullableConstant_Boolean("x != false", "101", """
@@ -2560,7 +2560,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NF2()
         {
             NullableConstant_Boolean("false != x", "101", """
@@ -2584,7 +2584,7 @@ class Program
                 """);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_EN([CombinatorialValues("x == null", "null == x")] string code)
         {
             NullableConstant_Boolean(code, "001", """
@@ -2600,7 +2600,7 @@ class Program
                 """);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NET([CombinatorialValues("!(x == true)", "!!!(x == true)")] string code)
         {
             NullableConstant_Boolean(code, "011", """
@@ -2616,7 +2616,7 @@ class Program
                 """);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Boolean_NNT([CombinatorialValues("x != true", "!!(x != true)")] string code)
         {
             NullableConstant_Boolean(code, "011", """
@@ -2632,7 +2632,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_E1()
         {
             NullableConstant_Int("x == 1", "0100", """
@@ -2648,7 +2648,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_1E()
         {
             NullableConstant_Int("1 == x", "0100", """
@@ -2664,7 +2664,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_N1()
         {
             NullableConstant_Int("x != 1", "1011", """
@@ -2682,7 +2682,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_E0()
         {
             NullableConstant_Int("x == 0", "1000", """
@@ -2707,7 +2707,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_0E()
         {
             NullableConstant_Int("0 == x", "1000", """
@@ -2729,7 +2729,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_L1()
         {
             NullableConstant_Int("x < 1", "1000", """
@@ -2754,7 +2754,7 @@ class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66431")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Int_GE1()
         {
             NullableConstant_Int("x >= -1", "1110", """
