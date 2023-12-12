@@ -25840,7 +25840,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: "[1, 2, 3], [1, 2, 3],", verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
@@ -25898,7 +25898,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: "[1, 2, 3], [1, 2, 3],", verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
@@ -26138,7 +26138,7 @@ partial class Program
                         M([1, 2, 3], [4, 5, 6]);
                     }
 
-                    static void M(ReadOnlySpan<int> e1, ReadOnlySpan<int> e2)
+                    static void M(Span<int> e1, Span<int> e2)
                     {
                         List<int> result = [..e1, ..e2];
                         result.Report();
@@ -26146,14 +26146,14 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size      110 (0x6e)
                   .maxstack  5
-                  .locals init (System.ReadOnlySpan<int> V_0,
-                                System.ReadOnlySpan<int> V_1,
+                  .locals init (System.Span<int> V_0,
+                                System.Span<int> V_1,
                                 System.Span<int> V_2,
                                 int V_3)
                   IL_0000:  ldarg.0
@@ -26163,9 +26163,9 @@ partial class Program
                   IL_0004:  newobj     "System.Collections.Generic.List<int>..ctor()"
                   IL_0009:  dup
                   IL_000a:  ldloca.s   V_0
-                  IL_000c:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_000c:  call       "int System.Span<int>.Length.get"
                   IL_0011:  ldloca.s   V_1
-                  IL_0013:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_0013:  call       "int System.Span<int>.Length.get"
                   IL_0018:  add
                   IL_0019:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
                   IL_001e:  dup
@@ -26177,24 +26177,24 @@ partial class Program
                   IL_0029:  ldloca.s   V_2
                   IL_002b:  ldloc.3
                   IL_002c:  ldloca.s   V_0
-                  IL_002e:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_002e:  call       "int System.Span<int>.Length.get"
                   IL_0033:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_0038:  call       "void System.ReadOnlySpan<int>.CopyTo(System.Span<int>)"
+                  IL_0038:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
                   IL_003d:  ldloc.3
                   IL_003e:  ldloca.s   V_0
-                  IL_0040:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_0040:  call       "int System.Span<int>.Length.get"
                   IL_0045:  add
                   IL_0046:  stloc.3
                   IL_0047:  ldloca.s   V_1
                   IL_0049:  ldloca.s   V_2
                   IL_004b:  ldloc.3
                   IL_004c:  ldloca.s   V_1
-                  IL_004e:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_004e:  call       "int System.Span<int>.Length.get"
                   IL_0053:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_0058:  call       "void System.ReadOnlySpan<int>.CopyTo(System.Span<int>)"
+                  IL_0058:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
                   IL_005d:  ldloc.3
                   IL_005e:  ldloca.s   V_1
-                  IL_0060:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_0060:  call       "int System.Span<int>.Length.get"
                   IL_0065:  add
                   IL_0066:  stloc.3
                   IL_0067:  ldc.i4.0
@@ -26226,8 +26226,8 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size      110 (0x6e)
@@ -26288,7 +26288,6 @@ partial class Program
         public void ArrayToList_Spreads()
         {
             var source = """
-                using System;
                 using System.Collections.Generic;
 
                 class C
@@ -26306,9 +26305,8 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
-            System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
-            verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size      118 (0x76)
@@ -26379,7 +26377,6 @@ partial class Program
         public void ListToList_Spreads()
         {
             var source = """
-                using System;
                 using System.Collections.Generic;
 
                 class C
@@ -26397,8 +26394,8 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
-            verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size      124 (0x7c)
@@ -26467,7 +26464,6 @@ partial class Program
         public void List_Spread_Mutation()
         {
             var source = """
-                using System;
                 using System.Collections.Generic;
 
                 class C
@@ -26493,8 +26489,8 @@ partial class Program
                 """;
 
             var expectedOutput = IncludeExpectedOutput("[1, 2, 1, 2, 3],");
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net80);
-            verifier.Diagnostics.Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size      157 (0x9d)
@@ -26572,9 +26568,9 @@ partial class Program
                 }
                 """);
 
-            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
-            verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped);
             verifier.VerifyIL("C.M", """
                 {
                   // Code size       59 (0x3b)
