@@ -599,8 +599,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!interfaceMethod.ContainingType.IsGenericType)
                     {
-                        // TODO2: non-generic: `param0.SetValue(param1, _item)`
-                        statement = f.NoOp(NoOpStatementFlavor.Default);
+                        var arraySetValueMethod = (MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Array__SetValue)!;
+
+                        // param0.SetValue((object)_item, param1)
+                        statement = f.ExpressionStatement(
+                            f.Call(parameterReference0, arraySetValueMethod,
+                                f.Convert(f.SpecialType(SpecialType.System_Object), fieldReference),
+                                parameterReference1));
                     }
                     else
                     {
@@ -647,11 +652,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameterReference = f.Parameter(method.Parameters[0]);
                 if (containingType.IsSingleton)
                 {
-                    // TODO2: well-known type: IndexOutOfRangeException
                     // if (param0 != 0)
                     //      throw new IndexOutOfRangeException();
                     // return _item;
-                    var constructor = (MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_NotSupportedException__ctor)!;
+                    var constructor = (MethodSymbol)method.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_IndexOutOfRangeException__ctor)!;
                     return f.Block(
                         f.If(
                             f.IntNotEqual(parameterReference, f.Literal(0)),
