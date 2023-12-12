@@ -71,7 +71,7 @@ public sealed class AsynchronousTaggerTests : TestBase
             workspace.GetService<IThreadingContext>(),
             (s, c) => Enumerable
                 .Range(0, tagsProduced)
-                .Select(i => (ITagSpan<TestTag>)new TagSpan<TestTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TestTag())),
+                .Select(i => new TagSpan<TestTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TestTag())),
             eventSource,
             workspace.GetService<IGlobalOptionService>(),
             asyncListener);
