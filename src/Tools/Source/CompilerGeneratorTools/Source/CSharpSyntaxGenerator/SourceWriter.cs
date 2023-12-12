@@ -57,7 +57,6 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
-            WriteLine();
             this.WriteRedTypes();
         }
 
