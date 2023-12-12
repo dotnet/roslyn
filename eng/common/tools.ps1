@@ -827,7 +827,8 @@ function MSBuild-Core() {
     }
   }
 
-  $env:ARCADE_BUILD_TOOL_COMMAND = "$($buildTool.Path) $cmdArgs"
+  # Be sure quote the path in case there are spaces in the dotnet installation location.
+  $env:ARCADE_BUILD_TOOL_COMMAND = "`"$($buildTool.Path)`" $cmdArgs"
 
   $exitCode = Exec-Process $buildTool.Path $cmdArgs
 
