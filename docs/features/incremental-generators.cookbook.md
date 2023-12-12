@@ -8,16 +8,19 @@ of scope in the final design of the shipping feature.
 
 **This document expands on the details in the [full design document](incremental-generators.md), please ensure you have read that first.**
 
-## Table of content
+## Table of contents
 
 - [Incremental Generators Cookbook](#incremental-generators-cookbook)
   - [Summary](#summary)
-  - [Table of content](#table-of-content)
+  - [Table of contents](#table-of-contents)
   - [Proposal](#proposal)
   - [Out of scope designs](#out-of-scope-designs)
     - [Language features](#language-features)
     - [Code rewriting](#code-rewriting)
   - [Conventions](#conventions)
+    - [Pipeline model design](#pipeline-model-design)
+    - [Use `ForAttributeWithMetadataName`](#use-forattributewithmetadataname)
+    - [Use an indented text writer, not `SyntaxNode`s, for generation](#use-an-indented-text-writer-not-syntaxnodes-for-generation)
   - [Designs](#designs)
     - [Generated class](#generated-class)
     - [Additional file transformation](#additional-file-transformation)
@@ -29,7 +32,6 @@ of scope in the final design of the shipping feature.
     - [Access Analyzer Config properties](#access-analyzer-config-properties)
     - [Consume MSBuild properties and metadata](#consume-msbuild-properties-and-metadata)
     - [Unit Testing of Generators](#unit-testing-of-generators)
-    - [Serialization](#serialization)
     - [Auto interface implementation](#auto-interface-implementation)
   - [Breaking Changes:](#breaking-changes)
   - [Open Issues](#open-issues)
@@ -119,7 +121,7 @@ We do not recommend generating `SyntaxNode`s when generating syntax for `AddSour
 `NormalizeWhitespace` is often quite expensive, and the API is not really designed for this use-case. Additionally, to ensure immutability guarantees, `AddSource` does
 not accept `SyntaxNode`s. It instead requires getting the `string` representation and putting that into a `SourceText`. Instead of `SyntaxNode`, we recommend using a
 wrapper around `StringBuilder` that will keep track of indent level and prepend the right amount of indentation when `AppendLine` is called. See
-[thix](https://github.com/dotnet/roslyn/issues/52914#issuecomment-1732680995) conversation on the performance of `NormalizeWhitespace` for more examples, performance
+[this](https://github.com/dotnet/roslyn/issues/52914#issuecomment-1732680995) conversation on the performance of `NormalizeWhitespace` for more examples, performance
 measurements, and discussion on why we don't believe that `SyntaxNode`s are a good abstraction for this use case.
 
 ## Designs
@@ -156,9 +158,11 @@ public class CustomGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(static postInitializationContext => {
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
+                using System;
+
                 namespace GeneratedNamespace
                 {
-                    public class GeneratedAttribute : global::System.Attribute
+                    public class GeneratedAttribute : Attribute
                     {
                     }
                 }
@@ -215,7 +219,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 `ForAttributeWithMetadataName` to collect the information needed to generate code, and use tuples (or create an equatable model)
  to pass along that information. That information should be extracted from syntax and symbols; **do not put syntax or symbols into
  your models**.
-
+e
 **Example:**
 
 ```csharp
@@ -246,12 +250,12 @@ public class AugmentingGenerator : IIncrementalGenerator
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute"
-            predicate: static (syntaxNode, cancellationToken) => true, // FAWMN already does the hard work for us here
+            predicate: static (syntaxNode, cancellationToken) => syntaxNode is BaseMethodDeclarationSyntax,
             transform: static (context, cancellationToken) =>
             {
                 var containingClass = context.TargetSymbol.ContainingType;
                 return new Model(
-                    // Note: this is a simplified example. You will also need to handle the case where the type is in a global namespace.
+                    // Note: this is a simplified example. You will also need to handle the case where the type is in a global namespace, nested, etc.
                     Namespace: containingClass.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     ClassName: containingClass.Name,
                     MethodName: context.TargetSymbol.Name);
