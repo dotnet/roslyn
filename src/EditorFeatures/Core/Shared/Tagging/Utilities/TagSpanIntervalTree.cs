@@ -53,11 +53,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
             => SegmentedListPool.ComputeList(
-                static (args, tags) => args.@this.AddIntersectingSpans(args.snapshotSpan, tags),
+                static (args, tags) => args.@this.AddIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
                 (@this: this, snapshotSpan),
                 _: (ITagSpan<TTag>?)null);
 
-        private void AddIntersectingSpans(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
+        /// <summary>
+        /// Gets all the spans that intersect with <paramref name="snapshotSpan"/> in sorted order and adds them to
+        /// <paramref name="result"/>.  Note the sorted chunk of items are appended to <paramref name="result"/>.  This
+        /// means that <paramref name="result"/> may not be sorted if there were already items in them.
+        /// </summary>
+        private void AddIntersectingSpansInSortedOrder(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
         {
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // Special case the case where there is only one requested span.  In that case, we don't
             // need to allocate any intermediate collections
             if (requestedSpans.Count == 1)
-                AddIntersectingSpans(requestedSpans[0], tags);
+                AddIntersectingSpansInSortedOrder(requestedSpans[0], tags);
             else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
                 AddTagsForSmallNumberOfSpans(requestedSpans, tags);
             else
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             SegmentedList<ITagSpan<TTag>> tags)
         {
             foreach (var span in requestedSpans)
-                AddIntersectingSpans(span, tags);
+                AddIntersectingSpansInSortedOrder(span, tags);
         }
 
         private void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
@@ -134,9 +139,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             using var _1 = SegmentedListPool.GetPooledList<ITagSpan<TTag>>(out var tempList);
 
-            AddIntersectingSpans(mergedSpan, tempList);
+            AddIntersectingSpansInSortedOrder(mergedSpan, tempList);
             if (tempList.Count == 0)
                 return;
+
+            // Note: from this point on, both 'requstedSpans' and 'tempList' are in sorted
 
             using var enumerator = tempList.GetEnumerator();
 
@@ -145,38 +152,49 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             using var _2 = PooledHashSet<ITagSpan<TTag>>.GetInstance(out var hashSet);
 
+            var requestIndex = 0;
             while (true)
             {
-                var requestIndex = 0;
                 var currentTag = enumerator.Current;
 
                 var currentRequestSpan = requestedSpans[requestIndex];
                 var currentTagSpan = currentTag.Span;
 
-                if (currentRequestSpan.Start > currentTagSpan.End)
+                // The current tag is *before* the current span we're trying to intersect with.  Move to the next tag to
+                // see if it intersects with the current span.
+                if (currentTagSpan.End < currentRequestSpan.Start)
                 {
+                    // If there are no more tags, then we're done.
                     if (!enumerator.MoveNext())
-                        break;
+                        return;
+
+                    continue;
                 }
-                else if (currentTagSpan.Start > currentRequestSpan.End)
+
+                // The current tag is *after* teh current span we're trying to intersect with.  Move to the next span to
+                // see if it intersects with the current tag.
+                if (currentTagSpan.Start > currentRequestSpan.End)
                 {
                     requestIndex++;
 
+                    // If there are no more spans to intersect with, then we're done.
                     if (requestIndex >= requestedSpans.Count)
-                        break;
-                }
-                else
-                {
-                    // Only if this is the first time we are seeing this tag do we add it to the result.
-                    if (currentTagSpan.Length > 0 &&
-                        hashSet.Add(currentTag))
-                    {
-                        tags.Add(currentTag);
-                    }
+                        return;
 
-                    if (!enumerator.MoveNext())
-                        break;
+                    continue;
                 }
+
+                // This tag intersects the current span we're trying to intersect with.  Ensure we only see and add a
+                // particular tag once. 
+
+                if (currentTagSpan.Length > 0 &&
+                    hashSet.Add(currentTag))
+                {
+                    tags.Add(currentTag);
+                }
+
+                if (!enumerator.MoveNext())
+                    break;
             }
         }
     }
