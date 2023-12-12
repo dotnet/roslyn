@@ -135,7 +135,6 @@ End Class"
             Await listenerProvider.GetWaiter(FeatureAttribute.NavigableSymbols).ExpeditedWaitAsync()
 
             Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
-            Assert.Equal(True, navigationService.TryNavigateToLineAndOffsetReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToPositionReturnValue)
             Assert.Equal(True, navigationService.TryNavigateToSpanReturnValue)
 
