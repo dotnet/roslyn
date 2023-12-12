@@ -6651,6 +6651,7 @@ public class D
         public void InitFromBlob()
         {
             string source = @"
+using System.Globalization;
 public class D
 {
     public static void Main()
@@ -6677,13 +6678,13 @@ public class D
 
         float[] s = new float[] { 1.1f, 2.2f, 3.3f, 4.4f, 5.5f };
 
-        System.Console.WriteLine(s[2]);
-        System.Console.WriteLine(s[4]);
+        System.Console.WriteLine(s[2].ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(s[4].ToString(CultureInfo.InvariantCulture));
 
         double[] d = new double[] { 1.1f, 2.2f, -3.3f / 0, 4.4f, -5.5f };
 
-        System.Console.WriteLine(d[2]);
-        System.Console.WriteLine(d[4]);
+        System.Console.WriteLine(d[2].ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(d[4].ToString(CultureInfo.InvariantCulture));
     }
 }";
             var compilation = CompileAndVerifyWithMscorlib40(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
@@ -6701,86 +6702,93 @@ e
 -5.5
 ");
 
-            compilation.VerifyIL("D.Main",
-@"
+            compilation.VerifyIL("D.Main", """
 {
-  // Code size      193 (0xc1)
+  // Code size      249 (0xf9)
   .maxstack  3
   IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""int""
+  IL_0001:  newarr     "int"
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.45ADA43E830E5E3307519346BD95FFFAE55587E4B475BC481E2B70054B75C386""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.45ADA43E830E5E3307519346BD95FFFAE55587E4B475BC481E2B70054B75C386"
+  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  dup
   IL_0012:  ldc.i4.2
   IL_0013:  ldelem.i4
-  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  call       "void System.Console.WriteLine(int)"
   IL_0019:  ldc.i4.4
   IL_001a:  ldelem.i4
-  IL_001b:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  call       "void System.Console.WriteLine(int)"
   IL_0020:  ldc.i4.5
-  IL_0021:  newarr     ""bool""
+  IL_0021:  newarr     "bool"
   IL_0026:  dup
-  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.A4E9167DC11A5B8BA7E09C85BAFDEA0B6E0B399CE50086545509017050B33097""
-  IL_002c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0027:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.A4E9167DC11A5B8BA7E09C85BAFDEA0B6E0B399CE50086545509017050B33097"
+  IL_002c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0031:  dup
   IL_0032:  ldc.i4.2
   IL_0033:  ldelem.u1
-  IL_0034:  call       ""void System.Console.WriteLine(bool)""
+  IL_0034:  call       "void System.Console.WriteLine(bool)"
   IL_0039:  ldc.i4.3
   IL_003a:  ldelem.u1
-  IL_003b:  call       ""void System.Console.WriteLine(bool)""
+  IL_003b:  call       "void System.Console.WriteLine(bool)"
   IL_0040:  ldc.i4.5
-  IL_0041:  newarr     ""byte""
+  IL_0041:  newarr     "byte"
   IL_0046:  dup
-  IL_0047:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.5BD81897B38CE00BCF990B5AED9316FE43E7A3854DA09401C14DF4AF21B2F90D""
-  IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0047:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.5BD81897B38CE00BCF990B5AED9316FE43E7A3854DA09401C14DF4AF21B2F90D"
+  IL_004c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0051:  dup
   IL_0052:  ldc.i4.2
   IL_0053:  ldelem.u1
-  IL_0054:  call       ""void System.Console.WriteLine(int)""
+  IL_0054:  call       "void System.Console.WriteLine(int)"
   IL_0059:  ldc.i4.3
   IL_005a:  ldelem.u1
-  IL_005b:  call       ""void System.Console.WriteLine(int)""
+  IL_005b:  call       "void System.Console.WriteLine(int)"
   IL_0060:  ldc.i4.5
-  IL_0061:  newarr     ""char""
+  IL_0061:  newarr     "char"
   IL_0066:  dup
-  IL_0067:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.DC0F42A41F058686A364AF5B6BD49175C5B2CF3C4D5AE95417448BE3517B4008""
-  IL_006c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0067:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.DC0F42A41F058686A364AF5B6BD49175C5B2CF3C4D5AE95417448BE3517B4008"
+  IL_006c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0071:  dup
   IL_0072:  ldc.i4.2
   IL_0073:  ldelem.u2
-  IL_0074:  call       ""void System.Console.WriteLine(char)""
+  IL_0074:  call       "void System.Console.WriteLine(char)"
   IL_0079:  ldc.i4.4
   IL_007a:  ldelem.u2
-  IL_007b:  call       ""void System.Console.WriteLine(char)""
+  IL_007b:  call       "void System.Console.WriteLine(char)"
   IL_0080:  ldc.i4.5
-  IL_0081:  newarr     ""float""
+  IL_0081:  newarr     "float"
   IL_0086:  dup
-  IL_0087:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.0956A7FE9F6549A51F1EF3A6E0CD03FE7CF1EB2762309FC2A941F85C7E461827""
-  IL_008c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0087:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.0956A7FE9F6549A51F1EF3A6E0CD03FE7CF1EB2762309FC2A941F85C7E461827"
+  IL_008c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0091:  dup
   IL_0092:  ldc.i4.2
-  IL_0093:  ldelem.r4
-  IL_0094:  call       ""void System.Console.WriteLine(float)""
-  IL_0099:  ldc.i4.4
-  IL_009a:  ldelem.r4
-  IL_009b:  call       ""void System.Console.WriteLine(float)""
-  IL_00a0:  ldc.i4.5
-  IL_00a1:  newarr     ""double""
-  IL_00a6:  dup
-  IL_00a7:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.F9D819AD50107F52959882DF3549DE08003AC644DCC12AFEA2B9BD936EE7D325""
-  IL_00ac:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_00b1:  dup
-  IL_00b2:  ldc.i4.2
-  IL_00b3:  ldelem.r8
-  IL_00b4:  call       ""void System.Console.WriteLine(double)""
-  IL_00b9:  ldc.i4.4
-  IL_00ba:  ldelem.r8
-  IL_00bb:  call       ""void System.Console.WriteLine(double)""
-  IL_00c0:  ret
+  IL_0093:  ldelema    "float"
+  IL_0098:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_009d:  call       "string float.ToString(System.IFormatProvider)"
+  IL_00a2:  call       "void System.Console.WriteLine(string)"
+  IL_00a7:  ldc.i4.4
+  IL_00a8:  ldelema    "float"
+  IL_00ad:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_00b2:  call       "string float.ToString(System.IFormatProvider)"
+  IL_00b7:  call       "void System.Console.WriteLine(string)"
+  IL_00bc:  ldc.i4.5
+  IL_00bd:  newarr     "double"
+  IL_00c2:  dup
+  IL_00c3:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.F9D819AD50107F52959882DF3549DE08003AC644DCC12AFEA2B9BD936EE7D325"
+  IL_00c8:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_00cd:  dup
+  IL_00ce:  ldc.i4.2
+  IL_00cf:  ldelema    "double"
+  IL_00d4:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_00d9:  call       "string double.ToString(System.IFormatProvider)"
+  IL_00de:  call       "void System.Console.WriteLine(string)"
+  IL_00e3:  ldc.i4.4
+  IL_00e4:  ldelema    "double"
+  IL_00e9:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_00ee:  call       "string double.ToString(System.IFormatProvider)"
+  IL_00f3:  call       "void System.Console.WriteLine(string)"
+  IL_00f8:  ret
 }
-");
+""");
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
@@ -11400,25 +11408,26 @@ class C
         public void DecimalBinaryOp_03()
         {
             string source = @"
+using System.Globalization;
 class C
 {
     // http://msdn.microsoft.com/en-US/library/system.decimal.remainder(v=vs.110).aspx
     static void M(decimal d1, decimal d2)
     {
         var r1 = d1 + d2;
-        System.Console.WriteLine(r1);
+        System.Console.WriteLine(r1.ToString(CultureInfo.InvariantCulture));
 
         var r2 = d1 - d2;
-        System.Console.WriteLine(r2);
+        System.Console.WriteLine(r2.ToString(CultureInfo.InvariantCulture));
 
         var r3 = d1 * d2;
-        System.Console.WriteLine(r3);
+        System.Console.WriteLine(r3.ToString(CultureInfo.InvariantCulture));
 
         var r4 = d1 / d2;
-        System.Console.WriteLine(r4);
+        System.Console.WriteLine(r4.ToString(CultureInfo.InvariantCulture));
 
         var r5 = d1 % d2;
-        System.Console.WriteLine(r5);
+        System.Console.WriteLine(r5.ToString(CultureInfo.InvariantCulture));
     }
 
     static void Main(string[] args)
