@@ -210,8 +210,8 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
     private class NoOpLspLoggerFactory() : ILspServiceLoggerFactory
     {
-        public Task<ILspServiceLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
-            => Task.FromResult(NoOpLspLogger.Instance);
+        public Task<AbstractLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+            => Task.FromResult((AbstractLspLogger)NoOpLspLogger.Instance);
     }
 
     [PartNotDiscoverable]
