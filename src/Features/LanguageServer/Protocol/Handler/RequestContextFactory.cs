@@ -31,16 +31,9 @@ internal class RequestContextFactory : AbstractRequestContextFactory<RequestCont
             throw new InvalidOperationException($"ClientCapabilities was null for a request other than {Methods.InitializeName}.");
         }
 
-        var textDocumentIdentifierHandler = methodHandler as ITextDocumentIdentifierHandler;
         TextDocumentIdentifier? textDocumentIdentifier;
-        if (queueItem.RequestUri is not null)
-        {
-            textDocumentIdentifier = new TextDocumentIdentifier
-            {
-                Uri = queueItem.RequestUri,
-            };
-        }
-        else if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
+        var textDocumentIdentifierHandler = methodHandler as ITextDocumentIdentifierHandler;
+        if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
         {
             textDocumentIdentifier = tHandler.GetTextDocumentIdentifier(requestParam);
         }

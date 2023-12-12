@@ -154,20 +154,15 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         ILspServices lspServices,
         CancellationToken cancellationToken)
     {
-        var uri = GetUriForRequest<TRequest>(methodName, request);
         var language = GetLanguageForRequest<TRequest>(methodName, request);
 
         return QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
             language,
-            uri,
             request,
             lspServices,
             _logger,
             cancellationToken);
     }
-
-    protected virtual Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
-        => null;
 
     protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
         => LanguageServerConstants.DefaultLanguageName;

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return base.GetLanguageForRequest(methodName, request);
         }
 
-        protected override Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
+        private static Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
         {
             if (request is ITextDocumentParams textDocumentParams)
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return resolveData.TextDocument.Uri;
             }
 
-            return base.GetUriForRequest(methodName, request);
+            return null;
 
             static bool IsDocumentResolveMethod(string methodName)
                 => methodName switch

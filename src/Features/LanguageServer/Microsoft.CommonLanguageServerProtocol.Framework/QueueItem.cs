@@ -39,8 +39,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     public string Language { get; }
 
-    public Uri? RequestUri { get; }
-
     public Type? RequestType => typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
 
     public Type? ResponseType => typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
@@ -48,7 +46,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     private QueueItem(
         string methodName,
         string language,
-        Uri? requestUri,
         TRequest request,
         ILspServices lspServices,
         ILspLogger logger,
@@ -63,7 +60,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
         MethodName = methodName;
         Language = language;
-        RequestUri = requestUri;
 
         var telemetryService = lspServices.GetRequiredServices<AbstractTelemetryService>().FirstOrDefault();
 
@@ -73,7 +69,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
         string methodName,
         string language,
-        Uri? requestUri,
         TRequest request,
         ILspServices lspServices,
         ILspLogger logger,
@@ -82,7 +77,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         var queueItem = new QueueItem<TRequest, TResponse, TRequestContext>(
             methodName,
             language,
-            requestUri,
             request,
             lspServices,
             logger,

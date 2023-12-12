@@ -23,16 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        protected override Uri? GetUriForRequest<TRequest>(string methodName, TRequest request)
+        protected override string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
         {
             if (request is ITextDocumentParams textDocumentParams &&
                 textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
             {
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
-                return documentUri;
             }
 
-            return base.GetUriForRequest(methodName, request);
+            return base.GetLanguageForRequest(methodName, request);
         }
     }
 }

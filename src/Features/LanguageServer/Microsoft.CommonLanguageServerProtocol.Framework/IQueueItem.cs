@@ -46,14 +46,6 @@ public interface IQueueItem<TRequestContext>
     string Language { get; }
 
     /// <summary>
-    /// The URI for the request if an override of <see cref="RequestExecutionQueue{TRequestContext}.GetUriForRequest{TRequest}(string, TRequest)"/> provides one.
-    /// </summary>
-    /// <remarks>
-    /// The default is <see langword="null"/>.
-    /// </remarks>
-    Uri? RequestUri { get; }
-
-    /// <summary>
     /// The type of the request.
     /// </summary>
     Type? RequestType { get; }
