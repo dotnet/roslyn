@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             if (tempList.Count == 0)
                 return;
 
-            // Note: from this point on, both 'requstedSpans' and 'tempList' are in sorted
+            // Note: both 'requstedSpans' and 'tempList' are in sorted order.
 
             using var enumerator = tempList.GetEnumerator();
 
