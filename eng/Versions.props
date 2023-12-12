@@ -114,9 +114,9 @@
     <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-22302-02</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>17.0.0-beta1.21524.1</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.7.0-beta-21528-01</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftExtensionsLoggingVersion>6.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
-    <MicrosoftExtensionsLoggingConsoleVersion>6.0.0</MicrosoftExtensionsLoggingConsoleVersion>
+    <MicrosoftExtensionsLoggingVersion>7.0.0</MicrosoftExtensionsLoggingVersion>
+    <MicrosoftExtensionsLoggingAbstractionsVersion>7.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
+    <MicrosoftExtensionsLoggingConsoleVersion>7.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioInteropVersion>17.8.36711</MicrosoftInternalVisualStudioInteropVersion>
