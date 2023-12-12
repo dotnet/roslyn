@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis
                     progressTracker.ItemCompleted();
                 }
 
-                this.ApplyDocumentsInfoChange(newSolution, oldSolution, projectChangesList);
+                this.ApplyDocumentsInfoChange(projectChangesList);
 
                 // changes in mapped files outside the workspace (may span multiple projects)
                 this.ApplyMappedFileChanges(solutionChanges);
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void ApplyDocumentsInfoChange(Solution newSolution, Solution oldSolution, ImmutableArray<ProjectChanges> projectChanges)
+        private void ApplyDocumentsInfoChange(ImmutableArray<ProjectChanges> projectChanges)
         {
             using var _1 = PooledHashSet<DocumentId>.GetInstance(out var infoChangedDocumentIds);
             using var _2 = PooledHashSet<Document>.GetInstance(out var infoChangedNewDocument);
@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var docId in projectChange.GetChangedDocuments())
                 {
+                    var oldSolution = projectChange.OldProject.Solution;
                     var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
                     var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
                     if (oldDoc.HasInfoChanged(newDoc))
