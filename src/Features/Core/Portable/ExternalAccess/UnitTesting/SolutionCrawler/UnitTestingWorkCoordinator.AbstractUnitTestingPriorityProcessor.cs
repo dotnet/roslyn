@@ -123,13 +123,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         base.Shutdown();
 
                         Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
-
-#if false // Not used in unit testing crawling
-                        foreach (var analyzer in Analyzers)
-                        {
-                            analyzer.Shutdown();
-                        }
-#endif
                     }
 
                     private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)

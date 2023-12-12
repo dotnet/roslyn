@@ -258,9 +258,9 @@ $@"<Project>{GetTargetContents(language)}
                           <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>
                         </PropertyGroup>
 
-                        <!-- Add the global config, if required. -->
+                        <!-- From .NET 9, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
                         <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
-                                               ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)')">
+                                               ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)' or $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '9.0')))">
                           <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
                         </ItemGroup>
 
