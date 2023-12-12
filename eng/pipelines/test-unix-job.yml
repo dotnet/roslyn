@@ -48,7 +48,7 @@ jobs:
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh
-        args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
+        args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
