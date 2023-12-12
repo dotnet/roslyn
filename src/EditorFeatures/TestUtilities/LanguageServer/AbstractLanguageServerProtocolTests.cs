@@ -299,7 +299,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[]? codeActionPath = null, IEnumerable<string>? customTags = null)
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
             => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
