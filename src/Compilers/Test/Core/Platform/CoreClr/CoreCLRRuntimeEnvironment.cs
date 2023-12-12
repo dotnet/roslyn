@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -84,7 +85,7 @@ namespace Roslyn.Test.Utilities.CoreClr
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.ExecuteRequested = true;
-            var (exitCode, output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
+            var (exitCode, output) = TestHelpers.WithCulture(() => emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length));
 
             if (expectedOutput != null)
             {

@@ -314,12 +314,15 @@ namespace Microsoft.CodeAnalysis
                 analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, trackSuppressedDiagnosticIds: false,
                 out var newCompilation, cancellationToken);
             Debug.Assert(newCompilation.SemanticModelProvider != null);
-            var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
-            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation, cancellationToken).Result;
-            var allDiagnostics = includeCompilerDiagnostics ?
-                compilerDiagnostics.AddRange(analyzerDiagnostics) :
-                analyzerDiagnostics;
-            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation, cancellationToken);
+            diagnostics = TestHelpers.WithCulture(() =>
+            {
+                var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
+                var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation, cancellationToken).Result;
+                var allDiagnostics = includeCompilerDiagnostics ?
+                    compilerDiagnostics.AddRange(analyzerDiagnostics) :
+                    analyzerDiagnostics;
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation, cancellationToken);
+            });
 
             if (!reportSuppressedDiagnostics)
             {
@@ -338,7 +341,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(this Compilation compilation, IEnumerable<Diagnostic> diagnostics)
         {
-            return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
+            return TestHelpers.WithCulture(() =>
+                CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation));
         }
 
         /// <summary>
@@ -364,7 +368,8 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             var pdbStream = MonoHelpers.IsRunningOnMono() || options?.EmitMetadataOnly == true ? null : new MemoryStream();
-            return c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics;
+            return TestHelpers.WithCulture(() =>
+                c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)

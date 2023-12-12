@@ -73,6 +73,34 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
+        /// This will run <paramref name="func"/> with <see cref="CultureInfo.CurrentUICulture"/> set to 
+        /// match the value of <see cref="CultureInfo.CurrentCulture"/>.
+        /// </summary>
+        /// <remarks>
+        /// Force the UI culture to be the same as current culture. This will more fully exercise our
+        /// localization paths on machines that aren't en-US.
+        /// 
+        /// Consider as an example our test infrastructure which runs machines in the es-ES locale. The 
+        /// machine setup is such that CurrentCulture is es-ES but CurrentUICUlture is en-US. That means 
+        /// our test infra isn't actually testing anything with respect to resource strings as they 
+        /// all load with CurrentUICulture. This normalization means that when running on a machine 
+        /// that doesn't use en-US we fully test our capabilities here.
+        /// </remarks>
+        public static T WithCulture<T>(Func<T> func)
+        {
+            var savedUICulture = CultureInfo.CurrentUICulture;
+            try
+            {
+                CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
+                return func();
+            }
+            finally
+            {
+                CultureInfo.CurrentUICulture = savedUICulture;
+            }
+        }
+
+        /// <summary>
         /// <see cref="System.Xml.Linq.XComment.Value"/> is serialized with "--" replaced by "- -"
         /// </summary>
         public static string AsXmlCommentText(string text)
