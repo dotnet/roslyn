@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_NotSupportedException__ctor,
-        System_MissingMethodException__ctor,
+        System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         System_Collections_ICollection__Count,

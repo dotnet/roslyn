@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -77,7 +75,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
+    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind, bool)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -163,7 +161,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments,
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddAdditionalFile(document.FilePath),
+            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
             "Project {0} now has {1} additional file(s).");
 
@@ -185,11 +183,13 @@ internal sealed class LoadedProject : IDisposable
 
         WatchProjectAssetsFile(newProjectInfo, _fileChangeContext);
 
+        var hasUnresolvedDependencies = ProjectDependencyHelper.HasUnresolvedDependencies(newProjectInfo, _mostRecentFileInfo, logger);
+
         _mostRecentFileInfo = newProjectInfo;
 
         Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
         var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
-        return (metadataReferences, outputKind);
+        return (metadataReferences, outputKind, hasUnresolvedDependencies);
 
         // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
         void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)

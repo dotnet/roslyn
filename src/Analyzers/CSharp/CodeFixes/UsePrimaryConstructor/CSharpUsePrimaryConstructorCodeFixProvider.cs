@@ -129,7 +129,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
 
         // Then remove the constructor itself.
         var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-        constructorDocumentEditor.RemoveNode(constructorDeclaration);
+        constructorDocumentEditor.RemoveNode(constructorDeclaration, GetConstructorRemovalOptions());
 
         // When moving the parameter list from the constructor to the type, we will no longer have nested types or
         // member constants in scope.  So rewrite references to them if that's the case.
@@ -168,6 +168,33 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
             });
 
         return;
+
+        SyntaxRemoveOptions GetConstructorRemovalOptions()
+        {
+            // if we're removing all the members prior to the constructor, and any of those member had pragmas we are
+            // keeping, then we need to keep it on the constructor as well.
+
+            var constructorRemoveOptions = GetRemoveOptions(constructorDeclaration);
+            if (constructorRemoveOptions == SyntaxGenerator.DefaultRemoveOptions)
+            {
+                for (var currentIndex = typeDeclaration.Members.IndexOf(constructorDeclaration) - 1; currentIndex >= 0; currentIndex--)
+                {
+                    var priorMember = typeDeclaration.Members[currentIndex];
+
+                    // Hit a member we're not removing.  Just use the default options for the constructor.
+                    if (!removedMembers.Any(kvp => kvp.Value.memberNode == priorMember))
+                        break;
+
+                    // Check if we had special options when removing the field/prop.  We want to apply that to the
+                    // constructor as well.
+                    var memberRemoveOptions = GetRemoveOptions(priorMember);
+                    if (memberRemoveOptions != SyntaxGenerator.DefaultRemoveOptions)
+                        return memberRemoveOptions;
+                }
+            }
+
+            return constructorRemoveOptions;
+        }
 
         ParameterListSyntax GenerateFinalParameterList()
         {
@@ -213,27 +240,46 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 {
                     // Don't have to update if the member is already qualified.
 
-                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax || qualifiedNameSyntax.Right != nameSyntax)
+                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax ||
+                        qualifiedNameSyntax.Left == nameSyntax)
                     {
-                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        // Qualified names occur in things like the `type` portion of the parameter
+
                         // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
                         if (symbol is INamedTypeSymbol { ContainingType: { } containingType })
-                            return QualifiedName(containingType.GenerateNameSyntax(), currentNameSyntax);
+                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
                     }
 
-                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression || memberAccessExpression.Name != nameSyntax)
+                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression ||
+                        memberAccessExpression.Expression == nameSyntax)
                     {
+                        // Member access expressions occur in things like the default initializer, or attribute
+                        // arguments of the parameter.
+
                         var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
-                        if (symbol is IFieldSymbol { ContainingType: not null } &&
-                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol &&
+                            symbol is { ContainingType.OriginalDefinition: { } containingType } &&
+                            namedType.Equals(containingType))
                         {
                             // reference to a member field an unqualified fashion.  Have to qualify this.
-                            return MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, namedType.GenerateNameSyntax(), currentNameSyntax);
+                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
                         }
                     }
 
                     return currentNameSyntax;
                 });
+
+            SyntaxNode CreateDottedName(
+                SimpleNameSyntax originalName,
+                SimpleNameSyntax currentName,
+                INamedTypeSymbol containingType)
+            {
+                var containingTypeSyntax = containingType.GenerateNameSyntax();
+                return SyntaxFacts.IsInTypeOnlyContext(originalName)
+                    ? QualifiedName(containingTypeSyntax, currentName)
+                    : MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, containingTypeSyntax, currentName);
+            }
         }
 
         static TListSyntax RemoveElementIndentation<TListSyntax>(
@@ -408,9 +454,9 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
             }
         }
 
-        async ValueTask<ImmutableDictionary<ISymbol, SyntaxNode>> RemoveMembersAsync()
+        async ValueTask<ImmutableDictionary<ISymbol, (MemberDeclarationSyntax memberNode, SyntaxNode nodeToRemove)>> RemoveMembersAsync()
         {
-            var removedMembers = ImmutableDictionary<ISymbol, SyntaxNode>.Empty;
+            var removedMembers = ImmutableDictionary<ISymbol, (MemberDeclarationSyntax memberNode, SyntaxNode nodeToRemove)>.Empty;
             if (removeMembers)
             {
                 // Go through each pair of member/parameterName.  Update all references to member to now refer to
@@ -420,35 +466,44 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 {
                     Contract.ThrowIfNull(parameterName);
 
-                    var (member, nodeToRemove) = GetMemberToRemove(memberName);
+                    var (member, memberNode, nodeToRemove) = GetMemberToRemove(memberName);
                     if (member is null)
                         continue;
 
-                    removedMembers = removedMembers.Add(member, nodeToRemove);
+                    removedMembers = removedMembers.Add(member, (memberNode, nodeToRemove));
                     await ReplaceReferencesToMemberWithParameterAsync(
                         member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
                 }
 
-                foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
+                foreach (var group in removedMembers.Values.GroupBy(n => n.memberNode.SyntaxTree))
                 {
                     var syntaxTree = group.Key;
                     var memberDocument = solution.GetRequiredDocument(syntaxTree);
                     var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var memberToRemove in group)
-                        documentEditor.RemoveNode(memberToRemove);
+                    foreach (var (memberNode, nodeToRemove) in group)
+                    {
+                        // Preserve pragmas around fields as they can affect more than just the field itself (they
+                        // extend to the rest of the file).
+                        documentEditor.RemoveNode(nodeToRemove, GetRemoveOptions(memberNode));
+                    }
                 }
             }
 
             return removedMembers;
         }
 
-        (ISymbol? member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
+        static SyntaxRemoveOptions GetRemoveOptions(MemberDeclarationSyntax memberDeclaration)
+            => memberDeclaration.GetLeadingTrivia().Any(t => t.GetStructure()?.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
+                ? SyntaxRemoveOptions.KeepDirectives
+                : SyntaxGenerator.DefaultRemoveOptions;
+
+        (ISymbol? member, MemberDeclarationSyntax memberNode, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
         {
             foreach (var member in namedType.GetMembers(memberName))
             {
-                if (IsViableMemberToAssignTo(namedType, member, out var nodeToRemove, cancellationToken))
-                    return (member, nodeToRemove);
+                if (IsViableMemberToAssignTo(namedType, member, out var memberNode, out var nodeToRemove, cancellationToken))
+                    return (member, memberNode, nodeToRemove);
             }
 
             return default;

@@ -2,29 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GoToDefinition
+namespace Microsoft.CodeAnalysis.Navigation
 {
-    internal abstract class AbstractAsyncGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
+    internal abstract class AbstractDefinitionLocationService : IDefinitionLocationService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        protected AbstractAsyncGoToDefinitionService(
+        protected AbstractDefinitionLocationService(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
@@ -43,11 +39,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 workspace, document.Id, position, virtualSpace: 0, cancellationToken);
         }
 
-        public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
-            Document document,
-            int position,
-            bool includeType,
-            CancellationToken cancellationToken)
+        public async Task<DefinitionLocation?> GetDefinitionLocationAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
             var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
@@ -56,22 +49,22 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             {
                 var location = await GetNavigableLocationAsync(
                     document, controlFlowTarget.Value, cancellationToken).ConfigureAwait(false);
-                return (location, controlFlowSpan);
+                return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
             }
             else
             {
                 // Try to compute the referenced symbol and attempt to go to definition for the symbol.
                 var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                    document, position, includeType, cancellationToken).ConfigureAwait(false);
+                    document, position, cancellationToken).ConfigureAwait(false);
                 if (symbol is null)
-                    return default;
+                    return null;
 
                 // if the symbol only has a single source location, and we're already on it,
                 // try to see if there's a better symbol we could navigate to.
                 var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
                     project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
                 if (remappedLocation != null)
-                    return (remappedLocation, span);
+                    return new DefinitionLocation(remappedLocation, new DocumentSpan(document, span));
 
                 var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
                     symbol, position, document, cancellationToken).ConfigureAwait(false);
@@ -83,7 +76,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                     _streamingPresenter,
                     thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-                return (location, span);
+                if (location is null)
+                    return null;
+
+                return new DefinitionLocation(location, new DocumentSpan(document, span));
             }
         }
 
