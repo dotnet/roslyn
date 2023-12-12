@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis
             ((PooledHashSet<TAssemblySymbol>?)DependenciesBag)?.Free();
         }
 
-        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnly(bool forceDiagnosticResolution = true)
+        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnly()
         {
-            return new ReadOnlyBindingDiagnostic<TAssemblySymbol>(DiagnosticBag?.ToReadOnly(forceDiagnosticResolution) ?? default, DependenciesBag?.ToImmutableArray() ?? default);
+            return new ReadOnlyBindingDiagnostic<TAssemblySymbol>(DiagnosticBag?.ToReadOnly(forceResolution: false) ?? default, DependenciesBag?.ToImmutableArray() ?? default);
         }
 
-        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnlyAndFree(bool forceDiagnosticResolution = true)
+        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnlyAndFree()
         {
-            var result = ToReadOnly(forceDiagnosticResolution);
+            var result = ToReadOnly();
             Free();
             return result;
         }
