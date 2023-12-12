@@ -82,8 +82,8 @@ public sealed class AsynchronousTaggerTests : TestBase
         using var tagger = taggerProvider.CreateTagger(textBuffer);
         Contract.ThrowIfNull(tagger);
 
-        var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
-        var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
+        var snapshotSpans = new NormalizedSnapshotSpanCollection(
+            snapshot, Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1)));
 
         eventSource.SendUpdateEvent();
 
