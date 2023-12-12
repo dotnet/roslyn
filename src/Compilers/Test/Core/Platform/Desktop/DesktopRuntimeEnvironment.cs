@@ -250,7 +250,11 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
+                var (resultCode, output) = TestHelpers.WithCulture(() =>
+                {
+                    var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
+                    return (resultCode, output);
+                });
 
                 if (expectedOutput != null)
                 {
@@ -341,7 +345,6 @@ namespace Roslyn.Test.Utilities.Desktop
                 if (expectedMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
                 {
                     var actualMessage = ex.Output;
-                    
                     if (!verification.IncludeTokensAndModuleIds)
                     {
                         actualMessage = Regex.Replace(ex.Output, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
