@@ -104,7 +104,7 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RazorCohostServer => "RazorLanguageServer",
+            WellKnownLspServerKinds.RazorCohostServer => ProtocolConstants.RazorCohostContract,
             WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
