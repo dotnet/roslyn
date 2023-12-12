@@ -36,81 +36,11 @@ public class AsynchronousTaggerTests : TestBase
     [WpfTheory]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1927519")]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
-    [InlineData(101)]
-    public async Task LargeNumberOfSpans(int tagsProduced)
-    {
-        using var workspace = TestWorkspace.CreateCSharp("""
-            class Program
-            {
-                void M()
-                {
-                    int z = 0;
-                    z = z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z +
-                        z + z + z + z + z + z + z + z + z + z;
-                }
-            }
-            """);
-
-        List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
-        {
-            return Enumerable
-                .Range(0, tagsProduced)
-                .Select(_ => (ITagSpan<TestTag>)new TagSpan<TestTag>(span, new TestTag()))
-                .ToList();
-        }
-
-        var asyncListener = new AsynchronousOperationListener();
-
-        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
-
-        var eventSource = CreateEventSource();
-        var taggerProvider = new TestTaggerProvider(
-            workspace.GetService<IThreadingContext>(),
-            tagProducer,
-            eventSource,
-            workspace.GetService<IGlobalOptionService>(),
-            asyncListener);
-
-        var document = workspace.Documents.First();
-        var textBuffer = document.GetTextBuffer();
-        var snapshot = textBuffer.CurrentSnapshot;
-        using var tagger = taggerProvider.CreateTagger(textBuffer);
-        Contract.ThrowIfNull(tagger);
-
-        var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
-        var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
-
-        eventSource.SendUpdateEvent();
-
-        await asyncListener.ExpeditedWaitAsync();
-
-        var tags = tagger.GetTags(snapshotSpans);
-
-        Assert.Equal(tagsProduced, tags.Count());
-    }
-    /// <summary>
-    /// This hits a special codepath in the product that is optimized for more than 100 spans.
-    /// I'm leaving this test here because it covers that code path (as shown by code coverage)
-    /// </summary>
-    [WpfTheory]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
-    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1927519")]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
-    [InlineData(101)]
-    public async Task LargeNumberOfSpans2(int tagsProduced)
+    [InlineData(0, 0)]
+    [InlineData(1, 0)]
+    [InlineData(100, 50)]
+    [InlineData(101, 50)]
+    public async Task LargeNumberOfSpans(int tagsProduced, int expectedCount)
     {
         using var workspace = TestWorkspace.CreateCSharp("""
             class Program
@@ -166,6 +96,7 @@ public class AsynchronousTaggerTests : TestBase
         await asyncListener.ExpeditedWaitAsync();
 
         var tags = tagger.GetTags(snapshotSpans);
+        Assert.Equal(expectedCount, tags.Count());
     }
 
     [WpfFact]
