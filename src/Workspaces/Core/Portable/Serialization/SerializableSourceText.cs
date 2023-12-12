@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
             writer.WriteInt32((int)this.Text.ChecksumAlgorithm);
             writer.WriteEncoding(this.Text.Encoding);
-            writer.WriteInt32((int)SerializationKinds.Bits);
             this.Text.WriteTo(writer, cancellationToken);
         }
 
@@ -66,8 +65,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = (Encoding)reader.ReadValue();
 
-            var kind = (SerializationKinds)reader.ReadInt32();
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
             return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
         }
     }
