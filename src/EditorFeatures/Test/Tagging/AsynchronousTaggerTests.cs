@@ -27,7 +27,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging;
 
 [UseExportProvider]
-public sealed class AsynchronousTaggerTests : TestBase
+public sealed class AsynchronousTaggerTests
 {
     /// <summary>
     /// This hits a special codepath in the product that is optimized for more than 100 spans.
