@@ -9561,7 +9561,8 @@ static class Program
                     static void Main()
                     {
                         IEnumerable<int> x = [0];
-                        IEnumerable<int> y = [..x];
+                        IEnumerable<int> y = [0, 1];
+                        IEnumerable<int> z = [..x];
                     }
                 }
                 """;
@@ -9578,6 +9579,7 @@ static class Program
                 {
                     verifyInterfaces(module, "<>z__ReadOnlyArray");
                     verifyInterfaces(module, "<>z__ReadOnlyList");
+                    verifyInterfaces(module, "<>z__ReadOnlySingletonList");
                 });
             verifier.VerifyDiagnostics();
 
