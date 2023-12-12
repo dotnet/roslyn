@@ -67,7 +67,7 @@ public sealed class AsynchronousTaggerTests
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
         var eventSource = CreateEventSource();
-        var taggerProvider = new TextMarkerTaggerProvider(
+        var taggerProvider = new TestTaggerProvider(
             workspace.GetService<IThreadingContext>(),
             (s, c) => Enumerable
                 .Range(0, tagsProduced)
@@ -141,10 +141,10 @@ public sealed class AsynchronousTaggerTests
         Assert.Equal(2, tags.Count());
     }
 
-    private static TextMarkerTaggerEventSource CreateEventSource()
+    private static TestTaggerEventSource CreateEventSource()
         => new();
 
-    private sealed class TextMarkerTaggerProvider(
+    private sealed class TestTaggerProvider(
         IThreadingContext threadingContext,
         Func<SnapshotSpan, CancellationToken, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
@@ -171,7 +171,7 @@ public sealed class AsynchronousTaggerTests
             => tag1 == tag2;
     }
 
-    private sealed class TextMarkerTaggerEventSource() : AbstractTaggerEventSource
+    private sealed class TestTaggerEventSource() : AbstractTaggerEventSource
     {
         public void SendUpdateEvent()
             => this.RaiseChanged();
