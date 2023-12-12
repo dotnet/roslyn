@@ -7,7 +7,6 @@ using System.CodeDom.Compiler;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// with default behavior provided for controlling the current indent level of the code.
 /// </summary>
 /// <remarks>
-/// Not threadsafe.
+/// Not thread-safe.
 /// </remarks>
 internal struct IndentingStringBuilder : IDisposable
 {
@@ -32,7 +31,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// The new line characters accepted by C#.
     /// </summary>
-    private static ReadOnlySpan<char> EndOfLineCharacters => new[] { '\r', '\n', '\f', '\u0085', '\u2028', '\u2029' };
+    private static ReadOnlySpan<char> EndOfLineCharacters => ['\r', '\n', '\f', '\u0085', '\u2028', '\u2029'];
 
     private static readonly ImmutableArray<string> s_defaultIndentationStrings;
 
@@ -189,11 +188,11 @@ internal struct IndentingStringBuilder : IDisposable
     /// should be passed in for <paramref name="splitContent"/>.  This will cause the provided content to be split into
     /// constituent lines, with each line being appended one at a time.
     /// </summary>
-    public IndentingStringBuilder Write(string content, bool splitContent = false)
+    public readonly IndentingStringBuilder Write(string content, bool splitContent = false)
         => Write(content.AsSpan(), content, splitContent);
 
     /// <inheritdoc cref="Write(string, bool)"/>
-    public IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
+    public readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
         => Write(content, originalString: null, splitContent);
 
     /// <inheritdoc cref="Write(string, bool)"/>
@@ -231,15 +230,15 @@ internal struct IndentingStringBuilder : IDisposable
     /// Equivalent to <see cref="Write(string, bool)"/> except that a final end of line sequence will be written after
     /// the content is written.
     /// </summary>
-    public IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
+    public readonly IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
         => WriteLine(content.AsSpan(), content, splitContent);
 
     /// <inheritdoc cref="WriteLine(string, bool)"/>
-    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
+    public readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
         => WriteLine(content, originalContent: null, splitContent);
 
     /// <inheritdoc cref="WriteLine(string, bool)"/>
-    private IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false)
+    private readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false)
     {
         Write(content, originalContent, splitContent);
         AppendEndOfLine();
