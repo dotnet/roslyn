@@ -960,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim displayName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
 
             If displayName Is Nothing Then
-                diagnostics.Add(ERRID.ERR_FriendAssemblyNameInvalid, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton), displayName)
+                diagnostics.Add(ERRID.ERR_FriendAssemblyNameInvalid, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton), "")
                 Return False
             End If
 
