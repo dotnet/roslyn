@@ -37,6 +37,10 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
     </Dependency>
+    <Dependency Name="System.Text.Json" Version="7.0.3">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>0a2bda10e81d901396c3cff95533529e3a93ad47</Sha>
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23607.2">
