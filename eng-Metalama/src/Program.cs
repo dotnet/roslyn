@@ -6,7 +6,7 @@ using Spectre.Console.Cli;
 using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Dependencies.Definitions;
-using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2024_0;
+using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2024_1;
 
 var product = new Product(MetalamaDependencies.MetalamaCompiler)
 {
