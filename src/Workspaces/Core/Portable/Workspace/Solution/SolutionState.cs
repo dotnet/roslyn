@@ -27,42 +27,6 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionCompilationState
-    {
-        public bool PartialSemanticsEnabled { get; }
-
-        // Values for all these are created on demand.
-        private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
-
-        /// <summary>
-        /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
-        /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
-        /// question quickly after computing for the first one.  Created on demand.
-        /// </summary>
-        private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
-        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
-
-        private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
-
-        private SolutionState(
-            bool partialSemanticsEnabled,
-            ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap
-            SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
-        {
-            PartialSemanticsEnabled = partialSemanticsEnabled;
-            _projectIdToTrackerMap = projectIdToTrackerMap;
-            _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
-        }
-
-        public SolutionState(
-            bool partialSemanticsEnabled)
-            : this(
-                partialSemanticsEnabled,
-                projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
-                frozenSourceGeneratedDocument: null)
-        {
-        }
-    }
 
     /// <summary>
     /// Represents a set of projects and their source code documents.
@@ -203,20 +167,16 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
-            ProjectDependencyGraph? dependencyGraph = null,
-            Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
+            ProjectDependencyGraph? dependencyGraph = null)
         {
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             options ??= Options;
             analyzerReferences ??= AnalyzerReferences;
-            projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
-            var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
@@ -225,10 +185,8 @@ namespace Microsoft.CodeAnalysis
                 options == Options &&
                 analyzerReferencesEqual &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
-                projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
-                dependencyGraph == _dependencyGraph &&
-                newFrozenSourceGeneratedDocumentState == _frozenSourceGeneratedDocumentState)
+                dependencyGraph == _dependencyGraph)
             {
                 return this;
             }
@@ -236,18 +194,15 @@ namespace Microsoft.CodeAnalysis
             return new SolutionState(
                 WorkspaceKind,
                 WorkspaceVersion,
-                PartialSemanticsEnabled,
                 Services,
                 solutionAttributes,
                 projectIds,
                 options,
                 analyzerReferences,
                 idToProjectStateMap,
-                projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph,
-                analyzerReferencesEqual ? _lazyAnalyzers : null,
-                newFrozenSourceGeneratedDocumentState);
+                analyzerReferencesEqual ? _lazyAnalyzers : null);
         }
 
         /// <summary>
@@ -446,8 +401,10 @@ namespace Microsoft.CodeAnalysis
             return tracker;
         }
 
-        private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
+        private SolutionState AddProject(ProjectState projectState)
         {
+            var projectId = projectState.Id;
+
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
 

@@ -341,12 +341,13 @@ namespace Microsoft.CodeAnalysis
         public Solution AddProject(ProjectInfo projectInfo)
         {
             var newState = _state.AddProject(projectInfo);
-            if (newState == _state)
+            var newCompilationState = _compilationState.AddProject(projectInfo.Id, newState.GetProjectDependencyGraph());
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>
