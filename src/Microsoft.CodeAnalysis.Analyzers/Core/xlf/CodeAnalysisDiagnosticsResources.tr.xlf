@@ -409,27 +409,27 @@
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
+        <target state="translated">'GlobalStatementSyntax' ve 'IncompleteMemberSyntax' gibi 'SyntaxNode' öğesinden devralınan belirli türlerde 'SemanticModel.GetDeclaredSymbol' çağrısı her zaman 'null' döndürür.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
+        <target state="translated">'FieldDeclarationSyntax' veya 'EventFieldDeclarationSyntax' bağımsız değişken türüyle 'SemanticModel.GetDeclaredSymbol' çağrısı yapmak her zaman 'null' döndürür. Bunun yerine, alandan değişken bildirimciler ile 'GetDeclaredSymbol' çağrısı yapın.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' çağrısı her zaman 'null' döndürür</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' çağrısı her zaman 'null' döndürür</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
         <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
-        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol()' çağrısı her zaman 'null' döndürür</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">

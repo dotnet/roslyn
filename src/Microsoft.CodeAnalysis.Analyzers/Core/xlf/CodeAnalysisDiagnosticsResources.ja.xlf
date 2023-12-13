@@ -409,27 +409,27 @@
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
+        <target state="translated">'SyntaxNode' を継承する特定の型を使用して 'SemanticModel.GetDeclaredSymbol' を呼び出しています。たとえば、'GlobalStatementSyntax' や 'IncompleteMemberSyntax' は常に 'null' を返します。</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
+        <target state="translated">型 'FieldDeclarationSyntax' または 'EventFieldDeclarationSyntax' の引数を使用して 'SemanticModel.GetDeclaredSymbol' を呼び出すと、常に 'null' を返します。代わりに、フィールドから変数宣言を指定して 'GetDeclaredSymbol' を呼び出します。</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' への呼び出しでは、常に 'null' を返します</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' への呼び出しでは、常に 'null' を返します</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
         <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
-        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol()' に対するこの呼び出しでは、常に 'null' を返します</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
