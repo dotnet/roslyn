@@ -45,7 +45,7 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    - script: echo ${{ parameters.helixApiAccessToken }}
+    - script: echo ${{ parameters.helixApiAccessToken }} 
       displayName: echo token
 
     - script: echo ${{ ne(parameters.helixApiAccessToken, '') }}
@@ -59,6 +59,9 @@ jobs:
 
     - ${{ if eq(parameters.helixApiAccessToken, '') }}:
       - script: echo eq-empty ${{ parameters.helixApiAccessToken }}
+
+    - ${{ if eq(parameters.helixApiAccessToken, '$(helixApiAccessToken)') }}
+      - script: echo value is name of var: $(helixApiAccessToken)
 
     - task: ShellScript@2
       inputs:
