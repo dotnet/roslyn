@@ -697,6 +697,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
         [InlineData("Task")]
         [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
         public async Task InsertInlineForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
         {
             var markupBeforeCommit = $$"""
@@ -812,6 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
         [InlineData("Task")]
         [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
         public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
         {
             var markupBeforeCommit = $$"""
