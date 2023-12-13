@@ -271,4 +271,15 @@ internal partial class SolutionCompilationState
                 forkTracker: true);
         }
     }
+
+    /// <inheritdoc cref="SolutionState.WithHasAllInformation"/>
+    public SolutionCompilationState WithHasAllInformation(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, bool hasAllInformation)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }

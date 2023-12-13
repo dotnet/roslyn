@@ -744,14 +744,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
-        public SolutionState WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+        public (SolutionState, ProjectState) WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithHasAllInformation(hasAllInformation);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             // fork without any change on compilation.
