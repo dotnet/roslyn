@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_fsharpLanguageInformation = new(LanguageNames.FSharp, ".fsx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
+        private static readonly LanguageInformation s_razorLanguageInformation = new("Razor", string.Empty);
         private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", string.Empty);
 
         private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".fsx", s_fsharpLanguageInformation },
             { ".vb", s_vbLanguageInformation },
             { ".vbx", s_vbLanguageInformation },
+            { ".cshtml", s_razorLanguageInformation },
+            { ".razor", s_razorLanguageInformation },
             { ".xaml", s_xamlLanguageInformation },
         };
 
@@ -40,6 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 "csharp" => s_csharpLanguageInformation,
                 "fsharp" => s_csharpLanguageInformation,
                 "vb" => s_vbLanguageInformation,
+                "razor" => s_razorLanguageInformation,
                 "xaml" => s_xamlLanguageInformation,
                 _ => throw new InvalidOperationException($"Unsupported extension '{extension}' and LSP language id '{lspLanguageId}'")
             };

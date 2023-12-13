@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
-            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds
                 .Select(solution.GetDocument)
                 .Concat(documentIds.Select(solution.GetAdditionalDocument))

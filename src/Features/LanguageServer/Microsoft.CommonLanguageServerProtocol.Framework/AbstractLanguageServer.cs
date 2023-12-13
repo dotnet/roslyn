@@ -370,6 +370,11 @@ public abstract class AbstractLanguageServer<TRequestContext>
             return null;
         }
 
+        internal Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string methodName, TRequest request, CancellationToken cancellationToken)
+        {
+            return _server._queue.Value.ExecuteAsync<TRequest, TResponse>(request, methodName, _server._lspServices.Value, cancellationToken);
+        }
+
         internal JsonRpc GetServerRpc() => _server._jsonRpc;
 
         internal bool HasShutdownStarted()

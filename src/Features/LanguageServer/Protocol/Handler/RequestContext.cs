@@ -113,7 +113,7 @@ internal readonly struct RequestContext
             }
 
             // Explicitly throw for attempts to get a Document when only a TextDocument is available.
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead.");
         }
     }
 
