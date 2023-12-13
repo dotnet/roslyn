@@ -5,9 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- <Metalama> Removed net8.0: the combination of this pre-.Net 8.0 compiler and final .Net 8.0 is problematic with regards to ref readonly. -->
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
-    <!-- </Metalama> -->
+    <TargetFrameworks>net8.0;net7.0;net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
