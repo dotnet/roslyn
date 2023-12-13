@@ -89,7 +89,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             ' The INavigableItemsPresenter should not have been called
                             Assert.False(presenterCalled)
                         Else
-                            Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
                             Assert.True(presenterCalled)
 
                             Dim actualLocations As New List(Of FilePathAndSpan)

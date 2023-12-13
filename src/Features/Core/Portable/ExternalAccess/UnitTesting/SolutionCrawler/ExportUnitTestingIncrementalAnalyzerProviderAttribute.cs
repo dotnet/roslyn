@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
-#if false // Not used in unit testing crawling
-        public bool HighPriorityForActiveFile { get; }
-#endif
         public string Name { get; }
         public string[] WorkspaceKinds { get; }
 
@@ -24,17 +21,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             this.WorkspaceKinds = workspaceKinds;
             this.Name = name ?? throw new ArgumentNullException(nameof(name));
-#if false // Not used in unit testing crawling
-            this.HighPriorityForActiveFile = false;
-#endif
         }
-
-#if false // Not used in unit testing crawling
-        public ExportUnitTestingIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
-            : this(name, workspaceKinds)
-        {
-            this.HighPriorityForActiveFile = highPriorityForActiveFile;
-        }
-#endif
     }
 }
