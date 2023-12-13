@@ -10,7 +10,7 @@ namespace Analyzer.Utilities
     /// Describes a group of modifiers for symbol declaration.
     /// </summary>
     [Flags]
-    internal enum SymbolModifiers
+    public enum SymbolModifiers
     {
         // NOTE: Below fields names are used in the .editorconfig specification
         //       for symbol modifiers analyzer option. Hence the names should *not* be modified,
