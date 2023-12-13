@@ -727,26 +727,17 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified parse options.
         /// </summary>
-        public SolutionState WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+        public (SolutionState, ProjectState) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithParseOptions(options);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            if (this.PartialSemanticsEnabled)
-            {
-                // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
-                // Since changing options is rare event, it is okay to start compilation building from scratch.
-                return ForkProject(newProject, forkTracker: false);
-            }
-            else
-            {
-                return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: true));
-            }
+            return ForkProject(newProject);
         }
 
         /// <summary>
