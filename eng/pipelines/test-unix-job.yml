@@ -47,6 +47,14 @@ jobs:
 
     - script: echo ${{ parameters.helixApiAccessToken }}
 
+    - script: echo ${{ and(and(ne(parameters.helixApiAccessToken, 'DefaultFromUnixJobYml'), ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml')), ne(parameters.helixApiAccessToken, '')) }}
+
+    - ${{ if ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml') }}:
+      - script: echo ne-DefaultFromPipelineYml
+
+    - ${{ if eq(parameters.helixApiAccessToken, 'DefaultFromPipelineYml') }}:
+      - script: echo eq-DefaultFromPipelineYml
+
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
