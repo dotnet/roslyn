@@ -236,4 +236,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectCompilationOptions"/>
+    public SolutionCompilationState WithProjectCompilationOptions(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, CompilationOptions options)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: false),
+            forkTracker: true);
+    }
 }

@@ -710,17 +710,17 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>
-        public SolutionState WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+        public (SolutionState, ProjectState) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOptions(options);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: false));
+            return ForkProject(newProject);
         }
 
         /// <summary>
