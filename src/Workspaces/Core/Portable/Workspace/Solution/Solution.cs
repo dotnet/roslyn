@@ -450,13 +450,15 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(newProjectState, newState.GetProjectDependencyGraph(), defaultN);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

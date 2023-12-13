@@ -191,4 +191,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
+    public SolutionCompilationState WithProjectDefaultNamespace(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? defaultNamespace)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }

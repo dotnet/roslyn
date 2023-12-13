@@ -645,14 +645,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the default namespace.
         /// </summary>
-        public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
+        public (SolutionState, ProjectState) WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithDefaultNamespace(defaultNamespace);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             return ForkProject(newProject);
