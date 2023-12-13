@@ -50,7 +50,7 @@ jobs:
         scriptPath: ./eng/build.sh        
         ${{ if eq(parameters.helixApiAccessToken, '') }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
-        ${{ else }}:
+        ${{ if ne(parameters.helixApiAccessToken, '') }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
       displayName: Test
       env:
