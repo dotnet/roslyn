@@ -1,5 +1,16 @@
+abstract Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandler<Request, Response>.HandleRequestAsync(Request request, Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Response>
+Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute
+Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute.MethodAttribute(string method) -> void
 Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext
 Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext.RequestContext() -> void
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandler<Request, Response>
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandler<Request, Response>.ExtensionMethodHandler() -> void
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandlerWrapper<Request, Response, THandler>.ExtensionMethodHandlerWrapper() -> void
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandlerWrapper<Request, Response, THandler>.GetTextDocumentIdentifier(Request request) -> Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandlerWrapper<Request, Response, THandler>.HandleRequestAsync(Request request, Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Response>
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandlerWrapper<Request, Response, THandler>.MutatesSolutionState.get -> bool
+Microsoft.CommonLanguageServerProtocol.Framework.ExtensionMethodHandlerWrapper<Request, Response, THandler>.RequiresLSPSolution.get -> bool
 Microsoft.CommonLanguageServerProtocol.Framework.IExtensionMethodHandler
 Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext
+Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext.GetSolution() -> Microsoft.CodeAnalysis.Solution
 Microsoft.CommonLanguageServerProtocol.Framework.SimpleRequestContext.SimpleRequestContext() -> void

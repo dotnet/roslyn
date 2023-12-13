@@ -1,0 +1,68 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+{
+    [ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionRegistrationHandler)), Shared]
+    [Method("extensions/registerExtension")]
+    internal sealed class ExtensionRegistrationHandler : ILspServiceRequestHandler<string, string>
+    {
+        public bool MutatesSolutionState => true;
+
+        public bool RequiresLSPSolution => true;
+
+        public Task<string> HandleRequestAsync(string request, RequestContext context, CancellationToken cancellationToken)
+        {
+            var externalHandlers = LoadExternalDlls(request);
+
+            // TODO: Get the IHandlerProvider & pass it the list of external handlers
+
+            return Task.FromResult("Hello from Roslyn. External handlers loaded: " + externalHandlers.Count);
+        }
+
+        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> LoadExternalDlls(string dllPath)
+        {
+            var externalAssembly = Assembly.LoadFrom(dllPath);
+
+            var implementingClasses = externalAssembly.GetTypes()
+                .Where(type => typeof(IExtensionMethodHandler).IsAssignableFrom(type) && !type.IsInterface);
+
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
+            foreach (var ic in implementingClasses)
+            {
+                var methodName = implementingClasses.First().CustomAttributes.First(a => a.AttributeType.FullName == "Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute").ConstructorArguments.First().ToString();
+                methodName = methodName.Replace("\"", "");
+
+                // THIS IS PROBABLY NOT ROBUST 
+                var types = implementingClasses.First().BaseType.GenericTypeArguments;
+                var requestType = types[0];
+                var responseType = types[1];
+
+                // Create the type and the instance of the handler from the external extension
+                var externalHandlerType = typeof(ExtensionMethodHandler<,>).MakeGenericType(types);
+                var externalHandlerInstance = Activator.CreateInstance(externalHandlerType);
+
+                // Create the type of the internal wrapper 
+                var wrapperType = typeof(ExtensionMethodHandlerWrapper<,,>).MakeGenericType(requestType, responseType, externalHandlerType);
+                var wrappedHandler = (IMethodHandler)Activator.CreateInstance(wrapperType, externalHandlerInstance);
+
+                requestHandlerDictionary.Add(new RequestHandlerMetadata(methodName, requestType, responseType), new Lazy<IMethodHandler>(() => wrappedHandler));
+            }
+
+            return requestHandlerDictionary.ToImmutable();
+        }
+    }
+}
