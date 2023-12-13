@@ -45,13 +45,15 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
+    - script: echo ${{ length(parameters.helixQueueName) }}
+
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
-        ${{ if eq(parameters.helixApiAccessToken, '') }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
         ${{ if ne(parameters.helixApiAccessToken, '') }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
+          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
+        ${{ else }}:
+          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
