@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitAwaitExpression(BoundAwaitExpression node, bool used)
         {
-            return RewriteAwaitExpression((BoundAwaitExpression)base.VisitAwaitExpression(node)!, used);
+            return RewriteAwaitExpression((BoundExpression)base.VisitAwaitExpression(node)!, used);
         }
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, BoundAwaitExpressionDebugInfo debugInfo, bool used)
@@ -28,72 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Lower an await expression that has already had its components rewritten.
         /// </summary>
-        private BoundExpression RewriteAwaitExpression(BoundAwaitExpression rewrittenAwait, bool used)
+        private BoundExpression RewriteAwaitExpression(BoundExpression rewrittenAwait, bool used)
         {
             _sawAwait = true;
-
-            if (_factory.CurrentFunction?.IsAsync2 == true)
-            {
-                BoundExpression arg = rewrittenAwait.Expression;
-                if (arg is BoundCall call && call.Method is AsyncThunkForAsync2Method thunk)
-                {
-                    // instead of calling a thunk and awaiting, call the underlying method
-                    MethodSymbol method = thunk.UnderlyingMethod;
-                    return call.Update(
-                        call.ReceiverOpt,
-                        call.InitialBindingReceiverIsSubjectToCloning,
-                        method,
-                        call.Arguments,
-                        call.ArgumentNamesOpt,
-                        call.ArgumentRefKindsOpt,
-                        call.IsDelegateCall,
-                        call.Expanded,
-                        call.InvokedAsExtensionMethod,
-                        call.ArgsToParamsOpt,
-                        call.DefaultArguments,
-                        call.ResultKind,
-                        rewrittenAwait.Type);
-                }
-                else
-                {
-                    // REWRITE: 
-                    // await arg
-                    //
-                    // == INTO ===> 
-                    //
-                    // sequence
-                    // {
-                    //   var awaiter = arg.GetAwaiter();
-                    //   if (awaiter.IsComplete())
-                    //   {
-                    //       UnsafeAwaitAwaiterFromRuntimeAsync(awaiter)
-                    //   }
-                    //   awaiter.GetResult()
-                    // }
-
-                    BoundCall getAwaiter = _factory.Call(arg, (MethodSymbol)rewrittenAwait.AwaitableInfo.GetAwaiter!.ExpressionSymbol!);
-                    BoundLocal awaiterTmp = _factory.StoreToTemp(getAwaiter, out var awaiterTempAssignment);
-
-                    BoundCall isCompleted = _factory.Call(awaiterTmp, rewrittenAwait.AwaitableInfo.IsCompleted!.GetMethod);
-
-                    MethodSymbol helperMethod = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter)!;
-                    helperMethod = helperMethod.Construct(getAwaiter.Type);
-                    BoundCall helperCall = _factory.Call(null, helperMethod, awaiterTmp);
-
-                    BoundExpression ifNotCompleteCallHelper = _factory.Conditional(isCompleted, _factory.Default(helperCall.Type), helperCall, helperCall.Type);
-
-                    MethodSymbol getResultMethod = (MethodSymbol)rewrittenAwait.AwaitableInfo.GetResult!;
-                    BoundCall getResult = _factory.Call(awaiterTmp, getResultMethod);
-
-                    return _factory.Sequence(
-                        ImmutableArray.Create(awaiterTmp.LocalSymbol),
-                        ImmutableArray.Create(
-                            awaiterTempAssignment,
-                            ifNotCompleteCallHelper),
-                        getResult);
-                }
-            }
-
             if (!used)
             {
                 // Await expression is already at the statement level.

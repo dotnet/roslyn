@@ -743,9 +743,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     try
                     {
+                        BoundStatement loweredBody = Async2Rewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod);
+
                         // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
                         IteratorStateMachine iteratorStateMachine;
-                        BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                        loweredBody = IteratorRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
                         StateMachineTypeSymbol stateMachine = iteratorStateMachine;
 
                         if (!loweredBody.HasErrors)
@@ -1495,6 +1497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return bodyWithoutLambdas;
                 }
+
+                bodyWithoutLambdas = Async2Rewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics);
 
                 BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out IteratorStateMachine iteratorStateMachine);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// True if the method signature can be rewritten to contain ref/out parameters.
             /// </summary>
             public bool CanTakeRefParameters(MethodSymbol function)
-                => !function.IsAsync && !function.IsIterator
+                => !function.IsAsyncOrAsync2 && !function.IsIterator
                     // We can't rewrite delegate signatures
                     && !MethodsConvertedToDelegates.Contains(function);
 
