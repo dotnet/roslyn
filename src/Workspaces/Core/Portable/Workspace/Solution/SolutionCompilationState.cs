@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.SolutionInfo;
 
@@ -29,7 +31,7 @@ internal partial class SolutionCompilationState
 
     private SolutionState(
         bool partialSemanticsEnabled,
-        ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap
+        ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
     {
         PartialSemanticsEnabled = partialSemanticsEnabled;
@@ -59,10 +61,46 @@ internal partial class SolutionCompilationState
             return this;
         }
 
-        return new SolutionState(
+        return new SolutionCompilationState(
             PartialSemanticsEnabled,
             projectIdToTrackerMap,
             newFrozenSourceGeneratedDocumentState);
+    }
+
+    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
+    {
+        if (_projectIdToTrackerMap.Count == 0)
+            return _projectIdToTrackerMap;
+
+        using var _ = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance(_projectIdToTrackerMap.Count, out var newTrackerInfo);
+        var allReused = true;
+        foreach (var (id, tracker) in _projectIdToTrackerMap)
+        {
+            var localTracker = tracker;
+            if (!CanReuse(id))
+            {
+                localTracker = tracker.Fork(tracker.ProjectState, translate: null);
+                allReused = false;
+            }
+
+            newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
+        }
+
+        if (allReused)
+            return _projectIdToTrackerMap;
+
+        return ImmutableDictionary.CreateRange(newTrackerInfo);
+
+        // Returns true if 'tracker' can be reused for project 'id'
+        bool CanReuse(ProjectId id)
+        {
+            if (id == changedProjectId)
+            {
+                return true;
+            }
+
+            return !dependencyGraph.DoesProjectTransitivelyDependOnProject(id, changedProjectId);
+        }
     }
 
     public SolutionCompilationState AddProject(ProjectId projectId, ProjectDependencyGraph newDependencyGraph)

@@ -1517,42 +1517,6 @@ namespace Microsoft.CodeAnalysis
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
-        {
-            if (_projectIdToTrackerMap.Count == 0)
-                return _projectIdToTrackerMap;
-
-            using var _ = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance(_projectIdToTrackerMap.Count, out var newTrackerInfo);
-            var allReused = true;
-            foreach (var (id, tracker) in _projectIdToTrackerMap)
-            {
-                var localTracker = tracker;
-                if (!CanReuse(id))
-                {
-                    localTracker = tracker.Fork(tracker.ProjectState, translate: null);
-                    allReused = false;
-                }
-
-                newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
-            }
-
-            if (allReused)
-                return _projectIdToTrackerMap;
-
-            return ImmutableDictionary.CreateRange(newTrackerInfo);
-
-            // Returns true if 'tracker' can be reused for project 'id'
-            bool CanReuse(ProjectId id)
-            {
-                if (id == changedProjectId)
-                {
-                    return true;
-                }
-
-                return !dependencyGraph.DoesProjectTransitivelyDependOnProject(id, changedProjectId);
-            }
-        }
-
         public SolutionState WithOptions(SolutionOptionSet options)
             => Branch(options: options);
 
