@@ -40,14 +40,20 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private Solution(SolutionState state)
+        private Solution(SolutionState state, SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
             _state = state;
+            _compilationState = compilationState;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences))
+        internal Solution(
+            Workspace workspace,
+            SolutionInfo.SolutionAttributes solutionAttributes,
+            SolutionOptionSet options,
+            IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                   new SolutionCompilationState(workspace.PartialSemanticsEnabled))
         {
         }
 
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal bool PartialSemanticsEnabled => _state.PartialSemanticsEnabled;
+        internal bool PartialSemanticsEnabled => _compilationState.PartialSemanticsEnabled;
 
         /// <summary>
         /// Per solution services provided by the host environment.  Use this instead of <see

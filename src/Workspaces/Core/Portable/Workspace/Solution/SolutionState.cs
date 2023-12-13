@@ -99,33 +99,27 @@ namespace Microsoft.CodeAnalysis
         private SolutionState(
             string? workspaceKind,
             int workspaceVersion,
-            bool partialSemanticsEnabled,
             SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
-            Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
-            SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
+            Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
         {
             WorkspaceKind = workspaceKind;
             WorkspaceVersion = workspaceVersion;
-            PartialSemanticsEnabled = partialSemanticsEnabled;
             _solutionAttributes = solutionAttributes;
             Services = services;
             ProjectIds = projectIds;
             Options = options;
             AnalyzerReferences = analyzerReferences;
             _projectIdToProjectStateMap = idToProjectStateMap;
-            _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
-            _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
             _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
@@ -139,7 +133,6 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState(
             string? workspaceKind,
-            bool partialSemanticsEnabled,
             SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
@@ -147,18 +140,15 @@ namespace Microsoft.CodeAnalysis
             : this(
                 workspaceKind,
                 workspaceVersion: 0,
-                partialSemanticsEnabled,
                 services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
-                lazyAnalyzers: null,
-                frozenSourceGeneratedDocument: null)
+                lazyAnalyzers: null)
         {
         }
 
