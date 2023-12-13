@@ -33,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export]
     internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
     {
-        private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private IVsRunningDocumentTable4? _runningDocumentTable;
 
         /// <summary>
         /// The list of tracked frames. This can only be written by the UI thread, although can be read (with care) from any thread.
@@ -55,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(threadingContext, assertIsForeground: false)
         {
-            _asyncServiceProvider = asyncServiceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             ThreadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
@@ -64,8 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var monitorSelectionService = (IVsMonitorSelection?)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
                 Assumes.Present(monitorSelectionService);
 
-                var runningDocumentTable = await GetRunningDocumentTableAsync(cancellationToken).ConfigureAwait(true);
-
                 // No need to track windows if we are shutting down
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -73,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (value is IVsWindowFrame windowFrame)
                     {
-                        TrackNewActiveWindowFrame(windowFrame, runningDocumentTable);
+                        TrackNewActiveWindowFrame(windowFrame);
                     }
                 }
 
@@ -146,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return ids.ToImmutableAndFree();
         }
 
-        public void TrackNewActiveWindowFrame(IVsWindowFrame frame, IVsRunningDocumentTable4 runningDocumentTable)
+        public void TrackNewActiveWindowFrame(IVsWindowFrame frame)
         {
             AssertIsForeground();
 
@@ -157,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var existingFrame = _visibleFrames.FirstOrDefault(f => f.Frame == frame);
             if (existingFrame == null)
             {
-                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame, runningDocumentTable));
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
             }
             else if (existingFrame.TextBuffer == null)
             {
@@ -165,23 +160,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Note that we do not need to disconnect the existing frame here. It will get disconnected along with
                 // the new frame whenever the document is closed or de-activated.
                 _visibleFrames = _visibleFrames.Remove(existingFrame);
-                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame, runningDocumentTable));
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
             }
 
             this.DocumentsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private async ValueTask<IVsRunningDocumentTable4> GetRunningDocumentTableAsync(CancellationToken cancellationToken)
-        {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            if (_runningDocumentTable is null)
-            {
-                _runningDocumentTable = (IVsRunningDocumentTable4?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-                Assumes.Present(_runningDocumentTable);
-            }
-
-            return _runningDocumentTable;
         }
 
         private void RemoveFrame(FrameListener frame)
@@ -218,8 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out var frameType)) &&
                     (int)frameType == (int)__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document)
                 {
-                    var runningDocumentTable = ThreadingContext.JoinableTaskFactory.Run(() => GetRunningDocumentTableAsync(ThreadingContext.DisposalToken).AsTask());
-                    TrackNewActiveWindowFrame(frame, runningDocumentTable);
+                    TrackNewActiveWindowFrame(frame);
                 }
             }
 
@@ -238,15 +219,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public readonly IVsWindowFrame Frame;
 
             private readonly VisualStudioActiveDocumentTracker _documentTracker;
-            private readonly IVsRunningDocumentTable4 _runningDocumentTable;
             private readonly uint _frameEventsCookie;
 
             internal ITextBuffer? TextBuffer { get; private set; }
 
-            public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame, IVsRunningDocumentTable4 runningDocumentTable)
+            public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame)
             {
                 _documentTracker = service;
-                _runningDocumentTable = runningDocumentTable;
 
                 _documentTracker.AssertIsForeground();
 
