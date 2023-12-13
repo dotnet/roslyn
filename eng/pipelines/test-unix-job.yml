@@ -45,7 +45,10 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    - script: echo ${{ length(parameters.helixQueueName) }}
+    - ${{ if ne(parameters.helixApiAccessToken, '') }}:
+      - script: echo "not empty" ${{ length(parameters.helixApiAccessToken) }}
+    - ${{ else }}:
+      - script: echo "empty" ${{ length(parameters.helixApiAccessToken) }}
 
     - task: ShellScript@2
       inputs:
