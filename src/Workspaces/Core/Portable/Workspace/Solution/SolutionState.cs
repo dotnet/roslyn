@@ -762,14 +762,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified runAnalyzers.
         /// </summary>
-        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        public (SolutionState, ProjectState) WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             // fork without any change on compilation.

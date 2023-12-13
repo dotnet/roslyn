@@ -282,4 +282,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithRunAnalyzers"/>
+    public SolutionCompilationState WithRunAnalyzers(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, bool runAnalyzers)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
