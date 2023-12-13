@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.SolutionInfo;
 
@@ -200,6 +201,17 @@ internal partial class SolutionCompilationState
             newProject,
             newDependencyGraph,
             translate: null,
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithProjectChecksumAlgorithm"/>
+    public SolutionCompilationState WithProjectChecksumAlgorithm(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, SourceHashAlgorithm checksumAlgorithm)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false),
             forkTracker: true);
     }
 }

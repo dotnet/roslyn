@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(newProjectState, newState.GetProjectDependencyGraph(), defaultN);
+            var newCompilationState = _compilationState.WithProjectDefaultNamespace(newProjectState, newState.GetProjectDependencyGraph(), defaultNamespace);
             return new Solution(newState, newCompilationState);
         }
 
@@ -468,13 +468,15 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectChecksumAlgorithm(newProjectState, newState.GetProjectDependencyGraph(), checksumAlgorithm);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

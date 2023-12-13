@@ -661,17 +661,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public SolutionState WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        public (SolutionState, ProjectState) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false));
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -1454,10 +1454,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private (SolutionState solutionState, ProjectState newProjectState) ForkProject(
             ProjectState newProjectState,
-            CompilationAndGeneratorDriverTranslationAction? translate = null,
             ProjectDependencyGraph? newDependencyGraph = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null,
-            bool forkTracker = true)
+            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
         {
             var projectId = newProjectState.Id;
 
@@ -1465,22 +1463,9 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
 
             newDependencyGraph ??= _dependencyGraph;
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            // If we have a tracker for this project, then fork it as well (along with the
-            // translation action and store it in the tracker map.
-            if (newTrackerMap.TryGetValue(projectId, out var tracker))
-            {
-                newTrackerMap = newTrackerMap.Remove(projectId);
-
-                if (forkTracker)
-                {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
-                }
-            }
 
             var newSolutionState = this.Branch(
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
 
