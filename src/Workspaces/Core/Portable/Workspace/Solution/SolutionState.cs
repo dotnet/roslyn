@@ -613,14 +613,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
+        public (SolutionState, ProjectState) WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputRefFilePath(outputRefFilePath);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             return ForkProject(newProject);

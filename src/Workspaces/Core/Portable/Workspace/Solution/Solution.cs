@@ -414,13 +414,15 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectOutputRefFilePath(newProjectState, newState.GetProjectDependencyGraph(), outputRefFilePath);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

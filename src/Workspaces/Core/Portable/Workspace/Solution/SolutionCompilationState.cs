@@ -169,4 +169,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectOutputRefFilePath"/>
+    public SolutionCompilationState WithProjectOutputRefFilePath(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? outputRefFilePath)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
