@@ -19,7 +19,7 @@ parameters:
   default: ''
 - name: helixApiAccessToken
   type: string
-  default: ''
+  default: 'DefaultFromUnixJobYml'
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -45,15 +45,12 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    - ${{ if ne(parameters.helixApiAccessToken, '') }}:
-      - script: echo "not empty" ${{ length(parameters.helixApiAccessToken) }}
-    - ${{ else }}:
-      - script: echo "empty" ${{ length(parameters.helixApiAccessToken) }}
+    - script: echo ${{ parameters.helixApiAccessToken }}
 
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
-        ${{ if ne(parameters.helixApiAccessToken, '') }}:
+        ${{ if and(and(ne(parameters.helixApiAccessToken, 'DefaultFromUnixJobYml'), ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml')), ne(parameters.helixApiAccessToken, '')) }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
         ${{ else }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}

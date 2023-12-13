@@ -33,7 +33,7 @@ variables:
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
   # ADO only lets us conditionally include a variable group on individual stages.
   - name: HelixApiAccessToken
-    value: ''
+    value: 'DefaultFromPipelineYml'
 
   # Set pool / queue name variables depending on which instance we're running in.
   - name: PoolName
