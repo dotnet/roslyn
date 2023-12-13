@@ -26607,5 +26607,123 @@ partial class Program
                 }
                 """);
         }
+
+        [Fact]
+        public void Spread_RuntimeEquivalentElement()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    System.IntPtr[] M1(List<nint> list)
+                    {
+                        return [..list];
+                    }
+                    
+                    List<nint> M2(System.IntPtr[] list)
+                    {
+                        return [..list];
+                    }
+                    
+                    nint[] M3(List<IntPtr> list)
+                    {
+                        return [..list];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0006:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       66 (0x42)
+                  .maxstack  5
+                  .locals init (nint[] V_0,
+                                System.Span<nint> V_1,
+                                int V_2,
+                                System.Span<nint> V_3)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  newobj     "System.Collections.Generic.List<nint>..ctor()"
+                  IL_0007:  dup
+                  IL_0008:  ldloc.0
+                  IL_0009:  ldlen
+                  IL_000a:  conv.i4
+                  IL_000b:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<nint>(System.Collections.Generic.List<nint>, int)"
+                  IL_0010:  dup
+                  IL_0011:  call       "System.Span<nint> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<nint>(System.Collections.Generic.List<nint>)"
+                  IL_0016:  stloc.1
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloca.s   V_3
+                  IL_001b:  ldloc.0
+                  IL_001c:  call       "System.Span<nint>..ctor(nint[])"
+                  IL_0021:  ldloca.s   V_3
+                  IL_0023:  ldloca.s   V_1
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloca.s   V_3
+                  IL_0028:  call       "int System.Span<nint>.Length.get"
+                  IL_002d:  call       "System.Span<nint> System.Span<nint>.Slice(int, int)"
+                  IL_0032:  call       "void System.Span<nint>.CopyTo(System.Span<nint>)"
+                  IL_0037:  ldloc.2
+                  IL_0038:  ldloca.s   V_3
+                  IL_003a:  call       "int System.Span<nint>.Length.get"
+                  IL_003f:  add
+                  IL_0040:  stloc.2
+                  IL_0041:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Spread_Array_Await()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        List<int> items = [1];
+                        int[] items1 = [..await M2(), (await M2())[0]];
+                        items1.Report();
+                    }
+
+                    static async Task<int[]> M2()
+                    {
+                        await Task.Yield();
+                        return new[] { 2 };
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: null /*IncludeExpectedOutput("[2, 1], [1, 2, 1, 2],")*/, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
+            verifier.VerifyDiagnostics();
+        }
     }
 }

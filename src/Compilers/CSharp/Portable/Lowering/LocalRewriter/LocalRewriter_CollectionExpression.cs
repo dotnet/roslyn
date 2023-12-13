@@ -531,26 +531,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray) is { } listToArrayMethod)
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
-                    return Factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
+                    return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
 
                 if (TryGetSpanConversion(spreadExpression.Type, out var asSpanMethod))
                 {
-                    var spanType = (asSpanMethod is null ? spreadExpression : CallAsSpanMethod(spreadExpression, asSpanMethod)).Type!.OriginalDefinition;
+                    var spanType = CallAsSpanMethod(spreadExpression, asSpanMethod).Type!.OriginalDefinition;
                     if ((tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray)
                             ?? tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray))
                         is { } toArrayMethod)
                     {
-                        var rewrittenSpreadExpression = VisitExpression(spreadExpression);
-                        if (asSpanMethod is not null)
-                            rewrittenSpreadExpression = CallAsSpanMethod(rewrittenSpreadExpression, asSpanMethod);
-                        return Factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
+                        var rewrittenSpreadExpression = CallAsSpanMethod(VisitExpression(spreadExpression), asSpanMethod);
+                        return _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
                     }
                 }
 
                 MethodSymbol? tryGetToArrayMethod(TypeSymbol spreadTypeOriginalDefinition, WellKnownType wellKnownType, WellKnownMember wellKnownMember)
                 {
-                    if (spreadTypeOriginalDefinition.Equals(this._compilation.GetWellKnownType(wellKnownType)))
+                    if (TypeSymbol.Equals(spreadTypeOriginalDefinition, this._compilation.GetWellKnownType(wellKnownType), TypeCompareKind.AllIgnoreOptions))
                     {
                         return _factory.WellKnownMethod(wellKnownMember, isOptional: true);
                     }
@@ -640,14 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRef: false,
                             indexTemp.Type));
                 },
-                (sideEffects, targetArray, spreadElement, rewrittenSpreadOperand) =>
+                (sideEffects, arrayTemp, spreadElement, rewrittenSpreadOperand) =>
                 {
                     if (TryPrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
 
                     if (targetSpanTemp is null)
                     {
-                        var targetSpan = TryConvertToSpanOrReadOnlySpan(targetArray);
+                        var targetSpan = TryConvertToSpanOrReadOnlySpan(arrayTemp);
                         if (targetSpan is null)
                             return false;
 
@@ -696,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && immutableArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
                 && _factory.WellKnownMethod(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan, isOptional: true) is { } immutableArrayAsSpanMethod)
             {
-                asSpanMethod = immutableArrayAsSpanMethod!.AsMember(immutableArrayType);
+                asSpanMethod = immutableArrayAsSpanMethod.AsMember(immutableArrayType);
                 return true;
             }
 
@@ -722,11 +720,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return asSpanMethod is null ? expression : CallAsSpanMethod(expression, asSpanMethod);
+            return CallAsSpanMethod(expression, asSpanMethod);
         }
 
-        private BoundExpression CallAsSpanMethod(BoundExpression spreadExpression, MethodSymbol asSpanMethod)
+        private BoundExpression CallAsSpanMethod(BoundExpression spreadExpression, MethodSymbol? asSpanMethod)
         {
+            if (asSpanMethod is null)
+            {
+                return spreadExpression;
+            }
             if (asSpanMethod is MethodSymbol { MethodKind: MethodKind.Constructor } constructor)
             {
                 return _factory.New(constructor, spreadExpression);
@@ -970,7 +972,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
                         if (conversion.IsImplicit && conversion.IsReference)
                         {
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, MakeConversionNode(rewrittenSpreadOperand, type, @checked: false, markAsChecked: true)));
+                            conversion.MarkUnderlyingConversionsCheckedRecursive();
+                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, MakeConversionNode(rewrittenSpreadOperand.Syntax, rewrittenSpreadOperand, conversion, type, @checked: false)));
                             return true;
                         }
 
@@ -1020,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numberIncludingLastSpread,
             ArrayBuilder<BoundExpression> sideEffects,
             Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression> addElement,
-            Func<ArrayBuilder<BoundExpression>, BoundExpression, BoundCollectionExpressionSpreadElement, BoundExpression, bool>? tryOptimizeSpreadElement = null)
+            Func<ArrayBuilder<BoundExpression>, BoundExpression, BoundCollectionExpressionSpreadElement, BoundExpression, bool> tryOptimizeSpreadElement)
         {
             for (int i = 0; i < elements.Length; i++)
             {
@@ -1031,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
-                    if (tryOptimizeSpreadElement?.Invoke(sideEffects, rewrittenReceiver, spreadElement, rewrittenExpression) == true)
+                    if (tryOptimizeSpreadElement.Invoke(sideEffects, rewrittenReceiver, spreadElement, rewrittenExpression))
                         continue;
 
                     var rewrittenElement = MakeCollectionExpressionSpreadElement(
