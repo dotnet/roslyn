@@ -423,7 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = new AsyncThunkForAsync2Method(calledMethod);
                 }
 
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref temps, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)
                 {
