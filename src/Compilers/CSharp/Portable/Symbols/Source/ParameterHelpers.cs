@@ -651,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
+            bool? isValidParamsCollection = null;
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -665,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (isParams && !validParamsCollection(typeWithAnnotations))
+            else if (isParams && !validParamsCollection(typeWithAnnotations, ref isValidParamsCollection))
             {
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeCollection, paramsKeyword.GetLocation());
             }
@@ -691,10 +692,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
             }
 
-            if (isParams && ordinal != lastParameterIndex)
+            if (isParams)
             {
-                // error CS0231: A params parameter must be the last parameter in a parameter list
-                diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
+                if (ordinal != lastParameterIndex)
+                {
+                    // error CS0231: A params parameter must be the last parameter in a parameter list
+                    diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
+                }
+
+                if (!typeWithAnnotations.IsSZArray() && validParamsCollection(typeWithAnnotations, ref isValidParamsCollection))
+                {
+                    MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
+                }
             }
 
             if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
@@ -702,10 +711,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }
 
-            bool validParamsCollection(TypeWithAnnotations typeWithAnnotations)
+            bool validParamsCollection(TypeWithAnnotations typeWithAnnotations, ref bool? isValidParamsCollection)
             {
+                if (isValidParamsCollection.HasValue)
+                {
+                    return isValidParamsCollection.GetValueOrDefault();
+                }
+
                 if (typeWithAnnotations.IsSZArray())
                 {
+                    isValidParamsCollection = true;
                     return true;
                 }
 
@@ -723,10 +738,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (elementType is not null)
                     {
                         // PROTOTYPE(ParamsCollections): Check accessibility of the Create method
+                        isValidParamsCollection = true;
                         return true;
                     }
                 }
 
+                isValidParamsCollection = false;
                 return false;
             }
         }

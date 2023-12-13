@@ -44,6 +44,11 @@ class Program
             System.Console.WriteLine(""{0}: {1} ... {2}"", a.Length, a[0], a[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -155,6 +160,11 @@ class Program
             System.Console.WriteLine(""{0}: {1} ... {2}"", a.Length, a[0], a[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -258,6 +268,11 @@ class Program
             System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Length, a.Array[0], a.Array[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -273,7 +288,7 @@ class Program
         }
 
         [Fact]
-        public void ImplementsIEnumerableT()
+        public void ImplementsIEnumerableT_01()
         {
             var src = """
 using System.Collections;
@@ -308,6 +323,11 @@ class Program
             System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -323,7 +343,73 @@ class Program
         }
 
         [Fact]
-        public void ImplementsIEnumerable()
+        public void ImplementsIEnumerableT_02()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public IEnumerator<string> GetEnumerator() => throw null; 
+
+    public void Add(long l) => throw null; 
+    public void Add(string l) => throw null; 
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test("2", 3);
+        Test(["2", 3]);
+        Test("2");
+        Test(["2"]);
+        Test(3);
+        Test([3]);
+
+        MyCollection x1 = ["2"];
+        MyCollection x2 = [3];
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(ParamsCollections): inconsistencies in compiler's behavior between expanded form and explicit collection expressions are concerning.
+            comp.VerifyDiagnostics(
+                // (19,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         Test("2", 3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(19, 19),
+                // (20,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2"", 3]").WithArguments("1", "collection expressions", "string").WithLocation(20, 14),
+
+                // PROTOTYPE(ParamsCollections): The next error looks unexpected
+                // (21,14): error CS0029: Cannot implicitly convert type 'string' to 'long'
+                //         Test("2");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "long").WithLocation(21, 14),
+
+                // (22,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                //         Test(["2"]);
+                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2""]").WithArguments("1", "collection expressions", "string").WithLocation(22, 14),
+                // (23,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         Test(3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("1", "int", "string").WithLocation(23, 14),
+                // (26,28): error CS0029: Cannot implicitly convert type 'string' to 'long'
+                //         MyCollection x1 = ["2"];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "long").WithLocation(26, 28)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerable_01()
         {
             var src = """
 using System.Collections;
@@ -357,6 +443,11 @@ class Program
             System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -369,6 +460,44 @@ class Program
 1: 1 ... 1
 2: 2 ... 3
 ")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerable_02()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public IEnumerator<string> GetEnumerator() => throw null; 
+    public void Add(object l) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test("2", 3);
+        Test(["2", 3]);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(ParamsCollections): inconsistencies in compiler's behavior between expanded form and explicit collection expressions are concerning.
+            comp.VerifyDiagnostics(
+                // (16,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         Test("2", 3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(16, 19)
+                );
         }
 
         [Theory]
@@ -408,6 +537,11 @@ class Program
             System.Console.WriteLine("{0}: {1} ... {2}", array.Length, array[0], array[^1]);
         }
     }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
@@ -442,6 +576,87 @@ class Program
                 //     static void Test(params IEnumerable a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 22)
                 );
+        }
+
+        [Fact]
+        public void LanguageVersion_01_Declaration()
+        {
+            var src = @"
+class Program
+{
+    static void Test1(params System.ReadOnlySpan<long> a) {}
+    static void Test2(params long[] a) {}
+
+    void Test()
+    {
+        Test1(1);
+        Test2(2);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void Test1(params System.ReadOnlySpan<long> a) {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void LanguageVersion_02_CallSite()
+        {
+            var src1 = @"
+public class Params
+{
+    static public void Test1(params System.ReadOnlySpan<long> a) {}
+    static public void Test2(params long[] a) {}
+}
+";
+            var src2 = @"
+class Program
+{
+    void Test()
+    {
+        Params.Test1(1);
+        Params.Test2(2);
+
+        Params.Test1();
+        Params.Test2();
+
+        Params.Test1([1]);
+        Params.Test2([2]);
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference comp1Ref)
+            {
+                var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+                comp2.VerifyDiagnostics(
+                    // (6,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         Params.Test1(1);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1(1)").WithArguments("params collections").WithLocation(6, 9),
+                    // (9,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         Params.Test1();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1()").WithArguments("params collections").WithLocation(9, 9)
+                    );
+            }
         }
 
         [Fact]
