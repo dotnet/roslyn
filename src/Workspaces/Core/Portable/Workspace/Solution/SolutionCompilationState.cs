@@ -68,7 +68,7 @@ internal partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
-    private SolutionState ForkProject(
+    private SolutionCompilationState ForkProject(
         ProjectState newProjectState,
         ProjectDependencyGraph newDependencyGraph,
         CompilationAndGeneratorDriverTranslationAction? translate,
@@ -156,6 +156,17 @@ internal partial class SolutionCompilationState
             newProject,
             newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithProjectOutputFilePath"/>
+    public SolutionCompilationState WithProjectOutputFilePath(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? outputFilePath)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
             forkTracker: true);
     }
 }
