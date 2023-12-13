@@ -296,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _documentTracker.AssertIsForeground();
 
                 // NB: -5055 => __VSFPROPID12.VSFPROPID_IsDocDataInitialized available in 17.9
-                if (ErrorHandler.Succeeded(Frame.GetProperty((-5055), out var boxedIsDocDataInitialized)))
+                if (ErrorHandler.Succeeded(Frame.GetProperty(-5055, out var boxedIsDocDataInitialized)))
                 {
                     if (boxedIsDocDataInitialized is not bool isDocDataInitialized)
                     {
