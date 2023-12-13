@@ -67,6 +67,33 @@ internal partial class SolutionCompilationState
             newFrozenSourceGeneratedDocumentState);
     }
 
+    /// <inheritdoc cref="SolutionState.ForkProject"/>
+    private SolutionState ForkProject(
+        ProjectState newProjectState,
+        ProjectDependencyGraph newDependencyGraph,
+        CompilationAndGeneratorDriverTranslationAction? translate,
+        //ProjectDependencyGraph? newDependencyGraph = null,
+        bool forkTracker)
+    {
+        var projectId = newProjectState.Id;
+
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+        // If we have a tracker for this project, then fork it as well (along with the
+        // translation action and store it in the tracker map.
+        if (newTrackerMap.TryGetValue(projectId, out var tracker))
+        {
+            newTrackerMap = newTrackerMap.Remove(projectId);
+
+            if (forkTracker)
+            {
+                newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
+            }
+        }
+
+        return this.Branch(
+            projectIdToTrackerMap: newTrackerMap);
+    }
+
     private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
     {
         if (_projectIdToTrackerMap.Count == 0)
@@ -119,5 +146,16 @@ internal partial class SolutionCompilationState
 
         return this.Branch(
             projectIdToTrackerMap: newTrackerMap.Remove(projectId));
+    }
+
+    /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
+    public SolutionCompilationState WithProjectAssemblyName(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string assemblyName)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
+            forkTracker: true);
     }
 }

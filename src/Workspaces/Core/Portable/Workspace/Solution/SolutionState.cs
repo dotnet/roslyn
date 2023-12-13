@@ -581,14 +581,14 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project specified updated to have the new
         /// assembly name.
         /// </summary>
-        public SolutionState WithProjectAssemblyName(ProjectId projectId, string assemblyName)
+        public (SolutionState, ProjectState) WithProjectAssemblyName(ProjectId projectId, string assemblyName)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAssemblyName(assemblyName);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName));
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis
         /// are fixed-up if the change to the new project affects its public metadata, and old
         /// dependent compilations are forgotten.
         /// </summary>
-        private SolutionState ForkProject(
+        private (SolutionState solutionState, ProjectState newProjectState) ForkProject(
             ProjectState newProjectState,
             CompilationAndGeneratorDriverTranslationAction? translate = null,
             ProjectDependencyGraph? newDependencyGraph = null,
@@ -1478,11 +1478,13 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return this.Branch(
+            var newSolutionState = this.Branch(
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
+
+            return (newSolutionState, newProjectState);
         }
 
         /// <summary>
