@@ -180,4 +180,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
+    public SolutionCompilationState WithProjectCompilationOutputInfo(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, in CompilationOutputInfo info)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
