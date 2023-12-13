@@ -780,14 +780,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
-        public SolutionState AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        public (SolutionState, ProjectState) AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
+            var oldProject = GetRequiredProjectState(projectId);
             if (projectReferences.Count == 0)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(projectReferences);
 

@@ -304,4 +304,15 @@ internal partial class SolutionCompilationState
             new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false),
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.AddProjectReferences"/>
+    public SolutionCompilationState AddProjectReferences(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, IReadOnlyCollection<ProjectReference> projectReferences)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
