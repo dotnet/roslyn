@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// <summary>
         /// Tells if accessing type of a member access expression is valid for that snippet
         /// </summary>
-        /// <param name="type">Type of right-hand side of a member access expression</param>
+        /// <param name="type">Type of right-hand side of an accessing expression</param>
         /// <param name="compilation">Current compilation instance</param>
         protected abstract bool IsValidAccessingType(ITypeSymbol type, Compilation compilation);
 
         /// <summary>
         /// Generate statement node
         /// </summary>
-        /// <param name="inlineExpression">Right-hand side of a member access expression. <see langword="null"/> if snippet is executed in normal statement context</param>
-        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression);
+        /// <param name="inlineExpressionInfo">Information about inline expression or <see langword="null"/> if snippet is executed in normal statement context</param>
+        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo);
 
         /// <summary>
         /// Tells whether the original snippet was constructed from member access expression.
@@ -54,6 +54,14 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                     return IsValidAccessingType(accessingType, semanticModel.Compilation);
             }
 
+            if (TryGetInlineExpressionInQualifiedNameEdgeCases(targetToken, syntaxFacts, out expression))
+            {
+                var speculativeAccessingType = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression).Type;
+
+                if (speculativeAccessingType is not null)
+                    return IsValidAccessingType(speculativeAccessingType, semanticModel.Compilation);
+            }
+
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
@@ -66,10 +74,26 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
 
-            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression);
-            ConstructedFromInlineExpression = inlineExpression is not null;
+            InlineExpressionInfo? inlineExpressionInfo = null;
 
-            return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
+            if (inlineExpression is null)
+            {
+                if (TryGetInlineExpressionInQualifiedNameEdgeCases(targetToken, syntaxFacts, out inlineExpression))
+                {
+                    var speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(inlineExpression.SpanStart, inlineExpression, SpeculativeBindingOption.BindAsExpression);
+                    inlineExpressionInfo = new(inlineExpression, speculativeTypeInfo);
+                }
+            }
+            else
+            {
+                var typeInfo = semanticModel.GetTypeInfo(inlineExpression, cancellationToken);
+                inlineExpressionInfo = new(inlineExpression, typeInfo);
+            }
+
+            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpressionInfo);
+            ConstructedFromInlineExpression = inlineExpressionInfo is not null;
+
+            return new TextChange(TextSpan.FromBounds(inlineExpression?.SpanStart ?? position, position), statement.ToFullString());
         }
 
         protected sealed override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
@@ -80,8 +104,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 
         private static bool TryGetInlineExpression(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
         {
-            expression = null;
-
             var parentNode = targetToken.Parent;
 
             if (syntaxFacts.IsMemberAccessExpression(parentNode) &&
@@ -91,6 +113,21 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 return true;
             }
 
+            expression = null;
+            return false;
+        }
+
+        private static bool TryGetInlineExpressionInQualifiedNameEdgeCases(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
+        {
+            var parentNode = targetToken.Parent;
+
+            if (syntaxFacts.IsQualifiedName(parentNode))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(parentNode, out expression, out _, out _);
+                return true;
+            }
+
+            expression = null;
             return false;
         }
     }
