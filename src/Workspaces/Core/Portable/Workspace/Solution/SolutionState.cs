@@ -29,7 +29,39 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
+        public bool PartialSemanticsEnabled { get; }
 
+        // Values for all these are created on demand.
+        private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
+
+        /// <summary>
+        /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
+        /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
+        /// question quickly after computing for the first one.  Created on demand.
+        /// </summary>
+        private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
+        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
+
+        private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
+
+        private SolutionState(
+            bool partialSemanticsEnabled,
+            ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap
+            SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
+        {
+            PartialSemanticsEnabled = partialSemanticsEnabled;
+            _projectIdToTrackerMap = projectIdToTrackerMap;
+            _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
+        }
+
+        public SolutionState(
+            bool partialSemanticsEnabled)
+            : this(
+                partialSemanticsEnabled,
+                projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
+                frozenSourceGeneratedDocument: null)
+        {
+        }
     }
 
     /// <summary>
@@ -45,16 +77,12 @@ namespace Microsoft.CodeAnalysis
         public string? WorkspaceKind { get; }
         public SolutionServices Services { get; }
         public SolutionOptionSet Options { get; }
-        public bool PartialSemanticsEnabled { get; }
         public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
-
-        // Values for all these are created on demand.
-        private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
         // Checksums for this solution state
         private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
@@ -67,16 +95,6 @@ namespace Microsoft.CodeAnalysis
 
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
-
-        /// <summary>
-        /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
-        /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
-        /// question quickly after computing for the first one.  Created on demand.
-        /// </summary>
-        private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
-        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
-
-        private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
             string? workspaceKind,
