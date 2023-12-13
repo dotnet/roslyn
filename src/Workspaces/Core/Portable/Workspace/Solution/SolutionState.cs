@@ -27,6 +27,11 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal partial class SolutionCompilationState
+    {
+
+    }
+
     /// <summary>
     /// Represents a set of projects and their source code documents.
     ///
