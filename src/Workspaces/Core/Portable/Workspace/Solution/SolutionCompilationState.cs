@@ -215,11 +215,20 @@ internal partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <summary>
-    /// Creates a new solution instance with the project specified updated to have the name.
-    /// </summary>
+    /// <inheritdoc cref="SolutionState.WithProjectName"/>
     public SolutionCompilationState WithProjectName(
         ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string name)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithProjectFilePath"/>
+    public SolutionCompilationState WithProjectFilePath(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? filePath)
     {
         return ForkProject(
             newProject,
