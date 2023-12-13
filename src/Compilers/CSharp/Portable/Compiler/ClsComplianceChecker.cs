@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _filterTree; //if not null, limit analysis to types residing in this tree
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
+        private readonly Predicate<ISymbolInternal> _symbolFilter;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
 
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxTree filterTree,
             TextSpan? filterSpanWithinTree,
+            Predicate<ISymbolInternal> symbolFilter,
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
@@ -46,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _filterTree = filterTree;
             _filterSpanWithinTree = filterSpanWithinTree;
+            _symbolFilter = symbolFilter;
             _diagnostics = diagnostics;
             _cancellationToken = cancellationToken;
 
@@ -70,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null, Predicate<ISymbolInternal> symbolFilter = null)
         {
             var queue = diagnostics.AccumulatesDependencies ? BindingDiagnosticBag.GetConcurrentInstance() : BindingDiagnosticBag.GetInstance(withDiagnostics: diagnostics.AccumulatesDiagnostics, withDependencies: false);
-            var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
+            var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, symbolFilter, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
 
@@ -967,7 +971,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: There's no public equivalent of Symbol.DeclaringCompilation.
             return symbol.DeclaringCompilation != _compilation ||
                 symbol.IsImplicitlyDeclared ||
-                IsSyntacticallyFilteredOut(symbol);
+                IsSyntacticallyFilteredOut(symbol) ||
+                _symbolFilter?.Invoke(symbol) == false;
         }
 
         private bool IsSyntacticallyFilteredOut(Symbol symbol)

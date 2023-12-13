@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -345,8 +347,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<ISymbolInternal> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();

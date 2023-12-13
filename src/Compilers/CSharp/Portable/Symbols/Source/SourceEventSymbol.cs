@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Linq;
+using System;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -73,8 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             _state.DefaultForceComplete(this, cancellationToken);
         }
 

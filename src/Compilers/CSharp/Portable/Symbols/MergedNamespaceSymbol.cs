@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -119,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<ISymbolInternal> filter, CancellationToken cancellationToken)
         {
             foreach (var part in _namespacesToMerge)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                part.ForceComplete(locationOpt, cancellationToken);
+                part.ForceComplete(locationOpt, filter, cancellationToken);
             }
         }
 

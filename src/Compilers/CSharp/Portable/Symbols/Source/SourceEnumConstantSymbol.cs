@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -98,8 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -135,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private sealed class ZeroValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {

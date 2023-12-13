@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -221,7 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.MembersCompleted:
-                        this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
+                        this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the namespace members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the namespace members should be completed");
                             return;
                         }
 
@@ -294,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
