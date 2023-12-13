@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis
             return ToReadOnlyCore<TDiagnostic>(oldBag, forceResolution);
         }
 
-        public ImmutableArray<Diagnostic> ToReadOnlyAndFree(bool forceResolution = true)
+        public ImmutableArray<Diagnostic> ToReadOnlyAndFree()
         {
-            return ToReadOnlyAndFree<Diagnostic>(forceResolution);
+            return ToReadOnlyAndFree<Diagnostic>();
         }
 
         public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>(bool forceResolution = true) where TDiagnostic : Diagnostic
