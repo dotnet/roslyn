@@ -2312,6 +2312,11 @@
         <target state="translated">Musterabgleich ReadOnly/Span&lt;char&gt; bei konstanter Zeichenfolge</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2345,6 +2350,11 @@
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
         <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="new">{0} is not a valid C# spread operation</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2628,13 +2638,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Das Sprachfeature "Inlinearrays" wird für Inlinearraytypen mit Einem Elementfeld, das entweder ein ref-Feld ist oder einen Typ aufweist, der als Typargument ungültig ist, nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

@@ -3030,10 +3030,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var localFunc = node.Symbol;
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
-            // The starting state is the top state, but with captured
-            // variables set according to Joining the state at all the
-            // local function use sites
+
+            // The starting state (`state`) is the top state ("maybe null").
             var state = TopState();
+
+            // Captured variables are joined with the state
+            // at all the local function use sites (`localFunctionState.StartingState`)
+            // which starts as the bottom state ("not null").
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
                 (slot, variables) =>
@@ -3045,6 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 },
                 _variables);
+
             localFunctionState.Visited = true;
 
             AnalyzeLocalFunctionOrLambda(
@@ -3491,9 +3495,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
-                        var collectionType = initializer.AddMethod.ContainingType;
-
-                        var completion = VisitCollectionElementInitializer(initializer, collectionType,
+                        Debug.Assert(node.Placeholder is { });
+                        var completion = VisitCollectionElementInitializer(
+                            initializer,
+                            containingType: node.Placeholder.Type,
                             delayCompletionForType: false /* All collection expressions are target-typed */);
 
                         Debug.Assert(completion is null);
@@ -12094,7 +12099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.UnreachableState(variables));
+            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>

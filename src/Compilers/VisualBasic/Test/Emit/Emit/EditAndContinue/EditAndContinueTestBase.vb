@@ -56,8 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             kind As SemanticEditKind,
             symbolProvider As Func(Of Compilation, ISymbol),
             Optional newSymbolProvider As Func(Of Compilation, ISymbol) = Nothing,
+            Optional rudeEdits As Func(Of SyntaxNode, RuntimeRudeEdit?) = Nothing,
             Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
-            Return New SemanticEditDescription(kind, symbolProvider, newSymbolProvider, preserveLocalVariables)
+            Return New SemanticEditDescription(kind, symbolProvider, newSymbolProvider, rudeEdits, preserveLocalVariables)
         End Function
 
         Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
