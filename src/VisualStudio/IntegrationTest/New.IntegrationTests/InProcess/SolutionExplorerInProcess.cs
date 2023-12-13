@@ -567,7 +567,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             projectItem.Name = newFileName;
         }
 
-        public async Task<EnvDTE.ProjectItem> GetProjectItemAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        private async Task<EnvDTE.ProjectItem> GetProjectItemAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
