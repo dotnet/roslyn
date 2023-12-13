@@ -491,13 +491,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newState = _state.WithProjectName(projectId, name);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.WithProjectName(projectId, name);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectName(newProjectState, newState.GetProjectDependencyGraph(), name);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

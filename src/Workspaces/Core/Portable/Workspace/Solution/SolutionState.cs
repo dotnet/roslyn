@@ -677,14 +677,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public SolutionState WithProjectName(ProjectId projectId, string name)
+        public (SolutionState, ProjectState) WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithName(name);
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             return ForkProject(newProject);

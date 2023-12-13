@@ -214,4 +214,17 @@ internal partial class SolutionCompilationState
             new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false),
             forkTracker: true);
     }
+
+    /// <summary>
+    /// Creates a new solution instance with the project specified updated to have the name.
+    /// </summary>
+    public SolutionCompilationState WithProjectName(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string name)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
