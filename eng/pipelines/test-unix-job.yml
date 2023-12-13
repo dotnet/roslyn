@@ -19,7 +19,7 @@ parameters:
   default: ''
 - name: helixApiAccessToken
   type: string
-  default: 'DefaultFromUnixJobYml'
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -46,19 +46,24 @@ jobs:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
     - script: echo ${{ parameters.helixApiAccessToken }}
+      displayName: echo token
 
-    - script: echo ${{ and(and(ne(parameters.helixApiAccessToken, 'DefaultFromUnixJobYml'), ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml')), ne(parameters.helixApiAccessToken, '')) }}
+    - script: echo ${{ ne(parameters.helixApiAccessToken, '') }}
+      displayName: echo ne token
 
-    - ${{ if ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml') }}:
-      - script: echo ne-DefaultFromPipelineYml
+    - script: echo ${{ eq(parameters.helixApiAccessToken, '') }}
+      displayName: echo eq token
 
-    - ${{ if eq(parameters.helixApiAccessToken, 'DefaultFromPipelineYml') }}:
-      - script: echo eq-DefaultFromPipelineYml
+    - ${{ if ne(parameters.helixApiAccessToken, '') }}:
+      - script: echo ne-empty ${{ parameters.helixApiAccessToken }}
+
+    - ${{ if eq(parameters.helixApiAccessToken, '') }}:
+      - script: echo eq-empty ${{ parameters.helixApiAccessToken }}
 
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
-        ${{ if and(and(ne(parameters.helixApiAccessToken, 'DefaultFromUnixJobYml'), ne(parameters.helixApiAccessToken, 'DefaultFromPipelineYml')), ne(parameters.helixApiAccessToken, '')) }}:
+        ${{ if ne(parameters.helixApiAccessToken, '') }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
         ${{ else }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
