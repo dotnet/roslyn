@@ -432,14 +432,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(newStateMap[projectId]));
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
         }
@@ -478,7 +476,7 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = new ProjectState(languageServices, projectInfo);
 
-            return this.AddProject(newProject.Id, newProject);
+            return this.AddProject(newProject);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -523,14 +521,12 @@ namespace Microsoft.CodeAnalysis
             var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(_projectIdToProjectStateMap[projectId]));
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap.Remove(projectId),
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
         }

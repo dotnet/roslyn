@@ -356,12 +356,13 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveProject(ProjectId projectId)
         {
             var newState = _state.RemoveProject(projectId);
-            if (newState == _state)
+            var newCompilationState = _compilationState.RemoveProject(projectId, newState.GetProjectDependencyGraph());
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

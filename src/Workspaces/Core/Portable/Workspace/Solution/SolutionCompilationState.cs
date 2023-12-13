@@ -103,11 +103,21 @@ internal partial class SolutionCompilationState
         }
     }
 
+    /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
     public SolutionCompilationState AddProject(ProjectId projectId, ProjectDependencyGraph newDependencyGraph)
     {
         var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
 
         return Branch(
             projectIdToTrackerMap: newTrackerMap);
+    }
+
+    /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
+    public SolutionCompilationState RemoveProject(ProjectId projectId, ProjectDependencyGraph newDependencyGraph)
+    {
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+
+        return this.Branch(
+            projectIdToTrackerMap: newTrackerMap.Remove(projectId));
     }
 }
