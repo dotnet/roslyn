@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        public (SolutionState, ProjectState) WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
             var oldProject = GetRequiredProjectState(projectId);
 
@@ -879,10 +879,10 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false));
+            return ForkProject(newProject);
         }
 
         /// <summary>

@@ -293,4 +293,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
+    public SolutionCompilationState WithProjectDocumentsOrder(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableList<DocumentId> documentIds)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false),
+            forkTracker: true);
+    }
 }

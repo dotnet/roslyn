@@ -626,13 +626,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(documentIds));
             }
 
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectDocumentsOrder(newProjectState, newState.GetProjectDependencyGraph(), documentIds);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>
