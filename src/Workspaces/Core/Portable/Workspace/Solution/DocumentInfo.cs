@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -154,9 +151,9 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             string? filePath,
             bool isGenerated,
-            bool designTimeOnly) : IObjectWritable
+            bool designTimeOnly)
         {
-            private Checksum? _lazyChecksum;
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The Id of the document.
@@ -231,8 +228,6 @@ namespace Microsoft.CodeAnalysis
             public string SyntaxTreeFilePath
                 => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -260,7 +255,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }

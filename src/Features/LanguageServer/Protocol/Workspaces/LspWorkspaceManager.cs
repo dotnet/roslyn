@@ -213,7 +213,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<(Workspace?, Solution?, Document?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<(Workspace?, Solution?, TextDocument?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         // Get the LSP view of all the workspace solutions.
         var uri = textDocumentIdentifier.Uri;
@@ -222,10 +222,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetDocuments(textDocumentIdentifier.Uri);
+            var documents = lspSolution.GetTextDocuments(textDocumentIdentifier.Uri);
             if (documents.Any())
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
+                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
@@ -378,7 +378,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Given a set of documents from the workspace current solution, verify that the LSP text is the same as the document contents.
     /// </summary>
-    private async Task<bool> DoesAllTextMatchWorkspaceSolutionAsync(ImmutableDictionary<Uri, ImmutableArray<Document>> documentsInWorkspace, CancellationToken cancellationToken)
+    private async Task<bool> DoesAllTextMatchWorkspaceSolutionAsync(ImmutableDictionary<Uri, ImmutableArray<TextDocument>> documentsInWorkspace, CancellationToken cancellationToken)
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
@@ -396,13 +396,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         return true;
     }
 
-    private static async ValueTask<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
+    private static async ValueTask<bool> AreChecksumsEqualAsync(TextDocument document, SourceText lspText, CancellationToken cancellationToken)
     {
         var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         if (documentText == lspText)
             return true;
 
-        return lspText.GetChecksum().AsSpan().SequenceEqual(documentText.GetChecksum().AsSpan());
+        return lspText.GetContentHash().AsSpan().SequenceEqual(documentText.GetContentHash().AsSpan());
     }
 
     #endregion
@@ -410,12 +410,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Using the workspace's current solutions, find the matching documents in for each URI.
     /// </summary>
-    private static ImmutableDictionary<Uri, ImmutableArray<Document>> GetDocumentsForUris(ImmutableArray<Uri> trackedDocuments, Solution workspaceCurrentSolution)
+    private static ImmutableDictionary<Uri, ImmutableArray<TextDocument>> GetDocumentsForUris(ImmutableArray<Uri> trackedDocuments, Solution workspaceCurrentSolution)
     {
-        using var _ = PooledDictionary<Uri, ImmutableArray<Document>>.GetInstance(out var documentsInSolution);
+        using var _ = PooledDictionary<Uri, ImmutableArray<TextDocument>>.GetInstance(out var documentsInSolution);
         foreach (var trackedDoc in trackedDocuments)
         {
-            var documents = workspaceCurrentSolution.GetDocuments(trackedDoc);
+            var documents = workspaceCurrentSolution.GetTextDocuments(trackedDoc);
             if (documents.Any())
             {
                 documentsInSolution[trackedDoc] = documents;

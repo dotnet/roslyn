@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">Cette version de « {0} » ne peut pas être utilisée avec des expressions de collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -560,11 +560,6 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' ne peut pas démarrer d'instruction.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Mise à jour impossible, car un type délégué déduit a changé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -959,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">La méthode '{0}' ne doit pas être générique pour correspondre à '{1}'.</target>
+        <target state="translated">La méthode « {0} » doit être non générique pour correspondre à « {1} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -1862,6 +1857,11 @@
         <target state="translated">Un modèle de déconstruction d'un seul élément nécessite une autre syntaxe pour la désambiguïsation. Il est recommandé d'ajouter un désignateur d'abandon '_' après la parenthèse de fermeture ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">Le membre d'enregistrement '{0}' ne peut pas être static.</target>
@@ -2312,6 +2312,11 @@
         <target state="translated">modèle correspondant à ReadOnly/Span&lt;char&gt; sur une chaîne constante</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;manquant&gt;</target>
@@ -2345,6 +2350,11 @@
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
         <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="new">{0} is not a valid C# spread operation</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2628,13 +2638,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

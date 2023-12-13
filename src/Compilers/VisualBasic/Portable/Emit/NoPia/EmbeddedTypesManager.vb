@@ -418,7 +418,7 @@ checksForAllEmbedabbleTypes:
                     ' ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
                     ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, Me)
                 Case Else
-                    If Cci.Extensions.HasBody(embedded) Then
+                    If embedded.HasBody Then
                         ' ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
                         ReportDiagnostic(diagnostics, ERRID.ERR_InteropMethodWithBody1, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat))
                     End If

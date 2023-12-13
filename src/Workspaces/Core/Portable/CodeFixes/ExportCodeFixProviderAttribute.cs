@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ExportCodeFixProviderAttribute : ExportAttribute
     {
-        private static readonly string[] s_defaultDocumentKinds = new[] { nameof(TextDocumentKind.Document) };
+        private static readonly string[] s_defaultDocumentKinds = [nameof(TextDocumentKind.Document)];
         private static readonly string[] s_documentKindNames = Enum.GetNames(typeof(TextDocumentKind));
 
         private string[] _documentKinds;

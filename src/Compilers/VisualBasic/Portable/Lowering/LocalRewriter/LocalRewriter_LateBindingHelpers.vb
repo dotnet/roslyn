@@ -879,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             argument = argumentWithCapture.OriginalArgument
                         End If
 
-                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, temps)
+                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, isForRegularCompoundAssignment:=False, temps)
 
                         If argument.IsPropertyOrXmlPropertyAccess Then
                             argument = useTwice.First.SetAccessKind(PropertyAccessKind.Get)

@@ -7,22 +7,18 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
@@ -351,7 +347,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -885,11 +881,11 @@ class A
             if (isSourceGenerated)
             {
                 files = Array.Empty<string>();
-                sourceGeneratedFiles = new[] { code };
+                sourceGeneratedFiles = [code];
             }
             else
             {
-                files = new[] { code };
+                files = [code];
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 
@@ -1239,11 +1235,11 @@ class A
             Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
         }
 
-        [Theory]
+        [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909806")]
         [CombinatorialData]
-        internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis)
+        internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
-            using var workspace = TestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = TestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 
             var generator = new DiagnosticProducingGenerator(c => Location.Create(c.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
@@ -1252,13 +1248,12 @@ class A
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
 
-            if (fullSolutionAnalysis)
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp,
+                fullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles);
+
+            // If we aren't testing FSA or analyzing document diagnostics, then open the file.
+            if (!fullSolutionAnalysis || !analyzeProject)
             {
-                globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
-            }
-            else
-            {
-                // If we aren't testing FSA, then open the file.
                 workspace.OpenDocument(document.Id);
             }
 
@@ -1280,7 +1275,10 @@ class A
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+            if (analyzeProject)
+                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+            else
+                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 

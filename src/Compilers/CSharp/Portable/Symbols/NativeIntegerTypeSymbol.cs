@@ -289,6 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;
@@ -383,6 +389,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 #endif 
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol

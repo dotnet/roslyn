@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
                     additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                     additionalDiagnostic.Range = GetRange(location);
-                    additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
+                    additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
                     diagnosticsBuilder.Add(additionalDiagnostic);
                 }
 
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
             else
             {
-                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : new DiagnosticTag[] { DiagnosticTag.Unnecessary };
+                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : [DiagnosticTag.Unnecessary];
                 var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
                 {
                     Location = new LSP.Location
@@ -410,14 +410,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     diagnostic.DiagnosticType = diagnosticData.Category;
                     diagnostic.ExpandedMessage = diagnosticData.Description;
-                    diagnostic.Projects = new[]
-                    {
+                    diagnostic.Projects =
+                    [
                         new VSDiagnosticProjectInformation
                         {
                             ProjectIdentifier = project.Id.Id.ToString(),
                             ProjectName = project.Name,
                         },
-                    };
+                    ];
 
                     // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
                     // to be merged from separate projects if they have the same code, filepath, range, and message.
