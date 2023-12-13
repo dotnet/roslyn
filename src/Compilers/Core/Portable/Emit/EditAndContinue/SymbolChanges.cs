@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// A set of symbols, from the old compilation, that have been deleted from the new compilation
-        /// keyed by the containing type from the new compilation.
+        /// keyed by the containing type from the new compilation
         /// Populated based on semantic edits with <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
         public readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
