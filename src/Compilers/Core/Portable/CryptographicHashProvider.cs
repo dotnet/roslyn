@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(constant.Discriminator);
-                };
+                }
 
                 static byte[] getBytes(uint value)
                 {
