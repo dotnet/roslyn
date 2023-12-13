@@ -589,8 +589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property CanBeReferencedByName As Boolean
             Get
                 Select Case Me.Kind
-                    Case SymbolKind.Local,
-                         SymbolKind.Label,
+                    Case SymbolKind.Local
+                        Return If(Me.Name?.Length, 0) > 0
+
+                    Case SymbolKind.Label,
                          SymbolKind.Alias
                         ' Can't be imported, but might have syntax errors in which case we use an empty name:
                         Return Me.Name.Length > 0
