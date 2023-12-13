@@ -923,48 +923,30 @@ class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", """
                 {
-                  // Code size       32 (0x20)
+                  // Code size       20 (0x14)
                   .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4     0x7fffffff
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  call       "int int?.GetValueOrDefault()"
-                  IL_000f:  ldloc.1
-                  IL_0010:  ceq
-                  IL_0012:  ldloca.s   V_0
-                  IL_0014:  call       "bool int?.HasValue.get"
-                  IL_0019:  and
-                  IL_001a:  call       "void C.Write(bool)"
-                  IL_001f:  ret
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "int int?.GetValueOrDefault()"
+                  IL_0007:  ldc.i4     0x7fffffff
+                  IL_000c:  ceq
+                  IL_000e:  call       "void C.Write(bool)"
+                  IL_0013:  ret
                 }
                 """);
             verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", """
                 {
-                  // Code size       34 (0x22)
+                  // Code size       22 (0x16)
                   .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1)
                   IL_0000:  nop
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldc.i4     0x7fffffff
-                  IL_0008:  stloc.1
-                  IL_0009:  ldloca.s   V_0
-                  IL_000b:  call       "int int?.GetValueOrDefault()"
-                  IL_0010:  ldloc.1
-                  IL_0011:  ceq
-                  IL_0013:  ldloca.s   V_0
-                  IL_0015:  call       "bool int?.HasValue.get"
-                  IL_001a:  and
-                  IL_001b:  call       "void C.Write(bool)"
-                  IL_0020:  nop
-                  IL_0021:  ret
+                  IL_0001:  ldarga.s   V_0
+                  IL_0003:  call       "int int?.GetValueOrDefault()"
+                  IL_0008:  ldc.i4     0x7fffffff
+                  IL_000d:  ceq
+                  IL_000f:  call       "void C.Write(bool)"
+                  IL_0014:  nop
+                  IL_0015:  ret
                 }
                 """);
         }
