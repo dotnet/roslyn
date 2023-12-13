@@ -954,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">Yöntem '{0}' eşleşmesi için genel olmayan '{1}'.</target>
+        <target state="translated">'{0}' yönteminin '{1}' ile eşleşmesi için genel olmaması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
