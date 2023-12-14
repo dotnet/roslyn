@@ -1351,7 +1351,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
         }
 
-        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 

@@ -1680,6 +1680,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
+
             var newCompilationState = _compilationState.WithDocumentSourceCodeKind(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, sourceCodeKind);
             return new Solution(newState, newCompilationState);
 
@@ -1703,13 +1704,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
+            var (newState, oldProjectState, newProjectState) = _state.UpdateDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.UpdateDocumentTextLoader(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, loader, mode);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>
