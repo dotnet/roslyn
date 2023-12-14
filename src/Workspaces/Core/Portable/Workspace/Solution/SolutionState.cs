@@ -1276,12 +1276,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));

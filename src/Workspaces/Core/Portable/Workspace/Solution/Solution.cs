@@ -1601,13 +1601,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
+            var (newState, newProjectState) = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithAnalyzerConfigDocumentText(newProjectState, newState.GetProjectDependencyGraph(), documentId, textAndVersion, mode);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

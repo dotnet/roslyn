@@ -485,6 +485,14 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
+    public SolutionCompilationState WithAnalyzerConfigDocumentText(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
+    {
+        return UpdateAnalyzerConfigDocumentState(
+            newProject, newDependencyGraph);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {
