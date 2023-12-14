@@ -1883,14 +1883,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithOptions(SolutionOptionSet options)
         {
-            var newState = _state.WithOptions(options: options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            // Workspace options don't change the compilation state at all, so we can just transfer the old compilation state over.
-            return new Solution(newState, _compilationState);
+            var newCompilationState = _compilationState.Branch(_state.WithOptions(options: options));
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         private void CheckContainsProject(ProjectId projectId)
