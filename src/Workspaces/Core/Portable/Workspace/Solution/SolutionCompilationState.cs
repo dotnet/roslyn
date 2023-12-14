@@ -1118,6 +1118,24 @@ internal sealed partial class SolutionCompilationState
             });
     }
 
+    public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+    {
+        return RemoveDocumentsFromMultipleProjects(documentIds,
+            (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
+            (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+    }
+
+    public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+    {
+        return RemoveDocumentsFromMultipleProjects(documentIds,
+            (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
+            (oldProject, documentIds, _) =>
+            {
+                var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
+                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+            });
+    }
+
     /// <summary>
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>

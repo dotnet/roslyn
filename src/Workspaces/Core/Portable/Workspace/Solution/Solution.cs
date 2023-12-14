@@ -1158,10 +1158,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newCompilationState = _compilationState.RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
-
+            var newCompilationState = _compilationState.RemoveDocuments(documentIds);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1185,10 +1182,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newCompilationState = _compilationState.RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
-
+            var newCompilationState = _compilationState.RemoveDocuments(documentIds);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1212,14 +1206,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newCompilationState = _compilationState.RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-                (oldProject, documentIds, _) =>
-                {
-                    var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-                });
-
+            var newCompilationState = _compilationState.RemoveAnalyzerConfigDocuments(documentIds);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
