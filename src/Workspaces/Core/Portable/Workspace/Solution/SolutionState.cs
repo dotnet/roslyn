@@ -296,47 +296,6 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
-        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
-        {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    var projectState = GetProjectState(documentId.ProjectId);
-                    if (projectState != null)
-                    {
-                        var document = projectState.DocumentStates.GetState(documentId);
-                        if (document != null)
-                        {
-                            // does this document really have the syntax tree?
-                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                            {
-                                return document;
-                            }
-                        }
-                        else
-                        {
-                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-
-                            if (generatedDocument != null)
-                            {
-                                // does this document really have the syntax tree?
-                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                                {
-                                    return generatedDocument;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public ProjectState? GetProjectState(ProjectId projectId)
         {
             _projectIdToProjectStateMap.TryGetValue(projectId, out var state);
