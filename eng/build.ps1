@@ -794,10 +794,6 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if ($ci) {
-    Stop-Processes
-  }
-
   Unsubst-TempDir
   Pop-Location
 }
