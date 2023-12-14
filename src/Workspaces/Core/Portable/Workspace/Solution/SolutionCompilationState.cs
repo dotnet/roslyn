@@ -769,4 +769,13 @@ internal partial class SolutionCompilationState
 
         return state.GetPartialMetadataReference(fromProject, projectReference);
     }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(SolutionCompilationState solutionState)
+    {
+        public GeneratorDriver? GetGeneratorDriver(Project project)
+            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+    }
 }

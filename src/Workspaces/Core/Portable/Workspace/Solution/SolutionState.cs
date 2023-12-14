@@ -1630,15 +1630,5 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
-
-        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
-
-        internal readonly struct TestAccessor(SolutionState solutionState)
-        {
-            public GeneratorDriver? GetGeneratorDriver(Project project)
-            {
-                return project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
-            }
-        }
     }
 }
