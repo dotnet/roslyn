@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
         internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
-            => _state.GetOriginatingProjectId(symbol);
+            => _compilationState.GetOriginatingProjectId(_state, symbol);
 
         /// <inheritdoc cref="GetOriginatingProjectId"/>
         internal Project? GetOriginatingProject(ISymbol symbol)
