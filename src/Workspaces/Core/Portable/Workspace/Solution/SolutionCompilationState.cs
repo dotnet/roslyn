@@ -73,7 +73,7 @@ internal partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
-    private SolutionCompilationState ForkProject(
+    public SolutionCompilationState ForkProject(
         ProjectState newProjectState,
         ProjectDependencyGraph newDependencyGraph,
         CompilationAndGeneratorDriverTranslationAction? translate,
@@ -588,5 +588,16 @@ internal partial class SolutionCompilationState
                 ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true)
                 : null,
             forkTracker: true);
+    }
+
+    /// <summary>
+    /// Create a new solution instance with the corresponding projects updated to include new
+    /// documents defined by the document info.
+    /// </summary>
+    public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+    {
+        return AddDocumentsToMultipleProjects(documentInfos,
+            (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
+            (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
     }
 }

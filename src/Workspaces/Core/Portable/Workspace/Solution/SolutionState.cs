@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
@@ -996,58 +996,6 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
         }
 
-        /// <summary>
-        /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
-        /// </summary>
-        /// <param name="documentInfos">The set of documents to add.</param>
-        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
-        /// <returns></returns>
-        private SolutionState AddDocumentsToMultipleProjects<T>(
-            ImmutableArray<DocumentInfo> documentInfos,
-            Func<DocumentInfo, ProjectState, T> createDocumentState,
-            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
-            where T : TextDocumentState
-        {
-            if (documentInfos.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(documentInfos));
-            }
-
-            if (documentInfos.IsEmpty)
-            {
-                return this;
-            }
-
-            // The documents might be contributing to multiple different projects; split them by project and then we'll process
-            // project-at-a-time.
-            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
-
-            var newSolutionState = this;
-
-            foreach (var documentInfosInProject in documentInfosByProjectId)
-            {
-                CheckContainsProject(documentInfosInProject.Key);
-                var oldProjectState = this.GetProjectState(documentInfosInProject.Key)!;
-
-                var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
-
-                foreach (var documentInfo in documentInfosInProject)
-                {
-                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
-                }
-
-                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
-
-                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
-
-                newSolutionState = newSolutionState.ForkProject(newProjectState,
-                    compilationTranslationAction,
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
-            }
-
-            return newSolutionState;
-        }
-
         public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
@@ -1429,7 +1377,7 @@ namespace Microsoft.CodeAnalysis
         /// are fixed-up if the change to the new project affects its public metadata, and old
         /// dependent compilations are forgotten.
         /// </summary>
-        private (SolutionState solutionState, ProjectState newProjectState) ForkProject(
+        public (SolutionState solutionState, ProjectState newProjectState) ForkProject(
             ProjectState newProjectState,
             ProjectDependencyGraph? newDependencyGraph = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
