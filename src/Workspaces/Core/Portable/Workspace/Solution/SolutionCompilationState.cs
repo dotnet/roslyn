@@ -565,10 +565,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithAdditionalDocumentText(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
     {
         return UpdateAdditionalDocumentState(
-            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+            tuple, documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
