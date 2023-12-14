@@ -665,14 +665,14 @@ internal partial class SolutionCompilationState
         return tracker;
     }
 
-    public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
+    public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
+        => this.GetCompilationTracker(projectId).GetDependentVersionAsync(solution, this, cancellationToken);
 
-    public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
+    public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
+        => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(solution, this, cancellationToken);
 
-    public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
+    public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
+        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(solution, cancellationToken);
 
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {

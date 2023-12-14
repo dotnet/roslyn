@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             ICompilationTracker FreezePartialStateWithTree(SolutionState solution, SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-            Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken);
-            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
             Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
 
             MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);

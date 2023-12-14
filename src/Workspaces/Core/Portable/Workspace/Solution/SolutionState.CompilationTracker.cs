@@ -267,13 +267,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Tries to get the latest snapshot of the compilation without waiting for it to be
-            /// fully built. This method takes advantage of the progress side-effect produced during
-            /// <see cref="BuildCompilationInfoAsync(SolutionState, CancellationToken)"/>.
-            /// It will either return the already built compilation, any
-            /// in-progress compilation or any known old compilation in that order of preference.
-            /// The compilation state that is returned will have a compilation that is retained so
-            /// that it cannot disappear.
+            /// Tries to get the latest snapshot of the compilation without waiting for it to be fully built. This
+            /// method takes advantage of the progress side-effect produced during <see
+            /// cref="BuildCompilationInfoAsync"/>. It will either return the already built compilation, any in-progress
+            /// compilation or any known old compilation in that order of preference. The compilation state that is
+            /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
             private void GetPartialCompilationState(
                 SolutionState solution,
@@ -1058,13 +1056,17 @@ namespace Microsoft.CodeAnalysis
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
             private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
-            public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentVersionAsync(
+                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentVersion == null)
                 {
-                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(c => ComputeDependentVersionAsync(tmp, c)), null);
+                    var solutionCapture = solution;
+                    var compilationStateCapture = compilationState;
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(
+                        c => ComputeDependentVersionAsync(solutionCapture, compilationStateCapture, c)), null);
                 }
 
                 return _lazyDependentVersion.GetValueAsync(cancellationToken);
@@ -1084,7 +1086,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (solution.ContainsProject(dependentProjectReference.ProjectId))
                     {
-                        var dependentProjectVersion = await compilationState.GetDependentVersionAsync(dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                        var dependentProjectVersion = await compilationState.GetDependentVersionAsync(solution, dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
                         version = dependentProjectVersion.GetNewerVersion(version);
                     }
                 }
@@ -1092,13 +1094,17 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(
+                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentSemanticVersion == null)
                 {
-                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(c => ComputeDependentSemanticVersionAsync(tmp, c)), null);
+                    var solutionCapture = solution;
+                    var compilationStateCapture = compilationState;
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(
+                        c => ComputeDependentSemanticVersionAsync(solutionCapture, compilationStateCapture, c)), null);
                 }
 
                 return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
@@ -1116,7 +1122,8 @@ namespace Microsoft.CodeAnalysis
 
                     if (solution.ContainsProject(dependentProjectReference.ProjectId))
                     {
-                        var dependentProjectVersion = await compilationState.GetDependentSemanticVersionAsync(dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                        var dependentProjectVersion = await compilationState.GetDependentSemanticVersionAsync(
+                            solution, dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
                         version = dependentProjectVersion.GetNewerVersion(version);
                     }
                 }
