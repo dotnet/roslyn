@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
         /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both in response to
         /// some user edit.
         /// </summary>
-        private abstract partial class CompilationAndGeneratorDriverTranslationAction
+        public abstract partial class CompilationAndGeneratorDriverTranslationAction
         {
             public virtual Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {

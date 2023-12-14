@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return AddDocumentsToMultipleProjects(documentInfos,
                     (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-                    (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+                    (oldProject, documents) => (oldProject.AddDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
             }
         }
 
@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis
         private (SolutionState, SolutionCompilationState) AddDocumentsToMultipleProjects<T>(
             ImmutableArray<DocumentInfo> documentInfos,
             Func<DocumentInfo, ProjectState, T> createDocumentState,
-            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
             where T : TextDocumentState
         {
             if (documentInfos.IsDefault)
@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return AddDocumentsToMultipleProjects(documentInfos,
                     (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                    (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+                    (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
             }
         }
 
@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis
                     (oldProject, documents) =>
                     {
                         var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                        return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                        return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
                     });
             }
         }
@@ -1445,14 +1445,14 @@ namespace Microsoft.CodeAnalysis
             {
                 return RemoveDocumentsFromMultipleProjects(documentIds,
                     (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-                    (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+                    (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
             }
         }
 
         private (SolutionState, SolutionCompilationState) RemoveDocumentsFromMultipleProjects<T>(
             ImmutableArray<DocumentId> documentIds,
             Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
+            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
             where T : TextDocumentState
         {
             if (documentIds.IsEmpty)
@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return RemoveDocumentsFromMultipleProjects(documentIds,
                     (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-                    (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+                    (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
             }
         }
 
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
                     (oldProject, documentIds, _) =>
                     {
                         var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                        return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                        return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
                     });
             }
         }

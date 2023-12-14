@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
-        private abstract partial class CompilationAndGeneratorDriverTranslationAction
+        public abstract partial class CompilationAndGeneratorDriverTranslationAction
         {
             internal sealed class TouchDocumentAction(DocumentState oldState, DocumentState newState) : CompilationAndGeneratorDriverTranslationAction
             {

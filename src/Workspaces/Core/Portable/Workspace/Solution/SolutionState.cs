@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 projectToUpdateState,
-                translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                translate: new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                     tracker.GeneratorDriver,
                     newProjectState: projectToUpdateState));
         }
