@@ -1228,12 +1228,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
@@ -1408,7 +1409,7 @@ namespace Microsoft.CodeAnalysis
             return (newState, oldProject, newProject);
         }
 
-        private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
+        private (SolutionState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
@@ -1416,8 +1417,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject,
-                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true) : null);
+            return ForkProject(newProject);
         }
 
         /// <summary>
