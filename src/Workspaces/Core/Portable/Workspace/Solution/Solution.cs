@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectChecksumAlgorithm(_state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm), checksumAlgorithm);
+            var newCompilationState = _compilationState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

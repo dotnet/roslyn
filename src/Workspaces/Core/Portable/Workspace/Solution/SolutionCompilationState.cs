@@ -286,8 +286,9 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectChecksumAlgorithm"/>
     public SolutionCompilationState WithProjectChecksumAlgorithm(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, SourceHashAlgorithm checksumAlgorithm)
+        ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
     {
+        var tuple = this.Solution.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
         return ForkProject(
             tuple,
             new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: false),
