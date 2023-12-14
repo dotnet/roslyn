@@ -81,6 +81,8 @@ internal partial class SolutionCompilationState
     {
     }
 
+    public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
+
     private SolutionCompilationState Branch(
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)

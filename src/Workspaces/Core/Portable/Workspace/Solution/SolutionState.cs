@@ -120,8 +120,6 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
 
-        public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
-
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
         /// <summary>
