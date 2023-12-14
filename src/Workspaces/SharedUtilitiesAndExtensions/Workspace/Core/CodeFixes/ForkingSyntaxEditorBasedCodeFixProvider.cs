@@ -51,10 +51,6 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
 
-    protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        // Never try to fix the secondary diagnostics that were produced just to fade out code.
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, _title, _equivalenceKey);
