@@ -1360,7 +1360,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newCompilationState = _compilationState.WithDocumentName(_state.WithDocumentName(documentId, name), documentId, name);
+            var newCompilationState = _compilationState.WithDocumentName(documentId, name);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
