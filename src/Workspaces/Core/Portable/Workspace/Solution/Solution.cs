@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public partial class Solution
     {
-        private readonly SolutionState _state;
         private readonly SolutionCompilationState _compilationState;
 
         // Values for all these are created on demand.
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis
         {
             _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
             _compilationState = state;
-            _state = state.Solution;
         }
 
         internal Solution(
@@ -53,6 +51,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        private SolutionState _state => this.State;
         internal SolutionState State => CompilationState.Solution;
 
         internal SolutionCompilationState CompilationState => _compilationState;
@@ -1039,21 +1038,10 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
         public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            // If no projects changed itself, there's no need to change the compilation state.
-            var (newState, newCompilationState) = AddDocumentsWorker(documentInfos);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
-
-            return new Solution(newState, newCompilationState);
-
-            (SolutionState, SolutionCompilationState) AddDocumentsWorker(ImmutableArray<DocumentInfo> documentInfos)
-            {
-                return AddDocumentsToMultipleProjects(documentInfos,
-                    (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-                    (oldProject, documents) => (oldProject.AddDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
-            }
+            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
+                (oldProject, documents) => (oldProject.AddDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1062,7 +1050,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="documentInfos">The set of documents to add.</param>
         /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
         /// <returns></returns>
-        private (SolutionState, SolutionCompilationState) AddDocumentsToMultipleProjects<T>(
+        private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
             ImmutableArray<DocumentInfo> documentInfos,
             Func<DocumentInfo, ProjectState, T> createDocumentState,
             Func<ProjectState, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
@@ -1075,7 +1063,7 @@ namespace Microsoft.CodeAnalysis
 
             if (documentInfos.IsEmpty)
             {
-                return (_state, _compilationState);
+                return _compilationState;
             }
 
             // The documents might be contributing to multiple different projects; split them by project and then we'll process
@@ -1107,13 +1095,13 @@ namespace Microsoft.CodeAnalysis
                     newFilePathToDocumentIdsMap: _state.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
 
                 newCompilationState = newCompilationState.ForkProject(
+                    newSolutionState,
                     newProjectState,
-                    newSolutionState.GetProjectDependencyGraph(),
                     compilationTranslationAction,
                     forkTracker: true);
             }
 
-            return (newSolutionState, newCompilationState);
+            return newCompilationState;
         }
 
         /// <summary>
