@@ -629,12 +629,18 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.UpdateAdditionalDocumentTextLoader"/>
     public SolutionCompilationState UpdateAdditionalDocumentTextLoader(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, TextLoader loader, PreservationMode mode)
+        DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
+        var (newState, oldProjectState, newProjectState) = this.Solution.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
+
+        // Note: state is currently not reused.
+        // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
+        Debug.Assert(newState != this.Solution);
+
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
         return UpdateAdditionalDocumentState(
-            tuple, documentId, contentChanged: true);
+            (newState, oldProjectState, newProjectState), documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAnalyzerConfigDocumentTextLoader"/>
