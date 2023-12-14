@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualBasic;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -910,11 +911,8 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
             }
 
-
-            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-            // all come from entrypoints that are specific to a particular project.
-            return new Solution(newState, _compilationState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(newState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
