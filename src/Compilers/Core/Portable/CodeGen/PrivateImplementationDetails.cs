@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
-        public override bool IsReadOnly => true;
+        public override bool IsReadOnly => false;
     }
 
     /// <summary>
