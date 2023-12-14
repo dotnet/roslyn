@@ -1520,13 +1520,24 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
-            if (newState == _state)
+            var (newState, newCompilationState) = RemoveAnalyzerConfigDocumentsWorker(documentIds);
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
+
+            (SolutionState, SolutionCompilationState) RemoveAnalyzerConfigDocumentsWorker(ImmutableArray<DocumentId> documentIds)
+            {
+                return RemoveDocumentsFromMultipleProjects(documentIds,
+                    (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
+                    (oldProject, documentIds, _) =>
+                    {
+                        var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
+                        return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                    });
+            }
         }
 
         /// <summary>

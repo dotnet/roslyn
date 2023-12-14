@@ -985,17 +985,6 @@ namespace Microsoft.CodeAnalysis
             return (newState, oldProject, newProject);
         }
 
-        public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
-        {
-            return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-                (oldProject, documentIds, _) =>
-                {
-                    var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-                });
-        }
-
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified name.
         /// </summary>
