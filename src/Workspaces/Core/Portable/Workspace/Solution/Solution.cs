@@ -1995,8 +1995,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newState);
+            var (newState, newCompilationState) = _state.WithFrozenPartialCompilationIncludingSpecificDocument(_compilationState, documentId, cancellationToken);
+            return new Solution(newState, newCompilationState);
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
@@ -2119,13 +2119,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithoutFrozenSourceGeneratedDocuments()
         {
-            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
-            if (newState == _state)
+            var newCompilationState = _compilationState.WithoutFrozenSourceGeneratedDocuments(_state.GetProjectDependencyGraph());
+            if (newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(_state, newCompilationState);
         }
 
         /// <summary>

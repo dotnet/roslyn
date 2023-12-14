@@ -83,6 +83,9 @@ internal partial class SolutionCompilationState
     {
     }
 
+    public ImmutableDictionary<ProjectId, ICompilationTracker> ProjectIdToTrackerMap
+        => _projectIdToTrackerMap;
+
     private void CheckInvariants()
     {
         // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
@@ -94,7 +97,7 @@ internal partial class SolutionCompilationState
 
     public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
-    private SolutionCompilationState Branch(
+    internal SolutionCompilationState Branch(
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
     {
@@ -655,7 +658,7 @@ internal partial class SolutionCompilationState
         return new CompilationTracker(projectState);
     }
 
-    private ICompilationTracker GetCompilationTracker(SolutionState solution, ProjectId projectId)
+    internal ICompilationTracker GetCompilationTracker(SolutionState solution, ProjectId projectId)
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
