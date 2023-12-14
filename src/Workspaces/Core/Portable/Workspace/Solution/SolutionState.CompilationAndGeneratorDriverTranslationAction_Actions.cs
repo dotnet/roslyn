@@ -28,6 +28,17 @@ namespace Microsoft.CodeAnalysis
                     return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
+                private static async Task<Compilation> UpdateDocumentInCompilationAsync(
+                    Compilation compilation,
+                    DocumentState oldDocument,
+                    DocumentState newDocument,
+                    CancellationToken cancellationToken)
+                {
+                    return compilation.ReplaceSyntaxTree(
+                        await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
+
                 public DocumentId DocumentId => _newState.Attributes.Id;
 
                 // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against

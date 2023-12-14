@@ -1165,17 +1165,6 @@ namespace Microsoft.CodeAnalysis
                 contentChanged: true);
         }
 
-        private static async Task<Compilation> UpdateDocumentInCompilationAsync(
-            Compilation compilation,
-            DocumentState oldDocument,
-            DocumentState newDocument,
-            CancellationToken cancellationToken)
-        {
-            return compilation.ReplaceSyntaxTree(
-                await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-        }
-
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
