@@ -248,7 +248,7 @@ function BuildSolution() {
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths
-  $ibcDir = Join-Path $RepoRoot
+  $ibcDir = $RepoRoot
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
