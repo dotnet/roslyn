@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis
                 return (this, oldProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName));
+            return ForkProject(newProject);
         }
 
         /// <summary>
