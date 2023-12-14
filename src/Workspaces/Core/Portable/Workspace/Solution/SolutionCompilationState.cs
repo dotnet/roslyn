@@ -348,4 +348,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
+    public SolutionCompilationState RemoveMetadataReference(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, MetadataReference metadataReference)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }

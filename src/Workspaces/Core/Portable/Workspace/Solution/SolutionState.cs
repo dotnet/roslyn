@@ -907,14 +907,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified metadata reference.
         /// </summary>
-        public SolutionState RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        public (SolutionState, ProjectState) RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(metadataReference);
             if (oldReferences == newReferences)
             {
-                return this;
+                return (this, oldProject);
             }
 
             return ForkProject(oldProject.WithMetadataReferences(newReferences));

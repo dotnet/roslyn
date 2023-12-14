@@ -820,13 +820,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            var newState = _state.RemoveMetadataReference(projectId, metadataReference);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.RemoveMetadataReference(projectId, metadataReference);
             if (newState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveMetadataReference(newProjectState, newState.GetProjectDependencyGraph(), metadataReference);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>
