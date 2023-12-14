@@ -243,11 +243,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectOutputRefFilePath"/>
     public SolutionCompilationState WithProjectOutputRefFilePath(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? outputRefFilePath)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, string? outputRefFilePath)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
