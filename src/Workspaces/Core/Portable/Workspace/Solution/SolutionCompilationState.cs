@@ -133,6 +133,20 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     public SolutionCompilationState ForkProject(
+        (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState) stateTuple,
+        CompilationAndGeneratorDriverTranslationAction? translate,
+        //ProjectDependencyGraph? newDependencyGraph = null,
+        bool forkTracker)
+    {
+        return ForkProject(
+            stateTuple.newSolutionState,
+            stateTuple.newProjectState,
+            translate,
+            forkTracker);
+    }
+
+    /// <inheritdoc cref="SolutionState.ForkProject"/>
+    public SolutionCompilationState ForkProject(
         SolutionState newSolutionState,
         ProjectState newProjectState,
         CompilationAndGeneratorDriverTranslationAction? translate,
@@ -425,12 +439,11 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
     public SolutionCompilationState AddAnalyzerReferences(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableArray<AnalyzerReference> analyzerReferences)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, ImmutableArray<AnalyzerReference> analyzerReferences)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
-            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: analyzerReferences),
+            tuple,
+            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(tuple.oldProject.Language, referencesToAdd: analyzerReferences),
             forkTracker: true);
     }
 
