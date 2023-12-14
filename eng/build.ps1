@@ -247,8 +247,8 @@ function BuildSolution() {
   # that MSBuild output as well as ones that custom tasks output.
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
-  # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
-  $ibcDir = Join-Path $RepoRoot ".o%5c"
+  # Workaround for some machines in the AzDO pool not allowing long paths
+  $ibcDir = Join-Path $RepoRoot
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
