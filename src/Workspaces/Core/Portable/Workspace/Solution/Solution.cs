@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.WithAdditionalDocumentText(_state.WithAdditionalDocumentText(documentId, textAndVersion, mode), documentId, textAndVersion, mode);
+            var newCompilationState = _compilationState.WithAdditionalDocumentText(documentId, textAndVersion, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
