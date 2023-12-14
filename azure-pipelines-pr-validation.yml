@@ -101,8 +101,15 @@ stages:
         useGlobalJson: true
         workingDirectory: '$(Build.SourcesDirectory)'
 
-    - script: dotnet restore eng\common\internal\Tools.csproj
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
+    - task: NuGetCommand@2
       displayName: Restore internal tools
+      inputs:
+        command: restore
+        feedsToUse: config
+        restoreSolution: 'eng\common\internal\Tools.csproj'
+        nugetConfigPath: 'NuGet.config'
+        restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
     - task: MicroBuildSigningPlugin@2
       inputs:
