@@ -364,28 +364,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
-            => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
-
-        private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
-
-        private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
-        {
-            var projectState = solution.GetProjectState(projectId);
-            Contract.ThrowIfNull(projectState);
-            return new CompilationTracker(projectState);
-        }
-
-        private ICompilationTracker GetCompilationTracker(ProjectId projectId)
-        {
-            if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
-            {
-                tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this);
-            }
-
-            return tracker;
-        }
-
         private SolutionState AddProject(ProjectState projectState)
         {
             var projectId = projectState.Id;

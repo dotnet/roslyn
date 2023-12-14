@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
@@ -14,6 +15,28 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.SolutionInfo;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -605,5 +628,27 @@ internal partial class SolutionCompilationState
 
         s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
         return id;
+    }
+
+    private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
+        => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
+
+    private static readonly Func<ProjectId, SolutionCompilationState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+
+    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionCompilationState solution)
+    {
+        var projectState = solution.GetProjectState(projectId);
+        Contract.ThrowIfNull(projectState);
+        return new CompilationTracker(projectState);
+    }
+
+    private ICompilationTracker GetCompilationTracker(ProjectId projectId)
+    {
+        if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
+        {
+            tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this);
+        }
+
+        return tracker;
     }
 }
