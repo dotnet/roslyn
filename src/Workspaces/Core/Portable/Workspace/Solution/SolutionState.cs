@@ -985,18 +985,6 @@ namespace Microsoft.CodeAnalysis
             return (newState, oldProject, newProject);
         }
 
-        public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            // Adding a new analyzer config potentially modifies the compilation options
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (oldProject, documents) =>
-                {
-                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-                });
-        }
-
         public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
