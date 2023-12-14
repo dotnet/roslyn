@@ -27,8 +27,6 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
-    using SolutionStatePair = StrongBox<(SolutionState, SolutionCompilationState)>;
-
     /// <summary>
     /// Represents a set of projects and their source code documents.
     ///
@@ -1258,7 +1256,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private WeakReference<SolutionStatePair>? _latestSolutionWithPartialCompilation;
+        private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
         private DateTime _timeOfLatestSolutionWithPartialCompilation;
         private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
 
@@ -1270,9 +1268,11 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public (SolutionState, SolutionCompilationState) WithFrozenPartialCompilationIncludingSpecificDocument(
+        public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
             SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(this != compilationState.Solution);
+
             try
             {
                 var allDocumentIds = GetRelatedDocumentIds(documentId);
@@ -1289,10 +1289,10 @@ namespace Microsoft.CodeAnalysis
                     // in progress solutions are disabled for some testing
                     if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
-                        return (this, compilationState);
+                        return compilationState;
                     }
 
-                    SolutionStatePair? currentPartialSolution = null;
+                    SolutionCompilationState? currentPartialSolution = null;
                     _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
 
                     var reuseExistingPartialSolution =
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis
                     if (reuseExistingPartialSolution && currentPartialSolution != null)
                     {
                         SolutionLogger.UseExistingPartialSolution();
-                        return (currentPartialSolution.Value.Item1, currentPartialSolution.Value.Item2);
+                        return currentPartialSolution;
                     }
 
                     var newIdToProjectStateMap = _projectIdToProjectStateMap;
@@ -1311,8 +1311,8 @@ namespace Microsoft.CodeAnalysis
                     foreach (var (doc, tree) in builder)
                     {
                         // if we don't have one or it is stale, create a new partial solution
-                        var tracker = compilationState.GetCompilationTracker(this, doc.Id.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(this, compilationState, doc, tree, cancellationToken);
+                        var tracker = compilationState.GetCompilationTracker(doc.Id.ProjectId);
+                        var newTracker = tracker.FreezePartialStateWithTree(compilationState, doc, tree, cancellationToken);
 
                         Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
                         newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
@@ -1323,14 +1323,15 @@ namespace Microsoft.CodeAnalysis
                         idToProjectStateMap: newIdToProjectStateMap,
                         dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
                     var newCompilationState = compilationState.Branch(
+                        newState,
                         newIdToTrackerMap);
 
-                    _latestSolutionWithPartialCompilation = new WeakReference<SolutionStatePair>(new SolutionStatePair((newState, newCompilationState)));
+                    _latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
                     _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
                     _documentIdOfLatestSolutionWithPartialCompilation = documentId;
 
                     SolutionLogger.CreatePartialSolution();
-                    return (newState, newCompilationState);
+                    return newCompilationState;
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

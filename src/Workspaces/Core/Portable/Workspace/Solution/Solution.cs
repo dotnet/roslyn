@@ -1675,8 +1675,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var (newState, newCompilationState) = _state.WithFrozenPartialCompilationIncludingSpecificDocument(_compilationState, documentId, cancellationToken);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(_compilationState, documentId, cancellationToken);
+            return new Solution(newCompilationState);
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
