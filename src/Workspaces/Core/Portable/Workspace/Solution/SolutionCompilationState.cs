@@ -119,16 +119,35 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     public SolutionCompilationState ForkProject(
+        (SolutionState newSolutionState, ProjectState newProjectState) stateTuple,
+        CompilationAndGeneratorDriverTranslationAction? translate,
+        //ProjectDependencyGraph? newDependencyGraph = null,
+        bool forkTracker)
+    {
+        return ForkProject(
+            stateTuple.newSolutionState,
+            stateTuple.newProjectState,
+            translate,
+            forkTracker);
+    }
+
+    /// <inheritdoc cref="SolutionState.ForkProject"/>
+    public SolutionCompilationState ForkProject(
         SolutionState newSolutionState,
         ProjectState newProjectState,
         CompilationAndGeneratorDriverTranslationAction? translate,
         //ProjectDependencyGraph? newDependencyGraph = null,
         bool forkTracker)
     {
+        // If the spsolution didn't actually change, there's no need to change us.
+        if (newSolutionState == this.Solution)
+            return this;
+
         var projectId = newProjectState.Id;
 
         var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
         var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+
         // If we have a tracker for this project, then fork it as well (along with the
         // translation action and store it in the tracker map.
         if (newTrackerMap.TryGetValue(projectId, out var tracker))
@@ -206,10 +225,6 @@ internal partial class SolutionCompilationState
     public SolutionCompilationState WithProjectAssemblyName(
         (SolutionState newSolutionState, ProjectState newProject) tuple, string assemblyName)
     {
-        // If the project didn't change itself, there's no need to change the compilation state.
-        if (tuple.newSolutionState == this.Solution)
-            return this;
-
         return ForkProject(
             tuple.newSolutionState,
             tuple.newProject,
