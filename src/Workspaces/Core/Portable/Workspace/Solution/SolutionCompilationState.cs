@@ -589,15 +589,4 @@ internal partial class SolutionCompilationState
                 : null,
             forkTracker: true);
     }
-
-    /// <summary>
-    /// Create a new solution instance with the corresponding projects updated to include new
-    /// documents defined by the document info.
-    /// </summary>
-    public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-    {
-        return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
-    }
 }
