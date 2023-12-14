@@ -550,9 +550,9 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, SourceText, PreservationMode)"/>
     public SolutionCompilationState WithAnalyzerConfigDocumentText(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceText text, PreservationMode mode)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, DocumentId documentId, SourceText text, PreservationMode mode)
     {
-        return UpdateAnalyzerConfigDocumentState(newProject, newDependencyGraph);
+        return UpdateAnalyzerConfigDocumentState(tuple);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
@@ -669,13 +669,12 @@ internal partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateAnalyzerConfigDocumentState(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph)
+        (SolutionState newSolution, ProjectState newProject) tuple)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
-            newProject.CompilationOptions != null
-                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true)
+            tuple,
+            tuple.newProject.CompilationOptions != null
+                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProject, isAnalyzerConfigChange: true)
                 : null,
             forkTracker: true);
     }
