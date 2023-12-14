@@ -377,7 +377,7 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
     public SolutionCompilationState AddAnalyzerReferences(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableArray<AnalyzerReference> analyzerReferences)
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableArray<AnalyzerReference> analyzerReferences)
     {
         return ForkProject(
             newProject,
@@ -388,7 +388,7 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
     public SolutionCompilationState RemoveAnalyzerReference(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, AnalyzerReference analyzerReference)
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, AnalyzerReference analyzerReference)
     {
         return ForkProject(
             newProject,

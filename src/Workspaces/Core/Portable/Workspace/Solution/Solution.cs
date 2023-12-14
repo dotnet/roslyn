@@ -902,13 +902,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.AddAnalyzerReferences(projectId, collection);
+            var (newState, oldProjectState, newProjectState) = _state.AddAnalyzerReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
             }
 
-            var newCompilationState = _compilationState.AddAnalyzerReferences(newProjectState, newState.GetProjectDependencyGraph(), collection);
+            var newCompilationState = _compilationState.AddAnalyzerReferences(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), collection);
             return new Solution(newState, newCompilationState);
         }
 
@@ -930,13 +930,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.RemoveAnalyzerReference(projectId, analyzerReference);
+            var (newState, oldProjectState, newProjectState) = _state.RemoveAnalyzerReference(projectId, analyzerReference);
             if (newState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(newProjectState, newState.GetProjectDependencyGraph(), analyzerReference);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), analyzerReference);
             return new Solution(newState, newCompilationState);
         }
 

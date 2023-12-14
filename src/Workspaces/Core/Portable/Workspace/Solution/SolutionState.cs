@@ -937,35 +937,37 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
-        public (SolutionState, ProjectState) AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (analyzerReferences.Length == 0)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(analyzerReferences);
 
-            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            var (newState, newProject) = ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            return (newState, oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified analyzer reference.
         /// </summary>
-        public (SolutionState, ProjectState) RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(analyzerReference);
             if (oldReferences == newReferences)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
-            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            var (newState, newProject) = ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            return (newState, oldProject, newProject);
         }
 
         /// <summary>
