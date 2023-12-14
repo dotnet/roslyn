@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(_state.WithProjectCompilationOutputInfo(projectId, info), info);
+            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(projectId, info);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

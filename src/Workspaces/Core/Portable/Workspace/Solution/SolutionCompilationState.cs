@@ -266,10 +266,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
     public SolutionCompilationState WithProjectCompilationOutputInfo(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, in CompilationOutputInfo info)
+        ProjectId projectId, in CompilationOutputInfo info)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectCompilationOutputInfo(projectId, info),
             translate: null,
             forkTracker: true);
     }
