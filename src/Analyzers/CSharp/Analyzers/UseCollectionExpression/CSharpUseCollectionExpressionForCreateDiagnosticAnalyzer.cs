@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -50,28 +49,22 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
-        var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
-
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            memberAccess.Name.Identifier.GetLocation(),
-            option.Notification,
-            additionalLocations: locations,
-            properties));
-
-        var additionalUnnecessaryLocations = ImmutableArray.Create(
+        var location = memberAccess.Name.Identifier.GetLocation();
+        var additionalLocations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var fadingLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 invocationExpression.SpanStart,
                 invocationExpression.ArgumentList.OpenParenToken.Span.End)),
             invocationExpression.ArgumentList.CloseParenToken.GetLocation());
 
+        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
+
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
-            additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+            Descriptor,
+            location,
+            option.Notification,
+            additionalLocations,
+            fadingLocations,
             properties));
     }
 }

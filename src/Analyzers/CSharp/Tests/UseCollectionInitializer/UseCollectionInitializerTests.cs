@@ -65,7 +65,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -125,7 +125,7 @@ public partial class UseCollectionInitializerTests
                 void M(int[] x)
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     c.AddRange(x);
                 }
             }
@@ -159,7 +159,7 @@ public partial class UseCollectionInitializerTests
                 void M(int[] x)
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     foreach (var v in x)
                         c.Add(v);
                 }
@@ -195,7 +195,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                         c.Add(2);
                 }
@@ -231,7 +231,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                         c.Add(2);
                     else
@@ -271,7 +271,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -527,7 +527,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c[1] = 2;
                 }
             }
@@ -560,8 +560,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|c.Add(|]2);
+                    c.Add(1);
+                    c.Add(2);
                     throw new System.Exception();
                     c.Add(3);
                     c.Add(4);
@@ -660,7 +660,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>(1);
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -693,7 +693,7 @@ public partial class UseCollectionInitializerTests
                 {
                     List<int> c = null;
                     c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -752,8 +752,8 @@ public partial class UseCollectionInitializerTests
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    [|array[0].Add(|]1);
-                    [|array[0].Add(|]2);
+                    array[0].Add(1);
+                    array[0].Add(2);
                 }
             }
             """,
@@ -807,7 +807,7 @@ public partial class UseCollectionInitializerTests
                     {
                         1
                     };
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -843,7 +843,7 @@ public partial class UseCollectionInitializerTests
                     {
                         1,
                     };
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -876,11 +876,11 @@ public partial class UseCollectionInitializerTests
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    [|array[0].Add(|]1);
-                    [|array[0].Add(|]2);
+                    array[0].Add(1);
+                    array[0].Add(2);
                     array[1] = [|new|] List<int>();
-                    [|array[1].Add(|]3);
-                    [|array[1].Add(|]4);
+                    array[1].Add(3);
+                    array[1].Add(4);
                 }
             }
             """,
@@ -921,9 +921,9 @@ public partial class UseCollectionInitializerTests
                 {
                     var list1 = [|new|] Bar(() => {
                         var list2 = [|new|] List<int>();
-                        [|list2.Add(|]2);
+                        list2.Add(2);
                     });
-                    [|list1.Add(|]1);
+                    list1.Add(1);
                 }
             }
 
@@ -982,9 +982,9 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var list1 = [|new|] List<Action>();
-                    [|list1.Add(|]() => {
+                    list1.Add(() => {
                         var list2 = [|new|] List<int>();
-                        [|list2.Add(|]2);
+                        list2.Add(2);
                     });
                 }
             }
@@ -1044,8 +1044,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1); // Goo
-                    [|c.Add(|]2); // Bar
+                    c.Add(1); // Goo
+                    c.Add(2); // Bar
                 }
             }
             """,
@@ -1079,10 +1079,10 @@ public partial class UseCollectionInitializerTests
                     var c = [|new|] List<int>();
 
                     // Goo
-                    [|c.Add(|]1);
+                    c.Add(1);
 
                     // Bar
-                    [|c.Add(|]2);
+                    c.Add(2);
                 }
             }
             """,
@@ -1117,8 +1117,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] Dictionary<int, string>();
-                    [|c.Add(|]1, "x");
-                    [|c.Add(|]2, "y");
+                    c.Add(1, "x");
+                    c.Add(2, "y");
                 }
             }
             """,
@@ -1154,7 +1154,7 @@ public partial class UseCollectionInitializerTests
                     var items = new List<string>();
 
                     var values = [|new|] List<string>(); // Collection initialization can be simplified
-                    [|values.Add(|]item);
+                    values.Add(item);
                     values.AddRange(items);
                 }
             }
@@ -1396,7 +1396,7 @@ public partial class UseCollectionInitializerTests
                 {
             #if true
                     var items = [|new|] List<object>();
-                    [|items.Add(|]1);
+                    items.Add(1);
             #endif
                 }
             }
@@ -1432,7 +1432,7 @@ public partial class UseCollectionInitializerTests
                 {
                     int lastItem;
                     var list = [|new|] List<int>();
-                    [|list.Add(|]lastItem = 5);
+                    list.Add(lastItem = 5);
                 }
             }
             """,
@@ -1466,7 +1466,7 @@ public partial class UseCollectionInitializerTests
                 {
                     int lastItem = 0;
                     var list = [|new|] List<int>();
-                    [|list.Add(|]lastItem += 5);
+                    list.Add(lastItem += 5);
                 }
             }
             """,
@@ -1499,7 +1499,7 @@ public partial class UseCollectionInitializerTests
                 public void Main()
                 {
                     var list = [|new|] List<int>();
-                    [|list.Add(|]1);
+                    list.Add(1);
 
                     int horse = 1;
                 }
@@ -1653,7 +1653,7 @@ public partial class UseCollectionInitializerTests
             using System.Collections.Generic;
 
             var list = [|new|] List<int>();
-            [|list.Add(|]1);
+            list.Add(1);
             """,
             """
             using System.Collections.Generic;

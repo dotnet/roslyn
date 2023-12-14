@@ -102,6 +102,11 @@
         <target state="new">Passed!</target>
         <note />
       </trans-unit>
+      <trans-unit id="Project_0_has_unresolved_dependencies">
+        <source>Project {0} has unresolved dependencies</source>
+        <target state="new">Project {0} has unresolved dependencies</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
         <source>Project {0} loaded by C# Dev Kit</source>
         <target state="new">Project {0} loaded by C# Dev Kit</target>

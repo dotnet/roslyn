@@ -1,13 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--
-        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
-        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
-
-        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
-    -->
-    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -21,6 +14,15 @@
     <IsPackable>true</IsPackable>
     <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
     <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
+
+    <!--
+        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
+        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
+
+        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
+    -->
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
+
     <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
     <!--
         Publish the platform specific executables before any of the pack related targets run.
@@ -79,6 +81,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
+    <PackageReference Include="NuGet.ProjectModel" Version="$(NuGetProjectModelVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -23,12 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public InvokeDelegateWithConditionalAccessAnalyzer()
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
                    EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
                    CSharpCodeStyleOptions.PreferConditionalDelegateCall,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -170,42 +172,40 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             ImmutableArray<Location> additionalLocations,
             string kind)
         {
-            var tree = syntaxContext.Node.SyntaxTree;
-
+            var location = expressionStatement.GetLocation();
+            var fadingLocations = GetLocationsToFade();
             var properties = ImmutableDictionary<string, string?>.Empty.Add(
                 Constants.Kind, kind);
 
-            var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
-            var nextToken = expressionStatement.GetLastToken().GetNextToken();
-
-            // Fade out the code up to the expression statement.
-            var fadeLocation = Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End));
             syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
-                fadeLocation,
-                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                location,
+                notificationOption,
                 additionalLocations,
-                additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                fadingLocations,
                 properties));
 
-            // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                expressionStatement.GetLocation(),
-                notificationOption,
-                additionalLocations, properties));
+            return;
 
-            // If the if-statement extends past the expression statement, then fade out the rest.
-            if (nextToken.Span.Start < ifStatement.Span.End)
+            ImmutableArray<Location> GetLocationsToFade()
             {
-                fadeLocation = Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End));
-                syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                    Descriptor,
-                    fadeLocation,
-                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
-                    additionalLocations,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
-                    properties));
+                var tree = syntaxContext.Node.SyntaxTree;
+                var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
+                var nextToken = expressionStatement.GetLastToken().GetNextToken();
+
+                // Fade out the code up to the expression statement.
+                using var _ = ArrayBuilder<Location>.GetInstance(out var fadingLocations);
+                fadingLocations.Add(
+                    Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)));
+
+                // If the if-statement extends past the expression statement, then fade out the rest.
+                if (nextToken.Span.Start < ifStatement.Span.End)
+                {
+                    fadingLocations.Add(
+                        Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)));
+                }
+
+                return fadingLocations.ToImmutable();
             }
         }
 
