@@ -1605,56 +1605,77 @@ public class Test
         System.ReadOnlySpan<long> s3;
         Print(s3 = new System.ReadOnlySpan<long>(new long[0] {{ }}));
         _ = s3.IsEmpty;
+
+        System.ReadOnlySpan<object> s4;
+        Print(s4 = new System.ReadOnlySpan<object>(new object[] {{ null, null }}));
+        _ = s4.IsEmpty;
     }}
 
     private static void Print<T>(System.ReadOnlySpan<T> s) => System.Console.Write(s.Length);
 }}";
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "340", verify: Verification.Skipped);
-            verifier.VerifyIL("Test.Main", @$"{{
-  // Code size      102 (0x66)
+            var verifier = CompileAndVerify(compilation, expectedOutput: "3402", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.Main", """
+{
+  // Code size      144 (0x90)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0, //s1
                 System.ReadOnlySpan<int> V_1, //s2
-                System.ReadOnlySpan<long> V_2) //s3
+                System.ReadOnlySpan<long> V_2, //s3
+                System.ReadOnlySpan<object> V_3) //s4
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_0002:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
   IL_0007:  ldc.i4.3
-  IL_0008:  call       ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_0008:  call       "System.ReadOnlySpan<byte>..ctor(void*, int)"
   IL_000d:  ldloc.0
-  IL_000e:  call       ""void Test.Print<byte>(System.ReadOnlySpan<byte>)""
+  IL_000e:  call       "void Test.Print<byte>(System.ReadOnlySpan<byte>)"
   IL_0013:  ldloca.s   V_0
-  IL_0015:  call       ""bool System.ReadOnlySpan<byte>.IsEmpty.get""
+  IL_0015:  call       "bool System.ReadOnlySpan<byte>.IsEmpty.get"
   IL_001a:  pop
-  IL_001b:  ldsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6""
+  IL_001b:  ldsfld     "int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6"
   IL_0020:  dup
   IL_0021:  brtrue.s   IL_003b
   IL_0023:  pop
   IL_0024:  ldc.i4.4
-  IL_0025:  newarr     ""int""
+  IL_0025:  newarr     "int"
   IL_002a:  dup
-  IL_002b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72""
-  IL_0030:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_002b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72"
+  IL_0030:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0035:  dup
-  IL_0036:  stsfld     ""int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6""
-  IL_003b:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_0036:  stsfld     "int[] <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72_A6"
+  IL_003b:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
   IL_0040:  dup
   IL_0041:  stloc.1
-  IL_0042:  call       ""void Test.Print<int>(System.ReadOnlySpan<int>)""
+  IL_0042:  call       "void Test.Print<int>(System.ReadOnlySpan<int>)"
   IL_0047:  ldloca.s   V_1
-  IL_0049:  call       ""bool System.ReadOnlySpan<int>.IsEmpty.get""
+  IL_0049:  call       "bool System.ReadOnlySpan<int>.IsEmpty.get"
   IL_004e:  pop
   IL_004f:  ldloca.s   V_2
-  IL_0051:  initobj    ""System.ReadOnlySpan<long>""
+  IL_0051:  initobj    "System.ReadOnlySpan<long>"
   IL_0057:  ldloc.2
-  IL_0058:  call       ""void Test.Print<long>(System.ReadOnlySpan<long>)""
+  IL_0058:  call       "void Test.Print<long>(System.ReadOnlySpan<long>)"
   IL_005d:  ldloca.s   V_2
-  IL_005f:  call       ""bool System.ReadOnlySpan<long>.IsEmpty.get""
+  IL_005f:  call       "bool System.ReadOnlySpan<long>.IsEmpty.get"
   IL_0064:  pop
-  IL_0065:  ret
-}}
-");
+  IL_0065:  ldloca.s   V_3
+  IL_0067:  ldsfld     "object[] <PrivateImplementationDetails>.96A296D224F285C67BEE93C30F8A309157F0DAA35DC5B87E410B78630A09CFC7_B18"
+  IL_006c:  dup
+  IL_006d:  brtrue.s   IL_007c
+  IL_006f:  pop
+  IL_0070:  ldc.i4.2
+  IL_0071:  newarr     "object"
+  IL_0076:  dup
+  IL_0077:  stsfld     "object[] <PrivateImplementationDetails>.96A296D224F285C67BEE93C30F8A309157F0DAA35DC5B87E410B78630A09CFC7_B18"
+  IL_007c:  call       "System.ReadOnlySpan<object>..ctor(object[])"
+  IL_0081:  ldloc.3
+  IL_0082:  call       "void Test.Print<object>(System.ReadOnlySpan<object>)"
+  IL_0087:  ldloca.s   V_3
+  IL_0089:  call       "bool System.ReadOnlySpan<object>.IsEmpty.get"
+  IL_008e:  pop
+  IL_008f:  ret
+}
+""");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2698,6 +2719,94 @@ public class C
             verifier.VerifyIL("C.M", expectedIL);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArrayOfConstants_Null_MultipleTypes()
+        {
+            var src = $$"""
+Assert(C.MString());
+Assert(C.MString2());
+Assert(C.MObject());
+Assert(C.MObject2());
+Assert(C.MC());
+Assert(C.MC2());
+
+System.Console.Write("ran");
+
+static void Assert<T>(System.ReadOnlySpan<T> values)
+{
+    if (values.Length != 3) throw null;
+    if (values[0] is not null) throw null;
+    if (values[1] is not null) throw null;
+    if (values[2] is not null) throw null;
+}
+
+public class C
+{
+    public static System.ReadOnlySpan<string> MString() => new string[] { null, null, null };
+    public static System.ReadOnlySpan<string> MString2() => new string[] { null, null, null };
+
+    public static System.ReadOnlySpan<object> MObject() => new object[] { null, null, null };
+    public static System.ReadOnlySpan<object> MObject2() => new object[] { null, null, null };
+
+    public static System.ReadOnlySpan<C> MC() => new C[] { null, null, null };
+    public static System.ReadOnlySpan<C> MC2() => new C[] { null, null, null };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "ran", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.MString", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldsfld     "string[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B11"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0015
+  IL_0008:  pop
+  IL_0009:  ldc.i4.3
+  IL_000a:  newarr     "string"
+  IL_000f:  dup
+  IL_0010:  stsfld     "string[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B11"
+  IL_0015:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+  IL_001a:  ret
+}
+""");
+
+            verifier.VerifyIL("C.MObject", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldsfld     "object[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B18"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0015
+  IL_0008:  pop
+  IL_0009:  ldc.i4.3
+  IL_000a:  newarr     "object"
+  IL_000f:  dup
+  IL_0010:  stsfld     "object[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B18"
+  IL_0015:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+  IL_001a:  ret
+}
+""");
+
+            verifier.VerifyIL("C.MC", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldsfld     "object[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B18"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0015
+  IL_0008:  pop
+  IL_0009:  ldc.i4.3
+  IL_000a:  newarr     "C"
+  IL_000f:  dup
+  IL_0010:  stsfld     "object[] <PrivateImplementationDetails>.709E80C88487A2411E1EE4DFB9F22A861492D20C4765150C0C794ABD70F8147C_B18"
+  IL_0015:  newobj     "System.ReadOnlySpan<C>..ctor(C[])"
+  IL_001a:  ret
+}
+""");
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
         [InlineData("string", "11")]
         [InlineData("object", "18")]
@@ -3330,6 +3439,29 @@ public class C
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "S"
   IL_0006:  call       "System.ReadOnlySpan<S> System.ReadOnlySpan<S>.op_Implicit(S[])"
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        public void ReadOnlySpanFromArrayOfConstants_NullableValueType()
+        {
+            var src = """
+public class C
+{
+    public static System.ReadOnlySpan<int?> M() => new int?[] { null };
+}
+""";
+            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "int?"
+  IL_0006:  call       "System.ReadOnlySpan<int?> System.ReadOnlySpan<int?>.op_Implicit(int?[])"
   IL_000b:  ret
 }
 """);

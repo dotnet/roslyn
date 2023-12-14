@@ -626,10 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // We're dealing with a multi-byte primitive, and CreateSpan was not available.  Get a static field from PrivateImplementationDetails,
             // and use it as a lazily-initialized cache for an array for this data:
             //     new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= RuntimeHelpers.InitializeArray(new int[Length], PrivateImplementationDetails.DataField));
-            return emitAsCachedArrayFromBlob(spanType, wrappedExpression, elementCount, data, ref arrayType, elementType);
+            return tryEmitAsCachedArrayFromBlob(spanType, wrappedExpression, elementCount, data, ref arrayType, elementType);
 
             // Emit: new ReadOnlySpan<T>(PrivateImplementationDetails.ArrayField ??= RuntimeHelpers.InitializeArray(new int[Length], PrivateImplementationDetails.DataField));
-            bool emitAsCachedArrayFromBlob(NamedTypeSymbol spanType, BoundExpression wrappedExpression, int elementCount, ImmutableArray<byte> data, ref ArrayTypeSymbol arrayType, TypeSymbol elementType)
+            bool tryEmitAsCachedArrayFromBlob(NamedTypeSymbol spanType, BoundExpression wrappedExpression, int elementCount, ImmutableArray<byte> data, ref ArrayTypeSymbol arrayType, TypeSymbol elementType)
             {
                 if (!tryGetReadOnlySpanArrayCtor(wrappedExpression.Syntax, out var rosArrayCtor))
                 {
@@ -737,6 +737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 EmitSymbolToken(rosArrayCtor.AsMember(spanType), arrayCreation.Syntax, optArgList: null);
+
+                if (inPlaceTarget is not null && used)
+                {
+                    EmitExpression(inPlaceTarget, used: true);
+                }
 
                 return true;
             }
