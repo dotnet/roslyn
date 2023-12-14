@@ -1141,20 +1141,11 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var (newState, newCompilationState) = AddAdditionalDocumentsWorker(documentInfos);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
+            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
 
-            return new Solution(newState, newCompilationState);
-
-            (SolutionState, SolutionCompilationState) AddAdditionalDocumentsWorker(ImmutableArray<DocumentInfo> documentInfos)
-            {
-                return AddDocumentsToMultipleProjects(documentInfos,
-                    (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                    (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
-            }
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
