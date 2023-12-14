@@ -378,10 +378,7 @@ namespace Microsoft.CodeAnalysis
         public Solution AddProject(ProjectInfo projectInfo)
         {
             var newCompilationState = _compilationState.AddProject(_state.AddProject(projectInfo), projectInfo.Id);
-            if (newCompilationState == _compilationState)
-                return this;
-
-            return new Solution(newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -390,10 +387,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveProject(ProjectId projectId)
         {
             var newCompilationState = _compilationState.RemoveProject(_state.RemoveProject(projectId), projectId);
-            if (newCompilationState == _compilationState)
-                return this;
-
-            return new Solution(newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -410,10 +404,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newCompilationState = _compilationState.WithProjectAssemblyName(_state.WithProjectAssemblyName(projectId, assemblyName), assemblyName);
-            if (newCompilationState == _compilationState)
-                return this;
-
-            return new Solution(newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -424,10 +415,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newCompilationState = _compilationState.WithProjectOutputFilePath(_state.WithProjectOutputFilePath(projectId, outputFilePath), outputFilePath);
-            if (newCompilationState == _compilationState)
-                return this;
-
-            return new Solution(newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -438,10 +426,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newCompilationState = _compilationState.WithProjectOutputRefFilePath(_state.WithProjectOutputRefFilePath(projectId, outputRefFilePath), outputRefFilePath);
-            if (newCompilationState == _compilationState)
-                return this;
-
-            return new Solution(newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -451,15 +436,8 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.WithProjectCompilationOutputInfo(projectId, info);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(newProjectState, newState.GetProjectDependencyGraph(), info);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.WithProjectCompilationOutputInfo(_state.WithProjectCompilationOutputInfo(projectId, info), info);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>

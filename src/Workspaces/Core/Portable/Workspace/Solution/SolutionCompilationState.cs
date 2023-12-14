@@ -253,11 +253,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
     public SolutionCompilationState WithProjectCompilationOutputInfo(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, in CompilationOutputInfo info)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, in CompilationOutputInfo info)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
