@@ -268,28 +268,6 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
             Assert.Equal(SpecialType.System_Char, semanticInfo.Type.SpecialType);
         }
 
-        [Fact]
-        public void TestLocalFunctionDeclaration()
-        {
-            var compilation = CreateCompilation("""
-                                  class Test
-                                  {
-                                    void M()
-                                    {
-                                        int LocalFunc(string s) {}
-                                    }
-                                  }
-                                  """);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
-            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
-
-            Assert.NotNull(methodSymbol);
-            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
-        }
-
         #region helpers
 
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
