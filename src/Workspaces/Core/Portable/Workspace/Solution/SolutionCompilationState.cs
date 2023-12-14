@@ -724,7 +724,7 @@ internal partial class SolutionCompilationState
 
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
-        solution.CheckContainsProject(projectId);
+        this.Solution.CheckContainsProject(projectId);
         compilation = null;
 
         return this.TryGetCompilationTracker(projectId, out var tracker)
@@ -741,7 +741,7 @@ internal partial class SolutionCompilationState
     private Task<Compilation?> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
         // TODO: figure out where this is called and why the nullable suppression is required
-        return GetCompilationAsync(solution, solution.GetProjectState(projectId)!, cancellationToken);
+        return GetCompilationAsync(this.Solution.GetProjectState(projectId)!, cancellationToken);
     }
 
     /// <summary>
@@ -754,7 +754,7 @@ internal partial class SolutionCompilationState
     public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(solution, project.Id).GetCompilationAsync(solution, this, cancellationToken).AsNullable()
+            ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
             : SpecializedTasks.Null<Compilation>();
     }
 
@@ -766,7 +766,7 @@ internal partial class SolutionCompilationState
         // return HasAllInformation when compilation is not supported.
         // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
         return project.SupportsCompilation
-            ? this.GetCompilationTracker(solution, project.Id).HasSuccessfullyLoadedAsync(solution, this, cancellationToken)
+            ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
             : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
@@ -777,7 +777,7 @@ internal partial class SolutionCompilationState
         ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(solution, project.Id).GetSourceGeneratedDocumentStatesAsync(solution, this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
@@ -785,7 +785,7 @@ internal partial class SolutionCompilationState
         ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(solution, project.Id).GetSourceGeneratorDiagnosticsAsync(solution, this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
             : new(ImmutableArray<Diagnostic>.Empty);
     }
 
@@ -800,7 +800,7 @@ internal partial class SolutionCompilationState
     public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(
         DocumentId documentId)
     {
-        return GetCompilationTracker(solution, documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+        return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
     }
 
     /// <summary>
@@ -836,7 +836,7 @@ internal partial class SolutionCompilationState
             if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
             {
                 // otherwise, base it off the compilation by building it first.
-                var compilation = await tracker.GetCompilationAsync(solution, this, cancellationToken).ConfigureAwait(false);
+                var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
                 return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
             }
 
@@ -846,7 +846,7 @@ internal partial class SolutionCompilationState
             {
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
                 return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                    tracker, solution, this, properties, cancellationToken).ConfigureAwait(false);
+                    tracker, this, properties, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
@@ -866,8 +866,8 @@ internal partial class SolutionCompilationState
         {
             // Get the compilation state for this project.  If it's not already created, then this
             // will create it.  Then force that state to completion and get a metadata reference to it.
-            var tracker = this.GetCompilationTracker(solution, projectReference.ProjectId);
-            return GetMetadataReferenceAsync(solution, tracker, fromProject, projectReference, cancellationToken);
+            var tracker = this.GetCompilationTracker(projectReference.ProjectId);
+            return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
@@ -896,6 +896,8 @@ internal partial class SolutionCompilationState
         newTrackerMap = newTrackerMap.SetItem(projectId, replacingItemTracker.UnderlyingTracker);
 
         return this.Branch(
+            // TODO(cyrusn): Is it ok to preserve the same solution here?
+            this.Solution,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocument: null);
     }
@@ -915,7 +917,7 @@ internal partial class SolutionCompilationState
         // update the out-of-process serialization logic accordingly.
         Contract.ThrowIfTrue(_frozenSourceGeneratedDocumentState != null, "We shouldn't be calling WithFrozenSourceGeneratedDocument on a solution with a frozen source generated document.");
 
-        var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(solution, documentIdentity.DocumentId);
+        var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
         SourceGeneratedDocumentState newGeneratedState;
 
         if (existingGeneratedState != null)
@@ -932,7 +934,7 @@ internal partial class SolutionCompilationState
         }
         else
         {
-            var projectState = solution.GetRequiredProjectState(documentIdentity.DocumentId.ProjectId);
+            var projectState = this.Solution.GetRequiredProjectState(documentIdentity.DocumentId.ProjectId);
             newGeneratedState = SourceGeneratedDocumentState.Create(
                 documentIdentity,
                 sourceText,
@@ -943,14 +945,14 @@ internal partial class SolutionCompilationState
         }
 
         var projectId = documentIdentity.DocumentId.ProjectId;
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, solution.GetProjectDependencyGraph());
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, this.Solution.GetProjectDependencyGraph());
 
         // We want to create a new snapshot with a new compilation tracker that will do this replacement.
         // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
         // computations). If we don't have one, we'll create one and then wrap it.
         if (!newTrackerMap.TryGetValue(projectId, out var existingTracker))
         {
-            existingTracker = CreateCompilationTracker(projectId, solution);
+            existingTracker = CreateCompilationTracker(projectId, this.Solution);
         }
 
         newTrackerMap = newTrackerMap.SetItem(
@@ -958,6 +960,8 @@ internal partial class SolutionCompilationState
             new GeneratedFileReplacingCompilationTracker(existingTracker, newGeneratedState));
 
         return this.Branch(
+            // TODO(cyrusn): Is it ok to just pass this.Solution along here?
+            this.Solution,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocument: newGeneratedState);
     }
@@ -968,6 +972,6 @@ internal partial class SolutionCompilationState
     internal readonly struct TestAccessor(SolutionCompilationState solutionState)
     {
         public GeneratorDriver? GetGeneratorDriver(Project project)
-            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Solution.State, project.Id).GeneratorDriver : null;
+            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
     }
 }
