@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -98,7 +99,7 @@ internal partial class SolutionCompilationState
 
     public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
-    internal SolutionCompilationState Branch(
+    private SolutionCompilationState Branch(
         SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
@@ -994,6 +995,18 @@ internal partial class SolutionCompilationState
             this.Solution,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocument: newGeneratedState);
+    }
+
+    public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
+    {
+        return this.Branch(
+            this.Solution.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+    }
+
+    public SolutionCompilationState WithOptions(SolutionOptionSet options)
+    {
+        return this.Branch(
+            this.Solution.WithOptions(options));
     }
 
     internal TestAccessor GetTestAccessor()

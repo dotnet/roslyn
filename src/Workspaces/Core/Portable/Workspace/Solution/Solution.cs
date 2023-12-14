@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newCompilationState = _compilationState.Branch(_state.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+            var newCompilationState = _compilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1864,7 +1864,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithOptions(SolutionOptionSet options)
         {
-            var newCompilationState = _compilationState.Branch(_state.WithOptions(options: options));
+            var newCompilationState = _compilationState.WithOptions(options);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
