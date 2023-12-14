@@ -792,13 +792,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newState = _state.AddMetadataReferences(projectId, collection);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.AddMetadataReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.AddMetadataReferences(newProjectState, newState.GetProjectDependencyGraph(), collection);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

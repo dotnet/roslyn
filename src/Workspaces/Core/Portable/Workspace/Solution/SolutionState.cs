@@ -889,14 +889,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include the
         /// specified metadata references.
         /// </summary>
-        public SolutionState AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
+        public (SolutionState, ProjectState) AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
         {
+            var oldProject = GetRequiredProjectState(projectId);
             if (metadataReferences.Count == 0)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(metadataReferences);
 
