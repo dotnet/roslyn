@@ -96,19 +96,22 @@ internal partial class SolutionCompilationState
     public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
     internal SolutionCompilationState Branch(
+        SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
 
-        if (projectIdToTrackerMap == _projectIdToTrackerMap &&
+        if (newSolutionState == this.Solution &&
+            projectIdToTrackerMap == _projectIdToTrackerMap &&
             newFrozenSourceGeneratedDocumentState == _frozenSourceGeneratedDocumentState)
         {
             return this;
         }
 
         return new SolutionCompilationState(
+            newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap,
             newFrozenSourceGeneratedDocumentState);
@@ -116,14 +119,15 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     public SolutionCompilationState ForkProject(
+        SolutionState newSolutionState,
         ProjectState newProjectState,
-        ProjectDependencyGraph newDependencyGraph,
         CompilationAndGeneratorDriverTranslationAction? translate,
         //ProjectDependencyGraph? newDependencyGraph = null,
         bool forkTracker)
     {
         var projectId = newProjectState.Id;
 
+        var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
         var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
         // If we have a tracker for this project, then fork it as well (along with the
         // translation action and store it in the tracker map.
@@ -138,6 +142,7 @@ internal partial class SolutionCompilationState
         }
 
         return this.Branch(
+            newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
     }
 
@@ -178,30 +183,35 @@ internal partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
-    public SolutionCompilationState AddProject(ProjectId projectId, ProjectDependencyGraph newDependencyGraph)
+    public SolutionCompilationState AddProject(SolutionState newSolutionState, ProjectId projectId)
     {
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph());
 
         return Branch(
+            newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
-    public SolutionCompilationState RemoveProject(ProjectId projectId, ProjectDependencyGraph newDependencyGraph)
+    public SolutionCompilationState RemoveProject(SolutionState newSolutionState, ProjectId projectId)
     {
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph());
 
         return this.Branch(
+            newSolutionState,
             projectIdToTrackerMap: newTrackerMap.Remove(projectId));
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
     public SolutionCompilationState WithProjectAssemblyName(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string assemblyName)
+        SolutionState solutionState, ProjectState newProject, string assemblyName)
     {
+        if (solutionState == this.Solution)
+            return this;
+
         return ForkProject(
+            solutionState,
             newProject,
-            newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
             forkTracker: true);
     }

@@ -28,16 +28,17 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public partial class Solution
     {
+        private readonly SolutionState _state;
         private readonly SolutionCompilationState _compilationState;
 
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private Solution(SolutionState state, SolutionCompilationState compilationState)
+        private Solution(SolutionCompilationState state)
         {
             _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
-            _state = state;
-            _compilationState = compilationState;
+            _compilationState = state;
+            _state = state.Solution;
         }
 
         internal Solution(
@@ -45,8 +46,9 @@ namespace Microsoft.CodeAnalysis
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
-                   new SolutionCompilationState(workspace.PartialSemanticsEnabled))
+            : this(new SolutionCompilationState(
+                new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                workspace.PartialSemanticsEnabled))
         {
         }
 
@@ -230,8 +232,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var generatedDocument = _compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(
-                                _state, documentId);
+                            var generatedDocument = _compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
 
                             if (generatedDocument != null)
                             {
@@ -376,14 +377,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProject(ProjectInfo projectInfo)
         {
-            var newState = _state.AddProject(projectInfo);
-            var newCompilationState = _compilationState.AddProject(projectInfo.Id, newState.GetProjectDependencyGraph());
-            if (newState == _state && newCompilationState == _compilationState)
-            {
+            var newCompilationState = _compilationState.AddProject(_state.AddProject(projectInfo), projectInfo.Id);
+            if (newCompilationState == _compilationState)
                 return this;
-            }
 
-            return new Solution(newState, newCompilationState);
+            return new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -391,14 +389,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveProject(ProjectId projectId)
         {
-            var newState = _state.RemoveProject(projectId);
-            var newCompilationState = _compilationState.RemoveProject(projectId, newState.GetProjectDependencyGraph());
-            if (newState == _state && newCompilationState == _compilationState)
-            {
+            var newCompilationState = _compilationState.RemoveProject(_state.RemoveProject(projectId), projectId);
+            if (newCompilationState == _compilationState)
                 return this;
-            }
 
-            return new Solution(newState, newCompilationState);
+            return new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -421,8 +416,11 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newCompilationState = _compilationState.WithProjectAssemblyName(newProjectState, newState.GetProjectDependencyGraph(), assemblyName);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.WithProjectAssemblyName(newState, newProjectState, assemblyName);
+            if (newCompilationState == _compilationState)
+                return this;
+
+            return new Solution(newCompilationState);
         }
 
         /// <summary>
