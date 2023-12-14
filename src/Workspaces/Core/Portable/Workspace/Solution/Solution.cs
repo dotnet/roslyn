@@ -1733,18 +1733,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var (newState, newCompilationState) = WithDocumentText(documentIds, text, mode);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
-
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = WithDocumentText(documentIds, text, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
 
             // <summary>
             // Creates a new solution instance with all the documents specified updated to have the same specified text.
             // </summary>
-            (SolutionState, SolutionCompilationState) WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
+            SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
             {
                 var solutionState = _state;
                 var compilationState = _compilationState;
@@ -1756,15 +1751,10 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    var (newState, oldProjectState, newProjectState) = solutionState.WithDocumentText(documentId, text, mode);
-                    if (newState == solutionState)
-                        continue;
-
-                    compilationState = compilationState.WithDocumentText(
-                        oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, text, mode);
+                    compilationState = compilationState.WithDocumentText(solutionState.WithDocumentText(documentId, text, mode), documentId, text, mode);
                 }
 
-                return (solutionState, compilationState);
+                return compilationState;
             }
         }
 
