@@ -222,9 +222,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
-    public SolutionCompilationState AddProject(SolutionState newSolutionState, ProjectId projectId)
+    public SolutionCompilationState AddProject(ProjectInfo projectInfo)
     {
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph());
+        var newSolutionState = this.Solution.AddProject(projectInfo);
+        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph());
 
         return Branch(
             newSolutionState,
@@ -232,8 +233,9 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
-    public SolutionCompilationState RemoveProject(SolutionState newSolutionState, ProjectId projectId)
+    public SolutionCompilationState RemoveProject(ProjectId projectId)
     {
+        var newSolutionState = this.Solution.RemoveProject(projectId);
         var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph());
 
         return this.Branch(

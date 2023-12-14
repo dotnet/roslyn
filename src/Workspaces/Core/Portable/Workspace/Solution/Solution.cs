@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProject(ProjectInfo projectInfo)
         {
-            var newCompilationState = _compilationState.AddProject(_state.AddProject(projectInfo), projectInfo.Id);
+            var newCompilationState = _compilationState.AddProject(projectInfo);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveProject(ProjectId projectId)
         {
-            var newCompilationState = _compilationState.RemoveProject(_state.RemoveProject(projectId), projectId);
+            var newCompilationState = _compilationState.RemoveProject(projectId);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
