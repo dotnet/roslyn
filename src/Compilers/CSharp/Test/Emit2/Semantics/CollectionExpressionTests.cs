@@ -26374,6 +26374,166 @@ partial class Program
         }
 
         [Fact]
+        public void MDArrayToList_Spreads()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        M(new [,] { { 1, 2, 3 } }, new [,] { { 4, 5, 6 } });
+                    }
+
+                    static void M(int[,] e1, int[,] e2)
+                    {
+                        List<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size      251 (0xfb)
+                  .maxstack  3
+                  .locals init (int[,] V_0,
+                                int[,] V_1,
+                                System.Collections.Generic.List<int> V_2,
+                                System.Span<int> V_3,
+                                int V_4,
+                                int[,] V_5,
+                                int V_6,
+                                int V_7,
+                                int V_8,
+                                int V_9,
+                                int V_10)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  stloc.1
+                  IL_0004:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0009:  stloc.2
+                  IL_000a:  ldloc.2
+                  IL_000b:  ldloc.0
+                  IL_000c:  callvirt   "int System.Array.Length.get"
+                  IL_0011:  ldloc.1
+                  IL_0012:  callvirt   "int System.Array.Length.get"
+                  IL_0017:  add
+                  IL_0018:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_001d:  ldloc.2
+                  IL_001e:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0023:  stloc.3
+                  IL_0024:  ldc.i4.0
+                  IL_0025:  stloc.s    V_4
+                  IL_0027:  ldloc.0
+                  IL_0028:  stloc.s    V_5
+                  IL_002a:  ldloc.s    V_5
+                  IL_002c:  ldc.i4.0
+                  IL_002d:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_0032:  stloc.s    V_6
+                  IL_0034:  ldloc.s    V_5
+                  IL_0036:  ldc.i4.1
+                  IL_0037:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_003c:  stloc.s    V_7
+                  IL_003e:  ldloc.s    V_5
+                  IL_0040:  ldc.i4.0
+                  IL_0041:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_0046:  stloc.s    V_8
+                  IL_0048:  br.s       IL_0087
+                  IL_004a:  ldloc.s    V_5
+                  IL_004c:  ldc.i4.1
+                  IL_004d:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_0052:  stloc.s    V_9
+                  IL_0054:  br.s       IL_007b
+                  IL_0056:  ldloc.s    V_5
+                  IL_0058:  ldloc.s    V_8
+                  IL_005a:  ldloc.s    V_9
+                  IL_005c:  call       "int[*,*].Get"
+                  IL_0061:  stloc.s    V_10
+                  IL_0063:  ldloca.s   V_3
+                  IL_0065:  ldloc.s    V_4
+                  IL_0067:  call       "ref int System.Span<int>.this[int].get"
+                  IL_006c:  ldloc.s    V_10
+                  IL_006e:  stind.i4
+                  IL_006f:  ldloc.s    V_4
+                  IL_0071:  ldc.i4.1
+                  IL_0072:  add
+                  IL_0073:  stloc.s    V_4
+                  IL_0075:  ldloc.s    V_9
+                  IL_0077:  ldc.i4.1
+                  IL_0078:  add
+                  IL_0079:  stloc.s    V_9
+                  IL_007b:  ldloc.s    V_9
+                  IL_007d:  ldloc.s    V_7
+                  IL_007f:  ble.s      IL_0056
+                  IL_0081:  ldloc.s    V_8
+                  IL_0083:  ldc.i4.1
+                  IL_0084:  add
+                  IL_0085:  stloc.s    V_8
+                  IL_0087:  ldloc.s    V_8
+                  IL_0089:  ldloc.s    V_6
+                  IL_008b:  ble.s      IL_004a
+                  IL_008d:  ldloc.1
+                  IL_008e:  stloc.s    V_5
+                  IL_0090:  ldloc.s    V_5
+                  IL_0092:  ldc.i4.0
+                  IL_0093:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_0098:  stloc.s    V_7
+                  IL_009a:  ldloc.s    V_5
+                  IL_009c:  ldc.i4.1
+                  IL_009d:  callvirt   "int System.Array.GetUpperBound(int)"
+                  IL_00a2:  stloc.s    V_6
+                  IL_00a4:  ldloc.s    V_5
+                  IL_00a6:  ldc.i4.0
+                  IL_00a7:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_00ac:  stloc.s    V_8
+                  IL_00ae:  br.s       IL_00ed
+                  IL_00b0:  ldloc.s    V_5
+                  IL_00b2:  ldc.i4.1
+                  IL_00b3:  callvirt   "int System.Array.GetLowerBound(int)"
+                  IL_00b8:  stloc.s    V_9
+                  IL_00ba:  br.s       IL_00e1
+                  IL_00bc:  ldloc.s    V_5
+                  IL_00be:  ldloc.s    V_8
+                  IL_00c0:  ldloc.s    V_9
+                  IL_00c2:  call       "int[*,*].Get"
+                  IL_00c7:  stloc.s    V_10
+                  IL_00c9:  ldloca.s   V_3
+                  IL_00cb:  ldloc.s    V_4
+                  IL_00cd:  call       "ref int System.Span<int>.this[int].get"
+                  IL_00d2:  ldloc.s    V_10
+                  IL_00d4:  stind.i4
+                  IL_00d5:  ldloc.s    V_4
+                  IL_00d7:  ldc.i4.1
+                  IL_00d8:  add
+                  IL_00d9:  stloc.s    V_4
+                  IL_00db:  ldloc.s    V_9
+                  IL_00dd:  ldc.i4.1
+                  IL_00de:  add
+                  IL_00df:  stloc.s    V_9
+                  IL_00e1:  ldloc.s    V_9
+                  IL_00e3:  ldloc.s    V_6
+                  IL_00e5:  ble.s      IL_00bc
+                  IL_00e7:  ldloc.s    V_8
+                  IL_00e9:  ldc.i4.1
+                  IL_00ea:  add
+                  IL_00eb:  stloc.s    V_8
+                  IL_00ed:  ldloc.s    V_8
+                  IL_00ef:  ldloc.s    V_7
+                  IL_00f1:  ble.s      IL_00b0
+                  IL_00f3:  ldloc.2
+                  IL_00f4:  ldc.i4.0
+                  IL_00f5:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00fa:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void ListToList_Spreads()
         {
             var source = """
@@ -26608,6 +26768,11 @@ partial class Program
                 """);
         }
 
+        // TODO2: more test cases
+        // consider testing more combinations of runtime-equivalent source and dest element types
+        // test the dynamic case and/or highlight an existing test
+        // test targeting to span
+        // test targeting to IEnumerable/other interfaces
         [Fact]
         public void Spread_RuntimeEquivalentElement()
         {
@@ -26721,9 +26886,14 @@ partial class Program
                 }
                 """;
 
+            // TODO2: get rid of span temp to avoid async problems, update baselines.
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: null /*IncludeExpectedOutput("[2, 1], [1, 2, 1, 2],")*/, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
-            System.IO.File.WriteAllBytes(@"C:\Users\rikki\Desktop\assembly.dll", verifier.EmittedAssemblyData.ToArray());
             verifier.VerifyDiagnostics();
         }
+
+        // TODO2 add tests:
+        // - List.AddRange where spread operand is an IEnumerable<T>
+        // - " " where spread operand is IEnumerable<U> where U : T
+        // - " " where spread operand is struct : IEnumerable<T>
     }
 }
