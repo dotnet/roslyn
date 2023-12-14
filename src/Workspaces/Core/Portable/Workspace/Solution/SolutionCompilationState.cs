@@ -297,10 +297,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectName"/>
     public SolutionCompilationState WithProjectName(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, string name)
+        ProjectId projectId, string name)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectName(projectId, name),
             translate: null,
             forkTracker: true);
     }

@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newCompilationState = _compilationState.WithProjectName(_state.WithProjectName(projectId, name), name);
+            var newCompilationState = _compilationState.WithProjectName(projectId, name);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

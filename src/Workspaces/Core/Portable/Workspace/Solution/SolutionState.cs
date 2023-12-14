@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        public (SolutionState, ProjectState newProject) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
