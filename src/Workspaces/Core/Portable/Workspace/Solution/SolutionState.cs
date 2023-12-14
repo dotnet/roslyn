@@ -1180,12 +1180,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified file path.
         /// </summary>
-        public SolutionState WithDocumentFilePath(DocumentId documentId, string? filePath)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentFilePath(DocumentId documentId, string? filePath)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.FilePath == filePath)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);

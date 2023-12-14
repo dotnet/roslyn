@@ -1427,13 +1427,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var newState = _state.WithDocumentFilePath(documentId, filePath);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithDocumentFilePath(documentId, filePath);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentFilePath(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, filePath);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

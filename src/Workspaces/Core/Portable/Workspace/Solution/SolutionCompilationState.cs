@@ -438,6 +438,14 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
     }
 
+    /// <inheritdoc cref="SolutionState.WithDocumentFilePath"/>
+    public SolutionCompilationState WithDocumentFilePath(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, string? filePath)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {
