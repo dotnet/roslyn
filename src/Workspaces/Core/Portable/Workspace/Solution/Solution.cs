@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
-            var newCompilationState = _compilationState.WithDocumentContentsFrom(_state.WithDocumentContentsFrom(documentId, documentState), documentId, documentState);
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
             }
 
-            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(_state.WithDocumentSourceCodeKind(documentId, sourceCodeKind), documentId, sourceCodeKind);
+            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

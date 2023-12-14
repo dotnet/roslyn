@@ -600,15 +600,15 @@ internal partial class SolutionCompilationState
         DocumentId documentId, DocumentState documentState)
     {
         return UpdateDocumentState(
-            _state.WithDocumentContentsFrom(documentId, documentState), documentId, contentChanged: true);
+            this.Solution.WithDocumentContentsFrom(documentId, documentState), documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
     public SolutionCompilationState WithDocumentSourceCodeKind(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, SourceCodeKind sourceCodeKind)
+        DocumentId documentId, SourceCodeKind sourceCodeKind)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: true);
+            this.Solution.WithDocumentSourceCodeKind(documentId, sourceCodeKind), documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateDocumentTextLoader"/>
