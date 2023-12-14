@@ -1698,14 +1698,8 @@ namespace Microsoft.CodeAnalysis
 
         internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newState = _state.WithNewWorkspace(workspaceKind, workspaceVersion, services);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            // WithNewWorkspace doesn't change any data that affects the compilation state.
-            return new Solution(newState, _compilationState);
+            var newCompilationState = _compilationState.Branch(_state.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
