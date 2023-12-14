@@ -61,12 +61,12 @@ jobs:
       - script: echo eq-empty ${{ parameters.helixApiAccessToken }}
 
     - ${{ if eq(parameters.helixApiAccessToken, '$(helixApiAccessToken)') }}
-      - script: echo value is name of var: $(helixApiAccessToken)
+      - script: echo value is name of var: ${{ parameters.helixApiAccessToken }}
 
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
-        ${{ if ne(parameters.helixApiAccessToken, '') }}:
+        ${{ if ne(variables['System.TeamProject'], 'public') }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
         ${{ else }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
