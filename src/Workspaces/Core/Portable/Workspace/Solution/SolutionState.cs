@@ -1152,9 +1152,9 @@ namespace Microsoft.CodeAnalysis
         public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentName(DocumentId documentId, string name)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
             if (oldDocument.Attributes.Name == name)
             {
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
                 return (this, oldProject, oldProject);
             }
 
@@ -1165,12 +1165,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public SolutionState WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.Folders.SequenceEqual(folders))
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);

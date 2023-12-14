@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -424,6 +425,14 @@ internal partial class SolutionCompilationState
     /// <inheritdoc cref="SolutionState.WithDocumentName"/>
     public SolutionCompilationState WithDocumentName(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, string name)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithDocumentFolders"/>
+    public SolutionCompilationState WithDocumentFolders(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, IReadOnlyList<string> folders)
     {
         return UpdateDocumentState(
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
