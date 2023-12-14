@@ -606,7 +606,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(arrayTemp);
             sideEffects.Add(assignmentToTemp);
 
-            BoundLocal? targetSpanTemp = null;
             AddCollectionExpressionElements(
                 elements,
                 arrayTemp,
@@ -643,18 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryPrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
 
-                    if (targetSpanTemp is null)
-                    {
-                        var targetSpan = TryConvertToSpanOrReadOnlySpan(arrayTemp);
-                        if (targetSpan is null)
-                            return false;
+                    // https://github.com/dotnet/roslyn/issues/71270
+                    // Could save the targetSpan to temp in the enclosing scope, but need to make sure we are async-safe etc.
+                    var targetSpan = TryConvertToSpanOrReadOnlySpan(arrayTemp);
+                    if (targetSpan is null)
+                        return false;
 
-                        targetSpanTemp = _factory.StoreToTemp(targetSpan, out var assignmentToTemp);
-                        localsBuilder.Add(targetSpanTemp);
-                        sideEffects.Add(assignmentToTemp);
-                    }
-
-                    PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, targetSpanTemp, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
+                    PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, targetSpan, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
                     return true;
                 });
 
@@ -960,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expressions.Add(
                             _factory.Call(listTemp, addMethod, rewrittenValue));
                     },
-                    (sideEffects, spanTemp, spreadElement, rewrittenSpreadOperand) =>
+                    (sideEffects, listTemp, spreadElement, rewrittenSpreadOperand) =>
                     {
                         if (addRangeMethod is null)
                             return false;
