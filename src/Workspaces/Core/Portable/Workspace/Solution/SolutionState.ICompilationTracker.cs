@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
-        private interface ICompilationTracker
+        internal interface ICompilationTracker
         {
             ProjectState ProjectState { get; }
             GeneratorDriver? GeneratorDriver { get; }

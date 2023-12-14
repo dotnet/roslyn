@@ -2138,13 +2138,41 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
         {
-            var newState = _state.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
-            if (newState == _state)
+            var (newState, newCompilationState) = WithCachedSourceGeneratorStateWorker(projectToUpdate, projectWithCachedGeneratorState);
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
+
+            // <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
+            (SolutionState, SolutionCompilationState) WithCachedSourceGeneratorStateWorker(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+            {
+                CheckContainsProject(projectToUpdate);
+
+                // First see if we have a generator driver that we can get from the other project.
+
+                if (!projectWithCachedGeneratorState.Solution.CompilationState.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
+                    tracker.GeneratorDriver is null)
+                {
+                    // We don't actually have any state at all, so no change.
+                    return (_state, _compilationState);
+                }
+
+                var projectToUpdateState = GetRequiredProjectState(projectToUpdate);
+
+                (var newState, projectToUpdateState) = _state.ForkProject(projectToUpdateState);
+                var newCompilationState = _compilationState.ForkProject(
+                    projectToUpdateState,
+                    newState.GetProjectDependencyGraph(),
+                    translate: new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                        tracker.GeneratorDriver,
+                        newProjectState: projectToUpdateState),
+                    forkTracker: true);
+
+                return (newState, newCompilationState);
+            }
         }
 
         /// <summary>
