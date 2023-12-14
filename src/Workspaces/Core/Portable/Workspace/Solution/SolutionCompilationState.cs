@@ -446,6 +446,17 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
     }
 
+    /// <summary>
+    /// Creates a new solution instance with the document specified updated to have the text
+    /// specified.
+    /// </summary>
+    public SolutionCompilationState WithDocumentText(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceText text, PreservationMode mode)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {

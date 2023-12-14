@@ -1196,12 +1196,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
