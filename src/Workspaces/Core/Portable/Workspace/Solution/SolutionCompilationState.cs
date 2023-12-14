@@ -355,12 +355,11 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableList<DocumentId> documentIds)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, ImmutableList<DocumentId> documentIds)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
-            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: false),
+            tuple,
+            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: false),
             forkTracker: true);
     }
 
