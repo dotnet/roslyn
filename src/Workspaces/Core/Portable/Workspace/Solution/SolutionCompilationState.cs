@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
+    /// <summary>
+    /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
+    /// </summary>
+    private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
+
     public bool PartialSemanticsEnabled { get; }
 
     // Values for all these are created on demand.

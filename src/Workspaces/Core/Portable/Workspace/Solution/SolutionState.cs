@@ -1671,11 +1671,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
-        /// </summary>
-        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
-
-        /// <summary>
         /// Get a metadata reference for the project's compilation.  Returns <see langword="null"/> upon failure, which 
         /// can happen when trying to build a skeleton reference that fails to build.
         /// </summary>
