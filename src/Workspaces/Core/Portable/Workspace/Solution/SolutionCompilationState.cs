@@ -70,6 +70,8 @@ internal partial class SolutionCompilationState
         PartialSemanticsEnabled = partialSemanticsEnabled;
         _projectIdToTrackerMap = projectIdToTrackerMap;
         _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
+
+        CheckInvariants();
     }
 
     public SolutionCompilationState(
@@ -79,6 +81,15 @@ internal partial class SolutionCompilationState
             projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
             frozenSourceGeneratedDocument: null)
     {
+    }
+
+    private void CheckInvariants()
+    {
+        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+#if DEBUG
+        // An id shouldn't point at a tracker for a different project.
+        Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
+#endif
     }
 
     public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
