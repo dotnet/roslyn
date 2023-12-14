@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis
 
                 var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
-                (newSolutionState, _) = newSolutionState.ForkProject(
+                (newSolutionState, newProjectState) = newSolutionState.ForkProject(
                     newProjectState,
                     // intentionally accessing _state here not newSolutionState
                     newFilePathToDocumentIdsMap: _state.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
@@ -1389,14 +1389,78 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveDocuments(documentIds);
-            if (newState == _state)
+            var (newState, newCompilationState) = RemoveDocumentsWorker(documentIds);
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
+
+            // <summary>
+            // Creates a new solution instance that no longer includes the specified document.
+            // </summary>
+            (SolutionState, SolutionCompilationState) RemoveDocumentsWorker(ImmutableArray<DocumentId> documentIds)
+            {
+                return RemoveDocumentsFromMultipleProjects(documentIds,
+                    (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
+                    (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+            }
         }
+
+        private (SolutionState, SolutionCompilationState) RemoveDocumentsFromMultipleProjects<T>(
+            ImmutableArray<DocumentId> documentIds,
+            Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
+            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
+            where T : TextDocumentState
+        {
+            if (documentIds.IsEmpty)
+            {
+                return (_state, _compilationState);
+            }
+
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
+
+            var newSolutionState = _state;
+            var newCompilationState = _compilationState;
+
+            foreach (var documentIdsInProject in documentIdsByProjectId)
+            {
+                var oldProjectState = this.GetProjectState(documentIdsInProject.Key);
+
+                if (oldProjectState == null)
+                {
+                    throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
+                }
+
+                var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
+
+                foreach (var documentId in documentIdsInProject)
+                {
+                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
+                }
+
+                var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
+
+                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+
+                (newSolutionState, newProjectState) = newSolutionState.ForkProject(
+                    newProjectState,
+                    // Intentionally using _state here and not newSolutionState
+                    newFilePathToDocumentIdsMap: _state.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
+
+                newCompilationState = newCompilationState.ForkProject(
+                    newProjectState,
+                    newSolutionState.GetProjectDependencyGraph(),
+                    compilationTranslationAction,
+                    forkTracker: true);
+            }
+
+            return (newSolutionState, _compilationState);
+        }
+
 
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified additional document.
