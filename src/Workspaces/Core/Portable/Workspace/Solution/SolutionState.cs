@@ -8,22 +8,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// this is a green node of Solution like ProjectState/DocumentState are for
     /// Project and Document.
     /// </summary>
-    internal partial class SolutionState
+    internal sealed partial class SolutionState
     {
         // the version of the workspace this solution is from
         public int WorkspaceVersion { get; }
@@ -143,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        private SolutionState Branch(
+        internal SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IReadOnlyList<ProjectId>? projectIds = null,
             SolutionOptionSet? options = null,
@@ -274,7 +265,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetProjectState(documentId.ProjectId)!.AnalyzerConfigDocumentStates.Contains(documentId);
         }
 
-        private DocumentState GetRequiredDocumentState(DocumentId documentId)
+        internal DocumentState GetRequiredDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredState(documentId);
 
         private AdditionalDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
@@ -1196,7 +1187,7 @@ namespace Microsoft.CodeAnalysis
                 : ImmutableArray<DocumentId>.Empty;
         }
 
-        private static ProjectDependencyGraph CreateDependencyGraph(
+        public static ProjectDependencyGraph CreateDependencyGraph(
             IReadOnlyList<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> projectStates)
         {
@@ -1243,101 +1234,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Branch(analyzerReferences: analyzerReferences);
-        }
-
-        // this lock guards all the mutable fields (do not share lock with derived classes)
-        private NonReentrantLock? _stateLockBackingField;
-        private NonReentrantLock StateLock
-        {
-            get
-            {
-                // TODO: why did I need to do a nullable suppression here?
-                return LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory)!;
-            }
-        }
-
-        private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
-        private DateTime _timeOfLatestSolutionWithPartialCompilation;
-        private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
-
-        /// <summary>
-        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-        /// busy building this compilations.
-        ///
-        /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        ///
-        /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
-        /// </summary>
-        public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
-            SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfTrue(this != compilationState.Solution);
-
-            try
-            {
-                var allDocumentIds = GetRelatedDocumentIds(documentId);
-                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
-
-                foreach (var currentDocumentId in allDocumentIds)
-                {
-                    var document = this.GetRequiredDocumentState(currentDocumentId);
-                    builder.Add((document, document.GetSyntaxTree(cancellationToken)));
-                }
-
-                using (this.StateLock.DisposableWait(cancellationToken))
-                {
-                    // in progress solutions are disabled for some testing
-                    if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
-                    {
-                        return compilationState;
-                    }
-
-                    SolutionCompilationState? currentPartialSolution = null;
-                    _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
-
-                    var reuseExistingPartialSolution =
-                        (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
-                        _documentIdOfLatestSolutionWithPartialCompilation == documentId;
-
-                    if (reuseExistingPartialSolution && currentPartialSolution != null)
-                    {
-                        SolutionLogger.UseExistingPartialSolution();
-                        return currentPartialSolution;
-                    }
-
-                    var newIdToProjectStateMap = _projectIdToProjectStateMap;
-                    var newIdToTrackerMap = compilationState.ProjectIdToTrackerMap;
-
-                    foreach (var (doc, tree) in builder)
-                    {
-                        // if we don't have one or it is stale, create a new partial solution
-                        var tracker = compilationState.GetCompilationTracker(doc.Id.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(compilationState, doc, tree, cancellationToken);
-
-                        Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
-                        newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
-                        newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
-                    }
-
-                    var newState = this.Branch(
-                        idToProjectStateMap: newIdToProjectStateMap,
-                        dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
-                    var newCompilationState = compilationState.Branch(
-                        newState,
-                        newIdToTrackerMap);
-
-                    _latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
-                    _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
-                    _documentIdOfLatestSolutionWithPartialCompilation = documentId;
-
-                    SolutionLogger.CreatePartialSolution();
-                    return newCompilationState;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
         }
 
         public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)

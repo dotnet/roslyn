@@ -1657,7 +1657,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(_compilationState, documentId, cancellationToken);
+            var newCompilationState = _compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
             return new Solution(newCompilationState);
         }
 

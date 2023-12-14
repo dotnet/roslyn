@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -24,7 +25,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
@@ -54,6 +55,10 @@ internal partial class SolutionCompilationState
     private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
+
+    // this lock guards all the mutable fields (do not share lock with derived classes)
+    private NonReentrantLock? _stateLockBackingField;
+    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
 
     private SolutionCompilationState(
         SolutionState solution,
@@ -1007,6 +1012,88 @@ internal partial class SolutionCompilationState
     {
         return this.Branch(
             this.Solution.WithOptions(options));
+    }
+
+    private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
+    private DateTime _timeOfLatestSolutionWithPartialCompilation;
+    private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
+
+    /// <summary>
+    /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
+    /// busy building this compilations.
+    ///
+    /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
+    ///
+    /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
+    /// </summary>
+    public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
+        DocumentId documentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var allDocumentIds = this.Solution.GetRelatedDocumentIds(documentId);
+            using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
+
+            foreach (var currentDocumentId in allDocumentIds)
+            {
+                var document = this.Solution.GetRequiredDocumentState(currentDocumentId);
+                builder.Add((document, document.GetSyntaxTree(cancellationToken)));
+            }
+
+            using (this.StateLock.DisposableWait(cancellationToken))
+            {
+                // in progress solutions are disabled for some testing
+                if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                {
+                    return this;
+                }
+
+                SolutionCompilationState? currentPartialSolution = null;
+                _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
+
+                var reuseExistingPartialSolution =
+                    (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
+                    _documentIdOfLatestSolutionWithPartialCompilation == documentId;
+
+                if (reuseExistingPartialSolution && currentPartialSolution != null)
+                {
+                    SolutionLogger.UseExistingPartialSolution();
+                    return currentPartialSolution;
+                }
+
+                var newIdToProjectStateMap = this.Solution.ProjectStates;
+                var newIdToTrackerMap = this.ProjectIdToTrackerMap;
+
+                foreach (var (doc, tree) in builder)
+                {
+                    // if we don't have one or it is stale, create a new partial solution
+                    var tracker = this.GetCompilationTracker(doc.Id.ProjectId);
+                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+
+                    Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
+                    newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
+                    newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
+                }
+
+                var newState = this.Solution.Branch(
+                    idToProjectStateMap: newIdToProjectStateMap,
+                    dependencyGraph: SolutionState.CreateDependencyGraph(this.Solution.ProjectIds, newIdToProjectStateMap));
+                var newCompilationState = this.Branch(
+                    newState,
+                    newIdToTrackerMap);
+
+                _latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
+                _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
+                _documentIdOfLatestSolutionWithPartialCompilation = documentId;
+
+                SolutionLogger.CreatePartialSolution();
+                return newCompilationState;
+            }
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
     internal TestAccessor GetTestAccessor()
