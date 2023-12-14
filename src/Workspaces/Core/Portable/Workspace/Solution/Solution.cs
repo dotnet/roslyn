@@ -155,9 +155,8 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            var projectState = _state.GetProjectState(assemblySymbol);
-
-            return projectState == null ? null : GetProject(projectState.Id);
+            var projectId = SolutionCompilationState.GetProjectId(assemblySymbol);
+            return GetProject(projectId);
         }
 
         /// <summary>

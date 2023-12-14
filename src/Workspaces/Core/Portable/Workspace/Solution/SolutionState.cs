@@ -364,18 +364,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        /// <summary>
-        /// Gets the <see cref="Project"/> associated with an assembly symbol.
-        /// </summary>
-        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
-        {
-            if (assemblySymbol == null)
-                return null;
-
-            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
-            return id == null ? null : this.GetProjectState(id);
-        }
-
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
             => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 

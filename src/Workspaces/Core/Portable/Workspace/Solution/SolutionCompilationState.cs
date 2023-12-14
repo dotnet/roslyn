@@ -594,4 +594,16 @@ internal partial class SolutionCompilationState
                 : null,
             forkTracker: true);
     }
+
+    /// <summary>
+    /// Gets the <see cref="Project"/> associated with an assembly symbol.
+    /// </summary>
+    public static ProjectId? GetProjectId(IAssemblySymbol? assemblySymbol)
+    {
+        if (assemblySymbol == null)
+            return null;
+
+        s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
+        return id;
+    }
 }
