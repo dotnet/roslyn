@@ -263,11 +263,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
     public SolutionCompilationState WithProjectDefaultNamespace(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? defaultNamespace)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, string? defaultNamespace)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
