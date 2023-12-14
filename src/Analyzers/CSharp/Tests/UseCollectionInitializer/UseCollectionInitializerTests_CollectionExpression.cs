@@ -48,7 +48,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -97,7 +97,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     var c = [|new|] List<int>(new[] { 1, 2, 3 });
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -346,7 +346,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -375,7 +375,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                         c.Add(2);
                 }
@@ -406,7 +406,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                         c.Add(2);
                     else
@@ -439,7 +439,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -472,7 +472,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -509,7 +509,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -548,7 +548,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -595,7 +595,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                     }
@@ -630,7 +630,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(bool b)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     if (b)
                     {
                         c.Add(2);
@@ -673,7 +673,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     IList<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -705,8 +705,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]x)
+                    c.Add(1);
+                    foreach (var v in x)
                         c.Add(v);
                 }
             }
@@ -736,8 +736,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]x)
+                    c.Add(1);
+                    foreach (var v in x)
                     {
                         c.Add(v);
                     }
@@ -769,7 +769,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     foreach (var v in x)
                     {
                         c.Add(0);
@@ -806,7 +806,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int z)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     foreach (var v in x)
                     {
                         c.Add(z);
@@ -843,10 +843,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]x)
+                    c.Add(1);
+                    foreach (var v in x)
                         c.Add(v);
-                    [|foreach (var v in |]y)
+                    foreach (var v in y)
                         c.Add(v);
                 }
             }
@@ -876,10 +876,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|foreach (var v in |]x)
+                    foreach (var v in x)
                         c.Add(v);
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]y)
+                    c.Add(1);
+                    foreach (var v in y)
                         c.Add(v);
                 }
             }
@@ -909,11 +909,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|foreach (var v in |]x)
+                    foreach (var v in x)
                         c.Add(v);
-                    [|foreach (var v in |]y)
+                    foreach (var v in y)
                         c.Add(v);
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -942,7 +942,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 async void M(IAsyncEnumerable<int> x)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                     await foreach (var v in x)
                         c.Add(v);
                 }
@@ -975,8 +975,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|c.AddRange(|]x);
+                    c.Add(1);
+                    c.AddRange(x);
                 }
             }
             """,
@@ -1005,10 +1005,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]x)
+                    c.Add(1);
+                    foreach (var v in x)
                         c.Add(v);
-                    [|c.AddRange(|]y);
+                    c.AddRange(y);
                 }
             }
             """,
@@ -1270,7 +1270,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c[1] = 2;
                 }
             }
@@ -1300,8 +1300,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1);
-                    [|c.Add(|]2);
+                    c.Add(1);
+                    c.Add(2);
                     throw new System.Exception();
                     c.Add(3);
                     c.Add(4);
@@ -1378,7 +1378,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>(1);
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -1408,7 +1408,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = null;
                     c = [|new|] List<int>();
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -1464,8 +1464,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    [|array[0].Add(|]1);
-                    [|array[0].Add(|]2);
+                    array[0].Add(1);
+                    array[0].Add(2);
                 }
             }
             """,
@@ -1527,7 +1527,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1
                     };
-                    [|c.Add(|]2);
+                    c.Add(2);
                 }
             }
             """,
@@ -1562,7 +1562,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1
                     };
-                    [|c.Add(|]2);
+                    c.Add(2);
                 }
             }
             """,
@@ -1597,7 +1597,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1,
                     };
-                    [|c.Add(|]2);
+                    c.Add(2);
                 }
             }
             """,
@@ -1632,7 +1632,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1
                     };
-                    [|foreach (var y in |]x)
+                    foreach (var y in x)
                         c.Add(y);
                 }
             }
@@ -1665,11 +1665,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    [|array[0].Add(|]1);
-                    [|array[0].Add(|]2);
+                    array[0].Add(1);
+                    array[0].Add(2);
                     array[1] = [|new|] List<int>();
-                    [|array[1].Add(|]3);
-                    [|array[1].Add(|]4);
+                    array[1].Add(3);
+                    array[1].Add(4);
                 }
             }
             """,
@@ -1702,9 +1702,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     Bar list1 = [|new|] Bar(() => {
                         List<int> list2 = [|new|] List<int>();
-                        [|list2.Add(|]2);
+                        list2.Add(2);
                     });
-                    [|list1.Add(|]1);
+                    list1.Add(1);
                 }
             }
 
@@ -1760,9 +1760,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<Action> list1 = [|new|] List<Action>();
-                    [|list1.Add(|]() => {
+                    list1.Add(() => {
                         List<int> list2 = [|new|] List<int>();
-                        [|list2.Add(|]2);
+                        list2.Add(2);
                     });
                 }
             }
@@ -1818,8 +1818,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1); // Goo
-                    [|c.Add(|]2); // Bar
+                    c.Add(1); // Goo
+                    c.Add(2); // Bar
                 }
             }
             """,
@@ -1851,11 +1851,11 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>();
                     // Goo
-                    [|foreach (var v in |]x)
+                    foreach (var v in x)
                         c.Add(v);
 
                     // Bar
-                    [|foreach (var v in |]y)
+                    foreach (var v in y)
                         c.Add(v);
                 }
             }
@@ -1891,12 +1891,12 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [|new|] List<int>();
                     // Goo
                     // Bar
-                    [|foreach (var v in |]x)
+                    foreach (var v in x)
                         c.Add(v);
 
                     // Baz
                     // Quux
-                    [|foreach (var v in |]y)
+                    foreach (var v in y)
                         c.Add(v);
                 }
             }
@@ -2033,10 +2033,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [|new|] List<int>();
 
                     // Goo
-                    [|c.Add(|]1);
+                    c.Add(1);
 
                     // Bar
-                    [|c.Add(|]2);
+                    c.Add(2);
                 }
             }
             """,
@@ -2070,8 +2070,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     Dictionary<int, string> c = [|new|] Dictionary<int, string>();
-                    [|c.Add(|]1, "x");
-                    [|c.Add(|]2, "y");
+                    c.Add(1, "x");
+                    c.Add(2, "y");
                 }
             }
             """,
@@ -2107,7 +2107,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     var items = new List<string>();
 
                     List<string> values = [|new|] List<string>(); // Collection initialization can be simplified
-                    [|values.Add(|]item);
+                    values.Add(item);
                     values.Remove(item);
                 }
             }
@@ -2385,7 +2385,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
             #if true
                     List<object> items = [|new|] List<object>();
-                    [|items.Add(|]1);
+                    items.Add(1);
             #endif
                 }
             }
@@ -2418,7 +2418,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     int lastItem;
                     List<int> list = [|new|] List<int>();
-                    [|list.Add(|]lastItem = 5);
+                    list.Add(lastItem = 5);
                 }
             }
             """,
@@ -2449,7 +2449,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     int lastItem = 0;
                     List<int> list = [|new|] List<int>();
-                    [|list.Add(|]lastItem += 5);
+                    list.Add(lastItem += 5);
                 }
             }
             """,
@@ -2479,7 +2479,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void Main()
                 {
                     List<int> list = [|new|] List<int>();
-                    [|list.Add(|]1);
+                    list.Add(1);
 
                     int horse = 1;
                 }
@@ -2630,7 +2630,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.Generic;
 
             List<int> list = [|new|] List<int>();
-            [|list.Add(|]1);
+            list.Add(1);
             """,
             """
             using System.Collections.Generic;
@@ -3387,7 +3387,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>() { 1, 2 };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3417,7 +3417,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>()
                     { 1, 2 };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3449,7 +3449,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2
                     };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3483,7 +3483,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [|new|] List<int>() { 1, 2 };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3515,7 +3515,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                         [|new|] List<int>()
                         { 1, 2 };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3550,7 +3550,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3588,7 +3588,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3625,7 +3625,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2
                         };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3661,7 +3661,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         {
                             1, 2
                         };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3696,7 +3696,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         {
                             1, 2,
                         };
-                    [|c.Add(|]3);
+                    c.Add(3);
                 }
             }
             """,
@@ -3728,7 +3728,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>() { 1, 2 };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3764,7 +3764,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>()
                     { 1, 2 };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3802,7 +3802,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2
                     };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3838,7 +3838,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [|new|] List<int>() { 1, 2 };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3875,7 +3875,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                         [|new|] List<int>()
                         { 1, 2 };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3915,7 +3915,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3955,7 +3955,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -3994,7 +3994,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2
                         };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -4031,7 +4031,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [|new|] List<int>() {
                             1, 2
                         };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -4067,7 +4067,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [|new|] List<int>() {
                             1, 2,
                         };
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -4101,7 +4101,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -4135,9 +4135,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>();
-                    [|c.Add(|]1 +
+                    c.Add(1 +
                         2);
-                    [|c.Add(|]3 +
+                    c.Add(3 +
                         4);
                 }
             }
@@ -4283,7 +4283,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>(1);
-                    [|c.Add(|]0);
+                    c.Add(0);
                 }
             }
             """,
@@ -4312,7 +4312,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>(0);
-                    [|c.Add(|]1);
+                    c.Add(1);
                 }
             }
             """,
@@ -4344,8 +4344,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
+                    c.Add(0);
+                    c.AddRange(x);
                 }
             }
             """,
@@ -4374,8 +4374,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>(x.Length + 1);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
+                    c.Add(0);
+                    c.AddRange(x);
                 }
             }
             """,
@@ -4404,9 +4404,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>(2 + x.Length);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """,
@@ -4435,10 +4435,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>(2 + x.Length + y.Length);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
                 }
             }
             """,
@@ -4467,10 +4467,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + y.Length + 2);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
                 }
             }
             """,
@@ -4499,10 +4499,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IList<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + y.Count + 2);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
                 }
             }
             """,
@@ -4532,10 +4532,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + y.Count() + 2);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
                 }
             }
             """,
@@ -4566,8 +4566,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0, 1 };
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
+                    c.AddRange(x);
+                    c.AddRange(y);
                 }
             }
             """,
@@ -4597,8 +4597,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x)
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length);
-                    [|c.Add(|]1);
-                    [|foreach (var v in |]x)
+                    c.Add(1);
+                    foreach (var v in x)
                         c.Add(v);
                 }
             }
@@ -4629,10 +4629,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length + y.Count() + 1);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
                 }
             }
             """,
@@ -4663,7 +4663,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length + y.Count());
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                     c.AddRange(y);
                     c.Add(1);
@@ -4702,7 +4702,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(1 - x.Length);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                 }
             }
@@ -4736,7 +4736,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(1);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                 }
             }
@@ -4770,7 +4770,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>(1 + x.Length + y.Length);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                 }
             }
@@ -4804,7 +4804,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>(x);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(y);
                 }
             }
@@ -4839,9 +4839,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0 };
-                    [|c.Add(|]1);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]y);
+                    c.Add(1);
+                    c.AddRange(x);
+                    c.AddRange(y);
                 }
             }
             """,
@@ -4872,7 +4872,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IEnumerable<int> y)
                 {
                     List<int> c = [|new|] List<int>(1 + y.Count());
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                 }
             }
@@ -4907,10 +4907,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IList<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + x.Length + 2);
-                    [|c.Add(|]0);
-                    [|c.AddRange(|]x);
-                    [|c.AddRange(|]x);
-                    [|c.Add(|]1);
+                    c.Add(0);
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
                 }
             }
             """,
@@ -4939,7 +4939,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IList<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + 2);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                     c.AddRange(x);
                     c.Add(1);
@@ -4977,7 +4977,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, IList<int> y)
                 {
                     List<int> c = [|new|] List<int>(x.Length + x.Length + x.Length + 2);
-                    [|c.Add(|]0);
+                    c.Add(0);
                     c.AddRange(x);
                     c.AddRange(x);
                     c.Add(1);
