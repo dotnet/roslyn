@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis
             Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
             MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
-            ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken);
-            ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
             Task<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);

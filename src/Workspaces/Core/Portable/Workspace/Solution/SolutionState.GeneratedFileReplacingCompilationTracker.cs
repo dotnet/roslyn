@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis
                 throw ExceptionUtilities.Unreachable();
             }
 
-            public async Task<Compilation> GetCompilationAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // Fast path if we've definitely already done this before
                 if (_compilationWithReplacement != null)
@@ -72,10 +71,8 @@ namespace Microsoft.CodeAnalysis
                     return _compilationWithReplacement;
                 }
 
-                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(
-                    compilationState, cancellationToken).ConfigureAwait(false);
-                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
-                    compilationState, cancellationToken).ConfigureAwait(false);
+                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
                 underlyingSourceGeneratedDocuments.TryGetState(replacementDocumentState.Id, out var existingState);
 

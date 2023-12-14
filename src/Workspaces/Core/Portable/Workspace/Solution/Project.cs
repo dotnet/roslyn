@@ -281,8 +281,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
         {
-            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                this.State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
             return generatedDocumentStates.States.Values.Select(state =>
@@ -310,8 +309,7 @@ namespace Microsoft.CodeAnalysis
                 return sourceGeneratedDocument;
 
             // We'll have to run generators if we haven't already and now try to find it.
-            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
-                State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
             var generatedDocumentState = generatedDocumentStates.GetState(documentId);
             if (generatedDocumentState is null)
                 return null;

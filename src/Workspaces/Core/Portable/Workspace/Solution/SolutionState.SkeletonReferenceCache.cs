@@ -157,8 +157,7 @@ internal partial class SolutionCompilationState
 
             // okay, we don't have anything cached with this version. so create one now.
 
-            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(
-                compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
+            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
 
             lock (_stateGate)
             {
