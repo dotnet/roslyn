@@ -57,7 +57,7 @@ internal partial class SolutionCompilationState
     /// memory.
     /// </para>
     /// </summary>
-    internal partial class SkeletonReferenceCache
+    private partial class SkeletonReferenceCache
     {
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
 

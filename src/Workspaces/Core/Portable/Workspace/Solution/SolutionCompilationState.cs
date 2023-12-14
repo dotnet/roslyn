@@ -88,9 +88,6 @@ internal sealed partial class SolutionCompilationState
     {
     }
 
-    public ImmutableDictionary<ProjectId, ICompilationTracker> ProjectIdToTrackerMap
-        => _projectIdToTrackerMap;
-
     public SolutionServices Services => this.Solution.Services;
 
     private void CheckInvariants()
@@ -727,7 +724,7 @@ internal sealed partial class SolutionCompilationState
         return id;
     }
 
-    internal bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
+    private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
     private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
@@ -739,7 +736,7 @@ internal sealed partial class SolutionCompilationState
         return new CompilationTracker(projectState);
     }
 
-    internal ICompilationTracker GetCompilationTracker(ProjectId projectId)
+    private ICompilationTracker GetCompilationTracker(ProjectId projectId)
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
@@ -1062,7 +1059,7 @@ internal sealed partial class SolutionCompilationState
                 }
 
                 var newIdToProjectStateMap = this.Solution.ProjectStates;
-                var newIdToTrackerMap = this.ProjectIdToTrackerMap;
+                var newIdToTrackerMap = _projectIdToTrackerMap;
 
                 foreach (var (doc, tree) in builder)
                 {
@@ -1102,10 +1099,10 @@ internal sealed partial class SolutionCompilationState
     /// <param name="documentInfos">The set of documents to add.</param>
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
     /// <returns></returns>
-    public SolutionCompilationState AddDocumentsToMultipleProjects<T>(
+    private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
         ImmutableArray<DocumentInfo> documentInfos,
         Func<DocumentInfo, ProjectState, T> createDocumentState,
-        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
         where T : TextDocumentState
     {
         if (documentInfos.IsDefault)
@@ -1155,7 +1152,7 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
-    public SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
+    private SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
         ImmutableArray<DocumentId> documentIds,
         Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
         Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
