@@ -87,7 +87,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
+                    MyCollection<int> i = MyCollection.[|Create|](1, 2, 3);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -109,7 +109,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]);
+                    MyCollection<int> i = MyCollection.[|Create|]<int>();
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -133,7 +133,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        var i = (MyCollection<int>)[|MyCollection.[|Create|]<int>(|]);
+                        var i = (MyCollection<int>)MyCollection.[|Create|]<int>();
                     }
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
@@ -180,7 +180,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1);
+                    MyCollection<int> i = MyCollection.[|Create|](1);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -202,7 +202,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2);
+                    MyCollection<int> i = MyCollection.[|Create|](1, 2);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -224,7 +224,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3);
+                    MyCollection<int> i = MyCollection.[|Create|](1, 2, 3);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -246,7 +246,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3, 4);
+                    MyCollection<int> i = MyCollection.[|Create|](1, 2, 3, 4);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -268,7 +268,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1, 2, 3, 4, 5);
+                    MyCollection<int> i = MyCollection.[|Create|](1, 2, 3, 4, 5);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -306,7 +306,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]new int[] { });
+                    MyCollection<int> i = MyCollection.[|Create|](new int[] { });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -328,7 +328,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]new int[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|Create|](new int[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -350,7 +350,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]new[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|Create|](new[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -404,7 +404,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc int[] { });
+                    MyCollection<int> i = MyCollection.[|Create|]<int>(stackalloc int[] { });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -426,7 +426,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc int[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|Create|]<int>(stackalloc int[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -448,7 +448,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]stackalloc[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|Create|]<int>(stackalloc[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -523,7 +523,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new int[] { });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new int[] { });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -545,7 +545,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new int[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new int[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -567,7 +567,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new[] { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new[] { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -627,7 +627,7 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new List<int>());
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new List<int>());
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -653,7 +653,7 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new List<int> { });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new List<int> { });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -679,7 +679,7 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new List<int>() { });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new List<int>() { });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -705,7 +705,7 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new List<int> { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new List<int> { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -731,7 +731,7 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new List<int> { 1, 2, 3 });
+                    MyCollection<int> i = MyCollection.[|CreateRange|](new List<int> { 1, 2, 3 });
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -792,7 +792,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = /*leading*/ [|MyCollection.[|Create|](|]1) /*trailing*/;
+                    MyCollection<int> i = /*leading*/ MyCollection.[|Create|](1) /*trailing*/;
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
@@ -814,7 +814,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1 +
+                    MyCollection<int> i = MyCollection.[|Create|](1 +
                         2);
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
@@ -838,7 +838,7 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = [|MyCollection.[|Create|](|]1 +
+                    MyCollection<int> i = MyCollection.[|Create|](1 +
                         2,
                         3 +
                             4);
@@ -896,7 +896,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        ImmutableArray<int> v = [|ImmutableArray.[|Create|](|]1, 2, 3);
+                        ImmutableArray<int> v = ImmutableArray.[|Create|](1, 2, 3);
                     }
                 }
                 """,
@@ -952,7 +952,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        ImmutableList<int> v = [|ImmutableList.[|Create|](|]1, 2, 3);
+                        ImmutableList<int> v = ImmutableList.[|Create|](1, 2, 3);
                     }
                 }
                 """,
@@ -979,7 +979,7 @@ public class UseCollectionExpressionForCreateTests
         await new VerifyCS.Test
         {
             TestCode = """
-                MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]);
+                MyCollection<int> i = MyCollection.[|Create|]<int>();
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             FixedCode = """
                 MyCollection<int> i = [];
@@ -999,7 +999,7 @@ public class UseCollectionExpressionForCreateTests
         await new VerifyCS.Test
         {
             TestCode = """
-                MyCollection<int> i = [|MyCollection.[|Create|]<int>(|]1 +
+                MyCollection<int> i = MyCollection.[|Create|]<int>(1 +
                     2, 3 +
                     4);
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
@@ -1034,7 +1034,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        ImmutableArray<ImmutableArray<int>> v = [|ImmutableArray.[|Create|](|]ImmutableArray.Create(1, 2, 3));
+                        ImmutableArray<ImmutableArray<int>> v = ImmutableArray.[|Create|](ImmutableArray.Create(1, 2, 3));
                     }
                 }
                 """,
@@ -1052,6 +1052,7 @@ public class UseCollectionExpressionForCreateTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }
@@ -1071,7 +1072,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        ImmutableArray<ImmutableArray<int>> v = [|ImmutableArray.[|Create|](|]ImmutableArray.Create(1, 2, 3));
+                        ImmutableArray<ImmutableArray<int>> v = ImmutableArray.[|Create|](ImmutableArray.Create(1, 2, 3));
                     }
                 }
                 """.ReplaceLineEndings(endOfLine),
@@ -1089,6 +1090,7 @@ public class UseCollectionExpressionForCreateTests
                 """.ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }
@@ -1109,7 +1111,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     void M()
                     {
-                        Func<ImmutableArray<int>> f = () => [|ImmutableArray.[|Create|](|]1, 2, 3);
+                        Func<ImmutableArray<int>> f = () => ImmutableArray.[|Create|](1, 2, 3);
                     }
                 }
                 """,
@@ -1196,7 +1198,7 @@ public class UseCollectionExpressionForCreateTests
                 {
                     ImmutableArray<(int A, int B)> M()
                     {
-                        return [|ImmutableArray.[|Create|](|](A: 1, 2));
+                        return ImmutableArray.[|Create|]((A: 1, 2));
                     }
                 }
                 """,
