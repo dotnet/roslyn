@@ -1633,8 +1633,8 @@ namespace Microsoft.CodeAnalysis
             // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
-            var newCompilationState = _compilationState.UpdateAdditionalDocumentTextLoader(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, loader, mode);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.UpdateAdditionalDocumentTextLoader((newState, oldProjectState, newProjectState), documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
