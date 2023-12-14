@@ -1674,13 +1674,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
             }
 
-            var newState = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
             if (newState == _state)
             {
                 return this;
             }
+            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, sourceCodeKind);
+            return new Solution(newState, newCompilationState);
 
-            return new Solution(newState);
         }
 
         /// <summary>

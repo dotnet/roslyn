@@ -1339,12 +1339,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
         /// </summary>
-        public SolutionState WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.SourceCodeKind == sourceCodeKind)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
