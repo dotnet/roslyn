@@ -985,24 +985,6 @@ namespace Microsoft.CodeAnalysis
             return (newState, oldProject, newProject);
         }
 
-        /// <summary>
-        /// Create a new solution instance with the corresponding projects updated to include new
-        /// documents defined by the document info.
-        /// </summary>
-        public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
-        }
-
-        public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
-        }
-
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             // Adding a new analyzer config potentially modifies the compilation options

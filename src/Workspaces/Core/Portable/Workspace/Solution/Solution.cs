@@ -1281,13 +1281,20 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newState = _state.AddAdditionalDocuments(documentInfos);
-            if (newState == _state)
+            var (newState, newCompilationState) = AddAdditionalDocumentsWorker(documentInfos);
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
+
+            (SolutionState, SolutionCompilationState) AddAdditionalDocumentsWorker(ImmutableArray<DocumentInfo> documentInfos)
+            {
+                return AddDocumentsToMultipleProjects(documentInfos,
+                    (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+                    (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            }
         }
 
         /// <summary>
