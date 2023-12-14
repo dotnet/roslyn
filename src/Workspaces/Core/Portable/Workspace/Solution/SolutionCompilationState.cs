@@ -226,19 +226,17 @@ internal partial class SolutionCompilationState
         (SolutionState newSolutionState, ProjectState newProject) tuple, string assemblyName)
     {
         return ForkProject(
-            tuple.newSolutionState,
-            tuple.newProject,
+            tuple,
             new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
             forkTracker: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectOutputFilePath"/>
     public SolutionCompilationState WithProjectOutputFilePath(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, string? outputFilePath)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, string? outputFilePath)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
