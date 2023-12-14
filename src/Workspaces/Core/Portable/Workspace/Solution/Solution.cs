@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis
 
             var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-            var newCompilationState = _compilationState.WithDocumentFolders(_state.WithDocumentFolders(documentId, collection), documentId, collection);
+            var newCompilationState = _compilationState.WithDocumentFolders(documentId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

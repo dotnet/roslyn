@@ -527,10 +527,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentFolders"/>
     public SolutionCompilationState WithDocumentFolders(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, IReadOnlyList<string> folders)
+        DocumentId documentId, IReadOnlyList<string> folders)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: false);
+            this.Solution.WithDocumentFolders(documentId, folders), documentId, contentChanged: false);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentFilePath"/>
