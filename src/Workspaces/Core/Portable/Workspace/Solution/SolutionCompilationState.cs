@@ -204,14 +204,15 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
     public SolutionCompilationState WithProjectAssemblyName(
-        SolutionState solutionState, ProjectState newProject, string assemblyName)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, string assemblyName)
     {
-        if (solutionState == this.Solution)
+        // If the project didn't change itself, there's no need to change the compilation state.
+        if (tuple.newSolutionState == this.Solution)
             return this;
 
         return ForkProject(
-            solutionState,
-            newProject,
+            tuple.newSolutionState,
+            tuple.newProject,
             new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
             forkTracker: true);
     }
