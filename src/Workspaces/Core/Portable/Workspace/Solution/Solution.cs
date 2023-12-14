@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectDefaultNamespace(_state.WithProjectDefaultNamespace(projectId, defaultNamespace), defaultNamespace);
+            var newCompilationState = _compilationState.WithProjectDefaultNamespace(projectId, defaultNamespace);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

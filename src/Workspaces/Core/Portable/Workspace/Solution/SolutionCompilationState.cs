@@ -276,10 +276,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOutputInfo"/>
     public SolutionCompilationState WithProjectDefaultNamespace(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, string? defaultNamespace)
+        ProjectId projectId, string? defaultNamespace)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectDefaultNamespace(projectId, defaultNamespace),
             translate: null,
             forkTracker: true);
     }
