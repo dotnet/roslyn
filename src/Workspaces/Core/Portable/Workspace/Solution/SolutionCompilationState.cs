@@ -477,6 +477,14 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
+    public SolutionCompilationState WithAdditionalDocumentText(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
+    {
+        return UpdateAdditionalDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {
