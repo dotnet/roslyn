@@ -1107,6 +1107,17 @@ internal sealed partial class SolutionCompilationState
             (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
     }
 
+    public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
+    {
+        return AddDocumentsToMultipleProjects(documentInfos,
+            (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            (oldProject, documents) =>
+            {
+                var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
+                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+            });
+    }
+
     /// <summary>
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>

@@ -1134,14 +1134,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (oldProject, documents) =>
-                {
-                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-                });
-
+            var newCompilationState = _compilationState.AddAnalyzerConfigDocuments(documentInfos);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
