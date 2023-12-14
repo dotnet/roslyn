@@ -1461,7 +1461,6 @@ namespace Microsoft.CodeAnalysis
             return (newSolutionState, _compilationState);
         }
 
-
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified additional document.
         /// </summary>
@@ -1482,13 +1481,23 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newState = _state.RemoveAdditionalDocuments(documentIds);
-            if (newState == _state)
+            var (newState, newCompilationState) = RemoveAdditionalDocumentsWorker(documentIds);
+            if (newState == _state && newCompilationState == _compilationState)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            return new Solution(newState, newCompilationState);
+
+            // <summary>
+            // Creates a new solution instance that no longer includes the specified additional documents.
+            // </summary>
+            (SolutionState, SolutionCompilationState) RemoveAdditionalDocumentsWorker(ImmutableArray<DocumentId> documentIds)
+            {
+                return RemoveDocumentsFromMultipleProjects(documentIds,
+                    (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
+                    (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+            }
         }
 
         /// <summary>

@@ -997,16 +997,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance that no longer includes the specified additional documents.
-        /// </summary>
-        public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
-        {
-            return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
-        }
-
-        /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified name.
         /// </summary>
         public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentName(DocumentId documentId, string name)
