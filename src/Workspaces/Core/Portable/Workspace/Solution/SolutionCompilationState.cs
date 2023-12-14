@@ -590,10 +590,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
     public SolutionCompilationState WithDocumentSyntaxRoot(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, SyntaxNode root, PreservationMode mode)
+        DocumentId documentId, SyntaxNode root, PreservationMode mode)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: true);
+            this.Solution.WithDocumentSyntaxRoot(documentId, root, mode), documentId, contentChanged: true);
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
