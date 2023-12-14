@@ -36,42 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
                     void Goo()
                     {
-                        [||]var v = a;
+                        var v = a;
                         if (v != null)
                         {
-                            v();
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    System.Action a;
-
-                    void Goo()
-                    {
-                        a?.Invoke();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestOnIf()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    System.Action a;
-
-                    void Goo()
-                    {
-                        var v = a;
-                        [||]if (v != null)
-                        {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -153,10 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
                     void Goo()
                     {
-                        [||]var v = a;
+                        var v = a;
                         if (null != v)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -185,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
                     void Goo()
                     {
-                        [||]var v = a;
+                        var v = a;
                         if (null != v)
-                            v();
+                            [||]v();
                     }
                 }
                 """,
@@ -216,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         bool b = true;
-                        [||]var v = b ? a : null;
+                        var v = b ? a : null;
                         if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -299,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         var v = a, x = a;
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -364,9 +332,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         var v = a;
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
 
                         v = null;
@@ -402,9 +370,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
                     void M()
                     {
-                        [||]if (this.E != null)
+                        if (this.E != null)
                         {
-                            this.E(this, EventArgs.Empty);
+                            [||]this.E(this, EventArgs.Empty);
                         }
                     }
                 }
@@ -475,9 +443,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                         if (true != true)
                         {
                         }
-                        else [||]if (this.E != null)
+                        else if (this.E != null)
                         {
-                            this.E(this, EventArgs.Empty);
+                            [||]this.E(this, EventArgs.Empty);
                         }
                     }
                 }
@@ -504,45 +472,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
 
         [Fact]
-        public async Task TestInElseClause2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    public event EventHandler E;
-
-                    void M()
-                    {
-                        if (true != true)
-                        {
-                        }
-                        else [||]if (this.E != null)
-                            this.E(this, EventArgs.Empty);
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    public event EventHandler E;
-
-                    void M()
-                    {
-                        if (true != true)
-                        {
-                        }
-                        else this.E?.Invoke(this, EventArgs.Empty);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
@@ -553,10 +482,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         // Comment
-                        [||]var v = a;
+                        var v = a;
                         if (v != null)
                         {
-                            v(); // Comment2
+                            [||]v(); // Comment2
                         }
                     }
                 }
@@ -585,9 +514,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         // Comment
-                        [||]if (a != null)
+                        if (a != null)
                         {
-                            a(); // Comment2
+                            [||]a(); // Comment2
                         }
                     }
                 }
@@ -616,8 +545,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         // Comment
-                        [||]var v = a;
-                        if (v != null) { v(); /* 123 */ } // trails
+                        var v = a;
+                        if (v != null) { [||]v(); /* 123 */ } // trails
                         System.Console.WriteLine();
                     }
                 }
@@ -646,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     System.Action a;
                     void Goo()
                     {
-                        [||]if (a != null) { a(); /* 123 */ } // trails
+                        if (a != null) { [||]a(); /* 123 */ } // trails
                         System.Console.WriteLine();
                     }
                 }
@@ -659,41 +588,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     {
                         a?.Invoke(); /* 123 */  // trails
                         System.Console.WriteLine();
-                    }
-                }
-                """);
-        }
-
-        /// <remarks>
-        /// tests locations where the fix is offered.
-        /// </remarks>
-        [Fact]
-        public async Task TestFixOfferedOnIf()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    System.Action a;
-
-                    void Goo()
-                    {
-                        var v = a;
-                        [||]if (v != null)
-                        {
-                            v();
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    System.Action a;
-
-                    void Goo()
-                    {
-                        a?.Invoke();
                     }
                 }
                 """);
@@ -736,24 +630,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
         [Fact]
         public async Task TestMissingOnConditionalInvocation()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    System.Action a;
-
-                    void Goo()
-                    {
-                        [||]var v = a;
-                        v?.Invoke();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnConditionalInvocation2()
         {
             await TestMissingInRegularAndScriptAsync(
                 """
@@ -872,9 +748,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     {
                         var v = a;
                         int x;
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -906,9 +782,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     int Goo()
                     {
                         var v = a;
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            return v();
+                            [||]return v();
                         }
                     }
                 }
@@ -927,9 +803,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         Action v = () => {};
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -960,9 +836,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         Action v = (() => {});
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -993,9 +869,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         Action v = delegate {};
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -1026,9 +902,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         Action v = Console.WriteLine;
-                        [||]if (v != null)
+                        if (v != null)
                         {
-                            v();
+                            [||]v();
                         }
                     }
                 }
@@ -1058,8 +934,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 {
                     void M()
                     {
-                        [||]if (Event != null)
-                            Event.Invoke(this, EventArgs.Empty);
+                        if (Event != null)
+                            [||]Event.Invoke(this, EventArgs.Empty);
                     }
 
                     event EventHandler Event;
@@ -1091,10 +967,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
                     void Goo()
                     {
-                        [||]var v = a;
+                        var v = a;
                         if (v != null)
                         {
-                            v.Invoke();
+                            [||]v.Invoke();
                         }
                     }
                 }
