@@ -127,7 +127,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
-    public SolutionCompilationState ForkProject(
+    private SolutionCompilationState ForkProject(
         (SolutionState newSolutionState, ProjectState newProjectState) stateTuple,
         CompilationAndGeneratorDriverTranslationAction? translate,
         //ProjectDependencyGraph? newDependencyGraph = null,
@@ -141,7 +141,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
-    public SolutionCompilationState ForkProject(
+    private SolutionCompilationState ForkProject(
         (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState) stateTuple,
         CompilationAndGeneratorDriverTranslationAction? translate,
         //ProjectDependencyGraph? newDependencyGraph = null,
@@ -155,7 +155,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
-    public SolutionCompilationState ForkProject(
+    private SolutionCompilationState ForkProject(
         SolutionState newSolutionState,
         ProjectState newProjectState,
         CompilationAndGeneratorDriverTranslationAction? translate,
@@ -1094,6 +1094,65 @@ internal sealed partial class SolutionCompilationState
         {
             throw ExceptionUtilities.Unreachable();
         }
+    }
+
+    /// <summary>
+    /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
+    /// </summary>
+    /// <param name="documentInfos">The set of documents to add.</param>
+    /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
+    /// <returns></returns>
+    public SolutionCompilationState AddDocumentsToMultipleProjects<T>(
+        ImmutableArray<DocumentInfo> documentInfos,
+        Func<DocumentInfo, ProjectState, T> createDocumentState,
+        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        where T : TextDocumentState
+    {
+        if (documentInfos.IsDefault)
+        {
+            throw new ArgumentNullException(nameof(documentInfos));
+        }
+
+        if (documentInfos.IsEmpty)
+        {
+            return this;
+        }
+
+        // The documents might be contributing to multiple different projects; split them by project and then we'll process
+        // project-at-a-time.
+        var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
+
+        var newCompilationState = this;
+
+        foreach (var documentInfosInProject in documentInfosByProjectId)
+        {
+            this.Solution.CheckContainsProject(documentInfosInProject.Key);
+            var oldProjectState = this.Solution.GetProjectState(documentInfosInProject.Key)!;
+
+            var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
+
+            foreach (var documentInfo in documentInfosInProject)
+            {
+                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
+            }
+
+            var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
+
+            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
+
+            (var newSolutionState, newProjectState) = newCompilationState.Solution.ForkProject(
+                newProjectState,
+                // intentionally accessing this.Solution here not newSolutionState
+                newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
+
+            newCompilationState = newCompilationState.ForkProject(
+                newSolutionState,
+                newProjectState,
+                compilationTranslationAction,
+                forkTracker: true);
+        }
+
+        return newCompilationState;
     }
 
     internal TestAccessor GetTestAccessor()

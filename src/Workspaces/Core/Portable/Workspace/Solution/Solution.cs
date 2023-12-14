@@ -1038,70 +1038,10 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
         public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (oldProject, documents) => (oldProject.AddDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
-        }
-
-        /// <summary>
-        /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
-        /// </summary>
-        /// <param name="documentInfos">The set of documents to add.</param>
-        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
-        /// <returns></returns>
-        private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
-            ImmutableArray<DocumentInfo> documentInfos,
-            Func<DocumentInfo, ProjectState, T> createDocumentState,
-            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
-            where T : TextDocumentState
-        {
-            if (documentInfos.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(documentInfos));
-            }
-
-            if (documentInfos.IsEmpty)
-            {
-                return _compilationState;
-            }
-
-            // The documents might be contributing to multiple different projects; split them by project and then we'll process
-            // project-at-a-time.
-            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
-
-            var newSolutionState = _state;
-            var newCompilationState = _compilationState;
-
-            foreach (var documentInfosInProject in documentInfosByProjectId)
-            {
-                CheckContainsProject(documentInfosInProject.Key);
-                var oldProjectState = this.GetProjectState(documentInfosInProject.Key)!;
-
-                var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
-
-                foreach (var documentInfo in documentInfosInProject)
-                {
-                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
-                }
-
-                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
-
-                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
-
-                (newSolutionState, newProjectState) = newSolutionState.ForkProject(
-                    newProjectState,
-                    // intentionally accessing _state here not newSolutionState
-                    newFilePathToDocumentIdsMap: _state.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
-
-                newCompilationState = newCompilationState.ForkProject(
-                    newSolutionState,
-                    newProjectState,
-                    compilationTranslationAction,
-                    forkTracker: true);
-            }
-
-            return newCompilationState;
         }
 
         /// <summary>
@@ -1141,7 +1081,7 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
 
@@ -1199,7 +1139,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (oldProject, documents) =>
                 {
