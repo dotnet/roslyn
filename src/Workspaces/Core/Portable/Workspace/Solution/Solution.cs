@@ -1988,7 +1988,8 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new Solution(newState);
+            // Workspace options don't change the compilation state at all, so we can just transfer the old compilation state over.
+            return new Solution(newState, _compilationState);
         }
 
         private void CheckContainsProject(ProjectId projectId)
