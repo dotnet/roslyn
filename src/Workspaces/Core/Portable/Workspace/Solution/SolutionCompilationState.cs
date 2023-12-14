@@ -1207,6 +1207,34 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
+    /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
+    public SolutionCompilationState WithCachedSourceGeneratorStateWorker(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+    {
+        this.Solution.CheckContainsProject(projectToUpdate);
+
+        // First see if we have a generator driver that we can get from the other project.
+
+        if (!projectWithCachedGeneratorState.Solution.CompilationState.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
+            tracker.GeneratorDriver is null)
+        {
+            // We don't actually have any state at all, so no change.
+            return this;
+        }
+
+        var projectToUpdateState = this.Solution.GetRequiredProjectState(projectToUpdate);
+
+        (var newState, projectToUpdateState) = this.Solution.ForkProject(projectToUpdateState);
+        var newCompilationState = this.ForkProject(
+            newState,
+            projectToUpdateState,
+            translate: new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                tracker.GeneratorDriver,
+                newProjectState: projectToUpdateState),
+            forkTracker: true);
+
+        return newCompilationState;
+    }
+
     internal TestAccessor GetTestAccessor()
         => new(this);
 
