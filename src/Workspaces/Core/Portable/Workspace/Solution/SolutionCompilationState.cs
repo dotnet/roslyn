@@ -34,7 +34,7 @@ internal partial class SolutionCompilationState
 
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
-    private SolutionState(
+    private SolutionCompilationState(
         bool partialSemanticsEnabled,
         ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
@@ -44,7 +44,7 @@ internal partial class SolutionCompilationState
         _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
     }
 
-    public SolutionState(
+    public SolutionCompilationState(
         bool partialSemanticsEnabled)
         : this(
             partialSemanticsEnabled,
