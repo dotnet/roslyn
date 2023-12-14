@@ -1784,12 +1784,7 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithoutFrozenSourceGeneratedDocuments()
         {
             var newCompilationState = _compilationState.WithoutFrozenSourceGeneratedDocuments(_state.GetProjectDependencyGraph());
-            if (newCompilationState == _compilationState)
-            {
-                return this;
-            }
-
-            return new Solution(_state, newCompilationState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
