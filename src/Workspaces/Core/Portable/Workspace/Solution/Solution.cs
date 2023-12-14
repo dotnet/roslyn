@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectOutputRefFilePath(_state.WithProjectOutputRefFilePath(projectId, outputRefFilePath), outputRefFilePath);
+            var newCompilationState = _compilationState.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
