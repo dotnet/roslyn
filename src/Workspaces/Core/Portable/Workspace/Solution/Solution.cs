@@ -1547,15 +1547,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, oldProjectState, newProjectState) = _state.WithDocumentSyntaxRoot(documentId, root, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.WithDocumentSyntaxRoot(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, root, mode);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.WithDocumentSyntaxRoot(_state.WithDocumentSyntaxRoot(documentId, root, mode), documentId, root, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
