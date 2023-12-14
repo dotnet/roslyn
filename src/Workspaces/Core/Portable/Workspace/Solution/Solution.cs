@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.WithAnalyzerConfigDocumentText(_state.WithAnalyzerConfigDocumentText(documentId, text, mode), documentId, text, mode);
+            var newCompilationState = _compilationState.WithAnalyzerConfigDocumentText(documentId, text, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.WithDocumentText(_state.WithDocumentText(documentId, textAndVersion, mode), documentId, textAndVersion, mode);
+            var newCompilationState = _compilationState.WithDocumentText(documentId, textAndVersion, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

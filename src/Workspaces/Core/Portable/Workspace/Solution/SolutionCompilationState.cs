@@ -559,17 +559,17 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, SourceText, PreservationMode)"/>
     public SolutionCompilationState WithAnalyzerConfigDocumentText(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, DocumentId documentId, SourceText text, PreservationMode mode)
+        DocumentId documentId, SourceText text, PreservationMode mode)
     {
-        return UpdateAnalyzerConfigDocumentState(tuple);
+        return UpdateAnalyzerConfigDocumentState(this.Solution.WithAnalyzerConfigDocumentText(documentId, text, mode));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
+        DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: true);
+            this.Solution.WithDocumentText(documentId, textAndVersion, mode), documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
