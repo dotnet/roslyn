@@ -405,11 +405,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
     public SolutionCompilationState RemoveMetadataReference(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, MetadataReference metadataReference)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, MetadataReference metadataReference)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }

@@ -739,8 +739,8 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            var newCompilationState = _compilationState.RemoveMetadataReference(newProjectState, newState.GetProjectDependencyGraph(), metadataReference);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.RemoveMetadataReference((newState, newProjectState), metadataReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
