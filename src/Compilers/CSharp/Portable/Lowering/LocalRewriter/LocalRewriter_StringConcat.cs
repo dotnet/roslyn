@@ -378,11 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
                 // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
-                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+                var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
 
                 return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
             }
@@ -435,12 +435,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
                 // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
-                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+                var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedFourth = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFourth, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedFourth = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFourth, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
 
                 return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird, wrappedFourth));
             }
