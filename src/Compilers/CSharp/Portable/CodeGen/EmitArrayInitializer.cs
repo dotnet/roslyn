@@ -682,6 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             bool tryEmitAsCachedArrayOfConstants(BoundArrayCreation arrayCreation, ArrayTypeSymbol arrayType, TypeSymbol elementType, NamedTypeSymbol spanType, bool used, BoundExpression? inPlaceTarget, out bool avoidInPlace)
             {
                 avoidInPlace = false;
+
+                if (elementType.IsReferenceType && elementType.SpecialType != SpecialType.System_String)
+                {
+                    return false;
+                }
+
                 var initializer = arrayCreation.InitializerOpt;
                 Debug.Assert(initializer != null);
 

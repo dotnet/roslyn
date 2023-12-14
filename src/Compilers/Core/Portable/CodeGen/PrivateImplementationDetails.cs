@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!IsFrozen);
             Cci.PrimitiveTypeCode typeCode = arrayType.GetElementType(emitContext).TypeCode;
+            Debug.Assert(typeCode is not Cci.PrimitiveTypeCode.Reference);
 
             // Call sites will lazily instantiate the array to cache in this field, rather than forcibly instantiating
             // all of them when the private implementation details class is first used.
