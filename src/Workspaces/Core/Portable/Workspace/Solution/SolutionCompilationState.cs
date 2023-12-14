@@ -1155,6 +1155,58 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
+    public SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
+        ImmutableArray<DocumentId> documentIds,
+        Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
+        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
+        where T : TextDocumentState
+    {
+        if (documentIds.IsEmpty)
+        {
+            return this;
+        }
+
+        // The documents might be contributing to multiple different projects; split them by project and then we'll process
+        // project-at-a-time.
+        var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
+
+        var newCompilationState = this;
+
+        foreach (var documentIdsInProject in documentIdsByProjectId)
+        {
+            var oldProjectState = this.Solution.GetProjectState(documentIdsInProject.Key);
+
+            if (oldProjectState == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
+            }
+
+            var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
+
+            foreach (var documentId in documentIdsInProject)
+            {
+                removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
+            }
+
+            var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
+
+            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+
+            (var newSolutionState, newProjectState) = newCompilationState.Solution.ForkProject(
+                newProjectState,
+                // Intentionally using this.Solution here and not newSolutionState
+                newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
+
+            newCompilationState = newCompilationState.ForkProject(
+                newSolutionState,
+                newProjectState,
+                compilationTranslationAction,
+                forkTracker: true);
+        }
+
+        return newCompilationState;
+    }
+
     internal TestAccessor GetTestAccessor()
         => new(this);
 
