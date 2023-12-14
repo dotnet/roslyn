@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionState
+internal partial class SolutionCompilationState
 {
     /// <param name="metadata">
     /// The actual assembly metadata produced from another compilation.
