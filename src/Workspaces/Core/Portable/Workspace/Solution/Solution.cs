@@ -1230,26 +1230,14 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var (newState, newCompilationState) = RemoveDocumentsWorker(documentIds);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
+            var newCompilationState = RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
+                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
 
-            return new Solution(newState, newCompilationState);
-
-            // <summary>
-            // Creates a new solution instance that no longer includes the specified document.
-            // </summary>
-            (SolutionState, SolutionCompilationState) RemoveDocumentsWorker(ImmutableArray<DocumentId> documentIds)
-            {
-                return RemoveDocumentsFromMultipleProjects(documentIds,
-                    (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-                    (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
-            }
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
-        private (SolutionState, SolutionCompilationState) RemoveDocumentsFromMultipleProjects<T>(
+        private SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
             ImmutableArray<DocumentId> documentIds,
             Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
             Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
@@ -1257,7 +1245,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (documentIds.IsEmpty)
             {
-                return (_state, _compilationState);
+                return _compilationState;
             }
 
             // The documents might be contributing to multiple different projects; split them by project and then we'll process
@@ -1293,13 +1281,13 @@ namespace Microsoft.CodeAnalysis
                     newFilePathToDocumentIdsMap: _state.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
 
                 newCompilationState = newCompilationState.ForkProject(
+                    newSolutionState,
                     newProjectState,
-                    newSolutionState.GetProjectDependencyGraph(),
                     compilationTranslationAction,
                     forkTracker: true);
             }
 
-            return (newSolutionState, _compilationState);
+            return newCompilationState;
         }
 
         /// <summary>
