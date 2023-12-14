@@ -922,18 +922,10 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
         public Solution WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            var newState = _state.WithAnalyzerReferences(
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-            // all come from entrypoints that are specific to a particular project.
-            return new Solution(newState, _compilationState);
+            var newCompilationState = _compilationState.WithAnalyzerReferences(_state.WithAnalyzerReferences(collection));
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         private static SourceCodeKind GetSourceCodeKind(ProjectState project)
