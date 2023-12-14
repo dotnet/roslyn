@@ -246,11 +246,10 @@ internal partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectOutputFilePath"/>
-    public SolutionCompilationState WithProjectOutputFilePath(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, string? outputFilePath)
+    public SolutionCompilationState WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectOutputFilePath(projectId, outputFilePath),
             translate: null,
             forkTracker: true);
     }

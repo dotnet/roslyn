@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectOutputFilePath(_state.WithProjectOutputFilePath(projectId, outputFilePath), outputFilePath);
+            var newCompilationState = _compilationState.WithProjectOutputFilePath(projectId, outputFilePath);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
