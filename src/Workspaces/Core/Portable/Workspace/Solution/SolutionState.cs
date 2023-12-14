@@ -1212,12 +1212,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
@@ -1395,7 +1396,7 @@ namespace Microsoft.CodeAnalysis
             return (newState, oldProject, newProject);
         }
 
-        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
+        private (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
@@ -1403,11 +1404,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredState(newDocument.Id);
-
-            return ForkProject(
-                newProject,
-                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
+            (var newState, newProject) = ForkProject(newProject);
+            return (newState, oldProject, newProject);
         }
 
         private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)

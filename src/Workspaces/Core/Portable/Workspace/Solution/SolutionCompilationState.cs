@@ -446,14 +446,19 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
     }
 
-    /// <summary>
-    /// Creates a new solution instance with the document specified updated to have the text
-    /// specified.
-    /// </summary>
+    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceText text, PreservationMode mode)
     {
         return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, SourceText, PreservationMode)"/>
+    public SolutionCompilationState WithAdditionalDocumentText(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceText text, PreservationMode mode)
+    {
+        return UpdateAdditionalDocumentState(
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
     }
 
@@ -470,6 +475,22 @@ internal partial class SolutionCompilationState
             newProject,
             newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
+            forkTracker: true);
+    }
+
+    private SolutionCompilationState UpdateAdditionalDocumentState(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
+    {
+        // This method shouldn't have been called if the document has not changed.
+        Debug.Assert(oldProject != newProject);
+
+        var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredState(documentId);
+        var newDocument = newProject.AdditionalDocumentStates.GetRequiredState(documentId);
+
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument),
             forkTracker: true);
     }
 }
