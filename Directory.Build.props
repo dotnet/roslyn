@@ -13,6 +13,11 @@
 
     <!-- Recommended: Embed symbols containing Source Link in the main file (exe/dll) -->
     <DebugType Condition=" '$(EnableSourceLink)'=='True' AND '$(Configuration)'=='Debug'">embedded</DebugType>
+
+    <!-- <Metalama> -->
+    <!-- Symbol NuGet packages are enabled since Metalama 2024.0. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <!-- </Metalama> -->
    
   </PropertyGroup>
 
