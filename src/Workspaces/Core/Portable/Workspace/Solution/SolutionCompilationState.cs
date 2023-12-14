@@ -522,7 +522,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, string name)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentName(documentId, name), documentId, contentChanged: false);
+            this.Solution.WithDocumentName(documentId, name), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentFolders"/>
@@ -530,7 +530,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, IReadOnlyList<string> folders)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentFolders(documentId, folders), documentId, contentChanged: false);
+            this.Solution.WithDocumentFolders(documentId, folders), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentFilePath"/>
@@ -538,7 +538,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, string? filePath)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentFilePath(documentId, filePath), documentId, contentChanged: false);
+            this.Solution.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
@@ -546,7 +546,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, SourceText text, PreservationMode mode)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentText(documentId, text, mode), documentId, contentChanged: true);
+            this.Solution.WithDocumentText(documentId, text, mode), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, SourceText, PreservationMode)"/>
@@ -554,7 +554,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, SourceText text, PreservationMode mode)
     {
         return UpdateAdditionalDocumentState(
-            this.Solution.WithAdditionalDocumentText(documentId, text, mode), documentId, contentChanged: true);
+            this.Solution.WithAdditionalDocumentText(documentId, text, mode), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, SourceText, PreservationMode)"/>
@@ -569,7 +569,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentText(documentId, textAndVersion, mode), documentId, contentChanged: true);
+            this.Solution.WithDocumentText(documentId, textAndVersion, mode), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
@@ -577,7 +577,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
     {
         return UpdateAdditionalDocumentState(
-            this.Solution.WithAdditionalDocumentText(documentId, textAndVersion, mode), documentId, contentChanged: true);
+            this.Solution.WithAdditionalDocumentText(documentId, textAndVersion, mode), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
@@ -593,14 +593,14 @@ internal partial class SolutionCompilationState
         DocumentId documentId, SyntaxNode root, PreservationMode mode)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentSyntaxRoot(documentId, root, mode), documentId, contentChanged: true);
+            this.Solution.WithDocumentSyntaxRoot(documentId, root, mode), documentId);
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
         DocumentId documentId, DocumentState documentState)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentContentsFrom(documentId, documentState), documentId, contentChanged: true);
+            this.Solution.WithDocumentContentsFrom(documentId, documentState), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -608,7 +608,7 @@ internal partial class SolutionCompilationState
         DocumentId documentId, SourceCodeKind sourceCodeKind)
     {
         return UpdateDocumentState(
-            this.Solution.WithDocumentSourceCodeKind(documentId, sourceCodeKind), documentId, contentChanged: true);
+            this.Solution.WithDocumentSourceCodeKind(documentId, sourceCodeKind), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateDocumentTextLoader"/>
@@ -624,7 +624,7 @@ internal partial class SolutionCompilationState
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
         return UpdateDocumentState(
-            (newState, oldProjectState, newProjectState), documentId, contentChanged: true);
+            (newState, oldProjectState, newProjectState), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAdditionalDocumentTextLoader"/>
@@ -640,7 +640,7 @@ internal partial class SolutionCompilationState
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
         return UpdateAdditionalDocumentState(
-            (newState, oldProjectState, newProjectState), documentId, contentChanged: true);
+            (newState, oldProjectState, newProjectState), documentId);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAnalyzerConfigDocumentTextLoader"/>
@@ -660,7 +660,7 @@ internal partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateDocumentState(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, bool contentChanged)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId)
     {
         if (tuple.newSolutionState == this.Solution)
             return this;
@@ -678,7 +678,7 @@ internal partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateAdditionalDocumentState(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, bool contentChanged)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId)
     {
         if (tuple.newSolutionState == this.Solution)
             return this;

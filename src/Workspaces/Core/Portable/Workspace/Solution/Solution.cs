@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis
         /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
         /// </summary>
         /// <param name="documentInfos">The set of documents to add.</param>
-        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
+        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
         /// <returns></returns>
         private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
             ImmutableArray<DocumentInfo> documentInfos,
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader((newState, newProjectState), documentId, loader, mode);
+            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
