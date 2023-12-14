@@ -350,10 +350,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithHasAllInformation"/>
     public SolutionCompilationState WithHasAllInformation(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, bool hasAllInformation)
+        ProjectId projectId, bool hasAllInformation)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithHasAllInformation(projectId, hasAllInformation),
             translate: null,
             forkTracker: true);
     }
