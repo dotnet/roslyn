@@ -365,11 +365,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.AddProjectReferences"/>
     public SolutionCompilationState AddProjectReferences(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, IReadOnlyCollection<ProjectReference> projectReferences)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, IReadOnlyCollection<ProjectReference> projectReferences)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }

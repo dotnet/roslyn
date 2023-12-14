@@ -616,15 +616,8 @@ namespace Microsoft.CodeAnalysis
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.AddProjectReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.AddProjectReferences(newProjectState, newState.GetProjectDependencyGraph(), collection);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.AddProjectReferences(_state.AddProjectReferences(projectId, collection), collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
