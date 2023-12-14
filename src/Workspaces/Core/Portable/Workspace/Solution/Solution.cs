@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var newCompilationState = _compilationState.WithDocumentFilePath(_state.WithDocumentFilePath(documentId, filePath), documentId, filePath);
+            var newCompilationState = _compilationState.WithDocumentFilePath(documentId, filePath);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

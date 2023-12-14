@@ -535,10 +535,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentFilePath"/>
     public SolutionCompilationState WithDocumentFilePath(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, string? filePath)
+        DocumentId documentId, string? filePath)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: false);
+            this.Solution.WithDocumentFilePath(documentId, filePath), documentId, contentChanged: false);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
