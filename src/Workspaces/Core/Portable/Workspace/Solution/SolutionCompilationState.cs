@@ -303,12 +303,11 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOptions"/>
     public SolutionCompilationState WithProjectCompilationOptions(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, CompilationOptions options)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, CompilationOptions options)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
-            new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: false),
+            tuple,
+            new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProject, isAnalyzerConfigChange: false),
             forkTracker: true);
     }
 
