@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public async Task<SemanticModel?> GetNullableDisabledSemanticModelAsync(CancellationToken cancellationToken = default)
         {
-            return await GetSemanticModelAsync(cancellationToken, disableNullableAnalysis: true).ConfigureAwait(false);
+            return await GetSemanticModelHelperAsync(disableNullableAnalysis: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
-            return await GetSemanticModelAsync(cancellationToken, disableNullableAnalysis: false).ConfigureAwait(false);
+            return await GetSemanticModelHelperAsync(disableNullableAnalysis: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
         /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
         /// return the same value if called multiple times.
         /// </returns>
-        private async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default, bool disableNullableAnalysis = false)
+        private async Task<SemanticModel?> GetSemanticModelHelperAsync(bool disableNullableAnalysis = false, CancellationToken cancellationToken = default)
         {
             try
             {
