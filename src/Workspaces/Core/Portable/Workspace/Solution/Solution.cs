@@ -1661,8 +1661,8 @@ namespace Microsoft.CodeAnalysis
             // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
-            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader(newProjectState, newState.GetProjectDependencyGraph(), documentId, loader, mode);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader((newState, newProjectState), documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
