@@ -393,7 +393,7 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
     public SolutionCompilationState RemoveProjectReference(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, ProjectReference projectReference)
+        (SolutionState newSolutionState, ProjectState newProject) tuple)
     {
         return ForkProject(
             tuple,
@@ -403,10 +403,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectReferences"/>
     public SolutionCompilationState WithProjectReferences(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, IReadOnlyList<ProjectReference> projectReferences)
+        ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectReferences(projectId, projectReferences),
             translate: null,
             forkTracker: true);
     }

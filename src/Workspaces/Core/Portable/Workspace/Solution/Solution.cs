@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
             }
 
-            var newCompilationState = _compilationState.RemoveProjectReference((newState, newProjectState), projectReference);
+            var newCompilationState = _compilationState.RemoveProjectReference((newState, newProjectState));
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
 
-            var newCompilationState = _compilationState.WithProjectReferences(_state.WithProjectReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.WithProjectReferences(projectId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
