@@ -19,9 +19,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
+
+        // Checksums for this solution state
+        private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
+
+        /// <summary>
+        /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
+        /// to an OOP host.  Lock this specific field before reading/writing to it.
+        /// </summary>
+        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
 
         public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
             => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
@@ -56,6 +65,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
         public async Task<SolutionStateChecksums> GetStateChecksumsAsync(
+            SolutionState solution,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
@@ -80,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
 
-                return AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude, c));
+                return AsyncLazy.Create(c => ComputeChecksumsAsync(solution, projectsToInclude, c));
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
@@ -88,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                 if (!result.Add(projectId))
                     return;
 
-                var projectState = this.GetProjectState(projectId);
+                var projectState = solution.GetProjectState(projectId);
                 if (projectState == null)
                     return;
 
@@ -100,34 +110,35 @@ namespace Microsoft.CodeAnalysis
                     // host to remove the reference.  We do not expose this through the full Solution/Project which
                     // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
                     // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
-                    if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                    if (solution.ProjectStates.ContainsKey(refProject.ProjectId))
                         AddReferencedProjects(result, refProject.ProjectId);
                 }
             }
         }
 
         /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-        public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<Checksum> GetChecksumAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
         {
-            var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+            var checksums = await GetStateChecksumsAsync(solution, projectId, cancellationToken).ConfigureAwait(false);
             return checksums.Checksum;
         }
 
         /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
         /// to get a checksum for the entire solution</param>
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
+            SolutionState solution,
             HashSet<ProjectId>? projectsToInclude,
             CancellationToken cancellationToken)
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, solution.FilePath, cancellationToken))
                 {
                     // get states by id order to have deterministic checksum.  Limit expensive computation to the
                     // requested set of projects if applicable.
-                    var orderedProjectIds = GetOrCreateSortedProjectIds(ProjectIds);
+                    var orderedProjectIds = GetOrCreateSortedProjectIds(solution.ProjectIds);
                     var projectChecksumTasks = orderedProjectIds
-                        .Select(id => (state: ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
+                        .Select(id => (state: solution.ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
                         .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
                         .Select(async t =>
                         {
@@ -147,8 +158,8 @@ namespace Microsoft.CodeAnalysis
                         })
                         .ToArray();
 
-                    var serializer = Services.GetRequiredService<ISerializerService>();
-                    var attributesChecksum = this.SolutionAttributes.Checksum;
+                    var serializer = solution.Services.GetRequiredService<ISerializerService>();
+                    var attributesChecksum = solution.SolutionAttributes.Checksum;
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -159,7 +170,8 @@ namespace Microsoft.CodeAnalysis
                         frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
                     }
 
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
+                        solution.AnalyzerReferences, serializer, cancellationToken);
 
                     var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                     using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);

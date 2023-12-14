@@ -49,15 +49,6 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
-        // Checksums for this solution state
-        private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
-
-        /// <summary>
-        /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
-        /// to an OOP host.  Lock this specific field before reading/writing to it.
-        /// </summary>
-        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
-
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
@@ -85,9 +76,6 @@ namespace Microsoft.CodeAnalysis
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
-
-            // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
 
             CheckInvariants();
 

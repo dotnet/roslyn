@@ -71,6 +71,7 @@ internal sealed class SolutionStateChecksums(
 
     public async Task FindAsync(
         SolutionState state,
+        SolutionCompilationState compilationState,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
@@ -89,14 +90,14 @@ internal sealed class SolutionStateChecksums(
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
         {
-            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
-            result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
+            Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentIdentity] = compilationState.FrozenSourceGeneratedDocumentState.Identity;
         }
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
         {
-            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
-            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
         ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
