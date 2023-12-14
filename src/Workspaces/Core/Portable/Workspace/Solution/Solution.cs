@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.WithDocumentText(_state.WithDocumentText(documentId, text, mode), documentId, text, mode);
+            var newCompilationState = _compilationState.WithDocumentText(documentId, text, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = _compilationState.WithAdditionalDocumentText(_state.WithAdditionalDocumentText(documentId, text, mode), documentId, text, mode);
+            var newCompilationState = _compilationState.WithAdditionalDocumentText(documentId, text, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1741,7 +1741,6 @@ namespace Microsoft.CodeAnalysis
             // </summary>
             SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
             {
-                var solutionState = _state;
                 var compilationState = _compilationState;
 
                 foreach (var documentId in documentIds)
@@ -1751,7 +1750,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    compilationState = compilationState.WithDocumentText(solutionState.WithDocumentText(documentId, text, mode), documentId, text, mode);
+                    compilationState = compilationState.WithDocumentText(documentId, text, mode);
                 }
 
                 return compilationState;
