@@ -214,7 +214,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    object[] i = [|[|new|] object[]|] { "" };
+                    object[] i = [|new|] object[] { "" };
                 }
                 """,
             FixedCode = """
@@ -235,7 +235,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    object[] i = [|[|new|] object[]|]
+                    object[] i = [|new|] object[]
                     {
                         ""
                     };
@@ -262,7 +262,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    object[] i = [|[|new|] object[]|] { };
+                    object[] i = [|new|] object[] { };
                 }
                 """,
             FixedCode = """
@@ -283,7 +283,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    object[] i = [|[|new|] object[]|] { "", };
+                    object[] i = [|new|] object[] { "", };
                 }
                 """,
             FixedCode = """
@@ -304,7 +304,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = [|[|new|] string[1]|] { "" };
+                    string[] i = [|new|] string[1] { "" };
                 }
                 """,
             FixedCode = """
@@ -385,7 +385,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = [|[|new|][]|] { "" };
+                    string[] i = [|new|][] { "" };
                 }
                 """,
             FixedCode = """
@@ -406,7 +406,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = [|[|new|][]|]
+                    string[] i = [|new|][]
                     {
                         ""
                     };
@@ -448,7 +448,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    string[] i = [|[|new|][]|] { "", };
+                    string[] i = [|new|][] { "", };
                 }
                 """,
             FixedCode = """
@@ -566,7 +566,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    private int[] X = [|[|new|] int[]|] { 1 };
+                    private int[] X = [|new|] int[] { 1 };
                 }
                 """,
             FixedCode = """
@@ -587,7 +587,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    private int[] X { get; } = [|[|new|] int[]|] { 1 };
+                    private int[] X { get; } = [|new|] int[] { 1 };
                 }
                 """,
             FixedCode = """
@@ -610,7 +610,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M()
                     {
-                        var c = (int[])[|[|new|] int[]|] { 1 };
+                        var c = (int[])[|new|] int[] { 1 };
                     }
                 }
                 """,
@@ -711,7 +711,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x)
                     {
-                        var c = true ? [|[|new|] int[]|] { 1 } : x;
+                        var c = true ? [|new|] int[] { 1 } : x;
                     }
                 }
                 """,
@@ -738,7 +738,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x)
                     {
-                        var c = true ? x : [|[|new|] int[]|] { 1 };
+                        var c = true ? x : [|new|] int[] { 1 };
                     }
                 }
                 """,
@@ -765,7 +765,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x)
                     {
-                        int[] c = true ? null : [|[|new|] int[]|] { 1 };
+                        int[] c = true ? null : [|new|] int[] { 1 };
                     }
                 }
                 """,
@@ -810,7 +810,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = b switch { true => x, false => [|[|new|] int[]|] { 1 } };
+                        var c = b switch { true => x, false => [|new|] int[] { 1 } };
                     }
                 }
                 """,
@@ -837,7 +837,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = b switch { false => [|[|new|] int[]|] { 1 }, true => x };
+                        var c = b switch { false => [|new|] int[] { 1 }, true => x };
                     }
                 }
                 """,
@@ -864,7 +864,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        int[] c = b switch { false => [|[|new|] int[]|] { 1 }, true => null };
+                        int[] c = b switch { false => [|new|] int[] { 1 }, true => null };
                     }
                 }
                 """,
@@ -927,7 +927,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = new[] { [|[|new|][]|] { 1, 2, 3 }, x };
+                        var c = new[] { [|new|][] { 1, 2, 3 }, x };
                     }
                 }
                 """,
@@ -954,7 +954,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = new[] { x, [|[|new|][]|] { 1, 2, 3 } };
+                        var c = new[] { x, [|new|][] { 1, 2, 3 } };
                     }
                 }
                 """,
@@ -999,7 +999,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        int[][] c = [|[|new|][]|] { new[] { 1, 2, 3 } };
+                        int[][] c = [|new|][] { new[] { 1, 2, 3 } };
                     }
                 }
                 """,
@@ -1017,9 +1017,7 @@ public class UseCollectionExpressionForArrayTests
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(5,22): info IDE0300: Collection initialization can be simplified
-                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSeverity(DiagnosticSeverity.Info),
-                    // /0/Test0.cs(5,22): hidden IDE0300: Collection initialization can be simplified
-                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 27).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Hidden),
+                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Info)
                 }
             },
             LanguageVersion = LanguageVersion.CSharp12,
@@ -1037,7 +1035,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M()
                     {
-                        X([|[|new|] int[]|] { 1, 2, 3 });
+                        X([|new|] int[] { 1, 2, 3 });
                     }
 
                     void X(int[] x) { }
@@ -1086,7 +1084,7 @@ public class UseCollectionExpressionForArrayTests
         await new VerifyCS.Test
         {
             TestCode = """
-                [X([|[|new|] int[]|] { 1, 2, 3 })]
+                [X([|new|] int[] { 1, 2, 3 })]
                 class C
                 {
                 }
@@ -1121,7 +1119,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int[] M()
                     {
-                        return [|[|new|] int[]|] { 1, 2, 3 };
+                        return [|new|] int[] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -1148,7 +1146,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x)
                     {
-                        x = [|[|new|] int[]|] { 1, 2, 3 };
+                        x = [|new|] int[] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -1179,7 +1177,7 @@ public class UseCollectionExpressionForArrayTests
                     {
                         var v = new C
                         {
-                            X = [|[|new|] int[]|] { 1, 2, 3 },
+                            X = [|new|] int[] { 1, 2, 3 },
                         };
                     }
                 }
@@ -1212,7 +1210,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x)
                     {
-                        var y = x ?? [|[|new|] int[]|] { 1, 2, 3 };
+                        var y = x ?? [|new|] int[] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -1460,7 +1458,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|] int[]|] { 1, 2, 3 };
+                    int[] i = [|new|] int[] { 1, 2, 3 };
                 }
                 """,
             FixedCode = """
@@ -1482,7 +1480,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|] int[]|] { 1, 2, 3 };
+                    [|new|] int[] { 1, 2, 3 };
                 }
                 """,
             FixedCode = """
@@ -1504,7 +1502,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|] int[]|] {
+                    int[] i = [|new|] int[] {
                         1, 2, 3
                     };
                 }
@@ -1529,7 +1527,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|] int[]|]
+                    int[] i = [|new|] int[]
                     {
                         1, 2, 3
                     };
@@ -1557,7 +1555,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|] int[]|]
+                    [|new|] int[]
                     {
                         1, 2, 3
                     };
@@ -1585,7 +1583,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|] int[]|] {
+                    [|new|] int[] {
                         1, 2, 3
                     };
                 }
@@ -1612,7 +1610,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                        [|[|new|] int[]|]
+                        [|new|] int[]
                         {
                             1, 2, 3
                         };
@@ -1640,7 +1638,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                        [|[|new|] int[]|] {
+                        [|new|] int[] {
                             1, 2, 3
                         };
                 }
@@ -1666,7 +1664,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|] int[]|] {
+                    int[] i = [|new|] int[] {
                             1, 2, 3
                         };
                 }
@@ -1693,7 +1691,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int[] i =
 
-                    [|[|new|] int[]|]
+                    [|new|] int[]
                     {
                         1, 2, 3
                     };
@@ -1721,7 +1719,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|][]|] { 1, 2, 3 };
+                    int[] i = [|new|][] { 1, 2, 3 };
                 }
                 """,
             FixedCode = """
@@ -1743,7 +1741,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|][]|] { 1, 2, 3 };
+                    [|new|][] { 1, 2, 3 };
                 }
                 """,
             FixedCode = """
@@ -1765,7 +1763,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|][]|] {
+                    int[] i = [|new|][] {
                         1, 2, 3
                     };
                 }
@@ -1790,7 +1788,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|][]|]
+                    int[] i = [|new|][]
                     {
                         1, 2, 3
                     };
@@ -1818,7 +1816,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|][]|]
+                    [|new|][]
                     {
                         1, 2, 3
                     };
@@ -1846,7 +1844,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                    [|[|new|][]|] {
+                    [|new|][] {
                         1, 2, 3
                     };
                 }
@@ -1873,7 +1871,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                        [|[|new|][]|]
+                        [|new|][]
                         {
                             1, 2, 3
                         };
@@ -1901,7 +1899,7 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     int[] i =
-                        [|[|new|][]|] {
+                        [|new|][] {
                             1, 2, 3
                         };
                 }
@@ -1927,7 +1925,7 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
-                    int[] i = [|[|new|][]|] {
+                    int[] i = [|new|][] {
                             1, 2, 3
                         };
                 }
@@ -1954,7 +1952,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int[] i =
 
-                    [|[|new|][]|]
+                    [|new|][]
                     {
                         1, 2, 3
                     };
@@ -1992,11 +1990,11 @@ public class UseCollectionExpressionForArrayTests
                     class C
                     {
                         private static readonly string s_enforceOnBuildNeverTag;
-                        private static readonly string[] s_microsoftCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Telemetry };
-                        private static readonly string[] s_editAndContinueCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
-                        private static readonly string[] s_unnecessaryCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
-                        private static readonly string[] s_notConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
-                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [|[|new|] string[]|] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_microsoftCustomTags = [|new|] string[] { WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_editAndContinueCustomTags = [|new|] string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
+                        private static readonly string[] s_unnecessaryCustomTags = [|new|] string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_notConfigurableCustomTags = [|new|] string[] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+                        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = [|new|] string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
                     }
                 }
                 """,
@@ -2037,7 +2035,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[] r = [|[|new|] int[1]|];
+                        int[] r = [|new|] int[1];
                         r[0] = 1 +
                             2;
                     }
@@ -2074,7 +2072,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[] r = [|[|new|] int[2]|];
+                        int[] r = [|new|] int[2];
                         r[0] = 1 +
                             2;
                         r[1] = 3 +
@@ -2115,7 +2113,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M()
                     {
-                        int[] r = [|[|new|] int[0]|];
+                        int[] r = [|new|] int[0];
                     }
                 }
                 """,
@@ -2362,7 +2360,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[] r = [|[|new|] int[1]|];
+                        int[] r = [|new|] int[1];
                         r[0] = i;
                     }
                 }
@@ -2394,7 +2392,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[] r = [|[|new|] int[1]|];
+                        int[] r = [|new|] int[1];
                         r[0] = i;
                         r[0] = j;
                     }
@@ -2428,7 +2426,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[] r = [|[|new|] int[2]|];
+                        int[] r = [|new|] int[2];
                         r[0] = i;
                         r[1] = j;
                     }
@@ -2462,7 +2460,7 @@ public class UseCollectionExpressionForArrayTests
                     void M(int i, int j)
                     {
                         const int v = 1;
-                        int[] r = [|[|new|] int[2]|];
+                        int[] r = [|new|] int[2];
                         r[0] = i;
                         r[v] = j;
                     }
@@ -2566,7 +2564,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[][] r = [|[|new|] int[2][]|];
+                        int[][] r = [|new|] int[2][];
                         r[0] = null;
                         r[1] = null;
                     }
@@ -2599,9 +2597,9 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[][] r = [|[|new|] int[2][]|];
-                        r[0] = [|[|new|][]|] { 1 };
-                        r[1] = [|[|new|] int[]|] { 2 };
+                        int[][] r = [|new|] int[2][];
+                        r[0] = [|new|][] { 1 };
+                        r[1] = [|new|] int[] { 2 };
                     }
                 }
                 """,
@@ -2632,11 +2630,11 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[][] r = [|[|new|] int[2][]|];
+                        int[][] r = [|new|] int[2][];
 
                         // Leading
-                        r[0] = [|[|new|][]|] { 1 }; // Trailing
-                        r[1] = [|[|new|] int[]|] { 2 };
+                        r[0] = [|new|][] { 1 }; // Trailing
+                        r[1] = [|new|] int[] { 2 };
                     }
                 }
                 """,
@@ -2672,14 +2670,14 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i, int j)
                     {
-                        int[][] r = [|[|new|] int[2][]|];
+                        int[][] r = [|new|] int[2][];
 
-                        r[0] = [|[|new|][]|]
+                        r[0] = [|new|][]
                         {
                             // Leading
                             1 // Trailing
                         };
-                        r[1] = [|[|new|] int[]|] { 2 };
+                        r[1] = [|new|] int[] { 2 };
                     }
                 }
                 """,
@@ -2786,10 +2784,10 @@ public class UseCollectionExpressionForArrayTests
 
     public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
     {
-        new [] { "[|[|new|] int[0]|]", "[]" },
-        new [] { "[|[|new|] int[]|] { }", "[]" },
-        new [] { "[|[|new|] int[]|] { 1, 2, 3 }", "[1, 2, 3]" },
-        new [] { "[|[|new|][]|] { 1, 2, 3 }", "[1, 2, 3]" },
+        new [] { "[|new|] int[0]", "[]" },
+        new [] { "[|new|] int[] { }", "[]" },
+        new [] { "[|new|] int[] { 1, 2, 3 }", "[1, 2, 3]" },
+        new [] { "[|new|][] { 1, 2, 3 }", "[1, 2, 3]" },
     };
 
     [Theory, MemberData(nameof(EmptyOrConstantsOnly))]
@@ -3101,7 +3099,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                     }
                 }
                 """,
@@ -3137,7 +3135,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         ReadOnlySpan<int> t;
                     }
                 }
@@ -3177,7 +3175,7 @@ public class UseCollectionExpressionForArrayTests
 
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         ReadOnlySpan<int> t = globalArray;
                         return t;
                     }
@@ -3219,7 +3217,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         ReadOnlySpan<int> t = s;
                     }
                 }
@@ -3257,7 +3255,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         X(s);
                     }
 
@@ -3299,7 +3297,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return X(s);
                     }
 
@@ -3341,7 +3339,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         s.Slice(0, 1);
                     }
                 }
@@ -3379,7 +3377,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     string M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return s.ToString();
                     }
                 }
@@ -3417,7 +3415,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return X(s.Slice(0, 1));
                     }
                 
@@ -3459,7 +3457,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return X(s[0..1]);
                     }
                 
@@ -3501,7 +3499,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return s[0];
                     }
                 }
@@ -3539,7 +3537,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return s.Length;
                     }
                 }
@@ -3577,7 +3575,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     int M(int i)
                     {
-                        ReadOnlySpan<int> s = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> s = [|new|][] { i };
                         return nameof(s).Length;
                     }
                 }
@@ -3958,7 +3956,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> span = [|new|][] { i };
                         X(span, out var v);
                         return v;
                     }
@@ -4002,7 +4000,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(int i)
                     {
-                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> span = [|new|][] { i };
                         X(span, out var v);
                     }
 
@@ -4044,7 +4042,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     ReadOnlySpan<int> M(int i)
                     {
-                        ReadOnlySpan<int> span = [|[|new|][]|] { i };
+                        ReadOnlySpan<int> span = [|new|][] { i };
                         X(span, out var v);
                         return v.Slice(0, 1);
                     }
@@ -4084,7 +4082,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(bool b)
                     {
-                        var v = b ? [|[|new|][]|] { "a" } : [|[|new|][]|] { "b" };
+                        var v = b ? [|new|][] { "a" } : [|new|][] { "b" };
                     }
                 }
                 """,
@@ -4121,7 +4119,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(bool b)
                     {
-                        var v = b ? [|[|new|] string[]|] { "a" } : [|[|new|] string[]|] { "b" };
+                        var v = b ? [|new|] string[] { "a" } : [|new|] string[] { "b" };
                     }
                 }
                 """,
@@ -4184,7 +4182,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M()
                     {
-                        Func<int[]> f = () => [|[|new|] int[]|] { 1, 2, 3 };
+                        Func<int[]> f = () => [|new|] int[] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -4264,7 +4262,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     (int A, int B)[] M()
                     {
-                        return [|[|new|][]|] { (A: 1, 2) };
+                        return [|new|][] { (A: 1, 2) };
                     }
                 }
                 """,
@@ -4342,7 +4340,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     void M(bool b)
                     {
-                        object falsePositive = new[] { [|[|new|][]|] { 1 }, [|[|new|][]|] { 1 } };
+                        object falsePositive = new[] { [|new|][] { 1 }, [|new|][] { 1 } };
                     }
                 }
                 """,

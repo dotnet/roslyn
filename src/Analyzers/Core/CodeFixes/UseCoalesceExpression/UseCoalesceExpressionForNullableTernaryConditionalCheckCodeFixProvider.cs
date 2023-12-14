@@ -25,9 +25,6 @@ internal class UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixPro
     public override ImmutableArray<string> FixableDiagnosticIds
         => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticId);
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
