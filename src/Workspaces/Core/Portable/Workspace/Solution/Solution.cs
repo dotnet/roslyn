@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            var newCompilationState = _compilationState.RemoveMetadataReference((newState, newProjectState), metadataReference);
+            var newCompilationState = _compilationState.RemoveMetadataReference((newState, newProjectState));
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis
 
             var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(_state.WithProjectAnalyzerReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(projectId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

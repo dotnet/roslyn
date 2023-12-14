@@ -423,7 +423,7 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
     public SolutionCompilationState RemoveMetadataReference(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, MetadataReference metadataReference)
+        (SolutionState newSolutionState, ProjectState newProject) tuple)
     {
         return ForkProject(
             tuple,
@@ -490,8 +490,12 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectAnalyzerReferences"/>
     public SolutionCompilationState WithProjectAnalyzerReferences(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
+        var (newSolution, oldProject, newProject) = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
+        if (newSolution == this.Solution)
+            return this;
+
         // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
         // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
         // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
@@ -503,12 +507,13 @@ internal partial class SolutionCompilationState
         // still update with the correct generator instances that are coming from the new reference that is actually held in the project state from above.
         // An alternative approach would be to call oldProject.WithAnalyzerReferences keeping all the references in there that are value equal the same,
         // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
-        var addedReferences = tuple.newProject.AnalyzerReferences.Except<AnalyzerReference>(tuple.oldProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
-        var removedReferences = tuple.oldProject.AnalyzerReferences.Except<AnalyzerReference>(tuple.newProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+        var addedReferences = newProject.AnalyzerReferences.Except<AnalyzerReference>(oldProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+        var removedReferences = oldProject.AnalyzerReferences.Except<AnalyzerReference>(newProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
         return ForkProject(
-            tuple,
-            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(tuple.oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences),
+            newSolution,
+            newProject,
+            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences),
             forkTracker: true);
     }
 
