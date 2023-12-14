@@ -596,20 +596,20 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
     public SolutionCompilationState WithDocumentSourceCodeKind(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceCodeKind sourceCodeKind)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, SourceCodeKind sourceCodeKind)
     {
         return UpdateDocumentState(
-            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+            tuple, documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateDocumentTextLoader"/>
     public SolutionCompilationState UpdateDocumentTextLoader(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, TextLoader loader, PreservationMode mode)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
         return UpdateDocumentState(
-            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+            tuple, documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAdditionalDocumentTextLoader"/>

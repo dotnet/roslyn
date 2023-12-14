@@ -1577,16 +1577,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
             }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, oldProjectState, newProjectState) = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, sourceCodeKind);
-            return new Solution(newState, newCompilationState);
-
+            var newCompilationState = _compilationState.WithDocumentSourceCodeKind(_state.WithDocumentSourceCodeKind(documentId, sourceCodeKind), documentId, sourceCodeKind);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
@@ -1613,8 +1605,8 @@ namespace Microsoft.CodeAnalysis
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
-            var newCompilationState = _compilationState.UpdateDocumentTextLoader(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, loader, mode);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.UpdateDocumentTextLoader((newState, oldProjectState, newProjectState), documentId, loader, mode);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
