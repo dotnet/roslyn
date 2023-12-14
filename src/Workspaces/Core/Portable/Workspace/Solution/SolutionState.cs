@@ -1601,24 +1601,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Attempt to get the best readily available compilation for the project. It may be a
-        /// partially built compilation.
-        /// </summary>
-        private MetadataReference? GetPartialMetadataReference(
-            ProjectReference projectReference,
-            ProjectState fromProject)
-        {
-            // Try to get the compilation state for this project.  If it doesn't exist, don't do any
-            // more work.
-            if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
-            {
-                return null;
-            }
-
-            return state.GetPartialMetadataReference(fromProject, projectReference);
-        }
-
-        /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
