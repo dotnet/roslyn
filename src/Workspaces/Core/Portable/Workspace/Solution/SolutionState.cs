@@ -1364,7 +1364,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public SolutionState UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
