@@ -542,10 +542,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithAdditionalDocumentText(DocumentId, SourceText, PreservationMode)"/>
     public SolutionCompilationState WithAdditionalDocumentText(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SourceText text, PreservationMode mode)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, SourceText text, PreservationMode mode)
     {
         return UpdateAdditionalDocumentState(
-            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+            tuple, documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, SourceText, PreservationMode)"/>
@@ -651,17 +651,19 @@ internal partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateAdditionalDocumentState(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, bool contentChanged)
     {
-        // This method shouldn't have been called if the document has not changed.
-        Debug.Assert(oldProject != newProject);
+        if (tuple.newSolutionState == this.Solution)
+            return this;
 
-        var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredState(documentId);
-        var newDocument = newProject.AdditionalDocumentStates.GetRequiredState(documentId);
+        // This method shouldn't have been called if the document has not changed.cument has not changed.
+        Debug.Assert(tuple.oldProject != tuple.newProject);
+
+        var oldDocument = tuple.oldProject.AdditionalDocumentStates.GetRequiredState(documentId);
+        var newDocument = tuple.newProject.AdditionalDocumentStates.GetRequiredState(documentId);
 
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument),
             forkTracker: true);
     }
