@@ -449,12 +449,11 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
     public SolutionCompilationState RemoveAnalyzerReference(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, AnalyzerReference analyzerReference)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, AnalyzerReference analyzerReference)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
-            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
+            tuple,
+            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(tuple.oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true);
     }
 

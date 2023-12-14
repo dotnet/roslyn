@@ -833,8 +833,8 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), analyzerReference);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference((newState, oldProjectState, newProjectState), analyzerReference);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
