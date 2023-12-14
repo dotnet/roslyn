@@ -360,10 +360,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithRunAnalyzers"/>
     public SolutionCompilationState WithRunAnalyzers(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, bool runAnalyzers)
+        ProjectId projectId, bool runAnalyzers)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithRunAnalyzers(projectId, runAnalyzers),
             translate: null,
             forkTracker: true);
     }

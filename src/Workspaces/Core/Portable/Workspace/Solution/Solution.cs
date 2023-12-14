@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithRunAnalyzers(_state.WithRunAnalyzers(projectId, runAnalyzers), runAnalyzers);
+            var newCompilationState = _compilationState.WithRunAnalyzers(projectId, runAnalyzers);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
