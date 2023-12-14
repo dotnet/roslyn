@@ -711,15 +711,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.AddMetadataReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.AddMetadataReferences(newProjectState, newState.GetProjectDependencyGraph(), collection);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.AddMetadataReferences(_state.AddMetadataReferences(projectId, collection), collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
