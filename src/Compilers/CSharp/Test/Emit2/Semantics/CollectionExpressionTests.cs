@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
-        private const string s_collectionExtensions = """
+        internal const string s_collectionExtensions = """
             using System;
             using System.Collections;
             using System.Linq;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
             """;
-        private const string s_collectionExtensionsWithSpan = s_collectionExtensions +
+        internal const string s_collectionExtensionsWithSpan = s_collectionExtensions +
             """
             static partial class CollectionExtensions
             {
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown1").WithArguments("Unknown1").WithLocation(6, 25));
         }
 
-        private const string example_RefStructCollection = """
+        internal const string example_RefStructCollection = """
                 using System;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-        private const string example_GenericClassCollection = """
+        internal const string example_GenericClassCollection = """
                 using System;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-        private const string example_NonGenericClassCollection = """
+        internal const string example_NonGenericClassCollection = """
                 using System;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-        private const string example_GenericClassesWithConversion = """
+        internal const string example_GenericClassesWithConversion = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
         // Ref struct collection, with an implicit conversion from array.
-        private const string example_RefStructConvertibleFromArray = """
+        internal const string example_RefStructConvertibleFromArray = """
                 using System;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;

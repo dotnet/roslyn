@@ -2195,7 +2195,48 @@ outerDefault:
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
-            return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+            result = PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+
+            if (result != BetterResult.Neither)
+            {
+                return result;
+            }
+
+            // Params collection better-ness
+            if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+            {
+                int m1ParamsOrdinal = m1LeastOverriddenParameters.Length - 1;
+                int m2ParamsOrdinal = m2LeastOverriddenParameters.Length - 1;
+
+                for (i = 0; i < arguments.Count; ++i)
+                {
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
+
+                    if ((parameter1.Ordinal == m1ParamsOrdinal) != (parameter2.Ordinal == m2ParamsOrdinal))
+                    {
+                        // The argument is included into params collection for one candidate, but isn't included into params collection for the other candidate
+                        break;
+                    }
+                }
+
+                if (i == arguments.Count)
+                {
+                    TypeSymbol t1 = m1LeastOverriddenParameters[^1].Type;
+                    TypeSymbol t2 = m2LeastOverriddenParameters[^1].Type;
+
+                    if (IsBetterParamsCollectionType(t1, t2, ref useSiteInfo))
+                    {
+                        return BetterResult.Left;
+                    }
+                    if (IsBetterParamsCollectionType(t2, t1, ref useSiteInfo))
+                    {
+                        return BetterResult.Right;
+                    }
+                }
+            }
+
+            return BetterResult.Neither;
         }
 
         /// <summary>
@@ -2622,26 +2663,33 @@ outerDefault:
             TypeSymbol elementType2;
             var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2);
 
+            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo);
+        }
+
+        private bool IsBetterCollectionExpressionConversion(
+            TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1,
+            TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+
             // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
-                kind2 is CollectionExpressionTypeKind.Span &&
-                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+                kind2 is CollectionExpressionTypeKind.Span)
             {
-                return true;
+                return hasImplicitConversion(elementType1, elementType2, ref useSiteInfo);
             }
 
             // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
             //    with iteration type E2, and an implicit conversion exists from E1 to E2
-            if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
-                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
-                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+            if (kind1 is (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span))
             {
-                return true;
+                return IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
+                       hasImplicitConversion(elementType1, elementType2, ref useSiteInfo);
             }
 
             // - T1 is not a span_type, and T2 is not a span_type, and an implicit conversion exists from T1 to T2
-            if (kind1 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
-                kind2 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
+            Debug.Assert(kind1 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span));
+            if (kind2 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
                 hasImplicitConversion(t1, t2, ref useSiteInfo))
             {
                 return true;
@@ -2651,6 +2699,14 @@ outerDefault:
 
             bool hasImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) =>
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
+        }
+
+        private bool IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations type1);
+            CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations type2);
+
+            return IsBetterCollectionExpressionConversion(t1, kind1, type1.Type, t2, kind2, type2.Type, ref useSiteInfo);
         }
 
         private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
