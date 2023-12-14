@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ICompilationTracker FreezePartialStateWithTree(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 DocumentState docState,
                 SyntaxTree tree,
@@ -274,7 +273,6 @@ namespace Microsoft.CodeAnalysis
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
             private void GetPartialCompilationState(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 DocumentId id,
                 out ProjectState inProgressProject,
@@ -413,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                 return compilation != null;
             }
 
-            public Task<Compilation> GetCompilationAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            public Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (this.TryGetCompilation(out var compilation))
                 {
@@ -433,14 +431,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<Compilation> GetCompilationSlowAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
             }
 
             private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 bool lockGate,
                 CancellationToken cancellationToken)
@@ -488,7 +485,6 @@ namespace Microsoft.CodeAnalysis
             /// produce in progress snapshots that can be accessed from other threads.
             /// </summary>
             private async Task<CompilationInfo> BuildCompilationInfoAsync(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 CancellationToken cancellationToken)
             {
@@ -537,7 +533,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
@@ -610,7 +605,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<CompilationInfo> BuildFinalStateFromInProgressStateAsync(
-                SolutionState solution, SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -715,7 +710,6 @@ namespace Microsoft.CodeAnalysis
             /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
             /// <paramref name="compilationWithoutGeneratedFiles"/>.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
-                SolutionState solution,
                 SolutionCompilationState compilationState,
                 Compilation compilationWithoutGeneratedFiles,
                 CompilationTrackerGeneratorInfo generatorInfo,
@@ -864,7 +858,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
@@ -879,7 +873,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<bool> HasSuccessfullyLoadedSlowAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(
                     solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -887,7 +881,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
                 if (!this.ProjectState.SourceGenerators.Any())
@@ -901,7 +895,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (!this.ProjectState.SourceGenerators.Any())
                 {
@@ -1059,7 +1053,7 @@ namespace Microsoft.CodeAnalysis
             private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentVersion == null)
                 {
@@ -1075,7 +1069,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<VersionStamp> ComputeDependentVersionAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var projectState = this.ProjectState;
                 var projVersion = projectState.Version;
@@ -1097,7 +1091,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Task<VersionStamp> GetDependentSemanticVersionAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentSemanticVersion == null)
                 {
@@ -1113,7 +1107,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<VersionStamp> ComputeDependentSemanticVersionAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var projectState = this.ProjectState;
                 var version = await projectState.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
@@ -1133,7 +1127,7 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
             {
                 if (_lazyDependentChecksum == null)
                 {
@@ -1145,7 +1139,7 @@ namespace Microsoft.CodeAnalysis
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);
             }
 
-            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            private async Task<Checksum> ComputeDependentChecksumAsync(CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
 

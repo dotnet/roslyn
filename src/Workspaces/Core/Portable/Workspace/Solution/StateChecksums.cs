@@ -70,7 +70,6 @@ internal sealed class SolutionStateChecksums(
     }
 
     public async Task FindAsync(
-        SolutionState state,
         SolutionCompilationState compilationState,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,

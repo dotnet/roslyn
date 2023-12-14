@@ -35,20 +35,20 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
             ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate);
-            ICompilationTracker FreezePartialStateWithTree(SolutionState solution, SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
-            Task<Compilation> GetCompilationAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
+            Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-            Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
-            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
-            Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken);
 
             MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
+                SolutionCompilationState compilationState, CancellationToken cancellationToken);
             ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-                SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
+                SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-            Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            Task<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
             SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId);
         }

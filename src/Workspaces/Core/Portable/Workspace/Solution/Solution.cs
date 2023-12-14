@@ -28,15 +28,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public partial class Solution
     {
-        /// <summary>
-        /// Green version of the information about this Solution instance.  Responsible for non-semantic information
-        /// about the solution structure.  Specifically, the set of green <see cref="ProjectState"/>s, with all their
-        /// green <see cref="DocumentState"/>s.  Contains the attributes, options and relationships between projects.
-        /// Effectively, everything specified in a project file.  Does not contain anything related to <see
-        /// cref="Compilation"/>s or semantics.  Those are in <see cref="_compilationState"/>
-        /// </summary>
-        private readonly SolutionState _state;
-
         private readonly SolutionCompilationState _compilationState;
 
         // Values for all these are created on demand.
@@ -59,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SolutionState State => _state;
+        internal SolutionState State => CompilationState.Solution;
 
         internal SolutionCompilationState CompilationState => _compilationState;
 

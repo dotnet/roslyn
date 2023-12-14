@@ -130,7 +130,6 @@ internal partial class SolutionCompilationState
 
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
             SolutionCompilationState compilationState,
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
@@ -147,7 +146,6 @@ internal partial class SolutionCompilationState
 
         private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
             SolutionCompilationState compilationState,
             VersionStamp version,
             CancellationToken cancellationToken)
@@ -179,7 +177,6 @@ internal partial class SolutionCompilationState
 
         private static async Task<SkeletonReferenceSet?> CreateSkeletonReferenceSetAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
             SolutionCompilationState compilationState,
             CancellationToken cancellationToken)
         {
