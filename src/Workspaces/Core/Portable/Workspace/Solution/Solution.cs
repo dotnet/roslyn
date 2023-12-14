@@ -1797,16 +1797,11 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
         {
-            var (newState, newCompilationState) = WithCachedSourceGeneratorStateWorker(projectToUpdate, projectWithCachedGeneratorState);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
-
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = WithCachedSourceGeneratorStateWorker(projectToUpdate, projectWithCachedGeneratorState);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
 
             // <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
-            (SolutionState, SolutionCompilationState) WithCachedSourceGeneratorStateWorker(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+            SolutionCompilationState WithCachedSourceGeneratorStateWorker(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
             {
                 CheckContainsProject(projectToUpdate);
 
@@ -1816,21 +1811,21 @@ namespace Microsoft.CodeAnalysis
                     tracker.GeneratorDriver is null)
                 {
                     // We don't actually have any state at all, so no change.
-                    return (_state, _compilationState);
+                    return _compilationState;
                 }
 
                 var projectToUpdateState = GetRequiredProjectState(projectToUpdate);
 
                 (var newState, projectToUpdateState) = _state.ForkProject(projectToUpdateState);
                 var newCompilationState = _compilationState.ForkProject(
+                    newState,
                     projectToUpdateState,
-                    newState.GetProjectDependencyGraph(),
                     translate: new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                         tracker.GeneratorDriver,
                         newProjectState: projectToUpdateState),
                     forkTracker: true);
 
-                return (newState, newCompilationState);
+                return newCompilationState;
             }
         }
 
