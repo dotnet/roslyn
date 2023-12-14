@@ -1199,25 +1199,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var (newState, newCompilationState) = AddAnalyzerConfigDocumentsWorker(documentInfos);
-            if (newState == _state && newCompilationState == _compilationState)
-            {
-                return this;
-            }
+            var newCompilationState = AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+                (oldProject, documents) =>
+                {
+                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
+                    return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                });
 
-            return new Solution(newState, newCompilationState);
-
-            (SolutionState, SolutionCompilationState) AddAnalyzerConfigDocumentsWorker(ImmutableArray<DocumentInfo> documentInfos)
-            {
-                // Adding a new analyzer config potentially modifies the compilation options
-                return AddDocumentsToMultipleProjects(documentInfos,
-                    (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                    (oldProject, documents) =>
-                    {
-                        var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                        return (newProject, new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-                    });
-            }
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
