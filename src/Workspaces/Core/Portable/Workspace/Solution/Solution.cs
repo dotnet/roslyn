@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis
 
         internal SolutionState State => _state;
 
+        internal SolutionCompilationState CompilationState => _compilationState;
+
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
         internal bool PartialSemanticsEnabled => _compilationState.PartialSemanticsEnabled;

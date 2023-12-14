@@ -281,7 +281,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
         {
-            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                _solution.State, this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
             return generatedDocumentStates.States.Values.Select(state =>
@@ -309,7 +310,8 @@ namespace Microsoft.CodeAnalysis
                 return sourceGeneratedDocument;
 
             // We'll have to run generators if we haven't already and now try to find it.
-            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                _solution.State, State, cancellationToken).ConfigureAwait(false);
             var generatedDocumentState = generatedDocumentStates.GetState(documentId);
             if (generatedDocumentState is null)
                 return null;
@@ -345,7 +347,8 @@ namespace Microsoft.CodeAnalysis
 
             // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
             // try to fetch the state.
-            var documentState = _solution.State.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+            var documentState = _solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(
+                _solution.State, documentId);
             if (documentState == null)
                 return null;
 
@@ -354,7 +357,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
         {
-            return _solution.State.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
+            return _solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(_solution.State, this.State, cancellationToken);
         }
 
         internal Task<bool> ContainsSymbolsWithNameAsync(
@@ -468,7 +471,7 @@ namespace Microsoft.CodeAnalysis
         /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-            => _solution.State.TryGetCompilation(this.Id, out compilation);
+            => _solution.CompilationState.TryGetCompilation(this.Id, out compilation);
 
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.
@@ -479,14 +482,14 @@ namespace Microsoft.CodeAnalysis
         /// return the same value if called multiple times.
         /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetCompilationAsync(_projectState, cancellationToken);
+            => _solution.CompilationState.GetCompilationAsync(_solution.State, _projectState, cancellationToken);
 
         /// <summary>
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
-            => _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
+            => _solution.CompilationState.HasSuccessfullyLoadedAsync(_solution.State, _projectState, cancellationToken);
 
         /// <summary>
         /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
@@ -516,14 +519,14 @@ namespace Microsoft.CodeAnalysis
         /// The most recent version of the project, its documents and all dependent projects and documents.
         /// </summary>
         public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
+            => _solution.CompilationState.GetDependentVersionAsync(_solution.State, this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project including the semantics of referenced projects.
         /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
         /// </summary>
         public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+            => _solution.CompilationState.GetDependentSemanticVersionAsync(_solution.State, this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project not including the semantics of referenced projects.
@@ -558,7 +561,7 @@ namespace Microsoft.CodeAnalysis
         /// </para>
         /// </remarks>
         internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
-            => _solution.State.GetDependentChecksumAsync(this.Id, cancellationToken);
+            => _solution.CompilationState.GetDependentChecksumAsync(_solution.State, this.Id, cancellationToken);
 
         /// <summary>
         /// Creates a new instance of this project updated to have the new assembly name.
