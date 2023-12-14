@@ -493,6 +493,14 @@ internal partial class SolutionCompilationState
             newProject, newDependencyGraph);
     }
 
+    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
+    public SolutionCompilationState WithDocumentSyntaxRoot(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, SyntaxNode root, PreservationMode mode)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, contentChanged: true);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {

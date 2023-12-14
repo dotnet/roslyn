@@ -1292,14 +1292,15 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have a syntax tree
         /// rooted by the specified syntax node.
         /// </summary>
-        public SolutionState WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
                 oldTree.TryGetRoot(out var oldRoot) &&
                 oldRoot == root)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);

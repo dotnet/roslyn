@@ -1601,6 +1601,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
+            // If the project didn't change itself, there's no need to change the compilation state.
             var (newState, newProjectState) = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
@@ -1629,13 +1630,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.WithDocumentSyntaxRoot(documentId, root, mode);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithDocumentSyntaxRoot(documentId, root, mode);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentSyntaxRoot(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, root, mode);
+            return new Solution(newState, newCompilationState);
         }
 
         internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
