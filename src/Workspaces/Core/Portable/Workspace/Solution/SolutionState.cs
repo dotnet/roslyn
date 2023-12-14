@@ -958,19 +958,17 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified analyzer reference.
         /// </summary>
-        public SolutionState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        public (SolutionState, ProjectState) RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(analyzerReference);
             if (oldReferences == newReferences)
             {
-                return this;
+                return (this, oldProject);
             }
 
-            return ForkProject(
-                oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)));
+            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>

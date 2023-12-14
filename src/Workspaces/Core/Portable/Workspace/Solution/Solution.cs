@@ -928,13 +928,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            var newState = _state.RemoveAnalyzerReference(projectId, analyzerReference);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.RemoveAnalyzerReference(projectId, analyzerReference);
             if (newState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(newProjectState, newState.GetProjectDependencyGraph(), analyzerReference);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

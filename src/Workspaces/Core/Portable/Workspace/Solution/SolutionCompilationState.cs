@@ -372,14 +372,25 @@ internal partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{Diagnostics.AnalyzerReference})"/>
-    public SolutionState AddAnalyzerReferences(
+    /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
+    public SolutionCompilationState AddAnalyzerReferences(
         ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ImmutableArray<AnalyzerReference> analyzerReferences)
     {
         return ForkProject(
             newProject,
             newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: analyzerReferences),
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference"/>
+    public SolutionCompilationState RemoveAnalyzerReference(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, AnalyzerReference analyzerReference)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true);
     }
 }
