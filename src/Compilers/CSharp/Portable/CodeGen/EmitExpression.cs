@@ -2367,24 +2367,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
-            EmitExpression(expression.Count, used);
-
-            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
-            // we can ignore that if the actual result is unused
+            var initializer = expression.InitializerOpt;
             if (used)
             {
-                _sawStackalloc = true;
-                _builder.EmitOpCode(ILOpCode.Localloc);
+                EmitStackAlloc(expression.Type, initializer, expression.Count);
             }
-
-            var initializer = expression.InitializerOpt;
-            if (initializer != null)
+            else
             {
-                if (used)
-                {
-                    EmitStackAllocInitializers(expression.Type, initializer);
-                }
-                else
+                // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
+                // we can ignore that if the actual result is unused
+                EmitExpression(expression.Count, used: false);
+
+                if (initializer != null)
                 {
                     // If not used, just emit initializer elements to preserve possible sideeffects
                     foreach (var init in initializer.Initializers)

@@ -865,6 +865,7 @@ namespace System
 }
 ", options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"123")
+                .VerifyDiagnostics()
                 .VerifyIL("C.Main",
 @"
 {
@@ -883,6 +884,53 @@ namespace System
   IL_0014:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestSpanInt()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        Span<int> p = stackalloc int[3] { 1, 2, 3 };
+                        Write(p);
+                    }
+
+                    static void Write(Span<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0)
+                  IL_0000:  ldc.i4.s   12
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   12
+                  IL_001a:  cpblk
+                  IL_001c:  ldc.i4.3
+                  IL_001d:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0022:  call       "void C.Write(System.Span<int>)"
+                  IL_0027:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -916,6 +964,7 @@ namespace System
 }
 ", options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"123")
+                .VerifyDiagnostics()
                 .VerifyIL("C.Main",
 @"
 {
@@ -947,6 +996,340 @@ namespace System
   IL_0021:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<int> p = stackalloc int[3] { 1, 2, 3 };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7_Byte()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> p = stackalloc byte[3] { 1, 2, 3 };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<byte> span)
+                    {
+                        foreach (byte x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  conv.u
+                  IL_0002:  localloc
+                  IL_0004:  dup
+                  IL_0005:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
+                  IL_000a:  ldc.i4.3
+                  IL_000b:  cpblk
+                  IL_000d:  ldc.i4.3
+                  IL_000e:  newobj     "System.Span<byte>..ctor(void*, int)"
+                  IL_0013:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                  IL_0018:  call       "void C.Write(System.ReadOnlySpan<byte>)"
+                  IL_001d:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7_Double()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<double> p = stackalloc double[3] { 1.0, 2.9, 3.8 };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<double> span)
+                    {
+                        foreach (double x in span)
+                            Console.Write(x + " ");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1 2.9 3.8" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A469E23C2EF824690D849F86F0B660CC6E91A9E4BE44208A7103F98510BF64F5"
+                  IL_0005:  call       "System.ReadOnlySpan<double> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<double>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<double>)"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7_Enum()
+        {
+            var source = """
+                using System;
+                enum E : long { X, Y, Z }
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<E> p = stackalloc E[3] { E.X, E.Y, E.Z };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<E> span)
+                    {
+                        foreach (E x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "XYZ" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.AB25350E3E65EFEBE24584461683ECDA68725576E825E550038B90E7B1479946"
+                  IL_0005:  call       "System.ReadOnlySpan<E> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<E>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<E>)"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7_FewElements()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<int> p = stackalloc int[] { 1, 2 };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "12" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.8
+                  IL_0001:  conv.u
+                  IL_0002:  localloc
+                  IL_0004:  dup
+                  IL_0005:  ldc.i4.1
+                  IL_0006:  stind.i4
+                  IL_0007:  dup
+                  IL_0008:  ldc.i4.4
+                  IL_0009:  add
+                  IL_000a:  ldc.i4.2
+                  IL_000b:  stind.i4
+                  IL_000c:  ldc.i4.2
+                  IL_000d:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0012:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0017:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_001c:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        [InlineData((int)WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle)]
+        [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference)]
+        public void TestPointerCreateSpan(int missingMember)
+        {
+            var source = """
+                using System;
+                unsafe static class C
+                {
+                    static void Main()
+                    {
+                        int* p = stackalloc int[3] { 1, 2, 3 };
+                        Write(p);
+                    }
+
+                    static void Write(int* span)
+                    {
+                        for (int i = 0; i < 3; i++)
+                            Console.Write(span[i]);
+                    }
+                }
+                """;
+            var output = "123";
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? output : null,
+                verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0)
+                  IL_0000:  ldc.i4.s   12
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   12
+                  IL_001a:  cpblk
+                  IL_001c:  call       "void C.Write(int*)"
+                  IL_0021:  ret
+                }
+                """);
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? output : null, verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.s   12
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.1
+                  IL_0007:  stind.i4
+                  IL_0008:  dup
+                  IL_0009:  ldc.i4.4
+                  IL_000a:  add
+                  IL_000b:  ldc.i4.2
+                  IL_000c:  stind.i4
+                  IL_000d:  dup
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  conv.i
+                  IL_0010:  ldc.i4.4
+                  IL_0011:  mul
+                  IL_0012:  add
+                  IL_0013:  ldc.i4.3
+                  IL_0014:  stind.i4
+                  IL_0015:  call       "void C.Write(int*)"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestMixed()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main() => M(4);
+
+                    static void M(int i)
+                    {
+                        ReadOnlySpan<int> p = stackalloc int[] { 1, 2, 3, i };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1234" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0)
+                  IL_0000:  ldc.i4.s   16
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.81C1A5A2F482E82CA2C66653482AB24E6D90944BF183C8164E8F8F8D72DB60DB"
+                  IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   16
+                  IL_001a:  cpblk
+                  IL_001c:  dup
+                  IL_001d:  ldc.i4.3
+                  IL_001e:  conv.i
+                  IL_001f:  ldc.i4.4
+                  IL_0020:  mul
+                  IL_0021:  add
+                  IL_0022:  ldarg.0
+                  IL_0023:  stind.i4
+                  IL_0024:  ldc.i4.4
+                  IL_0025:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_002a:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_002f:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_0034:  ret
+                }
+                """);
         }
 
         private static string GetSource(string pointerType) => $@"

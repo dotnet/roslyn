@@ -110,6 +110,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(initializeArray, syntaxNode, diagnostics);
         }
 
+        internal void EmitCreateSpan(ImmutableArray<byte> data, Cci.IMethodReference createSpanHelper, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable via a token)
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
+
+            // emit call to the helper
+            EmitOpCode(ILOpCode.Ldtoken);
+            EmitToken(field, syntaxNode, diagnostics);
+            EmitOpCode(ILOpCode.Call, 0);
+            EmitToken(createSpanHelper, syntaxNode, diagnostics);
+        }
+
         /// <summary>
         /// Mark current IL position with a label
         /// </summary>

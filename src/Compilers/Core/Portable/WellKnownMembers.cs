@@ -3466,6 +3466,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                 // System_ReadOnlySpan_T__GetPinnableReference
+                 (byte)MemberFlags.Method,                                                                                                                      // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                    0,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
                  // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute - WellKnownType.ExtSentinel),       // DeclaringTypeId
@@ -4813,6 +4820,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_ReadOnlySpan_T__get_Item
                 "get_Length",                               // System_ReadOnlySpan_T__get_Length
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int_Int
+                "GetPinnableReference",                     // System_ReadOnlySpan_T__GetPinnableReference
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
 
                 "Fix",                                      // Microsoft_VisualBasic_Conversion__FixSingle

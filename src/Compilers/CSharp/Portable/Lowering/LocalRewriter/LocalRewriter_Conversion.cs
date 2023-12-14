@@ -68,6 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenType = VisitType(node.Type);
 
+            // special handling for initializers converted to ROS<T>
+            if (node.Operand is BoundConvertedStackAllocExpression stackAllocExpression &&
+                TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything) &&
+                _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle) is not null &&
+                CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanStackAlloc(stackAllocExpression.ElementType, stackAllocExpression.InitializerOpt, isEncDelta: this.EmitModule?.IsEncDelta == true))
+            {
+                var count = VisitExpression(stackAllocExpression.Count);
+                return new BoundConvertedStackAllocExpression(node.Operand.Syntax, stackAllocExpression.ElementType, count, stackAllocExpression.InitializerOpt, rewrittenType);
+            }
+
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
             InstrumentationState.IsSuppressed = _inExpressionLambda;

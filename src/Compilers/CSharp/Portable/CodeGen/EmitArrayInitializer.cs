@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                ImmutableArray<byte> data = this.GetRawData(initExprs);
+                ImmutableArray<byte> data = GetRawData(initExprs);
 
                 _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics.DiagnosticBag);
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Produces a serialized blob of all constant initializers.
         /// Non-constant initializers are matched with a zero of corresponding size.
         /// </summary>
-        private ImmutableArray<byte> GetRawData(ImmutableArray<BoundExpression> initializers)
+        private static ImmutableArray<byte> GetRawData(ImmutableArray<BoundExpression> initializers)
         {
             // the initial size is a guess.
             // there is no point to be precise here as MemoryStream always has N + 1 storage 
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return writer.ToImmutableArray();
         }
 
-        private void SerializeArrayRecursive(BlobBuilder bw, ImmutableArray<BoundExpression> inits)
+        private static void SerializeArrayRecursive(BlobBuilder bw, ImmutableArray<BoundExpression> inits)
         {
             if (inits.Length != 0)
             {
