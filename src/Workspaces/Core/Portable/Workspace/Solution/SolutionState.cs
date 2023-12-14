@@ -1651,33 +1651,6 @@ namespace Microsoft.CodeAnalysis
                 (solution: this, projectState.Language));
         }
 
-        /// <summary>
-        /// Creates a new solution instance with all the documents specified updated to have the same specified text.
-        /// </summary>
-        public SolutionState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
-        {
-            var solution = this;
-
-            foreach (var documentId in documentIds)
-            {
-                if (documentId == null)
-                {
-                    continue;
-                }
-
-                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
-                if (doc != null)
-                {
-                    if (!doc.TryGetText(out var existingText) || existingText != text)
-                    {
-                        solution = solution.WithDocumentText(documentId, text, mode);
-                    }
-                }
-            }
-
-            return solution;
-        }
-
         public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
         {
             CheckContainsProject(projectId);
