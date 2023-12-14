@@ -131,12 +131,13 @@ internal partial class SolutionCompilationState
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
+            SolutionCompilationState compilationState,
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
         {
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
-                compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
+                compilationTracker, solution, compilationState, version, cancellationToken).ConfigureAwait(false);
             if (referenceSet == null)
                 return null;
 
@@ -146,6 +147,7 @@ internal partial class SolutionCompilationState
         private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
+            SolutionCompilationState compilationState,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
@@ -156,7 +158,8 @@ internal partial class SolutionCompilationState
 
             // okay, we don't have anything cached with this version. so create one now.
 
-            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, solution, cancellationToken).ConfigureAwait(false);
+            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(
+                compilationTracker, solution, compilationState, cancellationToken).ConfigureAwait(false);
 
             lock (_stateGate)
             {
@@ -176,12 +179,13 @@ internal partial class SolutionCompilationState
         private static async Task<SkeletonReferenceSet?> CreateSkeletonReferenceSetAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
+            SolutionCompilationState compilationState,
             CancellationToken cancellationToken)
         {
             // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
             // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
             // only one thread actually does the computation and the rest wait.
-            var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+            var compilation = await compilationTracker.GetCompilationAsync(solution, compilationState, cancellationToken).ConfigureAwait(false);
             var services = solution.Services;
 
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N

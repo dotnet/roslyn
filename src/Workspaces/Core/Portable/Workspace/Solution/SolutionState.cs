@@ -1564,40 +1564,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get a metadata reference to this compilation info's compilation with respect to
-        /// another project. For cross language references produce a skeletal assembly. If the
-        /// compilation is not available, it is built. If a skeletal assembly reference is
-        /// needed and does not exist, it is also built.
-        /// </summary>
-        private async Task<MetadataReference?> GetMetadataReferenceAsync(
-            ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // If same language then we can wrap the other project's compilation into a compilation reference
-                if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
-                {
-                    // otherwise, base it off the compilation by building it first.
-                    var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
-
-                // otherwise get a metadata only image reference that is built by emitting the metadata from the
-                // referenced project's compilation and re-importing it.
-                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
-                {
-                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                        tracker, this, properties, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
