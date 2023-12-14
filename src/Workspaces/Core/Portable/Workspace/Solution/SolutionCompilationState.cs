@@ -510,10 +510,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentName"/>
     public SolutionCompilationState WithDocumentName(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, string name)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, string name)
     {
         return UpdateDocumentState(
-            oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
+            tuple, documentId, contentChanged: false);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentFolders"/>
@@ -633,17 +633,19 @@ internal partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateDocumentState(
-        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, bool contentChanged)
     {
-        // This method shouldn't have been called if the document has not changed.
-        Debug.Assert(oldProject != newProject);
+        if (tuple.newSolutionState == this.Solution)
+            return this;
 
-        var oldDocument = oldProject.DocumentStates.GetRequiredState(documentId);
-        var newDocument = newProject.DocumentStates.GetRequiredState(documentId);
+        // This method shouldn't have been called if the document has not changed.
+        Debug.Assert(tuple.oldProject != tuple.newProject);
+
+        var oldDocument = tuple.oldProject.DocumentStates.GetRequiredState(documentId);
+        var newDocument = tuple.newProject.DocumentStates.GetRequiredState(documentId);
 
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
             forkTracker: true);
     }
