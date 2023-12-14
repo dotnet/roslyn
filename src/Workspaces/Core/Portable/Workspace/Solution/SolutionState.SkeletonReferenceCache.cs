@@ -135,7 +135,8 @@ internal partial class SolutionCompilationState
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
         {
-            var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
+            var version = await compilationTracker.GetDependentSemanticVersionAsync(
+                solution, compilationState, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
                 compilationTracker, solution, compilationState, version, cancellationToken).ConfigureAwait(false);
             if (referenceSet == null)

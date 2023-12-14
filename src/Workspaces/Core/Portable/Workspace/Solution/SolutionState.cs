@@ -1504,25 +1504,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get a metadata reference for the project's compilation.  Returns <see langword="null"/> upon failure, which 
-        /// can happen when trying to build a skeleton reference that fails to build.
-        /// </summary>
-        public Task<MetadataReference?> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Get the compilation state for this project.  If it's not already created, then this
-                // will create it.  Then force that state to completion and get a metadata reference to it.
-                var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-                return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
