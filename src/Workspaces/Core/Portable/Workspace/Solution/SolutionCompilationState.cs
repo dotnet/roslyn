@@ -372,8 +372,9 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, ImmutableList<DocumentId> documentIds)
+        ProjectId projectId, ImmutableList<DocumentId> documentIds)
     {
+        var tuple = this.Solution.WithProjectDocumentsOrder(projectId, documentIds);
         return ForkProject(
             tuple,
             new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: false),

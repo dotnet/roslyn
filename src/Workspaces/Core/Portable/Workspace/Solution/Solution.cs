@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(documentIds));
             }
 
-            var newCompilationState = _compilationState.WithProjectDocumentsOrder(_state.WithProjectDocumentsOrder(projectId, documentIds), documentIds);
+            var newCompilationState = _compilationState.WithProjectDocumentsOrder(projectId, documentIds);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
