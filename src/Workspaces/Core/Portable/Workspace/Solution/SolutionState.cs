@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+        public (SolutionState, ProjectState newProject) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOptions(options);

@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithProjectFilePath(_state.WithProjectFilePath(projectId, filePath), filePath);
+            var newCompilationState = _compilationState.WithProjectFilePath(projectId, filePath);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var newCompilationState = _compilationState.WithProjectCompilationOptions(_state.WithProjectCompilationOptions(projectId, options), options);
+            var newCompilationState = _compilationState.WithProjectCompilationOptions(projectId, options);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

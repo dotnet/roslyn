@@ -317,8 +317,9 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOptions"/>
     public SolutionCompilationState WithProjectCompilationOptions(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, CompilationOptions options)
+        ProjectId projectId, CompilationOptions options)
     {
+        var tuple = this.Solution.WithProjectCompilationOptions(projectId, options);
         return ForkProject(
             tuple,
             new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProject, isAnalyzerConfigChange: false),
