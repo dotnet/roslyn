@@ -1760,13 +1760,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+            var (newState, newProjectState) = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader(newProjectState, newState.GetProjectDependencyGraph(), documentId, loader, mode);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

@@ -536,6 +536,16 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
     }
 
+    /// <inheritdoc cref="SolutionState.UpdateAnalyzerConfigDocumentTextLoader"/>
+    public SolutionCompilationState UpdateAnalyzerConfigDocumentTextLoader(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, TextLoader loader, PreservationMode mode)
+    {
+        // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
+        // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
+        return UpdateAnalyzerConfigDocumentState(
+            newProject, newDependencyGraph);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {
