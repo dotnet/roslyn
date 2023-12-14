@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer
         /// include the specified project reference.
         /// </summary>
-        public SolutionState RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        public (SolutionState, ProjectState) RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldReferences == newReferences)
             {
-                return this;
+                return (this, oldProject);
             }
 
             var newProject = oldProject.WithProjectReferences(newReferences);

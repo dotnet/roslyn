@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -709,13 +710,15 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            var newState = _state.RemoveProjectReference(projectId, projectReference);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, newProjectState) = _state.RemoveProjectReference(projectId, projectReference);
             if (newState == _state)
             {
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.RemoveProjectReference(newProjectState, newState.GetProjectDependencyGraph(), projectReference);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

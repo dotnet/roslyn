@@ -315,4 +315,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
+    public SolutionCompilationState RemoveProjectReference(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ProjectReference projectReference)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
