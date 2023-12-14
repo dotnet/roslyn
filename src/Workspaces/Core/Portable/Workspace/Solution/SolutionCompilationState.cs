@@ -646,33 +646,33 @@ internal partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, SolutionCompilationState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+    private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
-    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionCompilationState solution)
+    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
         var projectState = solution.GetProjectState(projectId);
         Contract.ThrowIfNull(projectState);
         return new CompilationTracker(projectState);
     }
 
-    private ICompilationTracker GetCompilationTracker(ProjectId projectId)
+    private ICompilationTracker GetCompilationTracker(SolutionState solution, ProjectId projectId)
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
-            tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this);
+            tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, solution);
         }
 
         return tracker;
     }
 
     public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentVersionAsync(solution, this, cancellationToken);
+        => this.GetCompilationTracker(solution, projectId).GetDependentVersionAsync(solution, this, cancellationToken);
 
     public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(solution, this, cancellationToken);
+        => this.GetCompilationTracker(solution, projectId).GetDependentSemanticVersionAsync(solution, this, cancellationToken);
 
     public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(solution, cancellationToken);
+        => this.GetCompilationTracker(solution, projectId).GetDependentChecksumAsync(solution, cancellationToken);
 
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
@@ -690,10 +690,10 @@ internal partial class SolutionCompilationState
     /// <remarks>
     /// The compilation is guaranteed to have a syntax tree for each document of the project.
     /// </remarks>
-    private Task<Compilation?> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
+    private Task<Compilation?> GetCompilationAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
     {
         // TODO: figure out where this is called and why the nullable suppression is required
-        return GetCompilationAsync(GetProjectState(projectId)!, cancellationToken);
+        return GetCompilationAsync(solution, solution.GetProjectState(projectId)!, cancellationToken);
     }
 
     /// <summary>
@@ -703,39 +703,41 @@ internal partial class SolutionCompilationState
     /// <remarks>
     /// The compilation is guaranteed to have a syntax tree for each document of the project.
     /// </remarks>
-    public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
+    public Task<Compilation?> GetCompilationAsync(SolutionState solution, ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
+            ? GetCompilationTracker(solution, project.Id).GetCompilationAsync(solution, this, cancellationToken).AsNullable()
             : SpecializedTasks.Null<Compilation>();
     }
 
     /// <summary>
     /// Return reference completeness for the given project and all projects this references.
     /// </summary>
-    public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
+    public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, ProjectState project, CancellationToken cancellationToken)
     {
         // return HasAllInformation when compilation is not supported.
         // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
         return project.SupportsCompilation
-            ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
+            ? this.GetCompilationTracker(solution, project.Id).HasSuccessfullyLoadedAsync(solution, this, cancellationToken)
             : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
-    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
+        SolutionState solution, ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+            ? GetCompilationTracker(solution, project.Id).GetSourceGeneratedDocumentStatesAsync(solution, this, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
-    public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(ProjectState project, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
+        SolutionState solution, ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
+            ? GetCompilationTracker(solution, project.Id).GetSourceGeneratorDiagnosticsAsync(solution, this, cancellationToken)
             : new(ImmutableArray<Diagnostic>.Empty);
     }
 
@@ -747,9 +749,10 @@ internal partial class SolutionCompilationState
     /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
     /// similarly tricky like that.
     /// </remarks>
-    public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
+    public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(
+        SolutionState solution, DocumentId documentId)
     {
-        return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+        return GetCompilationTracker(solution, documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
     }
 
     /// <summary>
@@ -795,7 +798,7 @@ internal partial class SolutionCompilationState
             {
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
                 return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                    tracker, this, properties, cancellationToken).ConfigureAwait(false);
+                    tracker, solution, this, properties, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
@@ -810,6 +813,6 @@ internal partial class SolutionCompilationState
     internal readonly struct TestAccessor(SolutionCompilationState solutionState)
     {
         public GeneratorDriver? GetGeneratorDriver(Project project)
-            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Solution.State, project.Id).GeneratorDriver : null;
     }
 }
