@@ -1765,12 +1765,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(_state, documentIdentity, text);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
             var newSolution = newCompilationState != _compilationState
-                ? new Solution(_state, newCompilationState)
+                ? new Solution(newCompilationState)
                 : this;
 
-            var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(_state, documentIdentity.DocumentId);
+            var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
             Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
 
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
