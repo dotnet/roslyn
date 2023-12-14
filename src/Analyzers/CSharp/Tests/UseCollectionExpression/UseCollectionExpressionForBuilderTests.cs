@@ -58,9 +58,9 @@ public partial class UseCollectionExpressionForBuilderTests
 
     public static readonly IEnumerable<object[]> SuccessCreationPatterns = new[]
     {
-        new[] {"var builder = ImmutableArray.[|CreateBuilder|]<int>();" },
-        new[] {"var builder = ArrayBuilder<int>.[|GetInstance|]();" },
-        new[] {"using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);" },
+        new[] {"[|var builder = ImmutableArray.[|CreateBuilder|]<int>();|]" },
+        new[] {"[|var builder = ArrayBuilder<int>.[|GetInstance|]();|]" },
+        new[] {"[|using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);|]" },
     };
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
@@ -122,7 +122,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     ImmutableArray<int> M()
                     {
                         {{pattern}}
-                        builder.Add(0);
+                        [|builder.Add(|]0);
                         return builder.ToImmutable();
                     }
                 }
@@ -156,7 +156,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M()
                     {
                         {{pattern}}
-                        builder.Add(0);
+                        [|builder.Add(|]0);
                         var v = (ImmutableArray<int>)builder.ToImmutable();
                     }
                 }
@@ -214,7 +214,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M()
                     {
                         {{pattern}}
-                        builder.Add(0);
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutable());
                     }
 
@@ -251,8 +251,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        var builder = ImmutableArray.[|CreateBuilder|]<int>(1);
-                        builder.Add(0);
+                        [|var builder = ImmutableArray.[|CreateBuilder|]<int>(1);|]
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutable());
                     }
 
@@ -289,8 +289,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        var builder = ArrayBuilder<int>.[|GetInstance|](1);
-                        builder.Add(0);
+                        [|var builder = ArrayBuilder<int>.[|GetInstance|](1);|]
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutable());
                     }
 
@@ -327,8 +327,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        using var _ = ArrayBuilder<int>.[|GetInstance|](1, out var builder);
-                        builder.Add(0);
+                        [|using var _ = ArrayBuilder<int>.[|GetInstance|](1, out var builder);|]
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutable());
                     }
 
@@ -416,8 +416,8 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x)
                     {
                         {{pattern}}
-                        builder.Add(0);
-                        foreach (var y in x)
+                        [|builder.Add(|]0);
+                        [|foreach (var y in |]x)
                             builder.Add(y);
 
                         Goo(builder.ToImmutable());
@@ -457,8 +457,8 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x)
                     {
                         {{pattern}}
-                        builder.Add(0);
-                        foreach (var y in x)
+                        [|builder.Add(|]0);
+                        [|foreach (var y in |]x)
                         {
                             builder.Add(y);
                         }
@@ -560,12 +560,12 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x, int[] y)
                     {
                         {{pattern}}
-                        builder.Add(0);
-                        foreach (var z in x)
+                        [|builder.Add(|]0);
+                        [|foreach (var z in |]x)
                         {
                             builder.Add(z);
                         }
-                        foreach (var z in y)
+                        [|foreach (var z in |]y)
                         {
                             builder.Add(z);
                         }
@@ -607,12 +607,12 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x, int[] y)
                     {
                         {{pattern}}
-                        foreach (var z in x)
+                        [|foreach (var z in |]x)
                         {
                             builder.Add(z);
                         }
-                        builder.Add(0);
-                        foreach (var z in y)
+                        [|builder.Add(|]0);
+                        [|foreach (var z in |]y)
                         {
                             builder.Add(z);
                         }
@@ -654,15 +654,15 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x, int[] y)
                     {
                         {{pattern}}
-                        foreach (var z in x)
+                        [|foreach (var z in |]x)
                         {
                             builder.Add(z);
                         }
-                        foreach (var z in y)
+                        [|foreach (var z in |]y)
                         {
                             builder.Add(z);
                         }
-                        builder.Add(0);
+                        [|builder.Add(|]0);
 
                         Goo(builder.ToImmutable());
                     }
@@ -871,7 +871,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x)
                     {
                         {{pattern}}
-                        builder.AddRange(x);
+                        [|builder.AddRange(|]x);
                         Goo(builder.ToImmutable());
                     }
 
@@ -909,7 +909,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x)
                     {
                         {{pattern}}
-                        builder.AddRange(1);
+                        [|builder.AddRange(|]1);
                         Goo(builder.ToImmutable());
                     }
 
@@ -947,7 +947,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M(int[] x)
                     {
                         {{pattern}}
-                        builder.AddRange(1, 2, 3);
+                        [|builder.AddRange(|]1, 2, 3);
                         Goo(builder.ToImmutable());
                     }
 
@@ -1009,8 +1009,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        var builder = ImmutableArray.[|CreateBuilder|]<int>(1);
-                        builder.Add(0);
+                        [|var builder = ImmutableArray.[|CreateBuilder|]<int>(1);|]
+                        [|builder.Add(|]0);
                         Goo(builder.MoveToImmutable());
                     }
 
@@ -1047,8 +1047,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        var builder = ArrayBuilder<int>.[|GetInstance|]();
-                        builder.Add(0);
+                        [|var builder = ArrayBuilder<int>.[|GetInstance|]();|]
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutableAndFree());
                     }
 
@@ -1085,8 +1085,8 @@ public partial class UseCollectionExpressionForBuilderTests
                 {
                     void M()
                     {
-                        var builder = ArrayBuilder<int>.[|GetInstance|]();
-                        builder.Add(0);
+                        [|var builder = ArrayBuilder<int>.[|GetInstance|]();|]
+                        [|builder.Add(|]0);
                         Goo(builder.ToImmutableAndClear());
                     }
 
@@ -1124,7 +1124,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     void M()
                     {
                         {{pattern}}
-                        builder.Add(0);
+                        [|builder.Add(|]0);
                         Goo(builder.ToArray());
                     }
 
@@ -1216,7 +1216,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         {{pattern}}
 
                         // Leading
-                        builder.Add(0); // Trailing
+                        [|builder.Add(|]0); // Trailing
                         return builder.ToImmutable();
                     }
                 }
@@ -1254,7 +1254,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     ImmutableArray<int> M()
                     {
                         {{pattern}}
-                        builder.Add(1 +
+                        [|builder.Add(|]1 +
                             2);
                         return builder.ToImmutable();
                     }
@@ -1293,9 +1293,9 @@ public partial class UseCollectionExpressionForBuilderTests
                     ImmutableArray<int> M()
                     {
                         {{pattern}}
-                        builder.Add(1 +
+                        [|builder.Add(|]1 +
                             2);
-                        builder.Add(3 +
+                        [|builder.Add(|]3 +
                             4);
                         return builder.ToImmutable();
                     }
@@ -1355,7 +1355,7 @@ public partial class UseCollectionExpressionForBuilderTests
                 using System.Collections.Immutable;
 
                 {{pattern}}
-                builder.Add(0);
+                [|builder.Add(|]0);
                 ImmutableArray<int> array = builder.ToImmutable();
                 """ + s_arrayBuilderApi,
             FixedCode = """
@@ -1381,10 +1381,10 @@ public partial class UseCollectionExpressionForBuilderTests
                 using System.Collections.Immutable;
 
                 {{pattern}}
-                builder.Add(0);
-                builder.Add(1 +
+                [|builder.Add(|]0);
+                [|builder.Add(|]1 +
                     2);
-                builder.Add(3 +
+                [|builder.Add(|]3 +
                     4);
                 ImmutableArray<int> array = builder.ToImmutable();
                 """ + s_arrayBuilderApi,
@@ -1422,8 +1422,8 @@ public partial class UseCollectionExpressionForBuilderTests
                     ImmutableArray<ImmutableArray<int>> M()
                     {
                         var builder1 = ImmutableArray.CreateBuilder<ImmutableArray<int>>();
-                        var builder2 = ImmutableArray.[|CreateBuilder|]<int>();
-                        builder2.Add(0);
+                        [|var builder2 = ImmutableArray.[|CreateBuilder|]<int>();|]
+                        [|builder2.Add(|]0);
                         builder1.Add(builder2.ToImmutable());
                         return builder1.ToImmutable();
                     }
@@ -1442,7 +1442,6 @@ public partial class UseCollectionExpressionForBuilderTests
                 """ + s_arrayBuilderApi,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }
@@ -1462,8 +1461,8 @@ public partial class UseCollectionExpressionForBuilderTests
                     ImmutableArray<ImmutableArray<int>> M()
                     {
                         var builder1 = ImmutableArray.CreateBuilder<ImmutableArray<int>>();
-                        var builder2 = ImmutableArray.[|CreateBuilder|]<int>();
-                        builder2.Add(0);
+                        [|var builder2 = ImmutableArray.[|CreateBuilder|]<int>();|]
+                        [|builder2.Add(|]0);
                         builder1.Add(builder2.ToImmutable());
                         return builder1.ToImmutable();
                     }
@@ -1482,7 +1481,6 @@ public partial class UseCollectionExpressionForBuilderTests
                 """ + s_arrayBuilderApi).ReplaceLineEndings(endOfLine),
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
     }

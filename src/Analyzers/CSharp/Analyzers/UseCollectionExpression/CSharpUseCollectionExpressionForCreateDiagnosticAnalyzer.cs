@@ -49,22 +49,28 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
-        var location = memberAccess.Name.Identifier.GetLocation();
-        var additionalLocations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var fadingLocations = ImmutableArray.Create(
+        var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            memberAccess.Name.Identifier.GetLocation(),
+            option.Notification,
+            additionalLocations: locations,
+            properties));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 invocationExpression.SpanStart,
                 invocationExpression.ArgumentList.OpenParenToken.Span.End)),
             invocationExpression.ArgumentList.CloseParenToken.GetLocation());
 
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
-
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            location,
-            option.Notification,
-            additionalLocations,
-            fadingLocations,
+            UnnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties));
     }
 }

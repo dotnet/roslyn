@@ -23,6 +23,78 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
+        {|FixAllInDocument:var|} v = a;
+        if (v != null)
+        {
+            v();
+        }
+
+        var x = a;
+        if (x != null)
+        {
+            x();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestFixAllInDocument2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        var v = a;
+        {|FixAllInDocument:if|} (v != null)
+        {
+            v();
+        }
+
+        var x = a;
+        if (x != null)
+        {
+            x();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestFixAllInDocument3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
         var v = a;
         if (v != null)
         {
@@ -50,7 +122,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
 
         [Fact]
-        public async Task TestFixAllInDocument2()
+        public async Task TestFixAllInDocument4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            v();
+        }
+
+        {|FixAllInDocument:var|} x = a;
+        if (x != null)
+        {
+            x();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestFixAllInDocument5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            v();
+        }
+
+        var x = a;
+        {|FixAllInDocument:if|} (x != null)
+        {
+            x();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestFixAllInDocument6()
         {
             await TestInRegularAndScriptAsync(
 @"class C

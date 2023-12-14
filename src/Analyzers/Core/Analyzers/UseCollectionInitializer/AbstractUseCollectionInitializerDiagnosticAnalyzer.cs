@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -41,7 +40,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
     TAnalyzer>
-    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -66,14 +65,26 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+        EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        isUnnecessary: false);
+
+    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+        EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        isUnnecessary: true);
+
     protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-        : base(
-            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-            EnforceOnBuildValues.UseCollectionInitializer,
-            CodeStyleOptions2.PreferCollectionInitializer,
-            fadingOption: null,
-            title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
+                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
+                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
     {
     }
 
@@ -175,19 +186,18 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;
 
-        var location = objectCreationExpression.GetFirstToken().GetLocation();
-        var additionalLocations = ImmutableArray.Create(objectCreationExpression.GetLocation());
-        var fadingLocations = GetLocationsToFade(matches);
+        var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
         var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
         var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            location,
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            s_descriptor,
+            objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,
-            additionalLocations,
-            fadingLocations,
+            additionalLocations: locations,
             properties));
+
+        FadeOutCode(context, matches, locations, properties);
 
         return;
 
@@ -231,19 +241,30 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         }
     }
 
-    private ImmutableArray<Location> GetLocationsToFade(ImmutableArray<Match<TStatementSyntax>> matches)
+    private void FadeOutCode(
+        SyntaxNodeAnalysisContext context,
+        ImmutableArray<Match<TStatementSyntax>> matches,
+        ImmutableArray<Location> locations,
+        ImmutableDictionary<string, string?>? properties)
     {
         var syntaxFacts = this.SyntaxFacts;
-        using var _ = ArrayBuilder<Location>.GetInstance(out var fadingLocations);
 
         foreach (var match in matches)
         {
-            var locations = UseCollectionInitializerHelpers.GetLocationsToFade(
+            var additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
                 syntaxFacts, match);
-            if (!locations.IsDefaultOrEmpty)
-                fadingLocations.AddRange(locations);
-        }
+            if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                continue;
 
-        return fadingLocations.ToImmutable();
+            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+            // will be offered.
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_unnecessaryCodeDescriptor,
+                additionalUnnecessaryLocations[0],
+                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                additionalLocations: locations,
+                additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                properties));
+        }
     }
 }
