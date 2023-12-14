@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newCompilationState = _compilationState.WithHasAllInformation(_state.WithHasAllInformation(projectId, hasAllInformation), hasAllInformation);
+            var newCompilationState = _compilationState.WithHasAllInformation(projectId, hasAllInformation);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
             CheckCircularProjectReferences(projectId, collection);
             CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
-            var newCompilationState = _compilationState.AddProjectReferences(_state.AddProjectReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.AddProjectReferences(projectId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
