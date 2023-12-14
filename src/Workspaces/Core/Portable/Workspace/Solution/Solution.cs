@@ -1809,7 +1809,8 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new Solution(newState);
+            // WithNewWorkspace doesn't change any data that affects the compilation state.
+            return new Solution(newState, _compilationState);
         }
 
         /// <summary>

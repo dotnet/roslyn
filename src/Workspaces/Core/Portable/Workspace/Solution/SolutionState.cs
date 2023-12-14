@@ -227,18 +227,15 @@ namespace Microsoft.CodeAnalysis
             return new SolutionState(
                 workspaceKind,
                 workspaceVersion,
-                PartialSemanticsEnabled,
                 services,
                 _solutionAttributes,
                 ProjectIds,
                 Options,
                 AnalyzerReferences,
                 _projectIdToProjectStateMap,
-                _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
-                _lazyAnalyzers,
-                _frozenSourceGeneratedDocumentState);
+                _lazyAnalyzers);
         }
 
         /// <summary>
