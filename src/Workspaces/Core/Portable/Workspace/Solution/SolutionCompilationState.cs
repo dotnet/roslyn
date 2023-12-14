@@ -375,11 +375,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
     public SolutionCompilationState RemoveProjectReference(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ProjectReference projectReference)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, ProjectReference projectReference)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
