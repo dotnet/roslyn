@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -383,7 +384,7 @@ internal partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference"/>
+    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
     public SolutionCompilationState RemoveAnalyzerReference(
         ProjectState newProject, ProjectDependencyGraph newDependencyGraph, AnalyzerReference analyzerReference)
     {
@@ -391,6 +392,31 @@ internal partial class SolutionCompilationState
             newProject,
             newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithProjectAnalyzerReferences"/>
+    public SolutionCompilationState WithProjectAnalyzerReferences(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    {
+        // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
+        // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
+        // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
+        // this could be changed.
+        //
+        // When we're comparing AnalyzerReferences, we'll compare with reference equality; AnalyzerReferences like AnalyzerFileReference
+        // may implement their own equality, but that can result in things getting out of sync: two references that are value equal can still
+        // have their own generator instances; it's important that as we're adding and removing references that are value equal that we
+        // still update with the correct generator instances that are coming from the new reference that is actually held in the project state from above.
+        // An alternative approach would be to call oldProject.WithAnalyzerReferences keeping all the references in there that are value equal the same,
+        // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
+        var addedReferences = newProject.AnalyzerReferences.Except<AnalyzerReference>(oldProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+        var removedReferences = oldProject.AnalyzerReferences.Except<AnalyzerReference>(newProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences),
             forkTracker: true);
     }
 }

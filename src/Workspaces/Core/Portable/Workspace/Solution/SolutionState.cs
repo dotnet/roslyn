@@ -975,32 +975,17 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include only the
         /// specified analyzer references.
         /// </summary>
-        public SolutionState WithProjectAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithProjectAnalyzerReferences(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAnalyzerReferences(analyzerReferences);
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject, newProject);
             }
 
-            // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
-            // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
-            // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
-            // this could be changed.
-            //
-            // When we're comparing AnalyzerReferences, we'll compare with reference equality; AnalyzerReferences like AnalyzerFileReference
-            // may implement their own equality, but that can result in things getting out of sync: two references that are value equal can still
-            // have their own generator instances; it's important that as we're adding and removing references that are value equal that we
-            // still update with the correct generator instances that are coming from the new reference that is actually held in the project state from above.
-            // An alternative approach would be to call oldProject.WithAnalyzerReferences keeping all the references in there that are value equal the same,
-            // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
-            var addedReferences = newProject.AnalyzerReferences.Except<AnalyzerReference>(oldProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
-            var removedReferences = oldProject.AnalyzerReferences.Except<AnalyzerReference>(newProject.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
-
-            return ForkProject(
-                newProject,
-                new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences));
+            (var newState, newProject) = ForkProject(newProject);
+            return (newState, oldProject, newProject);
         }
 
         /// <summary>

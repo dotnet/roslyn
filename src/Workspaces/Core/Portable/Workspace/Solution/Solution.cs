@@ -951,16 +951,17 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectAnalyzerReferences(
-                projectId,
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithProjectAnalyzerReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), collection);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>
