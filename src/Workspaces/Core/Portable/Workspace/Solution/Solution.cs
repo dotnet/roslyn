@@ -519,15 +519,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(options));
             }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, newProjectState) = _state.WithProjectParseOptions(projectId, options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.WithProjectParseOptions(newProjectState, newState.GetProjectDependencyGraph(), options);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.WithProjectParseOptions(_state.WithProjectParseOptions(projectId, options), options);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>

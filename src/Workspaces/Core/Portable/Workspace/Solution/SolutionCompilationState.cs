@@ -313,24 +313,22 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectParseOptions"/>
     public SolutionCompilationState WithProjectParseOptions(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, ParseOptions options)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, ParseOptions options)
     {
         if (this.PartialSemanticsEnabled)
         {
             // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
             // Since changing options is rare event, it is okay to start compilation building from scratch.
             return ForkProject(
-                newProject,
-                newDependencyGraph,
+                tuple,
                 translate: null,
                 forkTracker: false);
         }
         else
         {
             return ForkProject(
-                newProject,
-                newDependencyGraph,
-                new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject, isParseOptionChange: true),
+                tuple,
+                new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: true),
                 forkTracker: true);
         }
     }
