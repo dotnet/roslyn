@@ -16,6 +16,11 @@ internal class TestHandlerProvider : IHandlerProvider
     public TestHandlerProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> providers)
         => _providers = providers;
 
+    public void AddExternalExtensions(ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalHandlers)
+    {
+        throw new NotImplementedException();
+    }
+
     public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
         => _providers.Single(p => p.metadata.MethodName == method).provider;
 

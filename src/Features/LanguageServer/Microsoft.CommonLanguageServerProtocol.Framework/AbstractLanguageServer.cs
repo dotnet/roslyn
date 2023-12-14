@@ -112,6 +112,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
                 UseSingleObjectParameterDeserialization = true,
             };
 
+            // TODO: This needs to get called for each extension handler added 
             _jsonRpc.AddLocalRpcMethod(method, delegatingEntryPoint, methodAttribute);
         }
     }

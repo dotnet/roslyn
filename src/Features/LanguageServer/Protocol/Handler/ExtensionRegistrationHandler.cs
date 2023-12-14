@@ -51,12 +51,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var requestType = types[0];
                 var responseType = types[1];
 
-                // Create the type and the instance of the handler from the external extension
-                var externalHandlerType = typeof(ExtensionMethodHandler<,>).MakeGenericType(types);
-                var externalHandlerInstance = Activator.CreateInstance(externalHandlerType);
+                // Create the instance of the handler from the external extension
+                var externalHandlerInstance = Activator.CreateInstance(ic);
 
                 // Create the type of the internal wrapper 
-                var wrapperType = typeof(ExtensionMethodHandlerWrapper<,,>).MakeGenericType(requestType, responseType, externalHandlerType);
+                var wrapperType = typeof(ExtensionMethodHandlerWrapper<,,>).MakeGenericType(requestType, responseType, ic);
                 var wrappedHandler = (IMethodHandler)Activator.CreateInstance(wrapperType, externalHandlerInstance);
 
                 requestHandlerDictionary.Add(new RequestHandlerMetadata(methodName, requestType, responseType), new Lazy<IMethodHandler>(() => wrappedHandler));

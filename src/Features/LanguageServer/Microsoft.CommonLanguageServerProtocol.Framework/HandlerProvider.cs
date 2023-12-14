@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -18,6 +19,8 @@ internal class HandlerProvider : IHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
+
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _extensionRequestHandlers;
 
     public HandlerProvider(ILspServices lspServices)
     {
@@ -50,10 +53,15 @@ internal class HandlerProvider : IHandlerProvider
         return requestHandlers.Keys.ToImmutableArray();
     }
 
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
+    public void AddExternalExtensions(ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalHandlers)
+    {
+        _extensionRequestHandlers = externalHandlers;
+    }
 
-    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices, _extensionRequestHandlers);
+
+    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices, ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalRequestHandlers)
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
@@ -61,6 +69,7 @@ internal class HandlerProvider : IHandlerProvider
 
         if (lspServices.SupportsGetRegisteredServices())
         {
+            // TODO. Pass in IMethodHandler similar to here. Additional code may be needed to handle the MethodAttribute.
             var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => typeof(IMethodHandler).IsAssignableFrom(type));
 
             foreach (var handlerType in requestHandlerTypes)
@@ -105,6 +114,11 @@ internal class HandlerProvider : IHandlerProvider
         }
 
         VerifyHandlers(requestHandlerDictionary.Keys);
+
+        if (externalRequestHandlers != null)
+        {
+            requestHandlerDictionary.Concat(externalRequestHandlers);
+        }
 
         return requestHandlerDictionary.ToImmutable();
 
@@ -178,21 +192,6 @@ internal class HandlerProvider : IHandlerProvider
                 throw new InvalidOperationException($"Language Server is missing required methods {string.Join(",", missingMethods)}");
             }
         }
-    }
-
-    private static IMethodHandler LoadExternalDlls()
-    {
-        var dllPath = @"C:\Users\beccam\source\repos\ExtensionTesting\ExtensionTesting\bin\Debug\net7.0\ExtensionTesting.dll";
-
-        // Load the external assembly
-        Assembly externalAssembly = Assembly.LoadFrom(dllPath);
-
-        Type type = externalAssembly.GetType("IMethodHandler");
-
-        // Create an instance of the found type using reflection
-        IMethodHandler instance = (IMethodHandler)Activator.CreateInstance(type);
-
-        return instance;
     }
 
     private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
