@@ -7466,6 +7466,172 @@ static class Program
         }
 
         [Fact]
+        public void SpreadElement_Dynamic_04()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        object[] objs = [1,2,3];
+                        objs.Report();
+                        List<dynamic> dyns = [..objs];
+                        dyns.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      111 (0x6f)
+                  .maxstack  5
+                  .locals init (object[] V_0,
+                                System.Span<dynamic> V_1,
+                                int V_2,
+                                System.Span<object> V_3)
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "object"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  box        "int"
+                  IL_000e:  stelem.ref
+                  IL_000f:  dup
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  ldc.i4.2
+                  IL_0012:  box        "int"
+                  IL_0017:  stelem.ref
+                  IL_0018:  dup
+                  IL_0019:  ldc.i4.2
+                  IL_001a:  ldc.i4.3
+                  IL_001b:  box        "int"
+                  IL_0020:  stelem.ref
+                  IL_0021:  dup
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0028:  stloc.0
+                  IL_0029:  newobj     "System.Collections.Generic.List<dynamic>..ctor()"
+                  IL_002e:  dup
+                  IL_002f:  ldloc.0
+                  IL_0030:  ldlen
+                  IL_0031:  conv.i4
+                  IL_0032:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<dynamic>(System.Collections.Generic.List<dynamic>, int)"
+                  IL_0037:  dup
+                  IL_0038:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
+                  IL_003d:  stloc.1
+                  IL_003e:  ldc.i4.0
+                  IL_003f:  stloc.2
+                  IL_0040:  ldloca.s   V_3
+                  IL_0042:  ldloc.0
+                  IL_0043:  call       "System.Span<object>..ctor(object[])"
+                  IL_0048:  ldloca.s   V_3
+                  IL_004a:  ldloca.s   V_1
+                  IL_004c:  ldloc.2
+                  IL_004d:  ldloca.s   V_3
+                  IL_004f:  call       "int System.Span<object>.Length.get"
+                  IL_0054:  call       "System.Span<dynamic> System.Span<dynamic>.Slice(int, int)"
+                  IL_0059:  call       "void System.Span<object>.CopyTo(System.Span<object>)"
+                  IL_005e:  ldloc.2
+                  IL_005f:  ldloca.s   V_3
+                  IL_0061:  call       "int System.Span<object>.Length.get"
+                  IL_0066:  add
+                  IL_0067:  stloc.2
+                  IL_0068:  ldc.i4.0
+                  IL_0069:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_006e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_NullabilityDifference()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        object[] objs = [1,2,3];
+                        objs.Report();
+                        List<object?> list = [..objs];
+                        list.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      111 (0x6f)
+                  .maxstack  5
+                  .locals init (object[] V_0,
+                                System.Span<object> V_1,
+                                int V_2,
+                                System.Span<object> V_3)
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "object"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  box        "int"
+                  IL_000e:  stelem.ref
+                  IL_000f:  dup
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  ldc.i4.2
+                  IL_0012:  box        "int"
+                  IL_0017:  stelem.ref
+                  IL_0018:  dup
+                  IL_0019:  ldc.i4.2
+                  IL_001a:  ldc.i4.3
+                  IL_001b:  box        "int"
+                  IL_0020:  stelem.ref
+                  IL_0021:  dup
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0028:  stloc.0
+                  IL_0029:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_002e:  dup
+                  IL_002f:  ldloc.0
+                  IL_0030:  ldlen
+                  IL_0031:  conv.i4
+                  IL_0032:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
+                  IL_0037:  dup
+                  IL_0038:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
+                  IL_003d:  stloc.1
+                  IL_003e:  ldc.i4.0
+                  IL_003f:  stloc.2
+                  IL_0040:  ldloca.s   V_3
+                  IL_0042:  ldloc.0
+                  IL_0043:  call       "System.Span<object>..ctor(object[])"
+                  IL_0048:  ldloca.s   V_3
+                  IL_004a:  ldloca.s   V_1
+                  IL_004c:  ldloc.2
+                  IL_004d:  ldloca.s   V_3
+                  IL_004f:  call       "int System.Span<object>.Length.get"
+                  IL_0054:  call       "System.Span<object> System.Span<object>.Slice(int, int)"
+                  IL_0059:  call       "void System.Span<object>.CopyTo(System.Span<object>)"
+                  IL_005e:  ldloc.2
+                  IL_005f:  ldloca.s   V_3
+                  IL_0061:  call       "int System.Span<object>.Length.get"
+                  IL_0066:  add
+                  IL_0067:  stloc.2
+                  IL_0068:  ldc.i4.0
+                  IL_0069:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_006e:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void SpreadElement_MissingList()
         {
             string source = """
@@ -26889,6 +27055,28 @@ partial class Program
             // TODO2: get rid of span temp to avoid async problems, update baselines.
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: null /*IncludeExpectedOutput("[2, 1], [1, 2, 1, 2],")*/, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Spread_TargetSpan()
+        {
+            var source = """
+                using System;
+                class C
+                {
+                    static void Main()
+                    {
+                        int[] arr = [1, 2, 3];
+                        arr.Report();
+                        Span<int> span = [..arr];
+                        span.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: null /*IncludeExpectedOutput("[2, 1], [1, 2, 1, 2],")*/, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """ """);
         }
 
         // TODO2 add tests:
