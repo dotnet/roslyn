@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -83,6 +84,8 @@ internal partial class SolutionCompilationState
 
     public ImmutableDictionary<ProjectId, ICompilationTracker> ProjectIdToTrackerMap
         => _projectIdToTrackerMap;
+
+    public SolutionServices Services => this.Solution.Services;
 
     private void CheckInvariants()
     {

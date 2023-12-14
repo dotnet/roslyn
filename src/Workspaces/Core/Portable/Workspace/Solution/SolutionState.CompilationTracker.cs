@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        compilationState.Solution,
+                        compilationState,
                         compilationWithoutGeneratedFiles,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
