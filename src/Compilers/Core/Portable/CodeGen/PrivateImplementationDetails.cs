@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsNotSerialized => false;
 
-        public bool IsReadOnly => true;
+        public abstract bool IsReadOnly { get; }
 
         public bool IsRuntimeSpecial => false;
 
@@ -698,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
+        public override bool IsReadOnly => true;
     }
 
     internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField
@@ -708,6 +709,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
+        public override bool IsReadOnly => true;
     }
 
     /// <summary>
@@ -725,6 +727,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => _block;
+        public override bool IsReadOnly => true;
     }
 
     /// <summary>
@@ -738,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
+        public override bool IsReadOnly => true;
     }
 
     /// <summary>

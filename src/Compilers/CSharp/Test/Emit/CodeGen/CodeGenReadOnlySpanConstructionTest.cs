@@ -1615,7 +1615,16 @@ public class Test
 }}";
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "3402", verify: Verification.Skipped);
+
+            var peVerifyMessage = "[ : Test::Main][offset 0x00000002] Cannot modify an imaged based (RVA) static";
+
+            var ilVerifyMessage = """
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x2 }
+                [Main]: Field is not visible. { Offset = 0x2 }
+                [Main]: Unexpected type on the stack. { Offset = 0x8, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "3402", verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage, PEVerifyMessage = peVerifyMessage });
             verifier.VerifyIL("Test.Main", """
 {
   // Code size      156 (0x9c)
@@ -2720,9 +2729,17 @@ public class C
     public static System.ReadOnlySpan<C> MC() => new C[] { null, null, null };
 }
 """;
-            // TODO2
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "ran");
+            var peVerifyMessage = """
+                [ : C::MString][offset 0x00000010] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [MString]: Cannot change initonly field outside its .ctor. { Offset = 0x10 }
+                [MString]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
+                [MObject]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                [MC]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                """;
+            var verifier = CompileAndVerify(compilation, expectedOutput: "ran", verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.MString", """
 {
@@ -2784,7 +2801,23 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world", verify: Verification.Skipped);
+            var peVerifyMessage = """
+                [ : C::M][offset 0x00000020] Cannot change initonly field outside its .ctor.
+                [ : C::M2][offset 0x00000020] Cannot change initonly field outside its .ctor.
+                [ : C::M3][offset 0x00000018] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [M]: Cannot change initonly field outside its .ctor. { Offset = 0x20 }
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x2a }
+                [M2]: Cannot change initonly field outside its .ctor. { Offset = 0x20 }
+                [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x2a }
+                [M3]: Cannot change initonly field outside its .ctor. { Offset = 0x18 }
+                [M3]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
+                verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
+
             var expectedIL = """
 {
   // Code size       43 (0x2b)
@@ -2849,7 +2882,14 @@ public class C
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world", verify: Verification.Skipped);
+
+            var ilVerifyMessage = """
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1b }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
+
             verifier.VerifyIL("C.M", """
 {
   // Code size       28 (0x1c)
@@ -2888,7 +2928,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "hello world", verify: Verification.Skipped);
+            var ilVerifyMessage = """
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hello world",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
+
             verifier.VerifyIL("C.M", """
 {
   // Code size       32 (0x20)
@@ -2949,7 +2995,20 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var peVerifyMessage = """
+                [ : C::M][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                [ : C::M2][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [M]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                [M2]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", 
+                verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
+
             var expectedIL = """
 {
   // Code size       32 (0x20)
@@ -2992,7 +3051,7 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 2147483647", verify: Verification.Skipped);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 2147483647", verify: Verification.Fails);
             var expectedIL = """
 {
   // Code size       36 (0x24)
@@ -3035,7 +3094,20 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var peVerifyMessage = """
+                [ : C::M][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                [ : C::M2][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [M]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                [M2]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
+
             var expectedIL = """
 {
   // Code size       32 (0x20)
@@ -3118,7 +3190,20 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var peVerifyMessage = """
+                [ : C::M][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                [ : C::M2][offset 0x00000015] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [M]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                [M2]: Cannot change initonly field outside its .ctor. { Offset = 0x15 }
+                [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
+
             verifier.VerifyIL("C.M", """
 {
   // Code size       32 (0x20)
@@ -3180,7 +3265,20 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1", verify: Verification.Skipped);
+            var peVerifyMessage = """
+                [ : C::M][offset 0x0000001C] Cannot change initonly field outside its .ctor.
+                [ : C::M2][offset 0x0000001C] Cannot change initonly field outside its .ctor.
+                """;
+            var ilVerifyMessage = """
+                [M]: Cannot change initonly field outside its .ctor. { Offset = 0x1c }
+                [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x26 }
+                [M2]: Cannot change initonly field outside its .ctor. { Offset = 0x1c }
+                [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x26 }
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.Fails with { PEVerifyMessage = peVerifyMessage, ILVerifyMessage = ilVerifyMessage });
+
             var expectedIL = """
 {
   // Code size       39 (0x27)
@@ -3410,7 +3508,7 @@ class Test
 }
 """, TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "TrueTrue", verify: Verification.Passes).VerifyIL("Test.Main", $$"""
+            CompileAndVerify(comp, expectedOutput: "TrueTrue").VerifyIL("Test.Main", $$"""
 {
   // Code size       69 (0x45)
   .maxstack  2
