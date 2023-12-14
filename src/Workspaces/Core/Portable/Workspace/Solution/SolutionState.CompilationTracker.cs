@@ -358,7 +358,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (referencedProject.IsSubmission)
                         {
-                            var previousScriptCompilation = compilationState.GetCompilationAsync(projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
+                            var previousScriptCompilation = compilationState.GetCompilationAsync(
+                                solution, projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
 
                             // previous submission project must support compilation:
                             RoslynDebug.Assert(previousScriptCompilation != null);
@@ -753,7 +754,8 @@ namespace Microsoft.CodeAnalysis
                                 // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
                                 // ScriptCompilationInfo that we need to replace as a unit.
                                 var previousSubmissionCompilation =
-                                    await compilationState.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                                    await compilationState.GetCompilationAsync(
+                                        solution, projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
                                 if (compilationWithoutGeneratedFiles.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
                                 {

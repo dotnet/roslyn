@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         /// <summary>
         /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker and updates it
