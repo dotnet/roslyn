@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis
         /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-            => _solution.CompilationState.TryGetCompilation(this.Id, out compilation);
+            => _solution.CompilationState.TryGetCompilation(_solution.State, this.Id, out compilation);
 
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.

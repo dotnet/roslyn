@@ -768,8 +768,8 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
-                                var metadataReference = await solution.GetMetadataReferenceAsync(
-                                    projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(
+                                    solution, projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
 
                                 // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)

@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsProject(ProjectId projectId)
+        internal void CheckContainsProject(ProjectId projectId)
         {
             if (!this.ContainsProject(projectId))
             {

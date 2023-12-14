@@ -674,9 +674,9 @@ internal partial class SolutionCompilationState
     public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, ProjectId projectId, CancellationToken cancellationToken)
         => this.GetCompilationTracker(solution, projectId).GetDependentChecksumAsync(solution, cancellationToken);
 
-    public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
+    public bool TryGetCompilation(SolutionState solution, ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
-        CheckContainsProject(projectId);
+        solution.CheckContainsProject(projectId);
         compilation = null;
 
         return this.TryGetCompilationTracker(projectId, out var tracker)
