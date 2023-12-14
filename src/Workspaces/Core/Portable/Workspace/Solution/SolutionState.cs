@@ -340,15 +340,6 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
-
-        public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
-
-        public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
-
         public ProjectState? GetProjectState(ProjectId projectId)
         {
             _projectIdToProjectStateMap.TryGetValue(projectId, out var state);
