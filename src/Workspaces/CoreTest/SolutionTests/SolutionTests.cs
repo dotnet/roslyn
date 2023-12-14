@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     if (solution.ContainsProject(referenced.ProjectId))
                     {
-                        var referencedMetadata = await solution.State.GetMetadataReferenceAsync(referenced, solution.GetProjectState(project.Id), CancellationToken.None);
+                        var referencedMetadata = await solution.CompilationState.GetMetadataReferenceAsync(referenced, solution.GetProjectState(project.Id), CancellationToken.None);
                         Assert.NotNull(referencedMetadata);
                         if (referencedMetadata is CompilationReference compilationReference)
                         {
@@ -3282,7 +3282,7 @@ End Class";
             Assert.Equal("", text.ToString());
 
             // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
-            var compilation = await solution.State.GetCompilationAsync(doc.Project.State, CancellationToken.None).ConfigureAwait(false);
+            var compilation = await solution.CompilationState.GetCompilationAsync(doc.Project.State, CancellationToken.None).ConfigureAwait(false);
             var syntaxTree = compilation.SyntaxTrees.Single();
             Assert.Equal("", syntaxTree.ToString());
         }
