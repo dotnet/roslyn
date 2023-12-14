@@ -345,11 +345,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithRunAnalyzers"/>
     public SolutionCompilationState WithRunAnalyzers(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, bool runAnalyzers)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, bool runAnalyzers)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
