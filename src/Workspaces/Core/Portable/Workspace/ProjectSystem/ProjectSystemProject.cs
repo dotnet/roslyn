@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             }
 
             // But we also want to know if a compilation was created
-            var hadCompilation = solution.CompilationState.TryGetCompilation(solution.State, projectId, out _);
+            var hadCompilation = solution.CompilationState.TryGetCompilation(projectId, out _);
 
             if (parsedTrees > 0 || hadCompilation)
             {

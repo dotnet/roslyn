@@ -135,9 +135,9 @@ internal partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var version = await compilationTracker.GetDependentSemanticVersionAsync(
-                solution, compilationState, cancellationToken).ConfigureAwait(false);
+                compilationState, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
-                compilationTracker, solution, compilationState, version, cancellationToken).ConfigureAwait(false);
+                compilationTracker, compilationState, version, cancellationToken).ConfigureAwait(false);
             if (referenceSet == null)
                 return null;
 
@@ -158,7 +158,7 @@ internal partial class SolutionCompilationState
             // okay, we don't have anything cached with this version. so create one now.
 
             var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(
-                compilationTracker, solution, compilationState, cancellationToken).ConfigureAwait(false);
+                compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
 
             lock (_stateGate)
             {
@@ -183,8 +183,8 @@ internal partial class SolutionCompilationState
             // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
             // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
             // only one thread actually does the computation and the rest wait.
-            var compilation = await compilationTracker.GetCompilationAsync(solution, compilationState, cancellationToken).ConfigureAwait(false);
-            var services = solution.Services;
+            var compilation = await compilationTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            var services = compilationState.Solution.Services;
 
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
             // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
-                    solution, compilationState, docState.Id,
+                    compilationState, docState.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
@@ -351,13 +351,13 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
-                    var referencedProject = solution.GetProjectState(projectReference.ProjectId);
+                    var referencedProject = compilationState.Solution.GetProjectState(projectReference.ProjectId);
                     if (referencedProject != null)
                     {
                         if (referencedProject.IsSubmission)
                         {
                             var previousScriptCompilation = compilationState.GetCompilationAsync(
-                                solution, projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
+                                projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
 
                             // previous submission project must support compilation:
                             RoslynDebug.Assert(previousScriptCompilation != null);
@@ -426,14 +426,14 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return GetCompilationSlowAsync(solution, compilationState, cancellationToken);
+                    return GetCompilationSlowAsync(compilationState, cancellationToken);
                 }
             }
 
             private async Task<Compilation> GetCompilationSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
             }
 
@@ -465,12 +465,12 @@ namespace Microsoft.CodeAnalysis
                         {
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
-                                return await BuildCompilationInfoAsync(solution, compilationState, cancellationToken).ConfigureAwait(false);
+                                return await BuildCompilationInfoAsync(compilationState, cancellationToken).ConfigureAwait(false);
                             }
                         }
                         else
                         {
-                            return await BuildCompilationInfoAsync(solution, compilationState, cancellationToken).ConfigureAwait(false);
+                            return await BuildCompilationInfoAsync(compilationState, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -507,7 +507,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We've got nothing.  Build it from scratch :(
                     return await BuildCompilationInfoFromScratchAsync(
-                        solution,
                         compilationState,
                         state.GeneratorInfo,
                         cancellationToken).ConfigureAwait(false);
@@ -517,7 +516,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
                     return await FinalizeCompilationAsync(
-                        solution,
                         compilationState,
                         compilation,
                         state.GeneratorInfo,
@@ -528,7 +526,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We must have an in progress compilation. Build off of that.
                     return await BuildFinalStateFromInProgressStateAsync(
-                        solution, compilationState, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                        compilationState, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -543,7 +541,6 @@ namespace Microsoft.CodeAnalysis
                         generatorInfo, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
-                        solution,
                         compilationState,
                         compilation,
                         generatorInfo,
@@ -613,7 +610,6 @@ namespace Microsoft.CodeAnalysis
                         state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
-                        solution,
                         compilationState,
                         compilationWithoutGenerators,
                         state.GeneratorInfo.WithDriver(generatorDriver),
@@ -732,7 +728,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
                     {
-                        var referencedProject = solution.GetProjectState(projectReference.ProjectId);
+                        var referencedProject = compilationState.Solution.GetProjectState(projectReference.ProjectId);
 
                         // Even though we're creating a final compilation (vs. an in progress compilation),
                         // it's possible that the target project has been removed.
@@ -749,7 +745,7 @@ namespace Microsoft.CodeAnalysis
                                 // ScriptCompilationInfo that we need to replace as a unit.
                                 var previousSubmissionCompilation =
                                     await compilationState.GetCompilationAsync(
-                                        solution, projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                                        projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
                                 if (compilationWithoutGeneratedFiles.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
                                 {
@@ -763,7 +759,7 @@ namespace Microsoft.CodeAnalysis
                             else
                             {
                                 var metadataReference = await compilationState.GetMetadataReferenceAsync(
-                                    solution, projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                    projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
 
                                 // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)
@@ -792,7 +788,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        solution,
+                        compilationState.Solution,
                         compilationWithoutGeneratedFiles,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
@@ -868,7 +864,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return HasSuccessfullyLoadedSlowAsync(solution, compilationState, cancellationToken);
+                    return HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken);
                 }
             }
 
@@ -876,7 +872,7 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(
-                    solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.HasSuccessfullyLoaded;
             }
 
@@ -890,7 +886,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(
-                    solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.GeneratorInfo.Documents;
             }
 
@@ -903,7 +899,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(
-                    solution, compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var driverRunResult = compilationInfo.GeneratorInfo.Driver?.GetRunResult();
                 if (driverRunResult is null)
@@ -1059,10 +1055,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    var solutionCapture = solution;
                     var compilationStateCapture = compilationState;
                     Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(
-                        c => ComputeDependentVersionAsync(solutionCapture, compilationStateCapture, c)), null);
+                        c => ComputeDependentVersionAsync(compilationStateCapture, c)), null);
                 }
 
                 return _lazyDependentVersion.GetValueAsync(cancellationToken);
@@ -1080,9 +1075,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (solution.ContainsProject(dependentProjectReference.ProjectId))
+                    if (compilationState.Solution.ContainsProject(dependentProjectReference.ProjectId))
                     {
-                        var dependentProjectVersion = await compilationState.GetDependentVersionAsync(solution, dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                        var dependentProjectVersion = await compilationState.GetDependentVersionAsync(dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
                         version = dependentProjectVersion.GetNewerVersion(version);
                     }
                 }
@@ -1097,10 +1092,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    var solutionCapture = solution;
                     var compilationStateCapture = compilationState;
                     Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(
-                        c => ComputeDependentSemanticVersionAsync(solutionCapture, compilationStateCapture, c)), null);
+                        c => ComputeDependentSemanticVersionAsync(compilationStateCapture, c)), null);
                 }
 
                 return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
@@ -1116,10 +1110,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (solution.ContainsProject(dependentProjectReference.ProjectId))
+                    if (compilationState.Solution.ContainsProject(dependentProjectReference.ProjectId))
                     {
                         var dependentProjectVersion = await compilationState.GetDependentSemanticVersionAsync(
-                            solution, dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                            dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
                         version = dependentProjectVersion.GetNewerVersion(version);
                     }
                 }
@@ -1127,11 +1121,12 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            public Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
+            public Task<Checksum> GetDependentChecksumAsync(
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentChecksum == null)
                 {
-                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    var tmp = compilationState.Solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
@@ -1139,7 +1134,7 @@ namespace Microsoft.CodeAnalysis
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);
             }
 
-            private async Task<Checksum> ComputeDependentChecksumAsync(CancellationToken cancellationToken)
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
 
