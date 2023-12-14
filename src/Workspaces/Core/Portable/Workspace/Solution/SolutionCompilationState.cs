@@ -385,11 +385,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectReferences"/>
     public SolutionCompilationState WithProjectReferences(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, IReadOnlyList<ProjectReference> projectReferences)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, IReadOnlyList<ProjectReference> projectReferences)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
