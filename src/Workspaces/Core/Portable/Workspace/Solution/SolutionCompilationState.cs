@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -417,6 +418,30 @@ internal partial class SolutionCompilationState
             newProject,
             newDependencyGraph,
             new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences),
+            forkTracker: true);
+    }
+
+    /// <inheritdoc cref="SolutionState.WithDocumentName"/>
+    public SolutionCompilationState WithDocumentName(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, string name)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: false);
+    }
+
+    private SolutionCompilationState UpdateDocumentState(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
+    {
+        // This method shouldn't have been called if the document has not changed.
+        Debug.Assert(oldProject != newProject);
+
+        var oldDocument = oldProject.DocumentStates.GetRequiredState(documentId);
+        var newDocument = newProject.DocumentStates.GetRequiredState(documentId);
+
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
             forkTracker: true);
     }
 }

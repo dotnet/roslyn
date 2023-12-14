@@ -1002,7 +1002,10 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new Solution(newState);
+            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
+            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
+            // all come from entrypoints that are specific to a particular project.
+            return new Solution(newState, _compilationState);
         }
 
         /// <summary>
@@ -1024,7 +1027,11 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
             }
 
-            return new Solution(newState);
+
+            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
+            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
+            // all come from entrypoints that are specific to a particular project.
+            return new Solution(newState, _compilationState);
         }
 
         /// <summary>
@@ -1042,7 +1049,10 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new Solution(newState);
+            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
+            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
+            // all come from entrypoints that are specific to a particular project.
+            return new Solution(newState, _compilationState);
         }
 
         private static SourceCodeKind GetSourceCodeKind(ProjectState project)
@@ -1370,13 +1380,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var newState = _state.WithDocumentName(documentId, name);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithDocumentName(documentId, name);
             if (newState == _state)
             {
                 return this;
             }
 
-            return new Solution(newState);
+            var newCompilationState = _compilationState.WithDocumentName(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, name);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

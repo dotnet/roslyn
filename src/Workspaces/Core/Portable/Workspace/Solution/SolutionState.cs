@@ -1149,12 +1149,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified name.
         /// </summary>
-        public SolutionState WithDocumentName(DocumentId documentId, string name)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentName(DocumentId documentId, string name)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
+            var oldProject = GetRequiredProjectState(documentId.ProjectId);
             if (oldDocument.Attributes.Name == name)
             {
-                return this;
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
@@ -1374,7 +1375,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
-        private SolutionState UpdateDocumentState(DocumentState newDocument, bool contentChanged)
+        private (SolutionState, ProjectState oldState, ProjectState newState) UpdateDocumentState(DocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
@@ -1385,10 +1386,10 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.DocumentStates.GetRequiredState(newDocument.Id);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
 
-            return ForkProject(
+            (var newState, newProject) = ForkProject(
                 newProject,
-                new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
+            return (newState, oldProject, newProject);
         }
 
         private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
