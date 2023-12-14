@@ -887,16 +887,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newState = _state.AddAnalyzerReferences(collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-            // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-            // all come from entrypoints that are specific to a particular project.
-            return new Solution(newState, _compilationState);
+            var newCompilationState = _compilationState.AddAnalyzerReferences(_state.AddAnalyzerReferences(collection));
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
