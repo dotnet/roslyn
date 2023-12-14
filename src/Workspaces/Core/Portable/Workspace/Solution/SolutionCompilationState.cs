@@ -597,10 +597,10 @@ internal partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple, DocumentId documentId, DocumentState documentState)
+        DocumentId documentId, DocumentState documentState)
     {
         return UpdateDocumentState(
-            tuple, documentId, contentChanged: true);
+            _state.WithDocumentContentsFrom(documentId, documentState), documentId, contentChanged: true);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
