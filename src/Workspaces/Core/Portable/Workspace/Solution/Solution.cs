@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newCompilationState = _compilationState.AddMetadataReferences(_state.AddMetadataReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.AddMetadataReferences(projectId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

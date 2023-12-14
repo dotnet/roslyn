@@ -410,10 +410,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.AddMetadataReferences"/>
     public SolutionCompilationState AddMetadataReferences(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, IReadOnlyCollection<MetadataReference> metadataReferences)
+        ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
     {
         return ForkProject(
-            tuple,
+            this.Solution.AddMetadataReferences(projectId, metadataReferences),
             translate: null,
             forkTracker: true);
     }
