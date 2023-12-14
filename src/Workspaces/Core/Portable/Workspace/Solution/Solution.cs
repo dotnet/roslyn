@@ -1643,8 +1643,15 @@ namespace Microsoft.CodeAnalysis
 
         internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
-            var newState = _state.WithDocumentContentsFrom(documentId, documentState);
-            return newState == _state ? this : new Solution(newState);
+            // If the project didn't change itself, there's no need to change the compilation state.
+            var (newState, oldProjectState, newProjectState) = _state.WithDocumentContentsFrom(documentId, documentState);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), documentId, documentState);
+            return new Solution(newState, newCompilationState);
         }
 
         /// <summary>

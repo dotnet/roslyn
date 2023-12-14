@@ -1306,16 +1306,17 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        public SolutionState WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
+            var oldProject = GetRequiredProjectState(documentId.ProjectId);
             if (oldDocument == documentState)
-                return this;
+                return (this, oldProject, oldProject);
 
             if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
                 oldDocument.TreeSource == documentState.TreeSource)
             {
-                return this;
+                return (this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(

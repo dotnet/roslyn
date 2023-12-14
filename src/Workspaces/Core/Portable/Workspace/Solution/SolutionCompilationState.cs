@@ -501,6 +501,13 @@ internal partial class SolutionCompilationState
             oldProject, newProject, newDependencyGraph, contentChanged: true);
     }
 
+    public SolutionCompilationState WithDocumentContentsFrom(
+        ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, DocumentState documentState)
+    {
+        return UpdateDocumentState(
+            oldProject, newProject, newDependencyGraph, documentId, contentChanged: true);
+    }
+
     private SolutionCompilationState UpdateDocumentState(
         ProjectState oldProject, ProjectState newProject, ProjectDependencyGraph newDependencyGraph, DocumentId documentId, bool contentChanged)
     {
