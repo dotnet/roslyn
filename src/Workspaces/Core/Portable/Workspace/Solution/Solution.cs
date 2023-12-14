@@ -851,15 +851,8 @@ namespace Microsoft.CodeAnalysis
 
             var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var (newState, oldProjectState, newProjectState) = _state.WithProjectAnalyzerReferences(projectId, collection);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(oldProjectState, newProjectState, newState.GetProjectDependencyGraph(), collection);
-            return new Solution(newState, newCompilationState);
+            var newCompilationState = _compilationState.WithProjectAnalyzerReferences(_state.WithProjectAnalyzerReferences(projectId, collection), collection);
+            return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
         /// <summary>
