@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified parse options.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+        public (SolutionState, ProjectState newProject) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithParseOptions(options);

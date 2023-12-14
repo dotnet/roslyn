@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var newCompilationState = _compilationState.WithProjectParseOptions(_state.WithProjectParseOptions(projectId, options), options);
+            var newCompilationState = _compilationState.WithProjectParseOptions(projectId, options);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis
 
             var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences));
 
-            var newCompilationState = _compilationState.WithProjectMetadataReferences(_state.WithProjectMetadataReferences(projectId, collection), collection);
+            var newCompilationState = _compilationState.WithProjectMetadataReferences(projectId, collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

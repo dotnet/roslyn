@@ -328,8 +328,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectParseOptions"/>
     public SolutionCompilationState WithProjectParseOptions(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, ParseOptions options)
+        ProjectId projectId, ParseOptions options)
     {
+        var tuple = this.Solution.WithProjectParseOptions(projectId, options);
+
         if (this.PartialSemanticsEnabled)
         {
             // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
