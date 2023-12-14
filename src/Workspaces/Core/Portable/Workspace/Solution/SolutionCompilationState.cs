@@ -335,11 +335,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithHasAllInformation"/>
     public SolutionCompilationState WithHasAllInformation(
-        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, bool hasAllInformation)
+        (SolutionState newSolutionState, ProjectState newProject) tuple, bool hasAllInformation)
     {
         return ForkProject(
-            newProject,
-            newDependencyGraph,
+            tuple,
             translate: null,
             forkTracker: true);
     }
