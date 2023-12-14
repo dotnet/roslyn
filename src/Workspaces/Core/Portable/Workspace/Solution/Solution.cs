@@ -1038,9 +1038,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
         public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (oldProject, documents) => (oldProject.AddDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+            var newCompilationState = _compilationState.AddDocuments(documentInfos);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1081,10 +1079,7 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            var newCompilationState = _compilationState.AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
-
+            var newCompilationState = _compilationState.AddAdditionalDocuments(documentInfos);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

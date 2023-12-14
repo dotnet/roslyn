@@ -1093,6 +1093,20 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
+    public SolutionCompilationState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+    {
+        return AddDocumentsToMultipleProjects(documentInfos,
+            (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
+            (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+    }
+
+    public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+    {
+        return AddDocumentsToMultipleProjects(documentInfos,
+            (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+    }
+
     /// <summary>
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>
