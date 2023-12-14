@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(assemblyName));
             }
 
-            var newCompilationState = _compilationState.WithProjectAssemblyName(_state.WithProjectAssemblyName(projectId, assemblyName), assemblyName);
+            var newCompilationState = _compilationState.WithProjectAssemblyName(projectId, assemblyName);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

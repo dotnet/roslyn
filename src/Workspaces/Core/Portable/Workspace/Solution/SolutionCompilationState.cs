@@ -245,10 +245,10 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
     public SolutionCompilationState WithProjectAssemblyName(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, string assemblyName)
+        ProjectId projectId, string assemblyName)
     {
         return ForkProject(
-            tuple,
+            this.Solution.WithProjectAssemblyName(projectId, assemblyName),
             new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
             forkTracker: true);
     }
