@@ -582,10 +582,10 @@ internal partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithAnalyzerConfigDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithAnalyzerConfigDocumentText(
-        (SolutionState newSolutionState, ProjectState newProject) tuple, DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
+        DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
     {
         return UpdateAnalyzerConfigDocumentState(
-            tuple);
+            this.Solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
