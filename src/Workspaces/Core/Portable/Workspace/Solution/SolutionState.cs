@@ -841,13 +841,13 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public SolutionState WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
+        public (SolutionState, ProjectState) WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
             if (oldProject == newProject)
             {
-                return this;
+                return (this, oldProject);
             }
 
             var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);

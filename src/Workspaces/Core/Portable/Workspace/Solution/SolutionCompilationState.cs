@@ -326,4 +326,15 @@ internal partial class SolutionCompilationState
             translate: null,
             forkTracker: true);
     }
+
+    /// <inheritdoc cref="SolutionState.WithProjectReferences"/>
+    public SolutionCompilationState WithProjectReferences(
+        ProjectState newProject, ProjectDependencyGraph newDependencyGraph, IReadOnlyList<ProjectReference> projectReferences)
+    {
+        return ForkProject(
+            newProject,
+            newDependencyGraph,
+            translate: null,
+            forkTracker: true);
+    }
 }
