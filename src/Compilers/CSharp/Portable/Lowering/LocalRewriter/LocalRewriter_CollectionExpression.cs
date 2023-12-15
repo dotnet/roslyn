@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var useSiteInfo = GetNewCompoundUseSiteInfo();
                         var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
                         _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
-                        if (conversion.IsImplicit && conversion.IsReference)
+                        if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
                         {
                             conversion.MarkUnderlyingConversionsCheckedRecursive();
                             sideEffects.Add(_factory.Call(listTemp, addRangeMethod, MakeConversionNode(rewrittenSpreadOperand.Syntax, rewrittenSpreadOperand, conversion, type, @checked: false)));
