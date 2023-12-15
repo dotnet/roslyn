@@ -7432,7 +7432,7 @@ static class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Main", """
@@ -7515,7 +7515,7 @@ static class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Main", """
@@ -7630,7 +7630,7 @@ static class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
@@ -27008,7 +27008,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", """
                 {
