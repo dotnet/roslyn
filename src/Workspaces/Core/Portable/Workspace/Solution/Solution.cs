@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -15,10 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualBasic;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -1577,28 +1573,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            var newCompilationState = WithDocumentText(documentIds, text, mode);
+            var newCompilationState = _compilationState.WithDocumentText(documentIds, text, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
-
-            // <summary>
-            // Creates a new solution instance with all the documents specified updated to have the same specified text.
-            // </summary>
-            SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
-            {
-                var compilationState = _compilationState;
-
-                foreach (var documentId in documentIds)
-                {
-                    if (documentId == null)
-                    {
-                        continue;
-                    }
-
-                    compilationState = compilationState.WithDocumentText(documentId, text, mode);
-                }
-
-                return compilationState;
-            }
         }
 
         /// <summary>

@@ -1277,6 +1277,22 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
+    /// <summary>
+    /// Creates a new solution instance with all the documents specified updated to have the same specified text.
+    /// </summary>
+    public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
+    {
+        var result = this;
+
+        foreach (var documentId in documentIds)
+        {
+            if (documentId != null)
+                result = result.WithDocumentText(documentId, text, mode);
+        }
+
+        return result;
+    }
+
     internal TestAccessor GetTestAccessor()
         => new(this);
 
