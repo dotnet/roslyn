@@ -133,7 +133,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            translate: static (tuple, translate) => translate?.Invoke(tuple),
+            translate: static (stateChange, translate) => translate?.Invoke(stateChange),
             forkTracker,
             arg: translate);
     }
@@ -249,7 +249,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.Solution.WithProjectAssemblyName(projectId, assemblyName),
-            static (tuple, assemblyName) => new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
+            static (stateChange, assemblyName) => new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName),
             forkTracker: true,
             arg: assemblyName);
     }
@@ -297,10 +297,9 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectChecksumAlgorithm(
         ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
     {
-        var tuple = this.Solution.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
         return ForkProject(
-            tuple,
-            static tuple => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: false),
+            this.Solution.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -328,10 +327,9 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectCompilationOptions(
         ProjectId projectId, CompilationOptions options)
     {
-        var tuple = this.Solution.WithProjectCompilationOptions(projectId, options);
         return ForkProject(
-            tuple,
-            static tuple => new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProjectState, isAnalyzerConfigChange: false),
+            this.Solution.WithProjectCompilationOptions(projectId, options),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.newProjectState, isAnalyzerConfigChange: false),
             forkTracker: true);
     }
 
@@ -339,22 +337,22 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectParseOptions(
         ProjectId projectId, ParseOptions options)
     {
-        var tuple = this.Solution.WithProjectParseOptions(projectId, options);
+        var stateChange = this.Solution.WithProjectParseOptions(projectId, options);
 
         if (this.PartialSemanticsEnabled)
         {
             // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
             // Since changing options is rare event, it is okay to start compilation building from scratch.
             return ForkProject(
-                tuple,
+                stateChange,
                 translate: null,
                 forkTracker: false);
         }
         else
         {
             return ForkProject(
-                tuple,
-                static tuple => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: true),
+                stateChange,
+                static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: true),
                 forkTracker: true);
         }
     }
@@ -383,10 +381,9 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
     {
-        var tuple = this.Solution.WithProjectDocumentsOrder(projectId, documentIds);
         return ForkProject(
-            tuple,
-            static tuple => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: false),
+            this.Solution.WithProjectDocumentsOrder(projectId, documentIds),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -453,8 +450,8 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (tuple, analyzerReferences) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                tuple.oldProjectState.Language, referencesToAdd: analyzerReferences),
+            static (stateChange, analyzerReferences) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
+                stateChange.oldProjectState.Language, referencesToAdd: analyzerReferences),
             forkTracker: true,
             arg: analyzerReferences);
     }
@@ -491,8 +488,8 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (tuple, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                tuple.oldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
+            static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
+                stateChange.oldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true,
             arg: analyzerReference);
     }
@@ -501,8 +498,8 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectAnalyzerReferences(
         ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        var tuple = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
-        if (tuple.newSolutionState == this.Solution)
+        var stateChange = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
+        if (stateChange.newSolutionState == this.Solution)
             return this;
 
         // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
@@ -518,14 +515,14 @@ internal sealed partial class SolutionCompilationState
         // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
 
         return ForkProject(
-            tuple,
-            static tuple =>
+            stateChange,
+            static stateChange =>
             {
-                var addedReferences = tuple.newProjectState.AnalyzerReferences.Except<AnalyzerReference>(tuple.oldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
-                var removedReferences = tuple.oldProjectState.AnalyzerReferences.Except<AnalyzerReference>(tuple.newProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+                var addedReferences = stateChange.newProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.oldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+                var removedReferences = stateChange.oldProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.newProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
                 return new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                    tuple.oldProjectState.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
+                    stateChange.oldProjectState.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
             },
             forkTracker: true);
     }
@@ -660,15 +657,15 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState UpdateAnalyzerConfigDocumentTextLoader(
         DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
-        var tuple = this.Solution.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+        var stateChange = this.Solution.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
 
         // Note: state is currently not reused.
         // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(tuple.newSolutionState != this.Solution);
+        Debug.Assert(stateChange.newSolutionState != this.Solution);
 
         // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
         // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-        return UpdateAnalyzerConfigDocumentState(tuple);
+        return UpdateAnalyzerConfigDocumentState(stateChange);
     }
 
     private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
@@ -681,10 +678,10 @@ internal sealed partial class SolutionCompilationState
 
         return ForkProject(
             stateChange,
-            static (tuple, documentId) =>
+            static (stateChange, documentId) =>
             {
-                var oldDocument = tuple.oldProjectState.DocumentStates.GetRequiredState(documentId);
-                var newDocument = tuple.newProjectState.DocumentStates.GetRequiredState(documentId);
+                var oldDocument = stateChange.oldProjectState.DocumentStates.GetRequiredState(documentId);
+                var newDocument = stateChange.newProjectState.DocumentStates.GetRequiredState(documentId);
 
                 return new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument);
             },
@@ -702,10 +699,10 @@ internal sealed partial class SolutionCompilationState
 
         return ForkProject(
             stateChange,
-            static (tuple, documentId) =>
+            static (stateChange, documentId) =>
             {
-                var oldDocument = tuple.oldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
-                var newDocument = tuple.newProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
+                var oldDocument = stateChange.oldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
+                var newDocument = stateChange.newProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
                 return new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument);
             },
@@ -717,8 +714,8 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static tuple => tuple.newProjectState.CompilationOptions != null
-                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProjectState, isAnalyzerConfigChange: true)
+            static stateChange => stateChange.newProjectState.CompilationOptions != null
+                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.newProjectState, isAnalyzerConfigChange: true)
                 : null,
             forkTracker: true);
     }
