@@ -208,22 +208,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Fact]
-        //[InlineData(new int[] { })]
-        //[InlineData(new int[] { 0 })]
-        //[InlineData(new int[] { 0, 1 })]
-        //[InlineData(new int[] { 1, 0 })]
-        //[InlineData(new int[] { 0, 1, 2 })]
-        //[InlineData(new int[] { 0, 2, 1 })]
-        //[InlineData(new int[] { 1, 0, 2 })]
-        //[InlineData(new int[] { 1, 2, 0 })]
-        //[InlineData(new int[] { 2, 0, 1 })]
-        //[InlineData(new int[] { 2, 1, 0 })]
-        //[InlineData(new int[] { 0, 1, 2, 3 })]
-        //[InlineData(new int[] { 0, 1, 3, 2 })]
-        //[InlineData(new int[] { 0, 2, 1, 3 })]
-        //[InlineData(new int[] { 0, 2, 3, 1 })]
-        //[InlineData(new int[] { 0, 3, 0, 2 })]
-        //[InlineData(new int[] { 0, 3, 2, 0 })]
         public void TestSort()
         {
             // Create arrays with different lengths, making sure to exceed the number of inline elements to test all code paths.
