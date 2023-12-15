@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
                         {
                             conversion.MarkUnderlyingConversionsCheckedRecursive();
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, MakeConversionNode(rewrittenSpreadOperand.Syntax, rewrittenSpreadOperand, conversion, type, @checked: false)));
+                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
                             return true;
                         }
 

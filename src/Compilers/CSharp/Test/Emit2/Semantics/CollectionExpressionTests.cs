@@ -16478,13 +16478,11 @@ partial class Program
             {
                 // https://github.com/dotnet/roslyn/issues/71216
                 // Consider preferring AddRange over CopyTo for collection-expressions of List type
-                // TODO2: why do we have an extra store/load for the AddRange argument?
                 verifier.VerifyIL("Program.F<T>(T[])", """
                     {
-                      // Code size       20 (0x14)
+                      // Code size       18 (0x12)
                       .maxstack  3
-                      .locals init (T[] V_0,
-                                    T[] V_1)
+                      .locals init (T[] V_0)
                       IL_0000:  ldarg.0
                       IL_0001:  stloc.0
                       IL_0002:  ldloc.0
@@ -16493,10 +16491,8 @@ partial class Program
                       IL_0005:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
                       IL_000a:  dup
                       IL_000b:  ldloc.0
-                      IL_000c:  stloc.1
-                      IL_000d:  ldloc.1
-                      IL_000e:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
-                      IL_0013:  ret
+                      IL_000c:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                      IL_0011:  ret
                     }
                     """);
             }
@@ -27365,6 +27361,172 @@ partial class Program
         }
 
         [Fact]
+        public void List_AddRange_IEnumerable_Covariant()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string> e = ["a", "b", "c"];
+                        e.Report();
+                        List<object> list = [..e];
+                        list.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[a, b, c], [a, b, c],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.IEnumerable<string> V_0) //e
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldstr      "b"
+                  IL_0015:  stelem.ref
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldstr      "c"
+                  IL_001d:  stelem.ref
+                  IL_001e:  newobj     "<>z__ReadOnlyArray<string>..ctor(string[])"
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloc.0
+                  IL_0025:  ldc.i4.0
+                  IL_0026:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_002b:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0030:  dup
+                  IL_0031:  ldloc.0
+                  IL_0032:  callvirt   "void System.Collections.Generic.List<object>.AddRange(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0037:  ldc.i4.0
+                  IL_0038:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003d:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [InlineData("where T : IEnumerable<U>")]
+        [InlineData("where T : struct, IEnumerable<U>")]
+        public void List_AddRange_IEnumerable_Constraint(string constraints)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                class C
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> e = ["a", "b", "c"];
+                        e.Report();
+                        M<ImmutableArray<string>, string>(e);
+                    }
+
+                    static void M<T, U>(T t) {{constraints}}
+                    {
+                        List<U> list = [..t];
+                        list.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[a, b, c], [a, b, c],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M<T, U>", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<U> V_0,
+                                System.Collections.Generic.IEnumerator<U> V_1,
+                                U V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarga.s   V_0
+                  IL_0008:  constrained. "T"
+                  IL_000e:  callvirt   "System.Collections.Generic.IEnumerator<U> System.Collections.Generic.IEnumerable<U>.GetEnumerator()"
+                  IL_0013:  stloc.1
+                  .try
+                  {
+                    IL_0014:  br.s       IL_0024
+                    IL_0016:  ldloc.1
+                    IL_0017:  callvirt   "U System.Collections.Generic.IEnumerator<U>.Current.get"
+                    IL_001c:  stloc.2
+                    IL_001d:  ldloc.0
+                    IL_001e:  ldloc.2
+                    IL_001f:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                    IL_0024:  ldloc.1
+                    IL_0025:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_002a:  brtrue.s   IL_0016
+                    IL_002c:  leave.s    IL_0038
+                  }
+                  finally
+                  {
+                    IL_002e:  ldloc.1
+                    IL_002f:  brfalse.s  IL_0037
+                    IL_0031:  ldloc.1
+                    IL_0032:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0037:  endfinally
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  ldc.i4.0
+                  IL_003a:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void List_AddRange_IEnumerable_ClassConstraint()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string> e = ["a", "b", "c"];
+                        e.Report();
+                        M<IEnumerable<string>, string>(e);
+                    }
+
+                    static void M<T, U>(T t) where T : class, IEnumerable<U>
+                    {
+                        List<U> list = [..t];
+                        list.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[a, b, c], [a, b, c],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M<T, U>", """
+            {
+              // Code size       19 (0x13)
+              .maxstack  3
+              IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+              IL_0005:  dup
+              IL_0006:  ldarg.0
+              IL_0007:  callvirt   "void System.Collections.Generic.List<U>.AddRange(System.Collections.Generic.IEnumerable<U>)"
+              IL_000c:  ldc.i4.0
+              IL_000d:  call       "void CollectionExtensions.Report(object, bool)"
+              IL_0012:  ret
+            }
+                """);
+        }
+
+        [Fact]
         public void List_AddRange_ICollection()
         {
             var source = """
@@ -27485,10 +27647,5 @@ partial class Program
                 }
                 """);
         }
-
-        // TODO2 add tests:
-        // - List.AddRange where spread operand is an IEnumerable<T>
-        // - " " where spread operand is IEnumerable<U> where U : T
-        // - " " where spread operand is struct : IEnumerable<T>
     }
 }
