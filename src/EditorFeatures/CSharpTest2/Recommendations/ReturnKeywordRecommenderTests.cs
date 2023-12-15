@@ -446,5 +446,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 $$
                 """));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71200")]
+        public async Task TestAccessorAttibuteList()
+        {
+            await VerifyKeywordAsync(
+                """
+                public class C
+                {
+                    public int Property 
+                    {
+                        [$$]
+                        get
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """);
+        }
     }
 }
