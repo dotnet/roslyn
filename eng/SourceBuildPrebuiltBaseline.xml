@@ -3,8 +3,6 @@
 
 <UsageData>
   <IgnorePatterns>
-    <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
-
     <!-- These are cases where the component chooses, when built in isolation, to 
          remain dependent on stable versions. These versions may not have source build intermediates associated with them.
          They cannot be source build reference packages because they actually provide functionality. In full source build, these versions are
@@ -25,5 +23,8 @@
 
      <!-- This is upgraded to latest version in full source-build and can be baselined for repo build -->
     <UsagePattern IdentityGlob="System.Composition*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
   </IgnorePatterns>
 </UsageData>
