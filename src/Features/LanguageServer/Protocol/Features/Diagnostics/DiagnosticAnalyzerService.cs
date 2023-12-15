@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -104,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                         document, range, diagnostics, shouldIncludeDiagnostic,
-                        includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
+                        includeSuppressedDiagnostics, includeCompilerDiagnostics: true,
+                        includeIntersectingUnnecessaryLocationDiagnostics, priorityProvider, blockForData: false,
                         addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
                     return (diagnostics.ToImmutable(), upToDate);
                 }, cancellationToken);
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics, includeIntersectingUnnecessaryLocationDiagnostics,
                     priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
             }
 

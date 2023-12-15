@@ -141,12 +141,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This API will only force complete analyzers that support span based analysis, i.e. compiler analyzer and
         /// <see cref="IBuiltInAnalyzer"/>s that support <see cref="DiagnosticAnalyzerCategory.SemanticSpanAnalysis"/>.
         /// For the rest of the analyzers, it will only return diagnostics if the analyzer has already been executed.
-        /// Use <see cref="GetDiagnosticsForSpanAsync(TextDocument, TextSpan?, Func{string, bool}?, bool, bool, ICodeActionRequestPriorityProvider, Func{string, IDisposable?}?, DiagnosticKind, bool, CancellationToken)"/>
+        /// Use <see cref="GetDiagnosticsForSpanAsync(TextDocument, TextSpan?, Func{string, bool}?, bool, bool, bool, ICodeActionRequestPriorityProvider, Func{string, IDisposable?}?, DiagnosticKind, bool, CancellationToken)"/>
         /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
         /// </summary>
         Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
             TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKind,
             bool isExplicit,
@@ -164,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKind,
@@ -194,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => service.GetDiagnosticsForSpanAsync(document, range,
                 diagnosticId: null, includeSuppressedDiagnostics,
+                includeIntersectingUnnecessaryLocationDiagnostics: false,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 addOperationScope: null, diagnosticKind, isExplicit: false, cancellationToken);
 
@@ -208,6 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
             TextDocument document, TextSpan? range, string? diagnosticId,
             bool includeSuppressedDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKind,
@@ -216,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
             return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-                includeCompilerDiagnostics: true, includeSuppressedDiagnostics, priorityProvider,
-                addOperationScope, diagnosticKind, isExplicit, cancellationToken);
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics, includeIntersectingUnnecessaryLocationDiagnostics,
+                priorityProvider, addOperationScope, diagnosticKind, isExplicit, cancellationToken);
         }
     }
 }

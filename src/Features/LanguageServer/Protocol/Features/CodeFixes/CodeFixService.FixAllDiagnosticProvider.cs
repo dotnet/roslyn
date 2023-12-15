@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
                 var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, shouldIncludeDiagnostic,
-                    includeCompilerDiagnostics: true, _includeSuppressedDiagnostics, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                    includeCompilerDiagnostics: true, _includeSuppressedDiagnostics, includeIntersectingUnnecessaryLocationDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                     addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);

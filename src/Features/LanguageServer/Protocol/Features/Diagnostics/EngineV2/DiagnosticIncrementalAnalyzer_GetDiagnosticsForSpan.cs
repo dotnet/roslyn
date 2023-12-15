@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -25,11 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, bool blockForData,
-            Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
+            bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, bool includeIntersectingUnnecessaryLocationDiagnostics,
+            ICodeActionRequestPriorityProvider priorityProvider, bool blockForData, Func<string, IDisposable?>? addOperationScope,
+            DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
-                this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, includeCompilerDiagnostics, includeIntersectingUnnecessaryLocationDiagnostics,
                 priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
+            bool includeIntersectingUnnecessaryLocationDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(
-                document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics, includeIntersectingUnnecessaryLocationDiagnostics,
                 priorityProvider, blockForData, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutable();
@@ -78,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly ICodeActionRequestPriorityProvider _priorityProvider;
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly bool _includeCompilerDiagnostics;
+            private readonly bool _includeIntersectingUnnecessaryLocationDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _isExplicit;
             private readonly bool _logPerformanceInfo;
@@ -94,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
                  bool includeCompilerDiagnostics,
+                 bool includeIntersectingUnnecessaryLocationDiagnostics,
                  ICodeActionRequestPriorityProvider priorityProvider,
                  Func<string, bool>? shouldIncludeDiagnostic,
                  DiagnosticKind diagnosticKinds,
@@ -127,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priorityProvider,
+                    includeIntersectingUnnecessaryLocationDiagnostics, range, blockForData, addOperationScope, includeSuppressedDiagnostics, priorityProvider,
                     isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
@@ -177,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableArray<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
                 bool includeCompilerDiagnostics,
+                bool includeIntersectingUnnecessaryLocationDiagnostics,
                 TextSpan? range,
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
@@ -194,6 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _stateSets = stateSets;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _includeCompilerDiagnostics = includeCompilerDiagnostics;
+                _includeIntersectingUnnecessaryLocationDiagnostics = includeIntersectingUnnecessaryLocationDiagnostics;
                 _range = range;
                 _blockForData = blockForData;
                 _addOperationScope = addOperationScope;
@@ -578,11 +585,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id &&
-                    (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
+                return diagnostic.DocumentId == _document.Id
+                    && HasIntersectingLocation(diagnostic)
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
+            }
+
+            private bool HasIntersectingLocation(DiagnosticData diagnostic)
+            {
+                if (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
+                    return true;
+
+                return _includeIntersectingUnnecessaryLocationDiagnostics
+                    && diagnostic.HasAnyIntersectingUnnecessaryDataLocation(_text, _range.Value);
             }
         }
 

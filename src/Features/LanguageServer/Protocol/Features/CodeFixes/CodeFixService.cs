@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    includeSuppressedDiagnostics: false, includeIntersectingUnnecessaryLocationDiagnostics: true,
+                    priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
@@ -187,13 +188,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // We mark requests to GetDiagnosticsForSpanAsync as 'isExplicit = true' to indicate
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
+            // Additionally, we also want to fetch diagnostics which have one or more fading locations (unnecessary locations)
+            // that intersect with the requested range, so we specify 'includeIntersectingUnnecessaryLocationDiagnostics = true'.
+            // This ensures that diagnostics whose primary location doesn't intersect with range, but have a faded out location
+            // that intersects with range, will have their code fixes show up from the faded out lines of code.
             ImmutableArray<DiagnosticData> diagnostics;
 
             using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
+                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes,
+                    includeIntersectingUnnecessaryLocationDiagnostics: true, priorityProvider,
                     addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
@@ -280,7 +286,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                    document, range, diagnosticId, includeSuppressedDiagnostics: false,
+                    includeIntersectingUnnecessaryLocationDiagnostics: true,
+                    priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                     addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 

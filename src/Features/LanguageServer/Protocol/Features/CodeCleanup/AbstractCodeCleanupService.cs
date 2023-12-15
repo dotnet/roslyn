@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
                 shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
                 includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false,
+                includeIntersectingUnnecessaryLocationDiagnostics: false,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 addOperationScope: null, DiagnosticKind.All, isExplicit: false,
                 cancellationToken).ConfigureAwait(false));

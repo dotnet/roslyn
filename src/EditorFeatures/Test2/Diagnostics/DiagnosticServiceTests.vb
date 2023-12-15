@@ -2361,6 +2361,7 @@ class MyClass
 
                 ' Try get diagnostics for span
                 Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing, includeSuppressedDiagnostics:=False,
+                                                                      includeIntersectingUnnecessaryLocationDiagnostics:=False,
                                                                       priorityProvider:=New DefaultCodeActionRequestPriorityProvider(),
                                                                       DiagnosticKind.All, isExplicit:=False, CancellationToken.None)
 

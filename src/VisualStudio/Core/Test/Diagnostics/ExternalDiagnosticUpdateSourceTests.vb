@@ -674,7 +674,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Sub Reanalyze(workspace As Workspace, projectIds As IEnumerable(Of ProjectId), documentIds As IEnumerable(Of DocumentId), highPriority As Boolean) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, addOperationScope As Func(Of String, IDisposable), diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+            Public Function GetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), includeCompilerDiagnostics As Boolean, includeSuppressedDiagnostics As Boolean, includeIntersectingUnnecessaryLocationDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, addOperationScope As Func(Of String, IDisposable), diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 
@@ -702,7 +702,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Throw New NotImplementedException()
             End Function
 
-            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), includeSuppressedDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
+            Public Function TryGetDiagnosticsForSpanAsync(document As TextDocument, range As TextSpan, shouldIncludeDiagnostic As Func(Of String, Boolean), includeSuppressedDiagnostics As Boolean, includeIntersectingUnnecessaryLocationDiagnostics As Boolean, priority As ICodeActionRequestPriorityProvider, diagnosticKinds As DiagnosticKind, isExplicit As Boolean, cancellationToken As CancellationToken) As Task(Of (diagnostics As ImmutableArray(Of DiagnosticData), upToDate As Boolean)) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
                 Return Task.FromResult((ImmutableArray(Of DiagnosticData).Empty, False))
             End Function
         End Class

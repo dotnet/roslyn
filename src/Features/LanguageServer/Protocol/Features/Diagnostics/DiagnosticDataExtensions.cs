@@ -11,10 +11,27 @@ using System.Text;
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 internal static class DiagnosticDataExtensions
 {
+    internal static bool HasAnyIntersectingUnnecessaryDataLocation(this DiagnosticData diagnosticData, SourceText text, TextSpan span)
+    {
+        if (!TryGetUnnecessaryDataLocations(diagnosticData, out var unnecessaryLocations))
+            return false;
+
+        foreach (var dataLocation in unnecessaryLocations)
+        {
+            var locationSpan = dataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
+            if (locationSpan.IntersectsWith(span))
+                return true;
+        }
+
+        return false;
+    }
+
     internal static bool TryGetUnnecessaryDataLocations(this DiagnosticData diagnosticData, [NotNullWhen(true)] out ImmutableArray<DiagnosticDataLocation>? unnecessaryLocations)
     {
         // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
