@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             RegisterCodeFix(context, AnalyzersResources.Use_null_propagation, nameof(AnalyzersResources.Use_null_propagation));
