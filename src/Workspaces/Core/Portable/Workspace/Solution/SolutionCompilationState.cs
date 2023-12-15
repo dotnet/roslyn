@@ -401,10 +401,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
-    public SolutionCompilationState RemoveProjectReference(StateChange tuple)
+    public SolutionCompilationState RemoveProjectReference(StateChange stateChange)
     {
         return ForkProject(
-            tuple,
+            stateChange,
             translate: null,
             forkTracker: true);
     }
@@ -430,10 +430,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
-    public SolutionCompilationState RemoveMetadataReference(StateChange tuple)
+    public SolutionCompilationState RemoveMetadataReference(StateChange stateChange)
     {
         return ForkProject(
-            tuple,
+            stateChange,
             translate: null,
             forkTracker: true);
     }
@@ -449,10 +449,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
-    public SolutionCompilationState AddAnalyzerReferences(StateChange tuple, ImmutableArray<AnalyzerReference> analyzerReferences)
+    public SolutionCompilationState AddAnalyzerReferences(StateChange stateChange, ImmutableArray<AnalyzerReference> analyzerReferences)
     {
         return ForkProject(
-            tuple,
+            stateChange,
             static (tuple, analyzerReferences) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 tuple.oldProjectState.Language, referencesToAdd: analyzerReferences),
             forkTracker: true,
@@ -487,10 +487,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(StateChange tuple, AnalyzerReference analyzerReference)
+    public SolutionCompilationState RemoveAnalyzerReference(StateChange stateChange, AnalyzerReference analyzerReference)
     {
         return ForkProject(
-            tuple,
+            stateChange,
             static (tuple, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 tuple.oldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true,
@@ -671,17 +671,16 @@ internal sealed partial class SolutionCompilationState
         return UpdateAnalyzerConfigDocumentState(tuple);
     }
 
-    private SolutionCompilationState UpdateDocumentState(
-        StateChange tuple, DocumentId documentId)
+    private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (tuple.newSolutionState == this.Solution)
+        if (stateChange.newSolutionState == this.Solution)
             return this;
 
         // This method shouldn't have been called if the document has not changed.
-        Debug.Assert(tuple.oldProjectState != tuple.newProjectState);
+        Debug.Assert(stateChange.oldProjectState != stateChange.newProjectState);
 
         return ForkProject(
-            tuple,
+            stateChange,
             static (tuple, documentId) =>
             {
                 var oldDocument = tuple.oldProjectState.DocumentStates.GetRequiredState(documentId);
@@ -693,17 +692,16 @@ internal sealed partial class SolutionCompilationState
             arg: documentId);
     }
 
-    private SolutionCompilationState UpdateAdditionalDocumentState(
-        StateChange tuple, DocumentId documentId)
+    private SolutionCompilationState UpdateAdditionalDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (tuple.newSolutionState == this.Solution)
+        if (stateChange.newSolutionState == this.Solution)
             return this;
 
         // This method shouldn't have been called if the document has not changed.cument has not changed.
-        Debug.Assert(tuple.oldProjectState != tuple.newProjectState);
+        Debug.Assert(stateChange.oldProjectState != stateChange.newProjectState);
 
         return ForkProject(
-            tuple,
+            stateChange,
             static (tuple, documentId) =>
             {
                 var oldDocument = tuple.oldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
@@ -715,11 +713,10 @@ internal sealed partial class SolutionCompilationState
             arg: documentId);
     }
 
-    private SolutionCompilationState UpdateAnalyzerConfigDocumentState(
-        StateChange tuple)
+    private SolutionCompilationState UpdateAnalyzerConfigDocumentState(StateChange stateChange)
     {
         return ForkProject(
-            tuple,
+            stateChange,
             static tuple => tuple.newProjectState.CompilationOptions != null
                 ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProjectState, isAnalyzerConfigChange: true)
                 : null,
