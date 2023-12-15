@@ -18,7 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    using StateChange = (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState);
+    internal readonly record struct StateChange(
+        SolutionState newSolutionState,
+        ProjectState oldProjectState,
+        ProjectState newProjectState);
 
     /// <summary>
     /// Represents a set of projects and their source code documents.
@@ -476,7 +479,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -492,7 +495,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -508,7 +511,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -524,7 +527,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -540,7 +543,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -556,7 +559,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -572,7 +575,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -588,7 +591,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -605,7 +608,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -622,7 +625,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -639,7 +642,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
@@ -657,7 +660,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
@@ -673,7 +676,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = GetRequiredProjectState(projectId);
             if (projectReferences.Count == 0)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -699,7 +702,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldReferences == newReferences)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             var newProject = oldProject.WithProjectReferences(newReferences);
@@ -735,7 +738,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.WithProjectReferences(projectReferences);
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);
@@ -767,7 +770,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -782,7 +785,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = GetRequiredProjectState(projectId);
             if (metadataReferences.Count == 0)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
@@ -802,7 +805,7 @@ namespace Microsoft.CodeAnalysis
             var newReferences = oldReferences.Remove(metadataReference);
             if (oldReferences == newReferences)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return ForkProject(oldProject, oldProject.WithMetadataReferences(newReferences));
@@ -818,7 +821,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.WithMetadataReferences(metadataReferences);
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -833,7 +836,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = GetRequiredProjectState(projectId);
             if (analyzerReferences.Length == 0)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
@@ -853,7 +856,7 @@ namespace Microsoft.CodeAnalysis
             var newReferences = oldReferences.Remove(analyzerReference);
             if (oldReferences == newReferences)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
@@ -869,7 +872,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.WithAnalyzerReferences(analyzerReferences);
             if (oldProject == newProject)
             {
-                return (this, oldProject, newProject);
+                return new(this, oldProject, newProject);
             }
 
             return ForkProject(oldProject, newProject);
@@ -884,7 +887,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.Attributes.Name == name)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
@@ -900,7 +903,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.Folders.SequenceEqual(folders))
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);
@@ -915,7 +918,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.FilePath == filePath)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);
@@ -931,7 +934,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
@@ -947,7 +950,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
@@ -963,7 +966,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
@@ -979,7 +982,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
@@ -995,7 +998,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
@@ -1011,7 +1014,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
@@ -1029,7 +1032,7 @@ namespace Microsoft.CodeAnalysis
                 oldRoot == root)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
@@ -1040,12 +1043,12 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = GetRequiredDocumentState(documentId);
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
             if (oldDocument == documentState)
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
 
             if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
                 oldDocument.TreeSource == documentState.TreeSource)
             {
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(
@@ -1063,7 +1066,7 @@ namespace Microsoft.CodeAnalysis
             if (oldDocument.SourceCodeKind == sourceCodeKind)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject, oldProject);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
@@ -1167,7 +1170,7 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
 
-            return (newSolutionState, oldProjectState, newProjectState);
+            return new(newSolutionState, oldProjectState, newProjectState);
         }
 
         /// <summary>

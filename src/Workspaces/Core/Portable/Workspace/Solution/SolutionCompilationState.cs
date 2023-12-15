@@ -25,8 +25,6 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
-using StateChange = (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState);
-
 internal sealed partial class SolutionCompilationState
 {
     /// <summary>
@@ -626,32 +624,30 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState UpdateDocumentTextLoader(
         DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
-        var (newState, oldProjectState, newProjectState) = this.Solution.UpdateDocumentTextLoader(documentId, loader, mode);
+        var stateChange = this.Solution.UpdateDocumentTextLoader(documentId, loader, mode);
 
         // Note: state is currently not reused.
         // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(newState != this.Solution);
+        Debug.Assert(stateChange.newSolutionState != this.Solution);
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateDocumentState(
-            (newState, oldProjectState, newProjectState), documentId);
+        return UpdateDocumentState(stateChange, documentId);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAdditionalDocumentTextLoader"/>
     public SolutionCompilationState UpdateAdditionalDocumentTextLoader(
         DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
-        var (newState, oldProjectState, newProjectState) = this.Solution.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
+        var stateChange = this.Solution.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
 
         // Note: state is currently not reused.
         // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(newState != this.Solution);
+        Debug.Assert(stateChange.newSolutionState != this.Solution);
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateAdditionalDocumentState(
-            (newState, oldProjectState, newProjectState), documentId);
+        return UpdateAdditionalDocumentState(stateChange, documentId);
     }
 
     /// <inheritdoc cref="SolutionState.UpdateAnalyzerConfigDocumentTextLoader"/>
@@ -1280,7 +1276,7 @@ internal sealed partial class SolutionCompilationState
         // Note: we have to force this fork to happen as the actual solution-state object is not changing. We're just
         // changing the tracker for a particular project.
         var newCompilationState = this.ForceForkProject(
-            (this.Solution, oldProjectState: projectToUpdateState, newProjectState: projectToUpdateState),
+            new(this.Solution, oldProjectState: projectToUpdateState, newProjectState: projectToUpdateState),
             translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                 tracker.GeneratorDriver,
                 newProjectState: projectToUpdateState),
