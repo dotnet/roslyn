@@ -15,21 +15,16 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
-internal class RazorDocumentPullDiagnosticHandler
-    : AbstractDocumentPullDiagnosticHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>, ILspServiceRequestHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[]?>
+internal class RazorDocumentPullDiagnosticHandler(
+    IDiagnosticAnalyzerService diagnosticAnalyzerService,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions,
+    LspWorkspaceManager workspaceManager)
+        : AbstractDocumentPullDiagnosticHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
+        , ILspServiceRequestHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[]?>
 {
     public const string RazorDiagnosticsName = "razor/diagnostics";
-    private readonly LspWorkspaceManager _workspaceManager;
-
-    public RazorDocumentPullDiagnosticHandler(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions,
-        LspWorkspaceManager workspaceManager)
-        : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
-    {
-        _workspaceManager = workspaceManager;
-    }
+    private readonly LspWorkspaceManager _workspaceManager = workspaceManager;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
@@ -57,11 +52,6 @@ internal class RazorDocumentPullDiagnosticHandler
 
     protected override string? GetDiagnosticCategory(RazorDiagnosticsParams diagnosticsParams)
         => PullDiagnosticCategories.Task;
-
-    protected override string? GetDiagnosticSourceIdentifier(RazorDiagnosticsParams diagnosticsParams)
-    {
-        return base.GetDiagnosticSourceIdentifier(diagnosticsParams);
-    }
 
     protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RazorDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
     {
