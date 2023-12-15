@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
 
         System_NotSupportedException__ctor,
         System_IndexOutOfRangeException__ctor,
-        
+
         System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 

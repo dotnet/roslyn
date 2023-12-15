@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException,
         System_IndexOutOfRangeException,
-        
+
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
