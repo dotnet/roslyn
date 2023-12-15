@@ -3390,5 +3390,101 @@ class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", il);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Double_G1()
+        {
+            var source = """
+                C.Run(0.0);
+                C.Run(1.0);
+                C.Run(1.2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(double? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(double? x) => x > 1.0;
+                }
+                """;
+            var output = "0010";
+            var il = """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  2
+                  .locals init (double? V_0,
+                                double V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.r8     1
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "double double?.GetValueOrDefault()"
+                  IL_0013:  ldloc.1
+                  IL_0014:  cgt
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  call       "bool double?.HasValue.get"
+                  IL_001d:  and
+                  IL_001e:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Double_LE1()
+        {
+            var source = """
+                C.Run(0.0);
+                C.Run(1.0);
+                C.Run(1.2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(double? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(double? x) => x <= 1.0;
+                }
+                """;
+            var output = "1100";
+            var il = """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  2
+                  .locals init (double? V_0,
+                                double V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.r8     1
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "double double?.GetValueOrDefault()"
+                  IL_0013:  ldloc.1
+                  IL_0014:  cgt.un
+                  IL_0016:  ldc.i4.0
+                  IL_0017:  ceq
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  call       "bool double?.HasValue.get"
+                  IL_0020:  and
+                  IL_0021:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
     }
 }
