@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && expressionStatement.Expression is not BoundConversion)
             {
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
-                if (tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray) is { } listToArrayMethod)
+                if (tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray, out MethodSymbol? listToArrayMethod))
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
                     return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
@@ -537,23 +537,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryGetSpanConversion(spreadExpression.Type, out var asSpanMethod))
                 {
                     var spanType = CallAsSpanMethod(spreadExpression, asSpanMethod).Type!.OriginalDefinition;
-                    if ((tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray)
-                            ?? tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray))
-                        is { } toArrayMethod)
+                    if (tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray, out var toArrayMethod)
+                        || tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray, out toArrayMethod))
                     {
                         var rewrittenSpreadExpression = CallAsSpanMethod(VisitExpression(spreadExpression), asSpanMethod);
                         return _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
                     }
                 }
 
-                MethodSymbol? tryGetToArrayMethod(TypeSymbol spreadTypeOriginalDefinition, WellKnownType wellKnownType, WellKnownMember wellKnownMember)
+                bool tryGetToArrayMethod(TypeSymbol spreadTypeOriginalDefinition, WellKnownType wellKnownType, WellKnownMember wellKnownMember, [NotNullWhen(true)] out MethodSymbol? toArrayMethod)
                 {
                     if (TypeSymbol.Equals(spreadTypeOriginalDefinition, this._compilation.GetWellKnownType(wellKnownType), TypeCompareKind.AllIgnoreOptions))
                     {
-                        return _factory.WellKnownMethod(wellKnownMember, isOptional: true);
+                        toArrayMethod = _factory.WellKnownMethod(wellKnownMember, isOptional: true);
+                        return toArrayMethod is { };
                     }
 
-                    return null;
+                    toArrayMethod = null;
+                    return false;
                 }
             }
 
@@ -637,15 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRef: false,
                             indexTemp.Type));
                 },
-                (sideEffects, arrayTemp, spreadElement, rewrittenSpreadOperand) =>
+                (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
-                    if (TryPrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
+                    if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
 
                     // https://github.com/dotnet/roslyn/issues/71270
                     // Could save the targetSpan to temp in the enclosing scope, but need to make sure we are async-safe etc.
-                    var targetSpan = TryConvertToSpanOrReadOnlySpan(arrayTemp);
-                    if (targetSpan is null)
+                    if (!TryConvertToSpanOrReadOnlySpan(arrayTemp, out var targetSpan))
                         return false;
 
                     PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, targetSpan, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
@@ -669,14 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool TryGetSpanConversion(TypeSymbol type, out MethodSymbol? asSpanMethod)
         {
-            if (type is NamedTypeSymbol spanType
-                && (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything)
-                    || spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything)))
-            {
-                asSpanMethod = null;
-                return true;
-            }
-
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(WellKnownMember.System_Span_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
@@ -684,19 +676,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (type is NamedTypeSymbol immutableArrayType
-                && immutableArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
-                && _factory.WellKnownMethod(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan, isOptional: true) is { } immutableArrayAsSpanMethod)
+            if (type is not NamedTypeSymbol namedType)
             {
-                asSpanMethod = immutableArrayAsSpanMethod.AsMember(immutableArrayType);
+                asSpanMethod = null;
+                return false;
+            }
+
+            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything)
+                || namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
+            {
+                asSpanMethod = null;
                 return true;
             }
 
-            if (type is NamedTypeSymbol listType
-                && listType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.ConsiderEverything)
+            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
+                && _factory.WellKnownMethod(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan, isOptional: true) is { } immutableArrayAsSpanMethod)
+            {
+                asSpanMethod = immutableArrayAsSpanMethod.AsMember(namedType);
+                return true;
+            }
+
+            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.ConsiderEverything)
                 && _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } collectionsMarshalAsSpanMethod)
             {
-                asSpanMethod = collectionsMarshalAsSpanMethod.Construct(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                asSpanMethod = collectionsMarshalAsSpanMethod.Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
                 return true;
             }
 
@@ -704,17 +707,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private BoundExpression? TryConvertToSpanOrReadOnlySpan(BoundExpression expression)
+        private bool TryConvertToSpanOrReadOnlySpan(BoundExpression expression, [NotNullWhen(true)] out BoundExpression? span)
         {
             var type = expression.Type;
             Debug.Assert(type is not null);
 
             if (!TryGetSpanConversion(type, out var asSpanMethod))
             {
-                return null;
+                span = null;
+                return false;
             }
 
-            return CallAsSpanMethod(expression, asSpanMethod);
+            span = CallAsSpanMethod(expression, asSpanMethod);
+            return true;
         }
 
         private BoundExpression CallAsSpanMethod(BoundExpression spreadExpression, MethodSymbol? asSpanMethod)
@@ -741,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Verifies presence of methods necessary for the CopyTo optimization
         /// without performing mutating actions e.g. appending to side effects or locals builders.
         /// </summary>
-        private (MethodSymbol spanSliceMethod, BoundExpression spreadElementAsSpan, MethodSymbol getLengthMethod, MethodSymbol copyToMethod)? TryPrepareCopyToOptimization(
+        private (MethodSymbol spanSliceMethod, BoundExpression spreadElementAsSpan, MethodSymbol getLengthMethod, MethodSymbol copyToMethod)? PrepareCopyToOptimization(
             BoundCollectionExpressionSpreadElement spreadElement,
             BoundExpression rewrittenSpreadOperand)
         {
@@ -753,11 +758,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.WellKnownMethod(WellKnownMember.System_Span_T__Slice_Int_Int, isOptional: true) is not { } spanSliceMethod)
                 return null;
 
-            if (TryConvertToSpanOrReadOnlySpan(rewrittenSpreadOperand) is not { } spreadOperandAsSpan)
+            if (!TryConvertToSpanOrReadOnlySpan(rewrittenSpreadOperand, out var spreadOperandAsSpan))
                 return null;
 
-            if ((tryGetSpanMethodsForSpread(WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__get_Length, WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T)
-                    ?? tryGetSpanMethodsForSpread(WellKnownType.System_Span_T, WellKnownMember.System_Span_T__get_Length, WellKnownMember.System_Span_T__CopyTo_Span_T))
+            if ((getSpanMethodsForSpread(WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__get_Length, WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T)
+                    ?? getSpanMethodsForSpread(WellKnownType.System_Span_T, WellKnownMember.System_Span_T__get_Length, WellKnownMember.System_Span_T__CopyTo_Span_T))
                 is not (var getLengthMethod, var copyToMethod))
             {
                 return null;
@@ -766,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (spanSliceMethod, spreadOperandAsSpan, getLengthMethod, copyToMethod);
 
             // gets either Span or ReadOnlySpan methods for operating on the source spread element.
-            (MethodSymbol getLengthMethod, MethodSymbol copyToMethod)? tryGetSpanMethodsForSpread(
+            (MethodSymbol getLengthMethod, MethodSymbol copyToMethod)? getSpanMethodsForSpread(
                 WellKnownType wellKnownSpanType,
                 WellKnownMember getLengthMember,
                 WellKnownMember copyToMember)
@@ -775,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && _factory.WellKnownMethod(getLengthMember, isOptional: true) is { } getLengthMethod
                     && _factory.WellKnownMethod(copyToMember, isOptional: true) is { } copyToMethod)
                 {
-                    return (getLengthMethod!, copyToMethod!);
+                    return (getLengthMethod, copyToMethod);
                 }
 
                 return null;
@@ -929,9 +934,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 isRef: false,
                                 indexTemp.Type));
                     },
-                    (sideEffects, spanTemp, spreadElement, rewrittenSpreadOperand) =>
+                    (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
-                        if (TryPrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
+                        if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                             return false;
 
                         PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, spanTemp, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
@@ -954,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expressions.Add(
                             _factory.Call(listTemp, addMethod, rewrittenValue));
                     },
-                    (sideEffects, listTemp, spreadElement, rewrittenSpreadOperand) =>
+                    (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
                         if (addRangeMethod is null)
                             return false;
@@ -1028,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
-                    if (tryOptimizeSpreadElement.Invoke(sideEffects, rewrittenReceiver, spreadElement, rewrittenExpression))
+                    if (tryOptimizeSpreadElement(sideEffects, rewrittenReceiver, spreadElement, rewrittenExpression))
                         continue;
 
                     var rewrittenElement = MakeCollectionExpressionSpreadElement(

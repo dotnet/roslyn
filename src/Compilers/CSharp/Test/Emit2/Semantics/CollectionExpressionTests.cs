@@ -4843,6 +4843,230 @@ static class Program
         }
 
         [Fact]
+        public void PointerType_06()
+        {
+            string source = """
+                using System;
+
+                unsafe class Program
+                {
+                    static void Main()
+                    {
+                        int*[] arr = [null];
+                        Console.Write(arr.Length);
+                        Console.Write((nint)arr[0]);
+                        int*[] arr1 = [..arr];
+                        Console.Write(arr1.Length);
+                        Console.Write((nint)arr1[0]);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "1010");
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       86 (0x56)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int*[] V_1,
+                                int*[] V_2,
+                                int V_3,
+                                int* V_4)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int*"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  conv.u
+                  IL_000a:  stelem.i
+                  IL_000b:  dup
+                  IL_000c:  ldlen
+                  IL_000d:  conv.i4
+                  IL_000e:  call       "void System.Console.Write(int)"
+                  IL_0013:  dup
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  ldelem.i
+                  IL_0016:  conv.i8
+                  IL_0017:  call       "void System.Console.Write(long)"
+                  IL_001c:  ldc.i4.0
+                  IL_001d:  stloc.0
+                  IL_001e:  dup
+                  IL_001f:  ldlen
+                  IL_0020:  conv.i4
+                  IL_0021:  newarr     "int*"
+                  IL_0026:  stloc.1
+                  IL_0027:  stloc.2
+                  IL_0028:  ldc.i4.0
+                  IL_0029:  stloc.3
+                  IL_002a:  br.s       IL_003e
+                  IL_002c:  ldloc.2
+                  IL_002d:  ldloc.3
+                  IL_002e:  ldelem.i
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  ldloc.1
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldloc.s    V_4
+                  IL_0035:  stelem.i
+                  IL_0036:  ldloc.0
+                  IL_0037:  ldc.i4.1
+                  IL_0038:  add
+                  IL_0039:  stloc.0
+                  IL_003a:  ldloc.3
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  add
+                  IL_003d:  stloc.3
+                  IL_003e:  ldloc.3
+                  IL_003f:  ldloc.2
+                  IL_0040:  ldlen
+                  IL_0041:  conv.i4
+                  IL_0042:  blt.s      IL_002c
+                  IL_0044:  ldloc.1
+                  IL_0045:  dup
+                  IL_0046:  ldlen
+                  IL_0047:  conv.i4
+                  IL_0048:  call       "void System.Console.Write(int)"
+                  IL_004d:  ldc.i4.0
+                  IL_004e:  ldelem.i
+                  IL_004f:  conv.i8
+                  IL_0050:  call       "void System.Console.Write(long)"
+                  IL_0055:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PointerType_07()
+        {
+            string source = """
+                using System;
+
+                unsafe class Program
+                {
+                    static void Main()
+                    {
+                        int*[] arr = [null];
+                        Console.Write(arr.Length);
+                        Console.Write((nint)arr[0]);
+                        int*[] arr1 = [..arr, ..arr];
+                        Console.Write(arr1.Length);
+                        Console.Write((nint)arr1[0]);
+                        Console.Write((nint)arr1[1]);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "10200");
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      149 (0x95)
+                  .maxstack  4
+                  .locals init (int*[] V_0,
+                                int*[] V_1,
+                                int V_2,
+                                int*[] V_3,
+                                int*[] V_4,
+                                int V_5,
+                                int* V_6)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int*"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  conv.u
+                  IL_000a:  stelem.i
+                  IL_000b:  dup
+                  IL_000c:  ldlen
+                  IL_000d:  conv.i4
+                  IL_000e:  call       "void System.Console.Write(int)"
+                  IL_0013:  dup
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  ldelem.i
+                  IL_0016:  conv.i8
+                  IL_0017:  call       "void System.Console.Write(long)"
+                  IL_001c:  dup
+                  IL_001d:  stloc.0
+                  IL_001e:  stloc.1
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldloc.0
+                  IL_0022:  ldlen
+                  IL_0023:  conv.i4
+                  IL_0024:  ldloc.1
+                  IL_0025:  ldlen
+                  IL_0026:  conv.i4
+                  IL_0027:  add
+                  IL_0028:  newarr     "int*"
+                  IL_002d:  stloc.3
+                  IL_002e:  ldloc.0
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  stloc.s    V_5
+                  IL_0034:  br.s       IL_004c
+                  IL_0036:  ldloc.s    V_4
+                  IL_0038:  ldloc.s    V_5
+                  IL_003a:  ldelem.i
+                  IL_003b:  stloc.s    V_6
+                  IL_003d:  ldloc.3
+                  IL_003e:  ldloc.2
+                  IL_003f:  ldloc.s    V_6
+                  IL_0041:  stelem.i
+                  IL_0042:  ldloc.2
+                  IL_0043:  ldc.i4.1
+                  IL_0044:  add
+                  IL_0045:  stloc.2
+                  IL_0046:  ldloc.s    V_5
+                  IL_0048:  ldc.i4.1
+                  IL_0049:  add
+                  IL_004a:  stloc.s    V_5
+                  IL_004c:  ldloc.s    V_5
+                  IL_004e:  ldloc.s    V_4
+                  IL_0050:  ldlen
+                  IL_0051:  conv.i4
+                  IL_0052:  blt.s      IL_0036
+                  IL_0054:  ldloc.1
+                  IL_0055:  stloc.s    V_4
+                  IL_0057:  ldc.i4.0
+                  IL_0058:  stloc.s    V_5
+                  IL_005a:  br.s       IL_0072
+                  IL_005c:  ldloc.s    V_4
+                  IL_005e:  ldloc.s    V_5
+                  IL_0060:  ldelem.i
+                  IL_0061:  stloc.s    V_6
+                  IL_0063:  ldloc.3
+                  IL_0064:  ldloc.2
+                  IL_0065:  ldloc.s    V_6
+                  IL_0067:  stelem.i
+                  IL_0068:  ldloc.2
+                  IL_0069:  ldc.i4.1
+                  IL_006a:  add
+                  IL_006b:  stloc.2
+                  IL_006c:  ldloc.s    V_5
+                  IL_006e:  ldc.i4.1
+                  IL_006f:  add
+                  IL_0070:  stloc.s    V_5
+                  IL_0072:  ldloc.s    V_5
+                  IL_0074:  ldloc.s    V_4
+                  IL_0076:  ldlen
+                  IL_0077:  conv.i4
+                  IL_0078:  blt.s      IL_005c
+                  IL_007a:  ldloc.3
+                  IL_007b:  dup
+                  IL_007c:  ldlen
+                  IL_007d:  conv.i4
+                  IL_007e:  call       "void System.Console.Write(int)"
+                  IL_0083:  dup
+                  IL_0084:  ldc.i4.0
+                  IL_0085:  ldelem.i
+                  IL_0086:  conv.i8
+                  IL_0087:  call       "void System.Console.Write(long)"
+                  IL_008c:  ldc.i4.1
+                  IL_008d:  ldelem.i
+                  IL_008e:  conv.i8
+                  IL_008f:  call       "void System.Console.Write(long)"
+                  IL_0094:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void CollectionInitializerType_01()
         {
             string source = """
@@ -27097,25 +27321,222 @@ partial class Program
 
             var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 2],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.Main", """
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
                 {
-                  // Code size       47 (0x2f)
-                  .maxstack  2
-                  .locals init (C.<Main>d__0 V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()"
-                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  ldc.i4.m1
-                  IL_000f:  stfld      "int C.<Main>d__0.<>1__state"
-                  IL_0014:  ldloca.s   V_0
-                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<Main>d__0>(ref C.<Main>d__0)"
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
-                  IL_0029:  call       "System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get"
-                  IL_002e:  ret
+                  // Code size      536 (0x218)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                System.Collections.Generic.List<int> V_1, //items
+                                int[] V_2,
+                                int[] V_3,
+                                System.Span<int> V_4,
+                                System.Span<int> V_5,
+                                System.Runtime.CompilerServices.TaskAwaiter<int[]> V_6,
+                                System.Span<int> V_7,
+                                System.Exception V_8)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  brfalse.s  IL_005f
+                    IL_000a:  ldloc.0
+                    IL_000b:  ldc.i4.1
+                    IL_000c:  beq        IL_0185
+                    IL_0011:  ldc.i4.1
+                    IL_0012:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                    IL_0017:  dup
+                    IL_0018:  ldc.i4.1
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                    IL_001e:  stloc.1
+                    IL_001f:  ldarg.0
+                    IL_0020:  ldloc.1
+                    IL_0021:  stfld      "System.Collections.Generic.List<int> C.<Main>d__0.<>7__wrap3"
+                    IL_0026:  call       "System.Threading.Tasks.Task<int[]> C.M2()"
+                    IL_002b:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int[]> System.Threading.Tasks.Task<int[]>.GetAwaiter()"
+                    IL_0030:  stloc.s    V_6
+                    IL_0032:  ldloca.s   V_6
+                    IL_0034:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int[]>.IsCompleted.get"
+                    IL_0039:  brtrue.s   IL_007c
+                    IL_003b:  ldarg.0
+                    IL_003c:  ldc.i4.0
+                    IL_003d:  dup
+                    IL_003e:  stloc.0
+                    IL_003f:  stfld      "int C.<Main>d__0.<>1__state"
+                    IL_0044:  ldarg.0
+                    IL_0045:  ldloc.s    V_6
+                    IL_0047:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_004c:  ldarg.0
+                    IL_004d:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                    IL_0052:  ldloca.s   V_6
+                    IL_0054:  ldarg.0
+                    IL_0055:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int[]>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int[]>, ref C.<Main>d__0)"
+                    IL_005a:  leave      IL_0217
+                    IL_005f:  ldarg.0
+                    IL_0060:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_0065:  stloc.s    V_6
+                    IL_0067:  ldarg.0
+                    IL_0068:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_006d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int[]>"
+                    IL_0073:  ldarg.0
+                    IL_0074:  ldc.i4.m1
+                    IL_0075:  dup
+                    IL_0076:  stloc.0
+                    IL_0077:  stfld      "int C.<Main>d__0.<>1__state"
+                    IL_007c:  ldloca.s   V_6
+                    IL_007e:  call       "int[] System.Runtime.CompilerServices.TaskAwaiter<int[]>.GetResult()"
+                    IL_0083:  stloc.3
+                    IL_0084:  ldarg.0
+                    IL_0085:  ldc.i4.0
+                    IL_0086:  stfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_008b:  ldarg.0
+                    IL_008c:  ldc.i4.1
+                    IL_008d:  ldarg.0
+                    IL_008e:  ldfld      "System.Collections.Generic.List<int> C.<Main>d__0.<>7__wrap3"
+                    IL_0093:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                    IL_0098:  ldloc.3
+                    IL_0099:  ldlen
+                    IL_009a:  conv.i4
+                    IL_009b:  add
+                    IL_009c:  add
+                    IL_009d:  newarr     "int"
+                    IL_00a2:  stfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_00a7:  ldarg.0
+                    IL_00a8:  ldfld      "System.Collections.Generic.List<int> C.<Main>d__0.<>7__wrap3"
+                    IL_00ad:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                    IL_00b2:  stloc.s    V_4
+                    IL_00b4:  ldloca.s   V_4
+                    IL_00b6:  ldarg.0
+                    IL_00b7:  ldfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_00bc:  newobj     "System.Span<int>..ctor(int[])"
+                    IL_00c1:  stloc.s    V_7
+                    IL_00c3:  ldloca.s   V_7
+                    IL_00c5:  ldarg.0
+                    IL_00c6:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_00cb:  ldloca.s   V_4
+                    IL_00cd:  call       "int System.Span<int>.Length.get"
+                    IL_00d2:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                    IL_00d7:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                    IL_00dc:  ldarg.0
+                    IL_00dd:  ldarg.0
+                    IL_00de:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_00e3:  ldloca.s   V_4
+                    IL_00e5:  call       "int System.Span<int>.Length.get"
+                    IL_00ea:  add
+                    IL_00eb:  stfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_00f0:  ldloc.3
+                    IL_00f1:  newobj     "System.Span<int>..ctor(int[])"
+                    IL_00f6:  stloc.s    V_5
+                    IL_00f8:  ldloca.s   V_5
+                    IL_00fa:  ldarg.0
+                    IL_00fb:  ldfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_0100:  newobj     "System.Span<int>..ctor(int[])"
+                    IL_0105:  stloc.s    V_7
+                    IL_0107:  ldloca.s   V_7
+                    IL_0109:  ldarg.0
+                    IL_010a:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_010f:  ldloca.s   V_5
+                    IL_0111:  call       "int System.Span<int>.Length.get"
+                    IL_0116:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                    IL_011b:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                    IL_0120:  ldarg.0
+                    IL_0121:  ldarg.0
+                    IL_0122:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_0127:  ldloca.s   V_5
+                    IL_0129:  call       "int System.Span<int>.Length.get"
+                    IL_012e:  add
+                    IL_012f:  stfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_0134:  ldarg.0
+                    IL_0135:  ldarg.0
+                    IL_0136:  ldfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_013b:  stfld      "int[] C.<Main>d__0.<>7__wrap1"
+                    IL_0140:  ldarg.0
+                    IL_0141:  ldarg.0
+                    IL_0142:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_0147:  stfld      "int C.<Main>d__0.<>7__wrap2"
+                    IL_014c:  call       "System.Threading.Tasks.Task<int[]> C.M2()"
+                    IL_0151:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int[]> System.Threading.Tasks.Task<int[]>.GetAwaiter()"
+                    IL_0156:  stloc.s    V_6
+                    IL_0158:  ldloca.s   V_6
+                    IL_015a:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int[]>.IsCompleted.get"
+                    IL_015f:  brtrue.s   IL_01a2
+                    IL_0161:  ldarg.0
+                    IL_0162:  ldc.i4.1
+                    IL_0163:  dup
+                    IL_0164:  stloc.0
+                    IL_0165:  stfld      "int C.<Main>d__0.<>1__state"
+                    IL_016a:  ldarg.0
+                    IL_016b:  ldloc.s    V_6
+                    IL_016d:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_0172:  ldarg.0
+                    IL_0173:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                    IL_0178:  ldloca.s   V_6
+                    IL_017a:  ldarg.0
+                    IL_017b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int[]>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int[]>, ref C.<Main>d__0)"
+                    IL_0180:  leave      IL_0217
+                    IL_0185:  ldarg.0
+                    IL_0186:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_018b:  stloc.s    V_6
+                    IL_018d:  ldarg.0
+                    IL_018e:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int[]> C.<Main>d__0.<>u__1"
+                    IL_0193:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int[]>"
+                    IL_0199:  ldarg.0
+                    IL_019a:  ldc.i4.m1
+                    IL_019b:  dup
+                    IL_019c:  stloc.0
+                    IL_019d:  stfld      "int C.<Main>d__0.<>1__state"
+                    IL_01a2:  ldloca.s   V_6
+                    IL_01a4:  call       "int[] System.Runtime.CompilerServices.TaskAwaiter<int[]>.GetResult()"
+                    IL_01a9:  stloc.2
+                    IL_01aa:  ldarg.0
+                    IL_01ab:  ldfld      "int[] C.<Main>d__0.<>7__wrap1"
+                    IL_01b0:  ldarg.0
+                    IL_01b1:  ldfld      "int C.<Main>d__0.<>7__wrap2"
+                    IL_01b6:  ldloc.2
+                    IL_01b7:  ldc.i4.0
+                    IL_01b8:  ldelem.i4
+                    IL_01b9:  stelem.i4
+                    IL_01ba:  ldarg.0
+                    IL_01bb:  ldarg.0
+                    IL_01bc:  ldfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_01c1:  ldc.i4.1
+                    IL_01c2:  add
+                    IL_01c3:  stfld      "int C.<Main>d__0.<>7__wrap4"
+                    IL_01c8:  ldarg.0
+                    IL_01c9:  ldfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_01ce:  ldarg.0
+                    IL_01cf:  ldnull
+                    IL_01d0:  stfld      "int[] C.<Main>d__0.<>7__wrap1"
+                    IL_01d5:  ldarg.0
+                    IL_01d6:  ldnull
+                    IL_01d7:  stfld      "System.Collections.Generic.List<int> C.<Main>d__0.<>7__wrap3"
+                    IL_01dc:  ldarg.0
+                    IL_01dd:  ldnull
+                    IL_01de:  stfld      "int[] C.<Main>d__0.<>7__wrap5"
+                    IL_01e3:  ldc.i4.0
+                    IL_01e4:  call       "void CollectionExtensions.Report(object, bool)"
+                    IL_01e9:  leave.s    IL_0204
+                  }
+                  catch System.Exception
+                  {
+                    IL_01eb:  stloc.s    V_8
+                    IL_01ed:  ldarg.0
+                    IL_01ee:  ldc.i4.s   -2
+                    IL_01f0:  stfld      "int C.<Main>d__0.<>1__state"
+                    IL_01f5:  ldarg.0
+                    IL_01f6:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                    IL_01fb:  ldloc.s    V_8
+                    IL_01fd:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                    IL_0202:  leave.s    IL_0217
+                  }
+                  IL_0204:  ldarg.0
+                  IL_0205:  ldc.i4.s   -2
+                  IL_0207:  stfld      "int C.<Main>d__0.<>1__state"
+                  IL_020c:  ldarg.0
+                  IL_020d:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                  IL_0212:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+                  IL_0217:  ret
                 }
                 """);
         }
