@@ -165,7 +165,7 @@ public class ExtraDidOpenHandler :
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
