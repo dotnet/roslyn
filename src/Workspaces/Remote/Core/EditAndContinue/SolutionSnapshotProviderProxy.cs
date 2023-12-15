@@ -10,13 +10,10 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class SolutionSnapshotProviderProxy : BrokeredServiceProxy<ISolutionSnapshotProvider>, ISolutionSnapshotProvider
+internal sealed class SolutionSnapshotProviderProxy(IServiceBroker serviceBroker) :
+    BrokeredServiceProxy<ISolutionSnapshotProvider>(serviceBroker, BrokeredServiceDescriptors.SolutionSnapshotProvider),
+    ISolutionSnapshotProvider
 {
-    public SolutionSnapshotProviderProxy(IServiceBroker serviceBroker)
-        : base(serviceBroker, BrokeredServiceDescriptors.SolutionSnapshotProvider)
-    {
-    }
-
     public ValueTask<SolutionSnapshotId> RegisterSolutionSnapshotAsync(CancellationToken cancellationToken)
         => InvokeAsync((service, cancellationToken) => service.RegisterSolutionSnapshotAsync(cancellationToken), cancellationToken);
 }
