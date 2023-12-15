@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
 
             // If the project didn't change itself, there's no need to change the compilation state.
             var tuple = _state.RemoveMetadataReference(projectId, metadataReference);
-            if (tuple.newState == _state)
+            if (tuple.newSolutionState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }

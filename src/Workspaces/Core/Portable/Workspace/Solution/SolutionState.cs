@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using StateChange = (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState);
+
     /// <summary>
     /// Represents a set of projects and their source code documents.
     ///
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project specified updated to have the new
         /// assembly name.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectAssemblyName(ProjectId projectId, string assemblyName)
+        public StateChange WithProjectAssemblyName(ProjectId projectId, string assemblyName)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAssemblyName(assemblyName);
@@ -483,7 +485,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
+        public StateChange WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputFilePath(outputFilePath);
@@ -499,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
+        public StateChange WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputRefFilePath(outputRefFilePath);
@@ -515,7 +517,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
+        public StateChange WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOutputInfo(info);
@@ -531,7 +533,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the default namespace.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
+        public StateChange WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithDefaultNamespace(defaultNamespace);
@@ -547,7 +549,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        public StateChange WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
@@ -563,7 +565,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectName(ProjectId projectId, string name)
+        public StateChange WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithName(name);
@@ -579,7 +581,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the project file path.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectFilePath(ProjectId projectId, string? filePath)
+        public StateChange WithProjectFilePath(ProjectId projectId, string? filePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithFilePath(filePath);
@@ -596,7 +598,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+        public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOptions(options);
@@ -613,7 +615,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified parse options.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+        public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithParseOptions(options);
@@ -630,7 +632,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+        public StateChange WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithHasAllInformation(hasAllInformation);
@@ -648,7 +650,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to have
         /// the specified runAnalyzers.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        public StateChange WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithRunAnalyzers(runAnalyzers);
@@ -666,7 +668,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        public StateChange AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (projectReferences.Count == 0)
@@ -687,7 +689,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer
         /// include the specified project reference.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        public StateChange RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -727,7 +729,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
+        public StateChange WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
@@ -744,7 +746,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        public StateChange WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
             var oldProject = GetRequiredProjectState(projectId);
 
@@ -775,7 +777,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include the
         /// specified metadata references.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
+        public StateChange AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (metadataReferences.Count == 0)
@@ -793,7 +795,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified metadata reference.
         /// </summary>
-        public (SolutionState newState, ProjectState oldProject, ProjectState newProject) RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        public StateChange RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
@@ -810,7 +812,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include only the
         /// specified metadata references.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
+        public StateChange WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithMetadataReferences(metadataReferences);
@@ -826,7 +828,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
+        public StateChange AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (analyzerReferences.Length == 0)
@@ -844,7 +846,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified analyzer reference.
         /// </summary>
-        public (SolutionState, ProjectState oldProject, ProjectState newProject) RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        public StateChange RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
@@ -861,7 +863,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include only the
         /// specified analyzer references.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithProjectAnalyzerReferences(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        public StateChange WithProjectAnalyzerReferences(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAnalyzerReferences(analyzerReferences);
@@ -876,7 +878,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified name.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentName(DocumentId documentId, string name)
+        public StateChange WithDocumentName(DocumentId documentId, string name)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.Attributes.Name == name)
@@ -892,7 +894,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
+        public StateChange WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.Folders.SequenceEqual(folders))
@@ -907,7 +909,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified file path.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentFilePath(DocumentId documentId, string? filePath)
+        public StateChange WithDocumentFilePath(DocumentId documentId, string? filePath)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.FilePath == filePath)
@@ -923,7 +925,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -939,7 +941,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -955,7 +957,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
@@ -971,7 +973,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -987,7 +989,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -1003,7 +1005,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
@@ -1019,7 +1021,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have a syntax tree
         /// rooted by the specified syntax node.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
@@ -1033,7 +1035,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
@@ -1055,7 +1057,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        public StateChange WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.SourceCodeKind == sourceCodeKind)
@@ -1067,7 +1069,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
         }
 
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public StateChange UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
@@ -1080,7 +1082,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public StateChange UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
@@ -1093,7 +1095,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public (SolutionState newState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public StateChange UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
 
@@ -1102,7 +1104,7 @@ namespace Microsoft.CodeAnalysis
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
-        private (SolutionState, ProjectState oldState, ProjectState newState) UpdateDocumentState(DocumentState newDocument, bool contentChanged)
+        private StateChange UpdateDocumentState(DocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
@@ -1119,7 +1121,7 @@ namespace Microsoft.CodeAnalysis
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
-        private (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
+        private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
@@ -1130,7 +1132,7 @@ namespace Microsoft.CodeAnalysis
             return ForkProject(oldProject, newProject);
         }
 
-        private (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
+        private StateChange UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
@@ -1147,7 +1149,7 @@ namespace Microsoft.CodeAnalysis
         /// are fixed-up if the change to the new project affects its public metadata, and old
         /// dependent compilations are forgotten.
         /// </summary>
-        public (SolutionState solutionState, ProjectState oldProjectState, ProjectState newProjectState) ForkProject(
+        public StateChange ForkProject(
             ProjectState oldProjectState,
             ProjectState newProjectState,
             ProjectDependencyGraph? newDependencyGraph = null,

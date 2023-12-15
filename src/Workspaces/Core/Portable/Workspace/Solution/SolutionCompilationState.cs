@@ -25,6 +25,8 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
+using StateChange = (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState);
+
 internal sealed partial class SolutionCompilationState
 {
     /// <summary>
@@ -297,7 +299,7 @@ internal sealed partial class SolutionCompilationState
         var tuple = this.Solution.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
         return ForkProject(
             tuple,
-            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: false),
+            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -328,7 +330,7 @@ internal sealed partial class SolutionCompilationState
         var tuple = this.Solution.WithProjectCompilationOptions(projectId, options);
         return ForkProject(
             tuple,
-            new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProject, isAnalyzerConfigChange: false),
+            new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(tuple.newProjectState, isAnalyzerConfigChange: false),
             forkTracker: true);
     }
 
@@ -351,7 +353,7 @@ internal sealed partial class SolutionCompilationState
         {
             return ForkProject(
                 tuple,
-                new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: true),
+                new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: true),
                 forkTracker: true);
         }
     }
@@ -383,7 +385,7 @@ internal sealed partial class SolutionCompilationState
         var tuple = this.Solution.WithProjectDocumentsOrder(projectId, documentIds);
         return ForkProject(
             tuple,
-            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProject, isParseOptionChange: false),
+            new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(tuple.newProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -657,7 +659,7 @@ internal sealed partial class SolutionCompilationState
 
         // Note: state is currently not reused.
         // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(tuple.newState != this.Solution);
+        Debug.Assert(tuple.newSolutionState != this.Solution);
 
         // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
         // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
