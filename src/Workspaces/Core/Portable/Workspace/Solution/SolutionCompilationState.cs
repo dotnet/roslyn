@@ -1296,7 +1296,10 @@ internal sealed partial class SolutionCompilationState
             // This API has always allowed null document IDs and documents IDs not contained within the solution. So
             // skip those if we run into that (otherwise the call to WithDocumentText will throw, as it is more
             // restrictive).
-            var documentState = this.Solution.GetProjectState(documentId?.ProjectId)?.DocumentStates.GetState(documentId);
+            if (documentId is null)
+                continue;
+
+            var documentState = this.Solution.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
                 result = result.WithDocumentText(documentId, text, mode);
         }
