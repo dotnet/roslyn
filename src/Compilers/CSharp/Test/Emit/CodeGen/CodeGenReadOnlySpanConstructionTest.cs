@@ -2806,7 +2806,7 @@ public class C
                 """;
 
             var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
-                verify: Verification.FailsILVerify with {  ILVerifyMessage = ilVerifyMessage });
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             var expectedIL = """
 {
