@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
         {
-            var newCompilationState = _compilationState.RemoveDocuments(documentIds);
+            var newCompilationState = _compilationState.RemoveAdditionalDocuments(documentIds);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

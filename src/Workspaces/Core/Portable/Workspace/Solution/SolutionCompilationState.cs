@@ -1127,7 +1127,14 @@ internal sealed partial class SolutionCompilationState
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+            (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+    }
+
+    public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+    {
+        return RemoveDocumentsFromMultipleProjects(documentIds,
+            (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
+            (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
