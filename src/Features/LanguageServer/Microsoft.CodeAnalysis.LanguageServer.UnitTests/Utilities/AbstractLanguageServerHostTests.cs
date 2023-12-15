@@ -31,7 +31,7 @@ public abstract class AbstractLanguageServerHostTests
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
-        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
+        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
         {
             var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(logger.Factory, includeDevKitComponents);
             var testLspServer = new TestLspServer(exportProvider, logger);
