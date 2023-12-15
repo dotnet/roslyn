@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
             JsonRpc jsonRpc,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
             HostServices hostServices,
             WellKnownLspServerKinds serverKind,
@@ -68,12 +68,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
-            AddBaseService<ILspServiceLogger>(logger);
+            AddBaseService<AbstractLspLogger>(logger);
             AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
+            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
             AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());

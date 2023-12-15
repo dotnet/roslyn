@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    (declarationModifiers, MakeFlags(
                                                     MethodKind.Ordinary, RefKind.None, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
                                                     isExpressionBodied: false, isExtensionMethod: false, isNullableAnalysisEnabled: false, isVarArg: false,
-                                                    isExplicitInterfaceImplementation: false)))
+                                                    isExplicitInterfaceImplementation: false, hasThisInitializer: false)))
         {
             _memberOffset = memberOffset;
         }

@@ -31,31 +31,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
+        public string[] CodeActionPath { get; }
+
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? FixAllFlavors { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string[]? CodeActionPath { get; }
-
         public CodeActionResolveData(
             string uniqueIdentifier,
             ImmutableArray<string> customTags,
             LSP.Range range,
             LSP.TextDocumentIdentifier textDocument,
+            string[] codeActionPath,
             string[]? fixAllFlavors,
-            ImmutableArray<LSP.CodeAction>? nestedCodeActions,
-            string[]? codeActionPath)
+            ImmutableArray<LSP.CodeAction>? nestedCodeActions)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
             Range = range;
             TextDocument = textDocument;
+            CodeActionPath = codeActionPath;
             FixAllFlavors = fixAllFlavors;
             NestedCodeActions = nestedCodeActions;
-            CodeActionPath = codeActionPath;
         }
     }
 }

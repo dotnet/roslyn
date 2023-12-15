@@ -954,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">Die '{0}' muss nicht generisch sein, damit sie mit '{1}' übereinstimmt.</target>
+        <target state="translated">Die Methode "{0}" darf nicht generisch sein, damit sie mit "{1}" übereinstimmt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -2310,6 +2310,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">Musterabgleich ReadOnly/Span&lt;char&gt; bei konstanter Zeichenfolge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">

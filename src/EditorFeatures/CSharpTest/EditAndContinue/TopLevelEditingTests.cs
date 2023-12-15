@@ -16279,7 +16279,7 @@ partial class C
                 ActiveStatementsDescription.Empty,
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), syntaxMap[0]),
                 });
         }
@@ -16294,8 +16294,11 @@ partial class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [_, _]), preserveLocalVariables: true),
+                });
         }
 
         [Fact]

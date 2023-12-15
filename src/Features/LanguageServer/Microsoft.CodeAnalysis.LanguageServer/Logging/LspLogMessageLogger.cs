@@ -23,7 +23,7 @@ internal sealed class LspLogMessageLogger : ILogger
         _fallbackLogger = fallbackLoggerFactory.CreateLogger(categoryName);
     }
 
-    public IDisposable BeginScope<TState>(TState state)
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull
     {
         throw new NotImplementedException();
     }

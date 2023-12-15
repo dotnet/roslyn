@@ -672,8 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null ||
-                            !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                        if (slotAllocator == null ||
+                            !slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
                                 F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,

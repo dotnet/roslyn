@@ -193,10 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             out int suffixIndex,
             out char idSeparator,
             out bool isDisplayClass,
+            out bool isDisplayClassParentField,
             out bool hasDebugIds)
         {
             suffixIndex = 0;
             isDisplayClass = false;
+            isDisplayClassParentField = false;
             hasDebugIds = false;
             idSeparator = GeneratedNameConstants.IdSeparator;
 
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return false;
             }
 
-            if (generatedKind is not (GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.LambdaMethod or GeneratedNameKind.LocalFunction))
+            if (generatedKind is not (GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.LambdaMethod or GeneratedNameKind.LocalFunction or GeneratedNameKind.DisplayClassLocalOrField))
             {
                 return false;
             }
@@ -214,9 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(name.Length >= closeBracketOffset + 1);
 
             isDisplayClass = generatedKind == GeneratedNameKind.LambdaDisplayClass;
+            isDisplayClassParentField = generatedKind == GeneratedNameKind.DisplayClassLocalOrField;
 
             suffixIndex = closeBracketOffset + 2;
-            hasDebugIds = name.AsSpan(suffixIndex).StartsWith(GeneratedNameConstants.SuffixSeparator.AsSpan(), StringComparison.Ordinal);
+            hasDebugIds = !isDisplayClassParentField && name.AsSpan(suffixIndex).StartsWith(GeneratedNameConstants.SuffixSeparator.AsSpan(), StringComparison.Ordinal);
 
             if (hasDebugIds)
             {
