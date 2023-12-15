@@ -25946,7 +25946,7 @@ partial class Program
         public void SynthesizedReadOnlyList_Singleton()
         {
             // Compare members of synthesized types to a similar type from source.
-            
+
             var singleton =
                 """
                 using System;
@@ -26004,7 +26004,7 @@ partial class Program
                 			return _item;
                 		}
                 	}
-                
+
                 	int ICollection<T>.Count => 1;
                 	bool ICollection<T>.IsReadOnly => true;
                 	T IList<T>.this[int index]
@@ -26050,11 +26050,11 @@ partial class Program
                 	void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
                 }
                 """;
-            
+
             var source =
                 """
                 using System.Collections.Generic;
-                
+
                 IEnumerable<int> x = [1];
                 ReadOnlySingletonList<int> y = new(1);
                 x.Report(includeType: true);
@@ -26068,17 +26068,17 @@ partial class Program
 
             var members = new[]
             {
-                (".ctor(T)", null), 
+                (".ctor(T)", null),
                 ("Enumerator..ctor(T)", null),
-                
+
                 ("Enumerator.System.Collections.Generic.IEnumerator<T>.get_Current()", "Enumerator.System.Collections.Generic.IEnumerator<T>.Current.get"),
-                
+
                 ("Enumerator.System.Collections.IEnumerator.MoveNext()", null),
                 ("Enumerator.System.Collections.IEnumerator.Reset()", null),
                 ("Enumerator.System.Collections.IEnumerator.get_Current()", "Enumerator.System.Collections.IEnumerator.Current.get"),
-                
+
                 ("Enumerator.System.IDisposable.Dispose()", null),
-                
+
                 ("System.Collections.Generic.ICollection<T>.Add(T)", null),
                 ("System.Collections.Generic.ICollection<T>.Clear()", null),
                 ("System.Collections.Generic.ICollection<T>.Contains(T)", null),
@@ -26086,25 +26086,25 @@ partial class Program
                 ("System.Collections.Generic.ICollection<T>.Remove(T)", null),
                 ("System.Collections.Generic.ICollection<T>.get_Count()", "System.Collections.Generic.ICollection<T>.Count.get"),
                 ("System.Collections.Generic.ICollection<T>.get_IsReadOnly()", "System.Collections.Generic.ICollection<T>.IsReadOnly.get"),
-                
+
                 ("System.Collections.Generic.IEnumerable<T>.GetEnumerator()", null),
-                
+
                 ("System.Collections.Generic.IList<T>.IndexOf(T)", null),
                 ("System.Collections.Generic.IList<T>.Insert(int, T)", null),
                 ("System.Collections.Generic.IList<T>.RemoveAt(int)", null),
                 ("System.Collections.Generic.IList<T>.get_Item(int)", "System.Collections.Generic.IList<T>.this[int].get"),
                 ("System.Collections.Generic.IList<T>.set_Item(int, T)", "System.Collections.Generic.IList<T>.this[int].set"),
-                
+
                 ("System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", "System.Collections.Generic.IReadOnlyCollection<T>.Count.get"),
                 ("System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", "System.Collections.Generic.IReadOnlyList<T>.this[int].get"),
-                
+
                 ("System.Collections.ICollection.CopyTo(System.Array, int)", null),
-                ("System.Collections.ICollection.get_Count()", "System.Collections.ICollection.Count.get"), 
+                ("System.Collections.ICollection.get_Count()", "System.Collections.ICollection.Count.get"),
                 ("System.Collections.ICollection.get_IsSynchronized()", "System.Collections.ICollection.IsSynchronized.get"),
                 ("System.Collections.ICollection.get_SyncRoot()", "System.Collections.ICollection.SyncRoot.get"),
-                
+
                 ("System.Collections.IEnumerable.GetEnumerator()", null),
-                
+
                 ("System.Collections.IList.Add(object)", null),
                 ("System.Collections.IList.Clear()", null),
                 ("System.Collections.IList.Contains(object)", null),
@@ -26114,10 +26114,10 @@ partial class Program
                 ("System.Collections.IList.RemoveAt(int)", null),
                 ("System.Collections.IList.get_IsFixedSize()", "System.Collections.IList.IsFixedSize.get"),
                 ("System.Collections.IList.get_IsReadOnly()", "System.Collections.IList.IsReadOnly.get"),
-                ("System.Collections.IList.get_Item(int)", "System.Collections.IList.this[int].get"), 
+                ("System.Collections.IList.get_Item(int)", "System.Collections.IList.this[int].get"),
                 ("System.Collections.IList.set_Item(int, object)", "System.Collections.IList.this[int].set"),
             };
-            
+
             foreach (var (memberName, sourceName) in members)
             {
                 string expectedIl = verifier.VisualizeIL($"ReadOnlySingletonList<T>.{sourceName ?? memberName}")
@@ -26125,7 +26125,7 @@ partial class Program
                 verifier.VerifyIL($"<>z__ReadOnlySingletonList<T>.{memberName}", expectedIl);
             }
         }
-        
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_2()
         {
