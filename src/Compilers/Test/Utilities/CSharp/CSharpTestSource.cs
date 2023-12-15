@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         IEnumerator<CSharpTestSource> IEnumerable<CSharpTestSource>.GetEnumerator() => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-        internal class CSharpTestSourceBuilder
+        internal static class CSharpTestSourceBuilder
         {
             public static CSharpTestSource Create(ReadOnlySpan<CSharpTestSource> source)
             {
