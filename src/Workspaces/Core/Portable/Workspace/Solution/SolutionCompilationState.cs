@@ -127,7 +127,6 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState ForkProject(
         (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState) stateTuple,
         CompilationAndGeneratorDriverTranslationAction? translate,
-        //ProjectDependencyGraph? newDependencyGraph = null,
         bool forkTracker)
     {
         return ForkProject(
@@ -142,10 +141,9 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ProjectState newProjectState,
         CompilationAndGeneratorDriverTranslationAction? translate,
-        //ProjectDependencyGraph? newDependencyGraph = null,
         bool forkTracker)
     {
-        // If the spsolution didn't actually change, there's no need to change us.
+        // If the solution didn't actually change, there's no need to change us.
         if (newSolutionState == this.Solution)
             return this;
 
