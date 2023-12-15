@@ -27512,17 +27512,17 @@ partial class Program
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M<T, U>", """
-            {
-              // Code size       19 (0x13)
-              .maxstack  3
-              IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
-              IL_0005:  dup
-              IL_0006:  ldarg.0
-              IL_0007:  callvirt   "void System.Collections.Generic.List<U>.AddRange(System.Collections.Generic.IEnumerable<U>)"
-              IL_000c:  ldc.i4.0
-              IL_000d:  call       "void CollectionExtensions.Report(object, bool)"
-              IL_0012:  ret
-            }
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<U>.AddRange(System.Collections.Generic.IEnumerable<U>)"
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0012:  ret
+                }
                 """);
         }
 
