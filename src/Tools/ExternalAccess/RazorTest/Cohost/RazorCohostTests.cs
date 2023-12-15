@@ -179,7 +179,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
     }
 
     [PartNotDiscoverable]
-    [LanguageServerEndpoint(MethodName)]
+    [RazorMethod(MethodName)]
     [ExportRazorStatelessLspService(typeof(RazorHandler)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -267,7 +266,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
-        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
+        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
             => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
@@ -422,7 +421,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             CancellationToken cancellationToken)
@@ -431,7 +430,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static async Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             RequestContext? context,
@@ -470,7 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
-                Document document,
+                TextDocument document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)
@@ -832,7 +831,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return formattingOptions;
         }
 
-        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, TextDocument document, bool featureSupportsMarkdown)
             => GetDocumentationMarkupContent(tags, document.Project.Language, featureSupportsMarkdown);
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
