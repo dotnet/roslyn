@@ -38,8 +38,31 @@ namespace Microsoft.CodeAnalysis.Structure
                     syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
                 context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
+
+                // Sort descending, and keep track of the "last added line".
+                // Then, ignore if we found a span on the same line.
+                // The effect for this is if we have something like:
+                //
+                // M1(M2(
+                //     ...
+                //     ...
+                // )
+                //
+                // We only collapse the "inner" span which has larger start.
+                spans.Sort((x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+
+                var lastAddedLine = -1;
+                var text = context.SyntaxTree.GetText(context.CancellationToken);
+
                 foreach (var span in spans)
+                {
+                    var line = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
+                    if (line == lastAddedLine)
+                        continue;
+
+                    lastAddedLine = line;
                     context.Spans.Add(span);
+                }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {

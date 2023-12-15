@@ -54,6 +54,9 @@ public class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
     public async Task TestTwoInvocationExpressionsThreeLines()
     {
         // The inner argument list should be collapsible, but the outer one shouldn't.
+        // While this test shows both as collapsible, they will be deduplicated by AbstractBlockStructureProvider
+        // This test only tests ArgumentListStructureProvider specifically, so it doesn't show the deduplication.
+        // Tests in BlockStructureServiceTests show the overall behavior accurately.
         var testInner = """
             var x = M(M$${|span:(
                 "",
@@ -64,12 +67,13 @@ public class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 
         var testOuter = """
-            var x = M$$(M(
+            var x = M$${|span:(M(
                 "",
-                ""));
+                ""))|};
             """;
 
-        await VerifyBlockSpansAsync(testOuter);
+        await VerifyBlockSpansAsync(testOuter,
+            Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]

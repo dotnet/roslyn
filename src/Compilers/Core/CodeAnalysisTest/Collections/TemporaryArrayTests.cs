@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Xunit;
 
@@ -203,6 +205,85 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             for (var i = 0; i < initialItems; i++)
                 Assert.Equal(array[i], initialItems - 1 - i);
+        }
+
+        [Fact]
+        //[InlineData(new int[] { })]
+        //[InlineData(new int[] { 0 })]
+        //[InlineData(new int[] { 0, 1 })]
+        //[InlineData(new int[] { 1, 0 })]
+        //[InlineData(new int[] { 0, 1, 2 })]
+        //[InlineData(new int[] { 0, 2, 1 })]
+        //[InlineData(new int[] { 1, 0, 2 })]
+        //[InlineData(new int[] { 1, 2, 0 })]
+        //[InlineData(new int[] { 2, 0, 1 })]
+        //[InlineData(new int[] { 2, 1, 0 })]
+        //[InlineData(new int[] { 0, 1, 2, 3 })]
+        //[InlineData(new int[] { 0, 1, 3, 2 })]
+        //[InlineData(new int[] { 0, 2, 1, 3 })]
+        //[InlineData(new int[] { 0, 2, 3, 1 })]
+        //[InlineData(new int[] { 0, 3, 0, 2 })]
+        //[InlineData(new int[] { 0, 3, 2, 0 })]
+        public void TestSort()
+        {
+            // Create arrays with different lengths, making sure to exceed the number of inline elements to test all code paths.
+            for (int i = 0; i <= TemporaryArray<int>.TestAccessor.InlineCapacity + 1; i++)
+            {
+                foreach (var permutation in permute(Enumerable.Range(0, i).ToArray()))
+                {
+                    assertSort(permutation);
+                }
+            }
+
+            static void assertSort(ImmutableArray<int> inputArray)
+            {
+                var sortedArray = inputArray.Sort();
+                Assert.Equal(inputArray.Length, sortedArray.Length);
+                using var array = TemporaryArray<int>.Empty;
+                foreach (var num in inputArray)
+                    array.Add(num);
+
+                Assert.Equal(array.Count, sortedArray.Length);
+                array.Sort((x, y) => x.CompareTo(y));
+                Assert.Equal(array.Count, sortedArray.Length);
+                for (int i = 0; i < array.Count; i++)
+                {
+                    Assert.Equal(array[i], sortedArray[i]);
+                }
+            }
+
+            // Almost copy from ServiceHubServicesTests
+            static List<ImmutableArray<T>> permute<T>(T[] values)
+            {
+                var result = new List<ImmutableArray<T>>();
+                if (values.Length == 0)
+                {
+                    result.Add(ImmutableArray<T>.Empty);
+                    return result;
+                }
+
+                doPermute(0, values.Length - 1);
+                return result;
+
+                void doPermute(int start, int end)
+                {
+                    if (start == end)
+                    {
+                        // We have one of our possible n! solutions,
+                        // add it to the list.
+                        result.Add(values.ToImmutableArray());
+                    }
+                    else
+                    {
+                        for (var i = start; i <= end; i++)
+                        {
+                            (values[start], values[i]) = (values[i], values[start]);
+                            doPermute(start + 1, end);
+                            (values[start], values[i]) = (values[i], values[start]);
+                        }
+                    }
+                }
+            }
         }
 
         [Theory, CombinatorialData]
