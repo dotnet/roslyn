@@ -93,13 +93,12 @@ internal sealed partial class SolutionCompilationState
 
     public SolutionServices Services => this.Solution.Services;
 
+    // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+    [Conditional("DEBUG")]
     private void CheckInvariants()
     {
-        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
-#if DEBUG
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
-#endif
     }
 
     public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
