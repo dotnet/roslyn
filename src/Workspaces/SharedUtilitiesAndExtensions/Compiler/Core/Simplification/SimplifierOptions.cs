@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     {
 #if !CODE_STYLE
         public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices, SimplifierOptions? fallbackOptions)
-            => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options, fallbackOptions);
+            => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options, fallbackOptions) ?? fallbackOptions ?? SimplifierOptions.CommonDefaults;
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {

@@ -4,12 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -94,8 +90,11 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId) : IChecksummedObject, IObjectWritable
+        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
         {
+            /// <summary>
+            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
+            /// </summary>
             private Checksum? _lazyChecksum;
 
             /// <summary>
@@ -137,8 +136,6 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -161,8 +158,17 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+            public Checksum Checksum
+            {
+                get
+                {
+                    // Ensure reading/writing from the nullable checksum is atomic.
+                    lock (this)
+                    {
+                        return _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
+                    }
+                }
+            }
         }
     }
 }

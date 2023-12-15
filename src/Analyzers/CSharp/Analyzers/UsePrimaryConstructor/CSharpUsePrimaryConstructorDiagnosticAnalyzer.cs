@@ -49,22 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 /// </code>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId,
+        EnforceOnBuildValues.UsePrimaryConstructor,
+        CSharpCodeStyleOptions.PreferPrimaryConstructors,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Use_primary_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     // Deliberately using names that could not be actual field/property names in the properties dictionary.
     public const string AllFieldsName = "<>AllFields";
     public const string AllPropertiesName = "<>AllProperties";
 
     private static readonly ObjectPool<ConcurrentSet<ISymbol>> s_concurrentSetPool = new(() => new());
-
-    public CSharpUsePrimaryConstructorDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId,
-               EnforceOnBuildValues.UsePrimaryConstructor,
-               CSharpCodeStyleOptions.PreferPrimaryConstructors,
-               new LocalizableResourceString(
-                    nameof(CSharpAnalyzersResources.Use_primary_constructor), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -204,8 +201,8 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
 
             for (var containingType = startSymbol.ContainingType; containingType != null; containingType = containingType.ContainingType)
             {
-                var containgTypeAnalyzer = TryGetOrCreateAnalyzer(containingType);
-                RegisterFieldOrPropertyAnalysisIfNecessary(containgTypeAnalyzer);
+                var containingTypeAnalyzer = TryGetOrCreateAnalyzer(containingType);
+                RegisterFieldOrPropertyAnalysisIfNecessary(containingTypeAnalyzer);
             }
 
             // Now try to make the analyzer for this type.
@@ -365,7 +362,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                 return primaryConstructorDeclaration switch
                 {
                     { ExpressionBody.Expression: AssignmentExpressionSyntax assignmentExpression }
-                        => IsAssignmentToInstanceMember(namedType, semanticModel, assignmentExpression, candidateMembersToRemove, out _),
+                        => IsAssignmentToInstanceMember(namedType, semanticModel, assignmentExpression, candidateMembersToRemove, orderedParameterAssignments: null, out _),
                     { Body: { } block }
                         => AnalyzeBlockBody(namedType, semanticModel, block, candidateMembersToRemove),
                     _ => false,
@@ -382,12 +379,14 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                 if (!block.Statements.All(static s => s is ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax }))
                     return false;
 
-                using var _ = PooledHashSet<ISymbol>.GetInstance(out var assignedMembers);
+                using var _1 = PooledHashSet<ISymbol>.GetInstance(out var assignedMembers);
+                using var _2 = ArrayBuilder<(IParameterSymbol parameter, SyntaxNode assignedMemberDeclaration, bool parameterIsWrittenTo)>.GetInstance(out var orderedParameterAssignments);
 
                 foreach (var statement in block.Statements)
                 {
                     if (statement is not ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax assignmentExpression } ||
-                        !IsAssignmentToInstanceMember(namedType, semanticModel, assignmentExpression, candidateMembersToRemove, out var member))
+                        !IsAssignmentToInstanceMember(
+                            namedType, semanticModel, assignmentExpression, candidateMembersToRemove, orderedParameterAssignments, out var member))
                     {
                         return false;
                     }
@@ -395,6 +394,33 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                     // Only allow a single write to the same member
                     if (!assignedMembers.Add(member))
                         return false;
+                }
+
+                // If we have a mutation of one of the parameters, and the parameter was referenced in multiple
+                // assignments, then we can't convert this over if the order of actual members in the type is not the
+                // same as the order of members we were assigning to.
+                foreach (var group in orderedParameterAssignments.GroupBy(t => t.parameter))
+                {
+                    var parameter = group.Key;
+                    if (group.Any(t => t.parameterIsWrittenTo) && group.Count() > 1)
+                    {
+                        var lastAssignedMemberDeclaration = group.First().assignedMemberDeclaration;
+                        foreach (var (_, currentAssignedMemberDeclaration, _) in group.Skip(1))
+                        {
+                            // All the member decls have to be in the same containing type decl for this to be safe.
+                            if (lastAssignedMemberDeclaration.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>() !=
+                                currentAssignedMemberDeclaration.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>())
+                            {
+                                return false;
+                            }
+
+                            // They all have to be in order for this to be safe.
+                            if (lastAssignedMemberDeclaration.SpanStart >= currentAssignedMemberDeclaration.SpanStart)
+                                return false;
+
+                            lastAssignedMemberDeclaration = currentAssignedMemberDeclaration;
+                        }
+                    }
                 }
 
                 return true;
@@ -405,6 +431,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                 SemanticModel semanticModel,
                 AssignmentExpressionSyntax assignmentExpression,
                 Dictionary<ISymbol, IParameterSymbol> candidateMembersToRemove,
+                ArrayBuilder<(IParameterSymbol parameter, SyntaxNode assignedMemberDeclaration, bool parameterIsWrittenTo)>? orderedParameterAssignments,
                 [NotNullWhen(true)] out ISymbol? member)
             {
                 member = null;
@@ -432,7 +459,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
 
                 // Has to bind to a field/prop on this type.
                 member = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol()?.OriginalDefinition;
-                if (!IsViableMemberToAssignTo(namedType, member, out _, cancellationToken))
+                if (!IsViableMemberToAssignTo(namedType, member, out var assignedMemberDeclaration, cancellationToken))
                     return false;
 
                 // Left side looks good.  Now check the right side.  It cannot reference 'this' (as that is not
@@ -442,6 +469,13 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
                 {
                     if (operation is IInstanceReferenceOperation)
                         return false;
+
+                    if (orderedParameterAssignments != null &&
+                        operation is IParameterReferenceOperation { Syntax: IdentifierNameSyntax parameterName } parameterReference)
+                    {
+                        var isWrittenTo = parameterName.IsWrittenTo(semanticModel, cancellationToken);
+                        orderedParameterAssignments.Add((parameterReference.Parameter, assignedMemberDeclaration, isWrittenTo));
+                    }
                 }
 
                 // Looks good, both the left and right sides are legal.

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
             using var _ = ArrayBuilder<(ISymbol symbol, bool canDelegateAllMembers)>.GetInstance(out var result);
 
-            var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
+            var allUnimplementedMembers = _unimplementedMembers.SelectManyAsArray(t => t.members);
 
             // Have to make sure the field or prop has at least one unimplemented member exposed that we could actually
             // call from our type.  For example, if we're calling through a type that isn't derived from us, then we

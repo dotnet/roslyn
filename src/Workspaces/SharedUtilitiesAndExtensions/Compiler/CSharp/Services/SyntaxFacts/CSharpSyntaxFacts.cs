@@ -71,6 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool SupportsTupleDeconstruction(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
+        // Should be supported in C# 13.
+        public bool SupportsCollectionExpressionNaturalType(ParseOptions options)
+            => false;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -1507,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((TypePatternSyntax)node).Type;
 
         public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) };
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {

@@ -551,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return 1;
                 default:
                     return 0;
@@ -597,7 +599,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReturningCallAndAwait:
                 case ErrorCode.ERR_SpecialByRefInLambda:
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
@@ -2404,7 +2405,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.ERR_ExpectedInterpolatedString:
                 case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.ERR_CollectionExpressionImmutableArray:
+                case ErrorCode.ERR_InvalidExperimentalDiagID:
+                case ErrorCode.ERR_SpreadMissingMember:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

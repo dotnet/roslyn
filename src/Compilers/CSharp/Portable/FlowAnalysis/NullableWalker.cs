@@ -2241,12 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (value == null ||
-                // This prevents us from giving undesired warnings for synthesized arguments for optional parameters,
-                // but allows us to give warnings for synthesized assignments to record properties and for parameter default values at the declaration site.
-                // Interpolated string handler argument placeholders _are_ compiler generated, but the user should be warned about them anyway.
-                (value.WasCompilerGenerated && assignmentKind == AssignmentKind.Argument && value.Kind != BoundKind.InterpolatedStringArgumentPlaceholder) ||
-                !ShouldReportNullableAssignment(targetType, valueType.State))
+            if (value == null || !ShouldReportNullableAssignment(targetType, valueType.State))
             {
                 return;
             }
@@ -3508,7 +3503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Visit(spread);
                         break;
                     default:
-                        _ = VisitOptionalImplicitConversion(element, targetElementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
+                        _ = VisitOptionalImplicitConversion((BoundExpression)element, targetElementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
 
                         break;
                 }
@@ -3522,17 +3517,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var element in node.Elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return null;
-        }
-
-        public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
-        {
-            base.VisitCollectionExpressionSpreadElement(node);
-            SetResultType(node, default);
             return null;
         }
 
@@ -3609,7 +3604,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-                        var arguments = node.Arguments;
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
@@ -4747,29 +4741,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightType,
             BoundBinaryOperator binary)
         {
+            var inferredResult = ReinferAndVisitBinaryOperator(binary, binary.OperatorKind, binary.Method, binary.Type, binary.Left, leftOperand, leftConversion, leftType, binary.Right, rightOperand, rightConversion, rightType);
+            SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
+        }
+
+        private TypeWithState ReinferAndVisitBinaryOperator(
+            BoundExpression binary,
+            BinaryOperatorKind operatorKind,
+            MethodSymbol? method,
+            TypeSymbol returnType,
+            BoundExpression left,
+            BoundExpression leftOperand,
+            Conversion leftConversion,
+            TypeWithState leftType,
+            BoundExpression right,
+            BoundExpression rightOperand,
+            Conversion rightConversion,
+            TypeWithState rightType)
+        {
             Debug.Assert(!IsConditionalState);
             // At this point, State.Reachable may be false for
             // invalid code such as `s + throw new Exception()`.
 
-            var method = binary.Method;
-
-            if (binary.OperatorKind.IsUserDefined() &&
+            if (operatorKind.IsUserDefined() &&
                 method?.ParameterCount == 2)
             {
                 // Update method based on inferred operand type.
                 TypeSymbol methodContainer = method.ContainingType;
-                bool isLifted = binary.OperatorKind.IsLifted();
+                bool isLifted = operatorKind.IsLifted();
                 TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
                 TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
                 TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
                     getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
-                method = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
+                var reinferredMethod = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
+                SetUpdatedSymbol(binary, method, reinferredMethod);
+                method = reinferredMethod;
 
-                // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 var parameters = method.Parameters;
-                visitOperandConversionAndPostConditions(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
-                visitOperandConversionAndPostConditions(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
-                SetUpdatedSymbol(binary, binary.Method!, method);
+                visitOperandConversionAndPostConditions(left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
+                visitOperandConversionAndPostConditions(right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
 
                 void visitOperandConversionAndPostConditions(
                     BoundExpression expr,
@@ -4797,7 +4807,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Argument,
                         parameter);
-                    CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand);
+
+                    if (CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand))
+                    {
+                        LearnFromNonNullTest(operand, ref State);
+                    }
 
                     LearnFromPostConditions(operand, parameterAnnotations);
                 }
@@ -4805,8 +4819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Assume this is a built-in operator in which case the parameter types are unannotated.
-                visitOperandConversion(binary.Left, leftOperand, leftConversion, leftType);
-                visitOperandConversion(binary.Right, rightOperand, rightConversion, rightType);
+                visitOperandConversion(left, leftOperand, leftConversion, leftType);
+                visitOperandConversion(right, rightOperand, rightConversion, rightType);
 
                 void visitOperandConversion(
                     BoundExpression expr,
@@ -4835,20 +4849,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            if (binary.OperatorKind.IsLifted()
-                && binary.OperatorKind.Operator() is BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual or BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual)
+            if (operatorKind.IsLifted()
+                && operatorKind.Operator() is BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual or BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual)
             {
-                Debug.Assert(binary.Type.SpecialType == SpecialType.System_Boolean);
-                SplitAndLearnFromNonNullTest(binary.Left, whenTrue: true);
-                SplitAndLearnFromNonNullTest(binary.Right, whenTrue: true);
+                Debug.Assert(binary.Type!.SpecialType == SpecialType.System_Boolean);
+                SplitAndLearnFromNonNullTest(left, whenTrue: true);
+                SplitAndLearnFromNonNullTest(right, whenTrue: true);
             }
 
             // For nested binary operators, this can be the only time they're visited due to explicit stack used in AbstractFlowPass.VisitBinaryOperator,
             // so we need to set the flow-analyzed type here.
-            var inferredResult = InferResultNullability(binary.OperatorKind, method, binary.Type, leftType, rightType);
-            SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
+            var inferredResult = InferResultNullability(operatorKind, method, returnType, leftType, rightType);
 
-            return;
+            return inferredResult;
 
             TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType, BoundExpression operand)
             {
@@ -6379,6 +6392,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentResult? firstArgumentResult = null)
         {
             Debug.Assert(!arguments.IsDefault);
+            Debug.Assert(!expanded || !parametersOpt.IsDefault);
+            Debug.Assert(refKindsOpt.IsDefaultOrEmpty || refKindsOpt.Length == arguments.Length);
+            Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == arguments.Length);
+
+            if (expanded)
+            {
+                expandParamsArray(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
+            }
+            else
+            {
+                Debug.Assert(!arguments.Any(a => a.IsParamsArray));
+            }
+
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
             // Visit the arguments and collect results
@@ -6567,6 +6593,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                            return (result.method, result.returnNotNull);
                        };
+            }
+
+            static void expandParamsArray(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
+            {
+                // It looks like in some error scenarios we can get here without params array created.
+                // At the moment, there is only one test that gets here like that - Microsoft.CodeAnalysis.CSharp.UnitTests.AttributeTests.TestBadParamsCtor.
+                // And we get here for the erroneous attribute application, constructor is inaccessible. 
+                // Perhaps that shouldn't cancel the default values / params array processing?
+                Debug.Assert(arguments.Count(a => a.IsParamsArray) <= 1);
+
+                for (int a = 0; a < arguments.Length; ++a)
+                {
+                    BoundExpression argument = arguments[a];
+                    if (argument.IsParamsArray)
+                    {
+                        Debug.Assert(parametersOpt.IsDefault || arguments.Length == parametersOpt.Length);
+                        ImmutableArray<BoundExpression> elements = ((BoundArrayCreation)argument).InitializerOpt!.Initializers;
+
+                        if (elements.Length == 0)
+                        {
+                            arguments = arguments.RemoveAt(a);
+
+                            if (!argsToParamsOpt.IsDefault)
+                            {
+                                argsToParamsOpt = argsToParamsOpt.RemoveAt(a);
+                            }
+
+                            if (!refKindsOpt.IsDefaultOrEmpty)
+                            {
+                                refKindsOpt = refKindsOpt.RemoveAt(a);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(defaultArguments.IsNull || elements.Length == 1);
+                            Debug.Assert(elements.Length == 1 || a == arguments.Length - 1);
+                            var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length + elements.Length - 1);
+                            argumentsBuilder.AddRange(arguments, a);
+                            argumentsBuilder.AddRange(elements);
+                            argumentsBuilder.AddRange(arguments, a + 1, arguments.Length - (a + 1));
+                            Debug.Assert(argumentsBuilder.Count == arguments.Length + elements.Length - 1);
+
+                            if (!argsToParamsOpt.IsDefault)
+                            {
+                                var argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length + elements.Length - 1);
+                                argsToParamsBuilder.AddRange(argsToParamsOpt, a);
+                                argsToParamsBuilder.AddMany(arguments.Length - 1, elements.Length);
+                                argsToParamsBuilder.AddRange(argsToParamsOpt, a + 1, argsToParamsOpt.Length - (a + 1));
+                                argsToParamsOpt = argsToParamsBuilder.ToImmutableAndFree();
+                            }
+
+                            if (!refKindsOpt.IsDefaultOrEmpty)
+                            {
+                                var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(refKindsOpt.Length + elements.Length - 1);
+                                refKindsBuilder.AddRange(refKindsOpt, a);
+                                refKindsBuilder.AddMany(RefKind.None, elements.Length);
+                                refKindsBuilder.AddRange(refKindsOpt, a + 1, refKindsOpt.Length - (a + 1));
+                                refKindsOpt = refKindsBuilder.ToImmutableAndFree();
+                            }
+
+                            arguments = argumentsBuilder.ToImmutableAndFree();
+                        }
+
+                        break;
+                    }
+                }
             }
         }
 
@@ -9355,9 +9447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the LHS has annotations, we perform an additional check for nullable value types
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax);
 
-                AdjustSetValue(left, ref rightState);
-                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
-
                 if (left is BoundDiscardExpression)
                 {
                     var lvalueType = rightState.ToTypeWithAnnotations(compilation);
@@ -9368,6 +9457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
                 }
+
+                AdjustSetValue(left, ref rightState);
+                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
             }
 
             return null;
@@ -9899,78 +9991,63 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            var left = node.Left;
-            var right = node.Right;
-            Visit(left);
-            TypeWithAnnotations declaredType = LvalueResultType;
-            TypeWithAnnotations leftLValueType = declaredType;
-            TypeWithState leftResultType = ResultType;
+            // for an operator like: 'TResult operator op(TLeftParam left, TRightParam right);'
+            // and usage like: 'x op= y;'
+            // expansion is (roughly): 'x = (TLeftArg)((TLeftParam)x op (TRightParam)y);'
 
-            Debug.Assert(!IsConditionalState);
+            // visit 'x'
+            Visit(node.Left);
+            Unsplit();
+            var leftTypeWithState = ResultType;
+            var leftLvalueType = LvalueResultType;
 
-            TypeWithState leftOnRightType = GetAdjustedResult(leftResultType, MakeSlot(node.Left));
+            // note: LHS keeps a conversion+placeholder separately, because it is used
+            // for both a read and a write, unlike the right side, which is only read.
+            var (rightConversionOperand, rightConversion) = RemoveConversion(node.Right, includeExplicitConversions: false);
 
-            // https://github.com/dotnet/roslyn/issues/29962 Update operator based on inferred argument types.
-            if ((object)node.Operator.LeftType != null)
-            {
-                // https://github.com/dotnet/roslyn/issues/29962 Ignoring top-level nullability of operator left parameter.
-                leftOnRightType = VisitConversion(
-                    conversionOpt: null,
-                    node.Left,
-                    BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder),
-                    TypeWithAnnotations.Create(node.Operator.LeftType),
-                    leftOnRightType,
-                    checkConversion: true,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment,
-                    reportTopLevelWarnings: false,
-                    reportRemainingWarnings: true);
-            }
-            else
-            {
-                leftOnRightType = default;
-            }
+            // visit 'y'
+            var rightTypeWithState = VisitRvalueWithState(rightConversionOperand);
 
-            TypeWithState resultType;
-            TypeWithState rightType = VisitRvalueWithState(right);
-            if ((object)node.Operator.ReturnType != null)
-            {
-                if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
-                {
-                    MethodSymbol method = node.Operator.Method;
-                    VisitArguments(node, ImmutableArray.Create(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default, defaultArguments: default,
-                        expanded: true, invokedAsExtensionMethod: false, method);
-                }
+            // visit '(TLeftParam)x op (TRightParam)y'
+            var resultTypeWithState = ReinferAndVisitBinaryOperator(
+                node,
+                node.Operator.Kind,
+                node.Operator.Method,
+                node.Operator.ReturnType ?? node.Type,
+                node.LeftConversion as BoundConversion ?? node.Left,
+                node.Left,
+                BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder),
+                leftTypeWithState,
+                node.Right,
+                rightConversionOperand,
+                rightConversion,
+                rightTypeWithState);
 
-                resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
+            var leftArgumentAnnotations = GetLValueAnnotations(node.Left);
+            leftLvalueType = ApplyLValueAnnotations(leftLvalueType, leftArgumentAnnotations);
 
-                FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(node.Left);
-                leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
+            // visit '(TLeftArg)((TLeftParam)x op (TRightParam)y)'
+            resultTypeWithState = VisitConversion(
+                conversionOpt: null,
+                conversionOperand: node,
+                BoundNode.GetConversion(node.FinalConversion, node.FinalPlaceholder),
+                targetTypeWithNullability: leftLvalueType,
+                operandType: resultTypeWithState,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings: false,
+                assignmentKind: AssignmentKind.Assignment);
 
-                resultType = VisitConversion(
-                    conversionOpt: null,
-                    node,
-                    BoundNode.GetConversion(node.FinalConversion, node.FinalPlaceholder),
-                    leftLValueType,
-                    resultType,
-                    checkConversion: true,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment);
+            // visit 'x = (TLeftArg)((TLeftParam)x op (TRightParam)y)'
+            // Handle `[DisallowNull]` on LHS operand (final assignment target).
+            CheckDisallowedNullAssignment(resultTypeWithState, leftArgumentAnnotations, node.Syntax);
 
-                // If the LHS has annotations, we perform an additional check for nullable value types
-                CheckDisallowedNullAssignment(resultType, leftAnnotations, node.Syntax);
-            }
-            else
-            {
-                resultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
-            }
+            SetResultType(node, resultTypeWithState);
 
-            AdjustSetValue(left, ref resultType);
-            TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
+            AdjustSetValue(node.Left, ref resultTypeWithState);
+            Debug.Assert(MakeSlot(node) == -1);
+            TrackNullableStateForAssignment(node, leftLvalueType, MakeSlot(node.Left), resultTypeWithState);
 
-            SetResultType(node, resultType);
             return null;
         }
 
@@ -10279,9 +10356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
                     parameters,
-                    argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
+                    argsToParamsOpt: default,
                     defaultArguments: enumeratorMethodInfo.DefaultArguments,
-                    expanded: false,
+                    expanded: enumeratorMethodInfo.Expanded,
                     invokedAsExtensionMethod: true,
                     enumeratorMethodInfo.Method);
 
@@ -11406,7 +11483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAttribute(BoundAttribute node)
         {
-            VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, defaultArguments: default,
+            VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, defaultArguments: node.ConstructorDefaultArguments,
                 expanded: node.ConstructorExpanded, invokedAsExtensionMethod: false);
             foreach (var assignment in node.NamedArguments)
             {

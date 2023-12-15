@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,12 +14,19 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CollectionExpressionTests : CSharpTestBase
     {
+        private static readonly IEnumerable<KeyValuePair<string, ReportDiagnostic>> WithSpanAllocWarning = new[]
+        {
+            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate), ReportDiagnostic.Warn),
+            KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate), ReportDiagnostic.Warn)
+        };
+
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         private const string s_collectionExtensions = """
@@ -3215,12 +3223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,22): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // 0.cs(7,22): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         var y = F([..x]);
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(7, 22),
-                // 0.cs(8,25): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(7, 22),
+                // 0.cs(8,25): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         var z = F([1, ..x]);
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(8, 25));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(8, 25));
         }
 
         [Fact]
@@ -3337,6 +3345,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensions },
                 references: new[] { CSharpRef },
                 expectedOutput: "(System.Object[]) [one, null], 3, (System.Object[]) [one, null, three], 5, ");
+        }
+
+        [Fact]
+        public void Spread_String()
+        {
+            string source = """
+                class Program
+                {
+                    static char[] GetChars() => [.."abcd"];
+                    static void Main()
+                    {
+                        GetChars().Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: IncludeExpectedOutput("[a, b, c, d], "));
+            verifier.VerifyIL("Program.GetChars", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                char[] V_1,
+                                System.CharEnumerator V_2,
+                                char V_3)
+                  IL_0000:  ldstr      "abcd"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  stloc.0
+                  IL_0007:  dup
+                  IL_0008:  callvirt   "int string.Length.get"
+                  IL_000d:  newarr     "char"
+                  IL_0012:  stloc.1
+                  IL_0013:  callvirt   "System.CharEnumerator string.GetEnumerator()"
+                  IL_0018:  stloc.2
+                  .try
+                  {
+                    IL_0019:  br.s       IL_002a
+                    IL_001b:  ldloc.2
+                    IL_001c:  callvirt   "char System.CharEnumerator.Current.get"
+                    IL_0021:  stloc.3
+                    IL_0022:  ldloc.1
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldloc.3
+                    IL_0025:  stelem.i2
+                    IL_0026:  ldloc.0
+                    IL_0027:  ldc.i4.1
+                    IL_0028:  add
+                    IL_0029:  stloc.0
+                    IL_002a:  ldloc.2
+                    IL_002b:  callvirt   "bool System.CharEnumerator.MoveNext()"
+                    IL_0030:  brtrue.s   IL_001b
+                    IL_0032:  leave.s    IL_003e
+                  }
+                  finally
+                  {
+                    IL_0034:  ldloc.2
+                    IL_0035:  brfalse.s  IL_003d
+                    IL_0037:  ldloc.2
+                    IL_0038:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003d:  endfinally
+                  }
+                  IL_003e:  ldloc.1
+                  IL_003f:  ret
+                }
+                """);
         }
 
         [CombinatorialData]
@@ -4855,9 +4929,9 @@ static class Program
                 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,9): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (3,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 // s = [.. new object()];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
         }
 
         [Fact]
@@ -6858,9 +6932,47 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,25): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,25): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(6, 25));
+        }
+
+        [Fact]
+        public void SpreadElement_13()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [..null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0186: Use of null is not valid in this context
+                //         int[] x = [..null];
+                Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(5, 22));
+        }
+
+        [Fact]
+        public void SpreadElement_14()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [..Main];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
+                //         int[] x = [..Main];
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(5, 22));
         }
 
         [Fact]
@@ -7960,7 +8072,7 @@ static class Program
 
         [CombinatorialData]
         [Theory]
-        public void SynthesizedReadOnlyArray([CombinatorialValues("IEnumerable<object>", "IReadOnlyCollection<object>", "IReadOnlyList<object>")] string targetType)
+        public void SynthesizedReadOnlyArray([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
         {
             string source = $$"""
                 using System;
@@ -7971,34 +8083,56 @@ static class Program
                 {
                     static void Main()
                     {
-                        Report([1, 2, null]);
+                        Report<int>([], 2);
+                        Report<object>([1, 2, null], (object)2);
                     }
-                    static void Report({{targetType}} x)
+                    static void Report<T>({{targetType}} x, T value)
                     {
+                        int length = ((IReadOnlyCollection<T>)x).Count;
+                        T[] a;
                         Write("IEnumerable.GetEnumerator(): ");
                         ((IEnumerable)x).Report(includeType: true);
                         WriteLine();
-                        Write("IEnumerable<object>.GetEnumerator(): ");
-                        ((IEnumerable<object>)x).Report(includeType: true);
-                        WriteLine();
-                        WriteLine("IReadOnlyCollection<object>.Count: {0}", ((IReadOnlyCollection<object>)x).Count);
-                        WriteLine("IReadOnlyList<object>.this[1]: {0}", ((IReadOnlyList<object>)x)[1]);
-                        WriteLine("ICollection<object>.Count: {0}", ((ICollection<object>)x).Count);
-                        WriteLine("ICollection<object>.IsReadOnly: {0}", ((ICollection<object>)x).IsReadOnly);
-                        WriteLine("ICollection<object>.Add(-1): {0}", Invoke(() => ((ICollection<object>)x).Add(-1)));
-                        WriteLine("ICollection<object>.Clear(): {0}", Invoke(() => ((ICollection<object>)x).Clear()));
-                        WriteLine("ICollection<object>.Contains(2): {0}", ((ICollection<object>)x).Contains(2));
-                        Write("ICollection<object>.CopyTo(..., 0): ");
-                        object[] a = new object[3];
-                        ((ICollection<object>)x).CopyTo(a, 0);
+                        WriteLine("ICollection.Count: {0}", ((ICollection)x).Count);
+                        WriteLine("ICollection.IsSynchronized: {0}", ((ICollection)x).IsSynchronized);
+                        WriteLine("ICollection.SyncRoot == (object)x: {0}", ((ICollection)x).SyncRoot == (object)x);
+                        Write("ICollection.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection)x).CopyTo(a, 0);
                         a.Report(includeType: true);
                         WriteLine();
-                        WriteLine("ICollection<object>.Remove(2): {0}", Invoke(() => ((ICollection<object>)x).Remove(2)));
-                        WriteLine("IList<object>.this[1].get: {0}", ((IList<object>)x)[1]);
-                        WriteLine("IList<object>.this[1].set: {0}", Invoke(() => ((IList<object>)x)[1] = -1));
-                        WriteLine("IList<object>.IndexOf(2): {0}", ((IList<object>)x).IndexOf(2));
-                        WriteLine("IList<object>.Insert(1, -1): {0}", Invoke(() => ((IList<object>)x).Insert(1, -1)));
-                        WriteLine("IList<object>.RemoveAt(1): {0}", Invoke(() => ((IList<object>)x).RemoveAt(1)));
+                        WriteLine("IList.IsFixedSize: {0}", ((IList)x).IsFixedSize);
+                        WriteLine("IList.IsReadOnly: {0}", ((IList)x).IsReadOnly);
+                        if (length > 1) WriteLine("IList.this[1].get: {0}", ((IList)x)[1]);
+                        if (length > 1) WriteLine("IList.this[1].set: {0}", Invoke(() => ((IList)x)[1] = value));
+                        WriteLine("IList.Add(value): {0}", Invoke(() => ((IList)x).Add(value)));
+                        WriteLine("IList.Clear(): {0}", Invoke(() => ((IList)x).Clear()));
+                        WriteLine("IList.Contains(value): {0}", ((IList)x).Contains(value));
+                        WriteLine("IList.IndexOf(value): {0}", ((IList)x).IndexOf(value));
+                        WriteLine("IList.Insert(0, value): {0}", Invoke(() => ((IList)x).Insert(0, value)));
+                        WriteLine("IList.Remove(value): {0}", Invoke(() => ((IList)x).Remove(value)));
+                        if (length > 1) WriteLine("IList.RemoveAt(1): {0}", Invoke(() => ((IList)x).RemoveAt(1)));
+                        Write("IEnumerable<T>.GetEnumerator(): ");
+                        ((IEnumerable<T>)x).Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IReadOnlyCollection<T>.Count: {0}", ((IReadOnlyCollection<T>)x).Count);
+                        if (length > 1) WriteLine("IReadOnlyList<T>.this[1]: {0}", ((IReadOnlyList<T>)x)[1]);
+                        WriteLine("ICollection<T>.Count: {0}", ((ICollection<T>)x).Count);
+                        WriteLine("ICollection<T>.IsReadOnly: {0}", ((ICollection<T>)x).IsReadOnly);
+                        WriteLine("ICollection<T>.Add(value): {0}", Invoke(() => ((ICollection<T>)x).Add(value)));
+                        WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => ((ICollection<T>)x).Clear()));
+                        WriteLine("ICollection<T>.Contains(value): {0}", ((ICollection<T>)x).Contains(value));
+                        Write("ICollection<T>.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection<T>)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("ICollection<T>.Remove(value): {0}", Invoke(() => ((ICollection<T>)x).Remove(value)));
+                        if (length > 1) WriteLine("IList<T>.this[1].get: {0}", ((IList<T>)x)[1]);
+                        if (length > 1) WriteLine("IList<T>.this[1].set: {0}", Invoke(() => ((IList<T>)x)[1] = value));
+                        WriteLine("IList<T>.IndexOf(value): {0}", ((IList<T>)x).IndexOf(value));
+                        WriteLine("IList<T>.Insert(0, value): {0}", Invoke(() => ((IList<T>)x).Insert(0, value)));
+                        if (length > 1) WriteLine("IList<T>.RemoveAt(1): {0}", Invoke(() => ((IList<T>)x).RemoveAt(1)));
                     }
                     static string Invoke(Action a)
                     {
@@ -8023,22 +8157,61 @@ static class Program
                     Assert.Equal("<>z__ReadOnlyArray`1", synthesizedType.MetadataName);
                 },
                 expectedOutput: """
+                    IEnumerable.GetEnumerator(): (System.Int32[]) [], 
+                    ICollection.Count: 0
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: True
+                    ICollection.CopyTo(..., 0): (System.Int32[]) [], 
+                    IList.IsFixedSize: True
+                    IList.IsReadOnly: False
+                    IList.Add(value): System.NotSupportedException
+                    IList.Clear(): completed
+                    IList.Contains(value): False
+                    IList.IndexOf(value): -1
+                    IList.Insert(0, value): System.NotSupportedException
+                    IList.Remove(value): System.NotSupportedException
+                    IEnumerable<T>.GetEnumerator(): (System.Int32[]) [], 
+                    IReadOnlyCollection<T>.Count: 0
+                    ICollection<T>.Count: 0
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(value): False
+                    ICollection<T>.CopyTo(..., 0): (System.Int32[]) [], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IList<T>.IndexOf(value): -1
+                    IList<T>.Insert(0, value): System.NotSupportedException
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
-                    IEnumerable<object>.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
-                    IReadOnlyCollection<object>.Count: 3
-                    IReadOnlyList<object>.this[1]: 2
-                    ICollection<object>.Count: 3
-                    ICollection<object>.IsReadOnly: True
-                    ICollection<object>.Add(-1): System.NotSupportedException
-                    ICollection<object>.Clear(): System.NotSupportedException
-                    ICollection<object>.Contains(2): True
-                    ICollection<object>.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
-                    ICollection<object>.Remove(2): System.NotSupportedException
-                    IList<object>.this[1].get: 2
-                    IList<object>.this[1].set: System.NotSupportedException
-                    IList<object>.IndexOf(2): 1
-                    IList<object>.Insert(1, -1): System.NotSupportedException
-                    IList<object>.RemoveAt(1): System.NotSupportedException
+                    ICollection.Count: 3
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: True
+                    ICollection.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
+                    IList.IsFixedSize: True
+                    IList.IsReadOnly: True
+                    IList.this[1].get: 2
+                    IList.this[1].set: System.NotSupportedException
+                    IList.Add(value): System.NotSupportedException
+                    IList.Clear(): System.NotSupportedException
+                    IList.Contains(value): True
+                    IList.IndexOf(value): 1
+                    IList.Insert(0, value): System.NotSupportedException
+                    IList.Remove(value): System.NotSupportedException
+                    IList.RemoveAt(1): System.NotSupportedException
+                    IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyArray<System.Object>) [1, 2, null], 
+                    IReadOnlyCollection<T>.Count: 3
+                    IReadOnlyList<T>.this[1]: 2
+                    ICollection<T>.Count: 3
+                    ICollection<T>.IsReadOnly: True
+                    ICollection<T>.Add(value): System.NotSupportedException
+                    ICollection<T>.Clear(): System.NotSupportedException
+                    ICollection<T>.Contains(value): True
+                    ICollection<T>.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
+                    ICollection<T>.Remove(value): System.NotSupportedException
+                    IList<T>.this[1].get: 2
+                    IList<T>.this[1].set: System.NotSupportedException
+                    IList<T>.IndexOf(value): 1
+                    IList<T>.Insert(0, value): System.NotSupportedException
+                    IList<T>.RemoveAt(1): System.NotSupportedException
                     """);
 
             string expectedNotSupportedIL = """
@@ -8082,6 +8255,101 @@ static class Program
                   IL_000b:  ret
                 }
                 """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.ICollection.get_Count()", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldlen
+                  IL_0007:  conv.i4
+                  IL_0008:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.ICollection.get_IsSynchronized()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.ICollection.get_SyncRoot()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.ICollection.CopyTo(System.Array, int)", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldarg.2
+                  IL_0008:  callvirt   "void System.Collections.ICollection.CopyTo(System.Array, int)"
+                  IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.get_Item(int)", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldelem     "T"
+                  IL_000c:  box        "T"
+                  IL_0011:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.set_Item(int, object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.get_IsFixedSize()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.get_IsReadOnly()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.Add(object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.Clear()", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.Contains(object)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "bool System.Collections.IList.Contains(object)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.IndexOf(object)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "T[] <>z__ReadOnlyArray<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "int System.Collections.IList.IndexOf(object)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.Insert(int, object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.Remove(object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.IList.RemoveAt(int)", expectedNotSupportedIL);
             verifier.VerifyIL("<>z__ReadOnlyArray<T>.System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", """
                 {
                   // Code size        9 (0x9)
@@ -8201,9 +8469,29 @@ static class Program
                     static void Report<T>({{targetType}} x)
                     {
                         int length = ((IReadOnlyCollection<T>)x).Count;
+                        T[] a;
                         Write("IEnumerable.GetEnumerator(): ");
                         ((IEnumerable)x).Report(includeType: true);
                         WriteLine();
+                        WriteLine("ICollection.Count: {0}", ((ICollection)x).Count);
+                        WriteLine("ICollection.IsSynchronized: {0}", ((ICollection)x).IsSynchronized);
+                        WriteLine("ICollection.SyncRoot == (object)x: {0}", ((ICollection)x).SyncRoot == (object)x);
+                        Write("ICollection.CopyTo(..., 0): ");
+                        a = new T[length];
+                        ((ICollection)x).CopyTo(a, 0);
+                        a.Report(includeType: true);
+                        WriteLine();
+                        WriteLine("IList.IsFixedSize: {0}", ((IList)x).IsFixedSize);
+                        WriteLine("IList.IsReadOnly: {0}", ((IList)x).IsReadOnly);
+                        if (length > 1) WriteLine("IList.this[1].get: {0}", ((IList)x)[1]);
+                        if (length > 1) WriteLine("IList.this[1].set: {0}", Invoke(() => ((IList)x)[1] = default));
+                        WriteLine("IList.Add(default): {0}", Invoke(() => ((IList)x).Add(default)));
+                        WriteLine("IList.Clear(): {0}", Invoke(() => ((IList)x).Clear()));
+                        WriteLine("IList.Contains(default): {0}", ((IList)x).Contains(default));
+                        WriteLine("IList.IndexOf(default): {0}", ((IList)x).IndexOf(default));
+                        WriteLine("IList.Insert(0, default): {0}", Invoke(() => ((IList)x).Insert(0, default)));
+                        WriteLine("IList.Remove(default): {0}", Invoke(() => ((IList)x).Remove(default)));
+                        if (length > 1) WriteLine("IList.RemoveAt(1): {0}", Invoke(() => ((IList)x).RemoveAt(1)));
                         Write("IEnumerable<T>.GetEnumerator(): ");
                         ((IEnumerable<T>)x).Report(includeType: true);
                         WriteLine();
@@ -8215,7 +8503,7 @@ static class Program
                         WriteLine("ICollection<T>.Clear(): {0}", Invoke(() => ((ICollection<T>)x).Clear()));
                         WriteLine("ICollection<T>.Contains(default): {0}", ((ICollection<T>)x).Contains(default));
                         Write("ICollection<T>.CopyTo(..., 0): ");
-                        T[] a = new T[length];
+                        a = new T[length];
                         ((ICollection<T>)x).CopyTo(a, 0);
                         a.Report(includeType: true);
                         WriteLine();
@@ -8244,6 +8532,18 @@ static class Program
                 new[] { source, s_collectionExtensions },
                 expectedOutput: """
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyList<System.Int32>) [], 
+                    ICollection.Count: 0
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: True
+                    ICollection.CopyTo(..., 0): (System.Int32[]) [], 
+                    IList.IsFixedSize: True
+                    IList.IsReadOnly: True
+                    IList.Add(default): System.NotSupportedException
+                    IList.Clear(): System.NotSupportedException
+                    IList.Contains(default): False
+                    IList.IndexOf(default): -1
+                    IList.Insert(0, default): System.NotSupportedException
+                    IList.Remove(default): System.NotSupportedException
                     IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyList<System.Int32>) [], 
                     IReadOnlyCollection<T>.Count: 0
                     ICollection<T>.Count: 0
@@ -8256,6 +8556,21 @@ static class Program
                     IList<T>.IndexOf(default): -1
                     IList<T>.Insert(0, default): System.NotSupportedException
                     IEnumerable.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
+                    ICollection.Count: 3
+                    ICollection.IsSynchronized: False
+                    ICollection.SyncRoot == (object)x: True
+                    ICollection.CopyTo(..., 0): (System.Object[]) [1, 2, null], 
+                    IList.IsFixedSize: True
+                    IList.IsReadOnly: True
+                    IList.this[1].get: 2
+                    IList.this[1].set: System.NotSupportedException
+                    IList.Add(default): System.NotSupportedException
+                    IList.Clear(): System.NotSupportedException
+                    IList.Contains(default): True
+                    IList.IndexOf(default): 2
+                    IList.Insert(0, default): System.NotSupportedException
+                    IList.Remove(default): System.NotSupportedException
+                    IList.RemoveAt(1): System.NotSupportedException
                     IEnumerable<T>.GetEnumerator(): (<>z__ReadOnlyList<System.Object>) [1, 2, null], 
                     IReadOnlyCollection<T>.Count: 3
                     IReadOnlyList<T>.this[1]: 2
@@ -8314,6 +8629,100 @@ static class Program
                   IL_000b:  ret
                 }
                 """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.ICollection.get_Count()", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  callvirt   "int System.Collections.Generic.List<T>.Count.get"
+                  IL_000b:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.ICollection.get_IsSynchronized()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.ICollection.get_SyncRoot()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.ICollection.CopyTo(System.Array, int)", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  ldarg.2
+                  IL_0008:  callvirt   "void System.Collections.ICollection.CopyTo(System.Array, int)"
+                  IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.get_Item(int)", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "T System.Collections.Generic.List<T>.this[int].get"
+                  IL_000c:  box        "T"
+                  IL_0011:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.set_Item(int, object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.get_IsFixedSize()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.get_IsReadOnly()", """
+                {
+                  // Code size        2 (0x2)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.Add(object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.Clear()", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.Contains(object)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "bool System.Collections.IList.Contains(object)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.IndexOf(object)", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "System.Collections.Generic.List<T> <>z__ReadOnlyList<T>._items"
+                  IL_0006:  ldarg.1
+                  IL_0007:  callvirt   "int System.Collections.IList.IndexOf(object)"
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.Insert(int, object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.Remove(object)", expectedNotSupportedIL);
+            verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.IList.RemoveAt(int)", expectedNotSupportedIL);
             verifier.VerifyIL("<>z__ReadOnlyList<T>.System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", """
                 {
                   // Code size       12 (0xc)
@@ -8465,7 +8874,10 @@ static class Program
                 using System.Collections;
                 using System.Collections.Generic;
                 internal sealed class ReadOnlyArray<T> :
+                    IEnumerable,
                     IEnumerable<T>,
+                    ICollection,
+                    IList,
                     IReadOnlyCollection<T>,
                     IReadOnlyList<T>,
                     ICollection<T>,
@@ -8475,6 +8887,24 @@ static class Program
                     public ReadOnlyArray(T[] items) { _items = items; }
                     IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
                     IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException();
+                    int ICollection.Count => _items.Length;
+                    bool ICollection.IsSynchronized => false;
+                    object ICollection.SyncRoot => this;
+                    void ICollection.CopyTo(Array array, int arrayIndex) { }
+                    object IList.this[int index]
+                    {
+                        get => _items[index];
+                        set => throw new NotSupportedException();
+                    }
+                    bool IList.IsFixedSize => true;
+                    bool IList.IsReadOnly => true;
+                    int IList.Add(object item) => throw new NotSupportedException();
+                    void IList.Clear() => throw new NotSupportedException();
+                    bool IList.Contains(object item) => throw new NotSupportedException();
+                    int IList.IndexOf(object o) => Array.IndexOf(_items, o);
+                    void IList.Insert(int index, object item) => throw new NotSupportedException();
+                    void IList.Remove(object item) => throw new NotSupportedException();
+                    void IList.RemoveAt(int index) => throw new NotSupportedException();
                     int IReadOnlyCollection<T>.Count => _items.Length;
                     T IReadOnlyList<T>.this[int index] => _items[index];
                     int ICollection<T>.Count => _items.Length;
@@ -8521,6 +8951,11 @@ static class Program
 
             static void compareTypes(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType)
             {
+                compareMembers(sourceType, synthesizedType, "System.Collections.ICollection.Count");
+                compareMembers(sourceType, synthesizedType, "System.Collections.IList.this[]");
+                compareMembers(sourceType, synthesizedType, "System.Collections.IList.get_Item");
+                compareMembers(sourceType, synthesizedType, "System.Collections.IList.set_Item");
+                compareMembers(sourceType, synthesizedType, "System.Collections.IList.Contains");
                 compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.IsReadOnly");
                 compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.get_IsReadOnly");
                 compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.Contains");
@@ -8597,8 +9032,35 @@ static class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments(missingMemberTypeName, missingMemberName).WithLocation(7, 30));
         }
 
+        [Theory]
+        [InlineData((int)WellKnownType.System_Collections_ICollection, "System.Collections.ICollection")]
+        [InlineData((int)WellKnownType.System_Collections_IList, "System.Collections.IList")]
+        public void SynthesizedReadOnlyList_MissingWellKnownTypes(int missingType, string missingTypeName)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0];
+                        IEnumerable<int> y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing((WellKnownType)missingType);
+            comp.VerifyEmitDiagnostics(
+                // (6,30): error CS0518: Predefined type 'System.Collections.IEnumerable' is not defined or imported
+                //         IEnumerable<int> x = [0];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[0]").WithArguments(missingTypeName).WithLocation(6, 30),
+                // (7,30): error CS0518: Predefined type 'System.Collections.IEnumerable' is not defined or imported
+                //         IEnumerable<int> y = [..x];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[..x]").WithArguments(missingTypeName).WithLocation(7, 30));
+        }
+
         [Fact]
-        public void SynthesizedReadOnlyList_MissingWellKnownTypes()
+        public void SynthesizedReadOnlyList_MissingWellKnownTypes_List()
         {
             string source = """
                 using System.Collections.Generic;
@@ -8641,6 +9103,20 @@ static class Program
         }
 
         [Theory]
+        [InlineData((int)WellKnownMember.System_Collections_ICollection__Count, "System.Collections.ICollection", "Count")]
+        [InlineData((int)WellKnownMember.System_Collections_ICollection__IsSynchronized, "System.Collections.ICollection", "IsSynchronized")]
+        [InlineData((int)WellKnownMember.System_Collections_ICollection__SyncRoot, "System.Collections.ICollection", "SyncRoot")]
+        [InlineData((int)WellKnownMember.System_Collections_ICollection__CopyTo, "System.Collections.ICollection", "CopyTo")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__get_Item, "System.Collections.IList", "get_Item")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__IsFixedSize, "System.Collections.IList", "IsFixedSize")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__IsReadOnly, "System.Collections.IList", "IsReadOnly")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__Add, "System.Collections.IList", "Add")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__Clear, "System.Collections.IList", "Clear")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__Contains, "System.Collections.IList", "Contains")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__IndexOf, "System.Collections.IList", "IndexOf")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__Insert, "System.Collections.IList", "Insert")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__Remove, "System.Collections.IList", "Remove")]
+        [InlineData((int)WellKnownMember.System_Collections_IList__RemoveAt, "System.Collections.IList", "RemoveAt")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count, "System.Collections.Generic.IReadOnlyCollection`1", "Count")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item, "System.Collections.Generic.IReadOnlyList`1", "get_Item")]
         [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Count, "System.Collections.Generic.ICollection`1", "Count")]
@@ -9398,7 +9874,7 @@ partial class Program
   IL_0002:  initobj    "<>y__InlineArray2<MyCollection<int>?>"
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.0
-  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_000b:  call       "ref MyCollection<int>? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
   IL_0010:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
   IL_0015:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
   IL_001a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
@@ -9406,7 +9882,7 @@ partial class Program
   IL_0024:  stobj      "MyCollection<int>?"
   IL_0029:  ldloca.s   V_0
   IL_002b:  ldc.i4.1
-  IL_002c:  call       "InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_002c:  call       "ref MyCollection<int>? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(ref <>y__InlineArray2<MyCollection<int>?>, int)"
   IL_0031:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE4"
   IL_0036:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
   IL_003b:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
@@ -9414,7 +9890,7 @@ partial class Program
   IL_0045:  stobj      "MyCollection<int>?"
   IL_004a:  ldloca.s   V_0
   IL_004c:  ldc.i4.2
-  IL_004d:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(in <>y__InlineArray2<MyCollection<int>?>, int)"
+  IL_004d:  call       "System.ReadOnlySpan<MyCollection<int>?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<MyCollection<int>?>, MyCollection<int>?>(in <>y__InlineArray2<MyCollection<int>?>, int)"
   IL_0052:  call       "MyCollection<MyCollection<int>?> MyCollectionBuilder.Create<MyCollection<int>?>(System.ReadOnlySpan<MyCollection<int>?>)"
   IL_0057:  ret
 }
@@ -9879,23 +10355,23 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray3<object>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0010:  ldarg.0
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_001f:  ldarg.1
                   IL_0020:  stind.ref
                   IL_0021:  ldloca.s   V_0
                   IL_0023:  ldc.i4.2
-                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_0024:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0029:  ldnull
                   IL_002a:  stind.ref
                   IL_002b:  ldloca.s   V_0
                   IL_002d:  ldc.i4.3
-                  IL_002e:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_002e:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                   IL_0033:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
                   IL_0038:  ret
                 }
@@ -10048,23 +10524,23 @@ partial class Program
                       IL_0002:  initobj    "<>y__InlineArray3<int?>"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
+                      IL_000b:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  newobj     "int?..ctor(int)"
                       IL_0016:  stobj      "int?"
                       IL_001b:  ldloca.s   V_0
                       IL_001d:  ldc.i4.1
-                      IL_001e:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
+                      IL_001e:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0023:  ldc.i4.2
                       IL_0024:  newobj     "int?..ctor(int)"
                       IL_0029:  stobj      "int?"
                       IL_002e:  ldloca.s   V_0
                       IL_0030:  ldc.i4.2
-                      IL_0031:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
+                      IL_0031:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0036:  initobj    "int?"
                       IL_003c:  ldloca.s   V_0
                       IL_003e:  ldc.i4.3
-                      IL_003f:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int?>, int?>(in <>y__InlineArray3<int?>, int)"
+                      IL_003f:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<int?>, int?>(in <>y__InlineArray3<int?>, int)"
                       IL_0044:  call       "MyCollection<int?> MyCollectionBuilder.Create<int?>(System.ReadOnlySpan<int?>)"
                       IL_0049:  ret
                     }
@@ -10345,25 +10821,25 @@ partial class Program
                     IL_0002:  initobj    "<>y__InlineArray3<object>"
                     IL_0008:  ldloca.s   V_1
                     IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                    IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                     IL_0010:  ldc.i4.1
                     IL_0011:  box        "int"
                     IL_0016:  stind.ref
                     IL_0017:  ldloca.s   V_1
                     IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                    IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                     IL_001f:  ldc.i4.2
                     IL_0020:  box        "int"
                     IL_0025:  stind.ref
                     IL_0026:  ldloca.s   V_1
                     IL_0028:  ldc.i4.2
-                    IL_0029:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                    IL_0029:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                     IL_002e:  ldc.i4.3
                     IL_002f:  box        "int"
                     IL_0034:  stind.ref
                     IL_0035:  ldloca.s   V_1
                     IL_0037:  ldc.i4.3
-                    IL_0038:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                    IL_0038:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                     IL_003d:  call       "MyCollection<object> MyCollectionBuilder.Create<object>({{qualifier}}System.ReadOnlySpan<object>)"
                     IL_0042:  stloc.0
                     IL_0043:  ldloca.s   V_0
@@ -14496,13 +14972,13 @@ partial class Program
                     IL_007c:  ldarg.0
                     IL_007d:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0082:  ldc.i4.0
-                    IL_0083:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                    IL_0083:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0088:  ldloc.2
                     IL_0089:  stind.i4
                     IL_008a:  ldarg.0
                     IL_008b:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0090:  ldc.i4.1
-                    IL_0091:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                    IL_0091:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0096:  ldc.i4.2
                     IL_0097:  stind.i4
                     IL_0098:  ldc.i4.3
@@ -14543,13 +15019,13 @@ partial class Program
                     IL_00f4:  ldarg.0
                     IL_00f5:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_00fa:  ldc.i4.2
-                    IL_00fb:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                    IL_00fb:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0100:  ldloc.3
                     IL_0101:  stind.i4
                     IL_0102:  ldarg.0
                     IL_0103:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0108:  ldc.i4.3
-                    IL_0109:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
+                    IL_0109:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
                     IL_010e:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
                     IL_0113:  stloc.1
                     IL_0114:  leave.s    IL_012f
@@ -16064,22 +16540,22 @@ partial class Program
                           IL_0002:  initobj    "<>y__InlineArray3<T>"
                           IL_0008:  ldloca.s   V_0
                           IL_000a:  ldc.i4.0
-                          IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                           IL_0010:  ldarg.0
                           IL_0011:  stobj      "T"
                           IL_0016:  ldloca.s   V_0
                           IL_0018:  ldc.i4.1
-                          IL_0019:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                           IL_001e:  ldarg.1
                           IL_001f:  stobj      "T"
                           IL_0024:  ldloca.s   V_0
                           IL_0026:  ldc.i4.2
-                          IL_0027:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                          IL_0027:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                           IL_002c:  ldarg.2
                           IL_002d:  stobj      "T"
                           IL_0032:  ldloca.s   V_0
                           IL_0034:  ldc.i4.3
-                          IL_0035:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<T>, T>(in <>y__InlineArray3<T>, int)"
+                          IL_0035:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<T>, T>(in <>y__InlineArray3<T>, int)"
                           IL_003a:  call       "MyCollection<T> MyCollectionBuilder.Create<T>(scoped System.ReadOnlySpan<T>)"
                           IL_003f:  ret
                         }
@@ -16163,7 +16639,7 @@ partial class Program
                     }
                 }
                 """;
-            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
             comp.VerifyEmitDiagnostics(
                 // 0.cs(12,60): error CS9203: A collection expression of type 'MyCollection<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static MyCollection<T> ThreeItems<T>(T x, T y, T z) => [x, y, z];
@@ -16221,37 +16697,37 @@ partial class Program
                       IL_0002:  initobj    "<>y__InlineArray1<object>"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  box        "int"
                       IL_0016:  stind.ref
                       IL_0017:  ldloca.s   V_0
                       IL_0019:  ldc.i4.1
-                      IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_001f:  call       "void Program.F1<object>(System.Span<object>)"
                       IL_0024:  ldloca.s   V_1
                       IL_0026:  initobj    "<>y__InlineArray1<int?>"
                       IL_002c:  ldloca.s   V_1
                       IL_002e:  ldc.i4.0
-                      IL_002f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_002f:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                       IL_0034:  ldc.i4.2
                       IL_0035:  newobj     "int?..ctor(int)"
                       IL_003a:  stobj      "int?"
                       IL_003f:  ldloca.s   V_1
                       IL_0041:  ldc.i4.1
-                      IL_0042:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                      IL_0042:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                       IL_0047:  call       "void Program.F2<int?>(System.ReadOnlySpan<int?>)"
                       IL_004c:  ldloca.s   V_2
                       IL_004e:  initobj    "<>y__InlineArray1<int?>"
                       IL_0054:  ldloca.s   V_2
                       IL_0056:  ldc.i4.0
-                      IL_0057:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_0057:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                       IL_005c:  ldc.i4.3
                       IL_005d:  newobj     "int?..ctor(int)"
                       IL_0062:  stobj      "int?"
                       IL_0067:  ldloca.s   V_2
                       IL_0069:  ldc.i4.1
-                      IL_006a:  call       "InlineArrayAsSpan<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                      IL_006a:  call       "System.Span<int?> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                       IL_006f:  stloc.s    V_4
                       IL_0071:  ldloca.s   V_4
                       IL_0073:  call       "void Program.F3<int?>(in System.Span<int?>)"
@@ -16259,13 +16735,13 @@ partial class Program
                       IL_007a:  initobj    "<>y__InlineArray1<object>"
                       IL_0080:  ldloca.s   V_3
                       IL_0082:  ldc.i4.0
-                      IL_0083:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0083:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0088:  ldc.i4.4
                       IL_0089:  box        "int"
                       IL_008e:  stind.ref
                       IL_008f:  ldloca.s   V_3
                       IL_0091:  ldc.i4.1
-                      IL_0092:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_0092:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_0097:  stloc.s    V_5
                       IL_0099:  ldloca.s   V_5
                       IL_009b:  call       "void Program.F4<object>(in System.ReadOnlySpan<object>)"
@@ -16357,65 +16833,65 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[1], [2], [3], [4], "));
             verifier.VerifyIL("Program.Main", """
                 {
-                    // Code size      149 (0x95)
-                    .maxstack  2
-                    .locals init (<>y__InlineArray1<object> V_0,
-                                <>y__InlineArray1<object> V_1,
-                                <>y__InlineArray1<object> V_2,
-                                <>y__InlineArray1<object> V_3)
-                    IL_0000:  ldloca.s   V_0
-                    IL_0002:  initobj    "<>y__InlineArray1<object>"
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_0010:  ldc.i4.1
-                    IL_0011:  box        "int"
-                    IL_0016:  stind.ref
-                    IL_0017:  ldloca.s   V_0
-                    IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_001f:  call       "S Program.ReturnsStruct<object>(System.Span<object>)"
-                    IL_0024:  pop
-                    IL_0025:  ldloca.s   V_1
-                    IL_0027:  initobj    "<>y__InlineArray1<object>"
-                    IL_002d:  ldloca.s   V_1
-                    IL_002f:  ldc.i4.0
-                    IL_0030:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_0035:  ldc.i4.2
-                    IL_0036:  box        "int"
-                    IL_003b:  stind.ref
-                    IL_003c:  ldloca.s   V_1
-                    IL_003e:  ldc.i4.1
-                    IL_003f:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_0044:  call       "R Program.ReturnsRefStruct<object>(System.Span<object>)"
-                    IL_0049:  pop
-                    IL_004a:  ldloca.s   V_2
-                    IL_004c:  initobj    "<>y__InlineArray1<object>"
-                    IL_0052:  ldloca.s   V_2
-                    IL_0054:  ldc.i4.0
-                    IL_0055:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_005a:  ldc.i4.3
-                    IL_005b:  box        "int"
-                    IL_0060:  stind.ref
-                    IL_0061:  ldloca.s   V_2
-                    IL_0063:  ldc.i4.1
-                    IL_0064:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_0069:  call       "ref int Program.ReturnsRef<object>(System.Span<object>)"
-                    IL_006e:  pop
-                    IL_006f:  ldloca.s   V_3
-                    IL_0071:  initobj    "<>y__InlineArray1<object>"
-                    IL_0077:  ldloca.s   V_3
-                    IL_0079:  ldc.i4.0
-                    IL_007a:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_007f:  ldc.i4.4
-                    IL_0080:  box        "int"
-                    IL_0085:  stind.ref
-                    IL_0086:  ldloca.s   V_3
-                    IL_0088:  ldc.i4.1
-                    IL_0089:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_008e:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(System.Span<object>)"
-                    IL_0093:  pop
-                    IL_0094:  ret
+                  // Code size      149 (0x95)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray1<object> V_0,
+                              <>y__InlineArray1<object> V_1,
+                              <>y__InlineArray1<object> V_2,
+                              <>y__InlineArray1<object> V_3)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<object>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stind.ref
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_001f:  call       "S Program.ReturnsStruct<object>(System.Span<object>)"
+                  IL_0024:  pop
+                  IL_0025:  ldloca.s   V_1
+                  IL_0027:  initobj    "<>y__InlineArray1<object>"
+                  IL_002d:  ldloca.s   V_1
+                  IL_002f:  ldc.i4.0
+                  IL_0030:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0035:  ldc.i4.2
+                  IL_0036:  box        "int"
+                  IL_003b:  stind.ref
+                  IL_003c:  ldloca.s   V_1
+                  IL_003e:  ldc.i4.1
+                  IL_003f:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0044:  call       "R Program.ReturnsRefStruct<object>(System.Span<object>)"
+                  IL_0049:  pop
+                  IL_004a:  ldloca.s   V_2
+                  IL_004c:  initobj    "<>y__InlineArray1<object>"
+                  IL_0052:  ldloca.s   V_2
+                  IL_0054:  ldc.i4.0
+                  IL_0055:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_005a:  ldc.i4.3
+                  IL_005b:  box        "int"
+                  IL_0060:  stind.ref
+                  IL_0061:  ldloca.s   V_2
+                  IL_0063:  ldc.i4.1
+                  IL_0064:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0069:  call       "ref int Program.ReturnsRef<object>(System.Span<object>)"
+                  IL_006e:  pop
+                  IL_006f:  ldloca.s   V_3
+                  IL_0071:  initobj    "<>y__InlineArray1<object>"
+                  IL_0077:  ldloca.s   V_3
+                  IL_0079:  ldc.i4.0
+                  IL_007a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_007f:  ldc.i4.4
+                  IL_0080:  box        "int"
+                  IL_0085:  stind.ref
+                  IL_0086:  ldloca.s   V_3
+                  IL_0088:  ldc.i4.1
+                  IL_0089:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_008e:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(System.Span<object>)"
+                  IL_0093:  pop
+                  IL_0094:  ret
                 }
                 """);
         }
@@ -16457,39 +16933,39 @@ partial class Program
                     IL_0002:  initobj    "<>y__InlineArray1<object>"
                     IL_0008:  ldloca.s   V_0
                     IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0010:  ldc.i4.2
                     IL_0011:  box        "int"
                     IL_0016:  stind.ref
                     IL_0017:  ldloca.s   V_0
                     IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_001f:  call       "R Program.ReturnsRefStruct<object>(scoped System.Span<object>)"
                     IL_0024:  pop
                     IL_0025:  ldloca.s   V_1
                     IL_0027:  initobj    "<>y__InlineArray1<object>"
                     IL_002d:  ldloca.s   V_1
                     IL_002f:  ldc.i4.0
-                    IL_0030:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_0030:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0035:  ldc.i4.3
                     IL_0036:  box        "int"
                     IL_003b:  stind.ref
                     IL_003c:  ldloca.s   V_1
                     IL_003e:  ldc.i4.1
-                    IL_003f:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_003f:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0044:  call       "ref int Program.ReturnsRef<object>(scoped System.Span<object>)"
                     IL_0049:  pop
                     IL_004a:  ldloca.s   V_2
                     IL_004c:  initobj    "<>y__InlineArray1<object>"
                     IL_0052:  ldloca.s   V_2
                     IL_0054:  ldc.i4.0
-                    IL_0055:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_0055:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_005a:  ldc.i4.4
                     IL_005b:  box        "int"
                     IL_0060:  stind.ref
                     IL_0061:  ldloca.s   V_2
                     IL_0063:  ldc.i4.1
-                    IL_0064:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_0064:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0069:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(scoped System.Span<object>)"
                     IL_006e:  pop
                     IL_006f:  ret
@@ -16595,26 +17071,26 @@ partial class Program
                   IL_000c:  initobj    "<>y__InlineArray1<int?>"
                   IL_0012:  ldloca.s   V_3
                   IL_0014:  ldc.i4.0
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_0015:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_001a:  ldc.i4.1
                   IL_001b:  newobj     "int?..ctor(int)"
                   IL_0020:  stobj      "int?"
                   IL_0025:  ldloca.s   V_3
                   IL_0027:  ldc.i4.1
-                  IL_0028:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0028:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_002d:  call       "void S.M(System.ReadOnlySpan<int?>)"
                   IL_0032:  ldloca.s   V_0
                   IL_0034:  ldloca.s   V_4
                   IL_0036:  initobj    "<>y__InlineArray1<int?>"
                   IL_003c:  ldloca.s   V_4
                   IL_003e:  ldc.i4.0
-                  IL_003f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_003f:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_0044:  ldc.i4.2
                   IL_0045:  newobj     "int?..ctor(int)"
                   IL_004a:  stobj      "int?"
                   IL_004f:  ldloca.s   V_4
                   IL_0051:  ldc.i4.1
-                  IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0052:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_0057:  ldnull
                   IL_0058:  call       "void S.this[System.ReadOnlySpan<int?>].set"
                   IL_005d:  ldloca.s   V_1
@@ -16624,26 +17100,26 @@ partial class Program
                   IL_0069:  initobj    "<>y__InlineArray1<int?>"
                   IL_006f:  ldloca.s   V_5
                   IL_0071:  ldc.i4.0
-                  IL_0072:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_0072:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_0077:  ldc.i4.3
                   IL_0078:  newobj     "int?..ctor(int)"
                   IL_007d:  stobj      "int?"
                   IL_0082:  ldloca.s   V_5
                   IL_0084:  ldc.i4.1
-                  IL_0085:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0085:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_008a:  call       "void R1.M(System.ReadOnlySpan<int?>)"
                   IL_008f:  ldloca.s   V_1
                   IL_0091:  ldloca.s   V_6
                   IL_0093:  initobj    "<>y__InlineArray1<int?>"
                   IL_0099:  ldloca.s   V_6
                   IL_009b:  ldc.i4.0
-                  IL_009c:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_009c:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_00a1:  ldc.i4.4
                   IL_00a2:  newobj     "int?..ctor(int)"
                   IL_00a7:  stobj      "int?"
                   IL_00ac:  ldloca.s   V_6
                   IL_00ae:  ldc.i4.1
-                  IL_00af:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_00af:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_00b4:  ldnull
                   IL_00b5:  call       "void R1.this[System.ReadOnlySpan<int?>].set"
                   IL_00ba:  ldloca.s   V_2
@@ -16653,26 +17129,26 @@ partial class Program
                   IL_00c6:  initobj    "<>y__InlineArray1<int?>"
                   IL_00cc:  ldloca.s   V_7
                   IL_00ce:  ldc.i4.0
-                  IL_00cf:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_00cf:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_00d4:  ldc.i4.5
                   IL_00d5:  newobj     "int?..ctor(int)"
                   IL_00da:  stobj      "int?"
                   IL_00df:  ldloca.s   V_7
                   IL_00e1:  ldc.i4.1
-                  IL_00e2:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_00e2:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_00e7:  call       "void R2.M(scoped System.ReadOnlySpan<int?>)"
                   IL_00ec:  ldloca.s   V_2
                   IL_00ee:  ldloca.s   V_8
                   IL_00f0:  initobj    "<>y__InlineArray1<int?>"
                   IL_00f6:  ldloca.s   V_8
                   IL_00f8:  ldc.i4.0
-                  IL_00f9:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_00f9:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_00fe:  ldc.i4.6
                   IL_00ff:  newobj     "int?..ctor(int)"
                   IL_0104:  stobj      "int?"
                   IL_0109:  ldloca.s   V_8
                   IL_010b:  ldc.i4.1
-                  IL_010c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_010c:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_0111:  ldnull
                   IL_0112:  call       "void R2.this[scoped System.ReadOnlySpan<int?>].set"
                   IL_0117:  ret
@@ -16730,26 +17206,26 @@ partial class Program
                   IL_000c:  initobj    "<>y__InlineArray1<int?>"
                   IL_0012:  ldloca.s   V_2
                   IL_0014:  ldc.i4.0
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_0015:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_001a:  ldc.i4.3
                   IL_001b:  newobj     "int?..ctor(int)"
                   IL_0020:  stobj      "int?"
                   IL_0025:  ldloca.s   V_2
                   IL_0027:  ldc.i4.1
-                  IL_0028:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0028:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_002d:  call       "void R1.M(System.ReadOnlySpan<int?>)"
                   IL_0032:  ldloca.s   V_0
                   IL_0034:  ldloca.s   V_3
                   IL_0036:  initobj    "<>y__InlineArray1<int?>"
                   IL_003c:  ldloca.s   V_3
                   IL_003e:  ldc.i4.0
-                  IL_003f:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_003f:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_0044:  ldc.i4.4
                   IL_0045:  newobj     "int?..ctor(int)"
                   IL_004a:  stobj      "int?"
                   IL_004f:  ldloca.s   V_3
                   IL_0051:  ldc.i4.1
-                  IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0052:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_0057:  call       "object R1.this[System.ReadOnlySpan<int?>].get"
                   IL_005c:  pop
                   IL_005d:  ldloca.s   V_1
@@ -16759,26 +17235,26 @@ partial class Program
                   IL_0069:  initobj    "<>y__InlineArray1<int?>"
                   IL_006f:  ldloca.s   V_4
                   IL_0071:  ldc.i4.0
-                  IL_0072:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_0072:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_0077:  ldc.i4.5
                   IL_0078:  newobj     "int?..ctor(int)"
                   IL_007d:  stobj      "int?"
                   IL_0082:  ldloca.s   V_4
                   IL_0084:  ldc.i4.1
-                  IL_0085:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_0085:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_008a:  call       "readonly void R2.M(System.ReadOnlySpan<int?>)"
                   IL_008f:  ldloca.s   V_1
                   IL_0091:  ldloca.s   V_5
                   IL_0093:  initobj    "<>y__InlineArray1<int?>"
                   IL_0099:  ldloca.s   V_5
                   IL_009b:  ldc.i4.0
-                  IL_009c:  call       "InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
+                  IL_009c:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int?>, int?>(ref <>y__InlineArray1<int?>, int)"
                   IL_00a1:  ldc.i4.6
                   IL_00a2:  newobj     "int?..ctor(int)"
                   IL_00a7:  stobj      "int?"
                   IL_00ac:  ldloca.s   V_5
                   IL_00ae:  ldc.i4.1
-                  IL_00af:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
+                  IL_00af:  call       "System.ReadOnlySpan<int?> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int?>, int?>(in <>y__InlineArray1<int?>, int)"
                   IL_00b4:  call       "readonly object R2.this[System.ReadOnlySpan<int?>].get"
                   IL_00b9:  pop
                   IL_00ba:  ret
@@ -16818,31 +17294,31 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray1<int>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_000b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
                   IL_0010:  ldloca.s   V_1
                   IL_0012:  initobj    "<>y__InlineArray1<int>"
                   IL_0018:  ldloca.s   V_1
                   IL_001a:  ldc.i4.0
-                  IL_001b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_001b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
                   IL_0020:  ldc.i4.1
                   IL_0021:  stind.i4
                   IL_0022:  ldloca.s   V_1
                   IL_0024:  ldc.i4.1
-                  IL_0025:  call       "InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0025:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
                   IL_002a:  call       "int Program.F1<int>(System.Span<int>)"
                   IL_002f:  ldc.i4.2
                   IL_0030:  add
                   IL_0031:  stind.i4
                   IL_0032:  ldloca.s   V_0
                   IL_0034:  ldc.i4.1
-                  IL_0035:  call       "InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0035:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
                   IL_003a:  call       "int Program.F1<int>(System.Span<int>)"
                   IL_003f:  pop
                   IL_0040:  ldloca.s   V_2
                   IL_0042:  initobj    "<>y__InlineArray1<int>"
                   IL_0048:  ldloca.s   V_2
                   IL_004a:  ldc.i4.0
-                  IL_004b:  call       "InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_004b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
                   IL_0050:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE4"
                   IL_0055:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_005a:  call       "int Program.F2<int>(System.ReadOnlySpan<int>)"
@@ -16851,7 +17327,7 @@ partial class Program
                   IL_0061:  stind.i4
                   IL_0062:  ldloca.s   V_2
                   IL_0064:  ldc.i4.1
-                  IL_0065:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<int>, int>(in <>y__InlineArray1<int>, int)"
+                  IL_0065:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<int>, int>(in <>y__InlineArray1<int>, int)"
                   IL_006a:  call       "int Program.F2<int>(System.ReadOnlySpan<int>)"
                   IL_006f:  pop
                   IL_0070:  ret
@@ -16904,25 +17380,25 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray1<object>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_001f:  stloc.s    V_4
                   IL_0021:  ldloca.s   V_1
                   IL_0023:  initobj    "<>y__InlineArray1<object>"
                   IL_0029:  ldloca.s   V_1
                   IL_002b:  ldc.i4.0
-                  IL_002c:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_002c:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0031:  ldc.i4.2
                   IL_0032:  box        "int"
                   IL_0037:  stind.ref
                   IL_0038:  ldloca.s   V_1
                   IL_003a:  ldc.i4.1
-                  IL_003b:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_003b:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0040:  ldloc.s    V_4
                   IL_0042:  call       "System.Span<object> Program.F1<object>(System.Span<object>, scoped System.Span<object>)"
                   IL_0047:  pop
@@ -16930,25 +17406,25 @@ partial class Program
                   IL_004a:  initobj    "<>y__InlineArray1<object>"
                   IL_0050:  ldloca.s   V_2
                   IL_0052:  ldc.i4.0
-                  IL_0053:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0053:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0058:  ldc.i4.3
                   IL_0059:  box        "int"
                   IL_005e:  stind.ref
                   IL_005f:  ldloca.s   V_2
                   IL_0061:  ldc.i4.1
-                  IL_0062:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0062:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                   IL_0067:  stloc.s    V_5
                   IL_0069:  ldloca.s   V_3
                   IL_006b:  initobj    "<>y__InlineArray1<object>"
                   IL_0071:  ldloca.s   V_3
                   IL_0073:  ldc.i4.0
-                  IL_0074:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0074:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0079:  ldc.i4.4
                   IL_007a:  box        "int"
                   IL_007f:  stind.ref
                   IL_0080:  ldloca.s   V_3
                   IL_0082:  ldc.i4.1
-                  IL_0083:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0083:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                   IL_0088:  ldloc.s    V_5
                   IL_008a:  call       "System.ReadOnlySpan<object> Program.F2<object>(scoped System.ReadOnlySpan<object>, System.ReadOnlySpan<object>)"
                   IL_008f:  pop
@@ -17026,22 +17502,22 @@ partial class Program
                       IL_0003:  initobj    "<>y__InlineArray3<T>"
                       IL_0009:  ldloca.s   V_0
                       IL_000b:  ldc.i4.0
-                      IL_000c:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                      IL_000c:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                       IL_0011:  ldarg.1
                       IL_0012:  stobj      "T"
                       IL_0017:  ldloca.s   V_0
                       IL_0019:  ldc.i4.1
-                      IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                      IL_001a:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                       IL_001f:  ldarg.2
                       IL_0020:  stobj      "T"
                       IL_0025:  ldloca.s   V_0
                       IL_0027:  ldc.i4.2
-                      IL_0028:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                      IL_0028:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                       IL_002d:  ldarg.3
                       IL_002e:  stobj      "T"
                       IL_0033:  ldloca.s   V_0
                       IL_0035:  ldc.i4.3
-                      IL_0036:  call       "InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                      IL_0036:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                       IL_003b:  call       "R<T>..ctor(scoped System.Span<T>)"
                       IL_0040:  ret
                     }
@@ -17146,22 +17622,22 @@ partial class Program
                   IL_0018:  initobj    "<>y__InlineArray3<T>"
                   IL_001e:  ldloca.s   V_0
                   IL_0020:  ldc.i4.0
-                  IL_0021:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0021:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0026:  ldarg.1
                   IL_0027:  stobj      "T"
                   IL_002c:  ldloca.s   V_0
                   IL_002e:  ldc.i4.1
-                  IL_002f:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_002f:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0034:  ldarg.2
                   IL_0035:  stobj      "T"
                   IL_003a:  ldloca.s   V_0
                   IL_003c:  ldc.i4.2
-                  IL_003d:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_003d:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0042:  ldarg.3
                   IL_0043:  stobj      "T"
                   IL_0048:  ldloca.s   V_0
                   IL_004a:  ldc.i4.3
-                  IL_004b:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<T>, T>(in <>y__InlineArray3<T>, int)"
+                  IL_004b:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<T>, T>(in <>y__InlineArray3<T>, int)"
                   IL_0050:  call       "T[] A<T>.ToArray(System.ReadOnlySpan<T>)"
                   IL_0055:  call       "A<T>..ctor(T[])"
                   IL_005a:  ret
@@ -17246,13 +17722,13 @@ partial class Program
                     IL_0002:  initobj    "<>y__InlineArray1<object>"
                     IL_0008:  ldloca.s   V_1
                     IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0010:  ldc.i4.1
                     IL_0011:  box        "int"
                     IL_0016:  stind.ref
                     IL_0017:  ldloca.s   V_1
                     IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_001f:  stloc.0
                     IL_0020:  ldloca.s   V_0
                     IL_0022:  call       "object[] System.Span<object>.ToArray()"
@@ -17269,13 +17745,13 @@ partial class Program
                     IL_0002:  initobj    "<>y__InlineArray1<object>"
                     IL_0008:  ldloca.s   V_1
                     IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0010:  ldc.i4.2
                     IL_0011:  box        "int"
                     IL_0016:  stind.ref
                     IL_0017:  ldloca.s   V_1
                     IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                    IL_001a:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                     IL_001f:  stloc.0
                     IL_0020:  ldloca.s   V_0
                     IL_0022:  call       "object[] System.ReadOnlySpan<object>.ToArray()"
@@ -17322,25 +17798,25 @@ partial class Program
                       IL_0002:  initobj    "<>y__InlineArray1<object>"
                       IL_0008:  ldloca.s   V_2
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  box        "int"
                       IL_0016:  stind.ref
                       IL_0017:  ldloca.s   V_2
                       IL_0019:  ldc.i4.1
-                      IL_001a:  call       "InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_001a:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_001f:  stloc.0
                       IL_0020:  ldloca.s   V_3
                       IL_0022:  initobj    "<>y__InlineArray1<object>"
                       IL_0028:  ldloca.s   V_3
                       IL_002a:  ldc.i4.0
-                      IL_002b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_002b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0030:  ldc.i4.2
                       IL_0031:  box        "int"
                       IL_0036:  stind.ref
                       IL_0037:  ldloca.s   V_3
                       IL_0039:  ldc.i4.1
-                      IL_003a:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_003a:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_003f:  stloc.1
                       IL_0040:  ldloca.s   V_0
                       IL_0042:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
@@ -17455,26 +17931,26 @@ partial class Program
                   IL_0014:  initobj    "<>y__InlineArray1<object>"
                   IL_001a:  ldloca.s   V_2
                   IL_001c:  ldc.i4.0
-                  IL_001d:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_001d:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0022:  ldc.i4.1
                   IL_0023:  box        "int"
                   IL_0028:  stind.ref
                   IL_0029:  ldloca.s   V_2
                   IL_002b:  ldc.i4.1
-                  IL_002c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_002c:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                   IL_0031:  stfld      "System.ReadOnlySpan<object> R<object>.F"
                   IL_0036:  ldloca.s   V_1
                   IL_0038:  ldloca.s   V_3
                   IL_003a:  initobj    "<>y__InlineArray1<object>"
                   IL_0040:  ldloca.s   V_3
                   IL_0042:  ldc.i4.0
-                  IL_0043:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0043:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0048:  ldc.i4.2
                   IL_0049:  box        "int"
                   IL_004e:  stind.ref
                   IL_004f:  ldloca.s   V_3
                   IL_0051:  ldc.i4.1
-                  IL_0052:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_0052:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                   IL_0057:  stfld      "System.ReadOnlySpan<object> R<object>.F"
                   IL_005c:  ldloca.s   V_0
                   IL_005e:  ldflda     "System.ReadOnlySpan<object> R<object>.F"
@@ -17534,22 +18010,22 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray3<int>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_000b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  stind.i4
                   IL_0012:  ldloca.s   V_0
                   IL_0014:  ldc.i4.1
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0015:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_001a:  ldc.i4.2
                   IL_001b:  stind.i4
                   IL_001c:  ldloca.s   V_0
                   IL_001e:  ldc.i4.2
-                  IL_001f:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_001f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0024:  ldc.i4.3
                   IL_0025:  stind.i4
                   IL_0026:  ldloca.s   V_0
                   IL_0028:  ldc.i4.3
-                  IL_0029:  call       "InlineArrayAsSpan<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0029:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_002e:  call       "int[] Program.FromSpan<int>(System.Span<int>)"
                   IL_0033:  stsfld     "int[] Program.F"
                   IL_0038:  ret
@@ -17590,25 +18066,25 @@ partial class Program
                   IL_0003:  initobj    "<>y__InlineArray3<object>"
                   IL_0009:  ldloca.s   V_0
                   IL_000b:  ldc.i4.0
-                  IL_000c:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_000c:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0011:  ldc.i4.1
                   IL_0012:  box        "int"
                   IL_0017:  stind.ref
                   IL_0018:  ldloca.s   V_0
                   IL_001a:  ldc.i4.1
-                  IL_001b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_001b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0020:  ldc.i4.2
                   IL_0021:  box        "int"
                   IL_0026:  stind.ref
                   IL_0027:  ldloca.s   V_0
                   IL_0029:  ldc.i4.2
-                  IL_002a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_002a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_002f:  ldc.i4.3
                   IL_0030:  box        "int"
                   IL_0035:  stind.ref
                   IL_0036:  ldloca.s   V_0
                   IL_0038:  ldc.i4.3
-                  IL_0039:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_0039:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                   IL_003e:  call       "object[] C.FromSpan<object>(System.ReadOnlySpan<object>)"
                   IL_0043:  stfld      "object[] C.F"
                   IL_0048:  ldarg.0
@@ -17652,25 +18128,25 @@ partial class Program
                   IL_0003:  initobj    "<>y__InlineArray3<object>"
                   IL_0009:  ldloca.s   V_0
                   IL_000b:  ldc.i4.0
-                  IL_000c:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_000c:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0011:  ldc.i4.1
                   IL_0012:  box        "int"
                   IL_0017:  stind.ref
                   IL_0018:  ldloca.s   V_0
                   IL_001a:  ldc.i4.1
-                  IL_001b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_001b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0020:  ldc.i4.2
                   IL_0021:  box        "int"
                   IL_0026:  stind.ref
                   IL_0027:  ldloca.s   V_0
                   IL_0029:  ldc.i4.2
-                  IL_002a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_002a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_002f:  ldc.i4.3
                   IL_0030:  box        "int"
                   IL_0035:  stind.ref
                   IL_0036:  ldloca.s   V_0
                   IL_0038:  ldc.i4.3
-                  IL_0039:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_0039:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                   IL_003e:  call       "object[] S.FromSpan<object>(System.ReadOnlySpan<object>)"
                   IL_0043:  stfld      "object[] S.F"
                   IL_0048:  ret
@@ -17752,13 +18228,13 @@ partial class Program
                       IL_0002:  initobj    "<>y__InlineArray1<object>"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  box        "int"
                       IL_0016:  stind.ref
                       IL_0017:  ldloca.s   V_0
                       IL_0019:  ldc.i4.1
-                      IL_001a:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_001a:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_001f:  pop
                       IL_0020:  ldarg.0
                       IL_0021:  brfalse.s  IL_0045
@@ -17766,38 +18242,38 @@ partial class Program
                       IL_0025:  initobj    "<>y__InlineArray1<object>"
                       IL_002b:  ldloca.s   V_1
                       IL_002d:  ldc.i4.0
-                      IL_002e:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_002e:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0033:  ldc.i4.2
                       IL_0034:  box        "int"
                       IL_0039:  stind.ref
                       IL_003a:  ldloca.s   V_1
                       IL_003c:  ldc.i4.1
-                      IL_003d:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_003d:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_0042:  pop
                       IL_0043:  br.s       IL_0065
                       IL_0045:  ldloca.s   V_2
                       IL_0047:  initobj    "<>y__InlineArray1<object>"
                       IL_004d:  ldloca.s   V_2
                       IL_004f:  ldc.i4.0
-                      IL_0050:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0050:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0055:  ldc.i4.3
                       IL_0056:  box        "int"
                       IL_005b:  stind.ref
                       IL_005c:  ldloca.s   V_2
                       IL_005e:  ldc.i4.1
-                      IL_005f:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_005f:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_0064:  pop
                       IL_0065:  ldloca.s   V_3
                       IL_0067:  initobj    "<>y__InlineArray1<object>"
                       IL_006d:  ldloca.s   V_3
                       IL_006f:  ldc.i4.0
-                      IL_0070:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                      IL_0070:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                       IL_0075:  ldc.i4.4
                       IL_0076:  box        "int"
                       IL_007b:  stind.ref
                       IL_007c:  ldloca.s   V_3
                       IL_007e:  ldc.i4.1
-                      IL_007f:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                      IL_007f:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                       IL_0084:  pop
                       IL_0085:  ret
                     }
@@ -17851,22 +18327,22 @@ partial class Program
                   IL_000d:  initobj    "<>y__InlineArray3<T>"
                   IL_0013:  ldloca.s   V_1
                   IL_0015:  ldc.i4.0
-                  IL_0016:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0016:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_001b:  ldarg.1
                   IL_001c:  stobj      "T"
                   IL_0021:  ldloca.s   V_1
                   IL_0023:  ldc.i4.1
-                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0024:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0029:  ldarg.2
                   IL_002a:  stobj      "T"
                   IL_002f:  ldloca.s   V_1
                   IL_0031:  ldc.i4.2
-                  IL_0032:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0032:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0037:  ldarg.3
                   IL_0038:  stobj      "T"
                   IL_003d:  ldloca.s   V_1
                   IL_003f:  ldc.i4.3
-                  IL_0040:  call       "InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0040:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0045:  stloc.0
                   IL_0046:  ldarg.0
                   IL_0047:  brfalse.s  IL_0077
@@ -17874,17 +18350,17 @@ partial class Program
                   IL_004b:  initobj    "<>y__InlineArray2<T>"
                   IL_0051:  ldloca.s   V_2
                   IL_0053:  ldc.i4.0
-                  IL_0054:  call       "InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0054:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
                   IL_0059:  ldarg.3
                   IL_005a:  stobj      "T"
                   IL_005f:  ldloca.s   V_2
                   IL_0061:  ldc.i4.1
-                  IL_0062:  call       "InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0062:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
                   IL_0067:  ldarg.s    V_4
                   IL_0069:  stobj      "T"
                   IL_006e:  ldloca.s   V_2
                   IL_0070:  ldc.i4.2
-                  IL_0071:  call       "InlineArrayAsSpan<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0071:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
                   IL_0076:  stloc.0
                   IL_0077:  ldloca.s   V_0
                   IL_0079:  call       "void CollectionExtensions.Report<T>(in System.Span<T>)"
@@ -18022,22 +18498,22 @@ partial class Program
                   IL_000d:  initobj    "<>y__InlineArray3<T>"
                   IL_0013:  ldloca.s   V_1
                   IL_0015:  ldc.i4.0
-                  IL_0016:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0016:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_001b:  ldarg.2
                   IL_001c:  stobj      "T"
                   IL_0021:  ldloca.s   V_1
                   IL_0023:  ldc.i4.1
-                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0024:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0029:  ldarg.3
                   IL_002a:  stobj      "T"
                   IL_002f:  ldloca.s   V_1
                   IL_0031:  ldc.i4.2
-                  IL_0032:  call       "InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0032:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0037:  ldarg.s    V_4
                   IL_0039:  stobj      "T"
                   IL_003e:  ldloca.s   V_1
                   IL_0040:  ldc.i4.3
-                  IL_0041:  call       "InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
+                  IL_0041:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<T>, T>(ref <>y__InlineArray3<T>, int)"
                   IL_0046:  stloc.0
                   IL_0047:  ldloca.s   V_0
                   IL_0049:  call       "void CollectionExtensions.Report<T>(in System.Span<T>)"
@@ -18098,13 +18574,13 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray1<T>"
                   IL_0008:  ldloca.s   V_1
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
                   IL_0010:  ldarg.0
                   IL_0011:  ldfld      "T Program.<>c__DisplayClass1_0<T>.z"
                   IL_0016:  stobj      "T"
                   IL_001b:  ldloca.s   V_1
                   IL_001d:  ldc.i4.1
-                  IL_001e:  call       "InlineArrayAsSpan<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
+                  IL_001e:  call       "System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
                   IL_0023:  stloc.0
                   IL_0024:  ldloca.s   V_0
                   IL_0026:  call       "void CollectionExtensions.Report<T>(in System.Span<T>)"
@@ -18169,12 +18645,12 @@ partial class Program
                   IL_0027:  initobj    "<>y__InlineArray1<T>"
                   IL_002d:  ldloca.s   V_1
                   IL_002f:  ldc.i4.0
-                  IL_0030:  call       "InlineArrayElementRef<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
+                  IL_0030:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<T>, T>(ref <>y__InlineArray1<T>, int)"
                   IL_0035:  ldarg.1
                   IL_0036:  stobj      "T"
                   IL_003b:  ldloca.s   V_1
                   IL_003d:  ldc.i4.1
-                  IL_003e:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<T>, T>(in <>y__InlineArray1<T>, int)"
+                  IL_003e:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<T>, T>(in <>y__InlineArray1<T>, int)"
                   IL_0043:  stloc.0
                   IL_0044:  ldloca.s   V_0
                   IL_0046:  call       "void CollectionExtensions.Report<T>(in System.ReadOnlySpan<T>)"
@@ -18222,13 +18698,13 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray1<object>"
                   IL_0008:  ldloca.s   V_3
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_3
                   IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_001a:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                   IL_001f:  stloc.0
                   IL_0020:  newobj     "Disposable..ctor()"
                   IL_0025:  stloc.1
@@ -18238,13 +18714,13 @@ partial class Program
                     IL_0028:  initobj    "<>y__InlineArray1<object>"
                     IL_002e:  ldloca.s   V_4
                     IL_0030:  ldc.i4.0
-                    IL_0031:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                    IL_0031:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
                     IL_0036:  ldc.i4.2
                     IL_0037:  box        "int"
                     IL_003c:  stind.ref
                     IL_003d:  ldloca.s   V_4
                     IL_003f:  ldc.i4.1
-                    IL_0040:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                    IL_0040:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
                     IL_0045:  stloc.2
                     IL_0046:  ldloca.s   V_0
                     IL_0048:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
@@ -18290,61 +18766,61 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[null, 2], [3, 5], "));
             verifier.VerifyIL("Program.Main", """
                 {
-                    // Code size      119 (0x77)
-                    .maxstack  2
-                    .locals init (System.Span<object> V_0, //x
-                                System.Span<int> V_1, //y
-                                <>y__InlineArray2<object> V_2,
-                                <>y__InlineArray2<int> V_3)
-                    IL_0000:  ldloca.s   V_2
-                    IL_0002:  initobj    "<>y__InlineArray2<object>"
-                    IL_0008:  ldloca.s   V_2
-                    IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
-                    IL_0010:  ldc.i4.1
-                    IL_0011:  box        "int"
-                    IL_0016:  stind.ref
-                    IL_0017:  ldloca.s   V_2
-                    IL_0019:  ldc.i4.1
-                    IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
-                    IL_001f:  ldc.i4.2
-                    IL_0020:  box        "int"
-                    IL_0025:  stind.ref
-                    IL_0026:  ldloca.s   V_2
-                    IL_0028:  ldc.i4.2
-                    IL_0029:  call       "InlineArrayAsSpan<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
-                    IL_002e:  stloc.0
-                    IL_002f:  ldloca.s   V_0
-                    IL_0031:  ldc.i4.0
-                    IL_0032:  call       "ref object System.Span<object>.this[int].get"
-                    IL_0037:  ldnull
-                    IL_0038:  stind.ref
-                    IL_0039:  ldloca.s   V_3
-                    IL_003b:  initobj    "<>y__InlineArray2<int>"
-                    IL_0041:  ldloca.s   V_3
-                    IL_0043:  ldc.i4.0
-                    IL_0044:  call       "InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
-                    IL_0049:  ldc.i4.3
-                    IL_004a:  stind.i4
-                    IL_004b:  ldloca.s   V_3
-                    IL_004d:  ldc.i4.1
-                    IL_004e:  call       "InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
-                    IL_0053:  ldc.i4.4
-                    IL_0054:  stind.i4
-                    IL_0055:  ldloca.s   V_3
-                    IL_0057:  ldc.i4.2
-                    IL_0058:  call       "InlineArrayAsSpan<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
-                    IL_005d:  stloc.1
-                    IL_005e:  ldloca.s   V_1
-                    IL_0060:  ldc.i4.1
-                    IL_0061:  call       "ref int System.Span<int>.this[int].get"
-                    IL_0066:  ldc.i4.5
-                    IL_0067:  stind.i4
-                    IL_0068:  ldloca.s   V_0
-                    IL_006a:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
-                    IL_006f:  ldloca.s   V_1
-                    IL_0071:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
-                    IL_0076:  ret
+                  // Code size      119 (0x77)
+                  .maxstack  2
+                  .locals init (System.Span<object> V_0, //x
+                              System.Span<int> V_1, //y
+                              <>y__InlineArray2<object> V_2,
+                              <>y__InlineArray2<int> V_3)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "<>y__InlineArray2<object>"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stind.ref
+                  IL_0017:  ldloca.s   V_2
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                  IL_001f:  ldc.i4.2
+                  IL_0020:  box        "int"
+                  IL_0025:  stind.ref
+                  IL_0026:  ldloca.s   V_2
+                  IL_0028:  ldc.i4.2
+                  IL_0029:  call       "System.Span<object> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                  IL_002e:  stloc.0
+                  IL_002f:  ldloca.s   V_0
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  call       "ref object System.Span<object>.this[int].get"
+                  IL_0037:  ldnull
+                  IL_0038:  stind.ref
+                  IL_0039:  ldloca.s   V_3
+                  IL_003b:  initobj    "<>y__InlineArray2<int>"
+                  IL_0041:  ldloca.s   V_3
+                  IL_0043:  ldc.i4.0
+                  IL_0044:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                  IL_0049:  ldc.i4.3
+                  IL_004a:  stind.i4
+                  IL_004b:  ldloca.s   V_3
+                  IL_004d:  ldc.i4.1
+                  IL_004e:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                  IL_0053:  ldc.i4.4
+                  IL_0054:  stind.i4
+                  IL_0055:  ldloca.s   V_3
+                  IL_0057:  ldc.i4.2
+                  IL_0058:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<int>, int>(ref <>y__InlineArray2<int>, int)"
+                  IL_005d:  stloc.1
+                  IL_005e:  ldloca.s   V_1
+                  IL_0060:  ldc.i4.1
+                  IL_0061:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0066:  ldc.i4.5
+                  IL_0067:  stind.i4
+                  IL_0068:  ldloca.s   V_0
+                  IL_006a:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
+                  IL_006f:  ldloca.s   V_1
+                  IL_0071:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_0076:  ret
                 }
                 """);
         }
@@ -18379,17 +18855,17 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray2<int?>"
                   IL_0008:  ldloca.s   V_1
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
+                  IL_000b:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  newobj     "int?..ctor(int)"
                   IL_0016:  stobj      "int?"
                   IL_001b:  ldloca.s   V_1
                   IL_001d:  ldc.i4.1
-                  IL_001e:  call       "InlineArrayElementRef<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
+                  IL_001e:  call       "ref int? <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
                   IL_0023:  initobj    "int?"
                   IL_0029:  ldloca.s   V_1
                   IL_002b:  ldc.i4.2
-                  IL_002c:  call       "InlineArrayAsSpan<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
+                  IL_002c:  call       "System.Span<int?> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray2<int?>, int?>(ref <>y__InlineArray2<int?>, int)"
                   IL_0031:  stloc.2
                   IL_0032:  ldc.i4.0
                   IL_0033:  stloc.3
@@ -18454,8 +18930,11 @@ partial class Program
                     public static ReadOnlySpan<object> F;
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
             comp.VerifyEmitDiagnostics(
+                // (3,7): warning CS9209: Collection expression of type 'ReadOnlySpan<object>' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to 'ReadOnlySpan<object>' to make the allocation explicit.
+                // S.F = [..S.GetSpan(), 3];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate, "[..S.GetSpan(), 3]").WithArguments("System.ReadOnlySpan<object>").WithLocation(3, 7),
                 // (3,7): error CS9203: A collection expression of type 'ReadOnlySpan<object>' cannot be used in this context because it may be exposed outside of the current scope.
                 // S.F = [..S.GetSpan(), 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[..S.GetSpan(), 3]").WithArguments("System.ReadOnlySpan<object>").WithLocation(3, 7),
@@ -18593,59 +19072,59 @@ partial class Program
                     """));
             verifier.VerifyIL("Program.Main", """
                 {
-                    // Code size      135 (0x87)
-                    .maxstack  2
-                    .locals init (<>y__InlineArray1<object> V_0,
-                                <>y__InlineArray1<string> V_1,
-                                <>y__InlineArray1<nint> V_2,
-                                <>y__InlineArray1<nuint> V_3)
-                    IL_0000:  ldloca.s   V_0
-                    IL_0002:  initobj    "<>y__InlineArray1<object>"
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldc.i4.0
-                    IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
-                    IL_0010:  ldstr      "1"
-                    IL_0015:  stind.ref
-                    IL_0016:  ldloca.s   V_0
-                    IL_0018:  ldc.i4.1
-                    IL_0019:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
-                    IL_001e:  call       "void Program.Report<object>(System.ReadOnlySpan<object>)"
-                    IL_0023:  ldloca.s   V_1
-                    IL_0025:  initobj    "<>y__InlineArray1<string>"
-                    IL_002b:  ldloca.s   V_1
-                    IL_002d:  ldc.i4.0
-                    IL_002e:  call       "InlineArrayElementRef<<>y__InlineArray1<string>, string>(ref <>y__InlineArray1<string>, int)"
-                    IL_0033:  ldstr      "2"
-                    IL_0038:  stind.ref
-                    IL_0039:  ldloca.s   V_1
-                    IL_003b:  ldc.i4.1
-                    IL_003c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<string>, string>(in <>y__InlineArray1<string>, int)"
-                    IL_0041:  call       "void Program.Report<string>(System.ReadOnlySpan<string>)"
-                    IL_0046:  ldloca.s   V_2
-                    IL_0048:  initobj    "<>y__InlineArray1<nint>"
-                    IL_004e:  ldloca.s   V_2
-                    IL_0050:  ldc.i4.0
-                    IL_0051:  call       "InlineArrayElementRef<<>y__InlineArray1<nint>, nint>(ref <>y__InlineArray1<nint>, int)"
-                    IL_0056:  ldc.i4.3
-                    IL_0057:  conv.i
-                    IL_0058:  stind.i
-                    IL_0059:  ldloca.s   V_2
-                    IL_005b:  ldc.i4.1
-                    IL_005c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<nint>, nint>(in <>y__InlineArray1<nint>, int)"
-                    IL_0061:  call       "void Program.Report<nint>(System.ReadOnlySpan<nint>)"
-                    IL_0066:  ldloca.s   V_3
-                    IL_0068:  initobj    "<>y__InlineArray1<nuint>"
-                    IL_006e:  ldloca.s   V_3
-                    IL_0070:  ldc.i4.0
-                    IL_0071:  call       "InlineArrayElementRef<<>y__InlineArray1<nuint>, nuint>(ref <>y__InlineArray1<nuint>, int)"
-                    IL_0076:  ldc.i4.4
-                    IL_0077:  conv.i
-                    IL_0078:  stind.i
-                    IL_0079:  ldloca.s   V_3
-                    IL_007b:  ldc.i4.1
-                    IL_007c:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray1<nuint>, nuint>(in <>y__InlineArray1<nuint>, int)"
-                    IL_0081:  call       "void Program.Report<nuint>(System.ReadOnlySpan<nuint>)"
-                    IL_0086:  ret
+                  // Code size      135 (0x87)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray1<object> V_0,
+                              <>y__InlineArray1<string> V_1,
+                              <>y__InlineArray1<nint> V_2,
+                              <>y__InlineArray1<nuint> V_3)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<object>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<object>, object>(ref <>y__InlineArray1<object>, int)"
+                  IL_0010:  ldstr      "1"
+                  IL_0015:  stind.ref
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<object>, object>(in <>y__InlineArray1<object>, int)"
+                  IL_001e:  call       "void Program.Report<object>(System.ReadOnlySpan<object>)"
+                  IL_0023:  ldloca.s   V_1
+                  IL_0025:  initobj    "<>y__InlineArray1<string>"
+                  IL_002b:  ldloca.s   V_1
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<string>, string>(ref <>y__InlineArray1<string>, int)"
+                  IL_0033:  ldstr      "2"
+                  IL_0038:  stind.ref
+                  IL_0039:  ldloca.s   V_1
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<string>, string>(in <>y__InlineArray1<string>, int)"
+                  IL_0041:  call       "void Program.Report<string>(System.ReadOnlySpan<string>)"
+                  IL_0046:  ldloca.s   V_2
+                  IL_0048:  initobj    "<>y__InlineArray1<nint>"
+                  IL_004e:  ldloca.s   V_2
+                  IL_0050:  ldc.i4.0
+                  IL_0051:  call       "ref nint <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<nint>, nint>(ref <>y__InlineArray1<nint>, int)"
+                  IL_0056:  ldc.i4.3
+                  IL_0057:  conv.i
+                  IL_0058:  stind.i
+                  IL_0059:  ldloca.s   V_2
+                  IL_005b:  ldc.i4.1
+                  IL_005c:  call       "System.ReadOnlySpan<nint> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<nint>, nint>(in <>y__InlineArray1<nint>, int)"
+                  IL_0061:  call       "void Program.Report<nint>(System.ReadOnlySpan<nint>)"
+                  IL_0066:  ldloca.s   V_3
+                  IL_0068:  initobj    "<>y__InlineArray1<nuint>"
+                  IL_006e:  ldloca.s   V_3
+                  IL_0070:  ldc.i4.0
+                  IL_0071:  call       "ref nuint <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<nuint>, nuint>(ref <>y__InlineArray1<nuint>, int)"
+                  IL_0076:  ldc.i4.4
+                  IL_0077:  conv.i
+                  IL_0078:  stind.i
+                  IL_0079:  ldloca.s   V_3
+                  IL_007b:  ldc.i4.1
+                  IL_007c:  call       "System.ReadOnlySpan<nuint> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray1<nuint>, nuint>(in <>y__InlineArray1<nuint>, int)"
+                  IL_0081:  call       "void Program.Report<nuint>(System.ReadOnlySpan<nuint>)"
+                  IL_0086:  ret
                 }
                 """);
         }
@@ -18896,22 +19375,22 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray3<int>"
                   IL_0008:  ldloca.s   V_1
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_000b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  stind.i4
                   IL_0012:  ldloca.s   V_1
                   IL_0014:  ldc.i4.1
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0015:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_001a:  ldc.i4.2
                   IL_001b:  stind.i4
                   IL_001c:  ldloca.s   V_1
                   IL_001e:  ldc.i4.2
-                  IL_001f:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_001f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0024:  ldc.i4.3
                   IL_0025:  stind.i4
                   IL_0026:  ldloca.s   V_1
                   IL_0028:  ldc.i4.3
-                  IL_0029:  call       "InlineArrayAsSpan<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0029:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_002e:  stloc.0
                   IL_002f:  ldloca.s   V_0
                   IL_0031:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
@@ -18928,22 +19407,22 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray3<int>"
                   IL_0008:  ldloca.s   V_1
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_000b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  stind.i4
                   IL_0012:  ldloca.s   V_1
                   IL_0014:  ldc.i4.1
-                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0015:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_001a:  ldc.i4.2
                   IL_001b:  stind.i4
                   IL_001c:  ldloca.s   V_1
                   IL_001e:  ldc.i4.2
-                  IL_001f:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_001f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0024:  ldarg.0
                   IL_0025:  stind.i4
                   IL_0026:  ldloca.s   V_1
                   IL_0028:  ldc.i4.3
-                  IL_0029:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
+                  IL_0029:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
                   IL_002e:  stloc.0
                   IL_002f:  ldloca.s   V_0
                   IL_0031:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
@@ -19068,6 +19547,100 @@ partial class Program
                     IL_0006:  newobj     "System.ReadOnlySpan<E>..ctor(void*, int)"
                     IL_000b:  call       "MyCollection<E> MyCollectionBuilder.Create<E>(System.ReadOnlySpan<E>)"
                     IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ReadOnlySpan_Constant_01()
+        {
+            string source = """
+                using System;
+                class  Program
+                {
+                    static void Main()
+                    {
+                        const int x = 3;
+                        Report([1, 2, x]);
+                    }
+                    static void Report<T>(ReadOnlySpan<T> s)
+                    {
+                        s.ToArray().Report(includeType: true);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("""
+                    (System.Int32[]) [1, 2, 3], 
+                    """));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
+                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_000a:  call       "void Program.Report<int>(System.ReadOnlySpan<int>)"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ReadOnlySpan_Constant_02()
+        {
+            string source = """
+                using System;
+                class  Program
+                {
+                    static void Main()
+                    {
+                        Report([null, null, "a" + "b"]);
+                    }
+                    static void Report<T>(ReadOnlySpan<T> s)
+                    {
+                        s.ToArray().Report(includeType: true);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Fails,
+                expectedOutput: IncludeExpectedOutput("""
+                    (System.String[]) [null, null, ab], 
+                    """));
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray3<string> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray3<string>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_0010:  ldnull
+                  IL_0011:  stind.ref
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_001a:  ldnull
+                  IL_001b:  stind.ref
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldc.i4.2
+                  IL_001f:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<string>, string>(ref <>y__InlineArray3<string>, int)"
+                  IL_0024:  ldstr      "ab"
+                  IL_0029:  stind.ref
+                  IL_002a:  ldloca.s   V_0
+                  IL_002c:  ldc.i4.3
+                  IL_002d:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<string>, string>(in <>y__InlineArray3<string>, int)"
+                  IL_0032:  call       "void Program.Report<string>(System.ReadOnlySpan<string>)"
+                  IL_0037:  ret
                 }
                 """);
         }
@@ -19240,8 +19813,11 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            comp.VerifyEmitDiagnostics(
+                // (6,31): warning CS9208: Collection expression of type 'Span<T>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<T>' to make the allocation explicit.
+                //         Span<T> s = /*<bind>*/[a, b]/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[a, b]").WithArguments("System.Span<T>").WithLocation(6, 31));
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
@@ -20182,10 +20758,13 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning)).VerifyEmitDiagnostics(
                 // (1,2): error CS0181: Attribute constructor parameter 's' has type 'Span<int>', which is not a valid attribute parameter type
                 // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.Span<int>").WithLocation(1, 2)
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("s", "System.Span<int>").WithLocation(1, 2),
+                // (1,4): warning CS9208: Collection expression of type 'Span<int>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<int>' to make the allocation explicit.
+                // [X([1])]
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[1]").WithArguments("System.Span<int>").WithLocation(1, 4)
                 );
         }
 
@@ -21033,25 +21612,25 @@ partial class Program
                   IL_0002:  initobj    "<>y__InlineArray3<object>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0010:  ldc.i4.1
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_001f:  ldc.i4.2
                   IL_0020:  box        "int"
                   IL_0025:  stind.ref
                   IL_0026:  ldloca.s   V_0
                   IL_0028:  ldc.i4.2
-                  IL_0029:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
+                  IL_0029:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_002e:  ldc.i4.3
                   IL_002f:  box        "int"
                   IL_0034:  stind.ref
                   IL_0035:  ldloca.s   V_0
                   IL_0037:  ldc.i4.3
-                  IL_0038:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
+                  IL_0038:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                   IL_003d:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
                   IL_0042:  ret
                 }
@@ -21680,22 +22259,22 @@ partial class Program
                   IL_0009:  initobj    "<>y__InlineArray3<int>"
                   IL_000f:  ldloca.s   V_4
                   IL_0011:  ldc.i4.0
-                  IL_0012:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0012:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0017:  ldloc.0
                   IL_0018:  stind.i4
                   IL_0019:  ldloca.s   V_4
                   IL_001b:  ldc.i4.1
-                  IL_001c:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_001c:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0021:  ldloc.1
                   IL_0022:  stind.i4
                   IL_0023:  ldloca.s   V_4
                   IL_0025:  ldc.i4.2
-                  IL_0026:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
+                  IL_0026:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_002b:  ldloc.2
                   IL_002c:  stind.i4
                   IL_002d:  ldloca.s   V_4
                   IL_002f:  ldc.i4.3
-                  IL_0030:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
+                  IL_0030:  call       "System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
                   IL_0035:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(System.ReadOnlySpan<int>)"
                   IL_003a:  stloc.3
                   IL_003b:  ldloc.3
@@ -22069,6 +22648,226 @@ partial class Program
                 //         ImmutableArray<int> arr = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
         }
+
+        [Fact]
+        public void SpanImplicitAllocationWarning_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void M()
+                    {
+                        Span<int> s1 = [1]; // 1
+                        Span<int> s2 = (int[])[1];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            verifier.VerifyDiagnostics(
+                // (7,24): warning CS9208: Collection expression of type 'Span<int>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'Span<int>' to make the allocation explicit.
+                //         Span<int> s1 = [1]; // 1
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[1]").WithArguments("System.Span<int>").WithLocation(7, 24));
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stelem.i4
+                  IL_000a:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_000f:  pop
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  newarr     "int"
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  stelem.i4
+                  IL_001a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_001f:  pop
+                  IL_0020:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  4
+                  .locals init (<>y__InlineArray1<int> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray1<int>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  stind.i4
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  call       "System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<<>y__InlineArray1<int>, int>(ref <>y__InlineArray1<int>, int)"
+                  IL_001a:  pop
+                  IL_001b:  ldc.i4.1
+                  IL_001c:  newarr     "int"
+                  IL_0021:  dup
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  stelem.i4
+                  IL_0025:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_002a:  pop
+                  IL_002b:  ret
+                }
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerable()
+        {
+            string source = """
+                using System.Collections;
+                ref struct S : IEnumerable
+                {
+                    public void Add(params S[] x) => throw null;
+                    public IEnumerator GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S F() => [[]];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable").WithArguments("S").WithLocation(2, 16),
+                // (4,28): error CS0611: Array elements cannot be of type 'S'
+                //     public void Add(params S[] x) => throw null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
+                // (9,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S F() => [[]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(9, 21));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerableT()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S<T> : IEnumerable<T>
+                {
+                    public void Add(T t) => throw null;
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S<int> F() => [1, 2, 3];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,19): error CS8343: 'S<T>': ref structs cannot implement interfaces
+                // ref struct S<T> : IEnumerable<T>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<T>").WithArguments("S<T>").WithLocation(3, 19),
+                // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S<int> F() => [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray_01()
+        {
+            string sourceA = """
+                #pragma warning disable 436
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                namespace System.Collections.Immutable
+                {
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray_02()
+        {
+            string sourceA = """
+                #pragma warning disable 436
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Runtime.CompilerServices;
+                namespace System.Collections.Immutable
+                {
+                    [CollectionBuilder(typeof(ImmutableArray), "Create")]
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                    public static class ImmutableArray
+                    {
+                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items) => default;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+        }
+
         [Fact]
         public void ElementNullability_ArrayCollection()
         {
@@ -22148,8 +22947,10 @@ partial class Program
         {
             string src = $$"""
                 #nullable enable
-                {{spanType}}<string?> x1 = [null];
-                {{spanType}}<string> x2 = [null];
+                {{spanType}}<string?> x1
+                    = [null];
+                {{spanType}}<string> x2
+                    = [null];
 
                 #nullable disable
                 {{spanType}}<string>
@@ -22157,11 +22958,20 @@ partial class Program
                     x3 = [null];
                 """;
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
-               // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
-               // System.ReadOnlySpan<string> x2 = [null];
-               Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
-               );
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(WithSpanAllocWarning)).VerifyEmitDiagnostics(
+                // (3,7): warning CS9208: Collection expression of type 'ReadOnlySpan<string?>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string?>' to make the allocation explicit.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string?>").WithLocation(3, 7),
+                // (5,7): warning CS9208: Collection expression of type 'ReadOnlySpan<string>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string>' to make the allocation explicit.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string>").WithLocation(5, 7),
+                // (5,8): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 8),
+                // (10,10): warning CS9208: Collection expression of type 'ReadOnlySpan<string>' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to 'ReadOnlySpan<string>' to make the allocation explicit.
+                //     x3 = [null];
+                Diagnostic(ErrorCode.WRN_CollectionExpressionRefStructMayAllocate, "[null]").WithArguments($"{spanType}<string>").WithLocation(10, 10)
+                );
         }
 
         [Fact]
@@ -22894,10 +23704,122 @@ partial class Program
                 """;
 
             CreateCompilation(src).VerifyEmitDiagnostics(
-                // (3,18): error CS1579: foreach statement cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (3,18): error CS9212: Spread operator '..' cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
                 // object[] y1 = [..(x is null)];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
                 );
+        }
+
+        [Theory]
+        [InlineData("scoped ")]
+        [InlineData("")]
+        public void CollectionBuilderRefStructAllocWarning(string scopedModifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(RefStructCollectionBuilder), nameof(RefStructCollectionBuilder.Create))]
+                ref struct RefStructCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => null;
+                }
+
+                static class RefStructCollectionBuilder
+                {
+                    public static RefStructCollection<T> Create<T>({{scopedModifier}}ReadOnlySpan<T> items) => default;
+                }
+
+                public class Program
+                {
+                    public void M()
+                    {
+                        RefStructCollection<int> rs = [1];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(WithSpanAllocWarning));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        public void ExtremelyNestedCollectionExpressionDoesNotOverflow_1()
+        {
+            var code = $$"""
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection : IEnumerable
+                {
+                    void M()
+                    {
+                        MyCollection collection = {{new string('[', 64)}}{{new string(']', 64)}};
+                    }
+
+                    public void Add(MyCollection c)
+                    {
+
+                    }
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+                }
+                """;
+
+            var compilation = CreateCompilation(code);
+            CompileAndVerify(compilation);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var collectionExpression = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().First();
+
+            Assert.NotNull(model.GetOperation(collectionExpression));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        public void ExtremelyNestedCollectionExpressionDoesNotOverflow_2()
+        {
+            var code = $$"""
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection : IEnumerable
+                {
+                    void M()
+                    {
+                        MyCollection collection = {{new string('[', 65)}}{{new string(']', 65)}};
+                    }
+
+                    public void Add(MyCollection c)
+                    {
+
+                    }
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+                }
+                """;
+
+            var compilation = CreateCompilation(code);
+            compilation.VerifyDiagnostics(
+                // (10,99): error CS8078: An expression is too long or complex to compile
+                //         MyCollection collection = [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]];
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "[]").WithLocation(10, 99)
+            );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var collectionExpression = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().First();
+
+            Assert.NotNull(model.GetOperation(collectionExpression));
         }
     }
 }

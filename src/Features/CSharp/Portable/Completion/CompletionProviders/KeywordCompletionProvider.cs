@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
+                new ScopedKeywordRecommender(),
                 new SealedKeywordRecommender(),
                 new SelectKeywordRecommender(),
                 new SetKeywordRecommender(),

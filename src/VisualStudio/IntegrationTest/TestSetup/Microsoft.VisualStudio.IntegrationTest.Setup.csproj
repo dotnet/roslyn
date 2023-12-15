@@ -9,43 +9,17 @@
 
     <!-- VSIX -->
     <UseCodebase>true</UseCodebase>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
-  <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
-                               Name="IntegrationTestServicePackage"
-                               Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
-                               AllowsBackgroundLoad="true"/>
-    <PkgDefCodeBase Include="$(TargetPath)"/>
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-    </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="IntegrationTestServicePackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>IntegrationTestServicePackage</ManifestResourceName>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Design" />
-    <Reference Include="System.Runtime.Remoting" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="$(MicrosoftDiagnosticsRuntimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
@@ -61,12 +35,8 @@
       <Name>VisualStudioSetup</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj">
-      <Name>IntegrationService</Name>
-      <PkgDefEntry>CodeBase</PkgDefEntry>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="CodeBase" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
   </ItemGroup>
 </Project>

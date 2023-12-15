@@ -38,17 +38,20 @@
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
-    <!--
-        Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward.
-        RollForward values for roslyn are set in eng/config/runtimeconfig.template.json
-    -->
-    <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
 
     <!-- List of runtime identifiers that we want to publish an executable for -->
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;alpine-x64;alpine-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
   </PropertyGroup>
+
+  <!-- When we are packing each RID, we set PackRuntimeIdentifier; by default this will also get passed to the builds of all ResolveProjectReferences
+       which causes a lot of duplicate building. This removes it. -->
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <GlobalPropertiesToRemove>PackRuntimeIdentifier</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemDefinitionGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
@@ -58,11 +61,15 @@
 
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+
+    <!-- Not directly referenced but needed for Razor source generators -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+
+    <!-- Not directly referenced but needed for Route embedded language features -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
@@ -72,7 +79,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
-    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
@@ -113,36 +119,6 @@
         <CopyToOutput>false</CopyToOutput>
         <BuildAction>None</BuildAction>
       </Content>
-    </ItemGroup>
-  </Target>
-
-  <!--
-    Deploy a net472 version of the BuildHost process.
-  -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net472</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-    </ItemGroup>
-
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433; we pass
-         BuildInParallel="false" to avoid multiple builds potentially building the same project at the same time, but since we
-         expect the builds to have completed by this point they should be fast.  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             BuildInParallel="false"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework);RuntimeIdentifier=">
-      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

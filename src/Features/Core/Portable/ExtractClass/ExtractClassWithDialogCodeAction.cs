@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not ExtractClassOptions extractClassOptions)
             {

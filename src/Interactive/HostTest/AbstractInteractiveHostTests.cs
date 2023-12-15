@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         private SynchronizedStringWriter _synchronizedOutput = null!;
         private SynchronizedStringWriter _synchronizedErrorOutput = null!;
-        private int[] _outputReadPosition = new int[] { 0, 0 };
+        private int[] _outputReadPosition = [0, 0];
 
         internal readonly InteractiveHost Host;
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public void ClearOutput()
         {
-            _outputReadPosition = new int[] { 0, 0 };
+            _outputReadPosition = [0, 0];
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }

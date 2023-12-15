@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
@@ -49,7 +48,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         _telemetrySession = session;
     }
 
-    public void Log(string name, ImmutableDictionary<string, object?> properties)
+    public void Log(string name, List<KeyValuePair<string, object?>> properties)
     {
         Debug.Assert(_telemetrySession != null);
 
@@ -70,7 +69,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         };
     }
 
-    public void LogBlockEnd(int blockId, ImmutableDictionary<string, object?> properties, CancellationToken cancellationToken)
+    public void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken)
     {
         var found = _pendingScopes.TryRemove(blockId, out var scope);
         Debug.Assert(found);
@@ -184,11 +183,11 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             _ => throw new InvalidCastException($"Unexpected value for scope: {scope}")
         };
 
-    private static void SetProperties(TelemetryEvent telemetryEvent, ImmutableDictionary<string, object?> properties)
+    private static void SetProperties(TelemetryEvent telemetryEvent, List<KeyValuePair<string, object?>> properties)
     {
-        foreach (var (name, value) in properties)
+        foreach (var property in properties)
         {
-            telemetryEvent.Properties.Add(name, value);
+            telemetryEvent.Properties.Add(property);
         }
     }
 }

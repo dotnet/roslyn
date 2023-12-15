@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void Before(MethodInfo? methodUnderTest)
         {
             // Need to clear cached MefHostServices between test runs.
-            MSBuildMefHostServices.TestAccessor.ClearCachedServices();
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
 
             // make sure we enable this for all unit tests
@@ -94,8 +93,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             finally
             {
-                // Need to clear cached MefHostServices between test runs.
-                MSBuildMefHostServices.TestAccessor.ClearCachedServices();
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
                 MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);

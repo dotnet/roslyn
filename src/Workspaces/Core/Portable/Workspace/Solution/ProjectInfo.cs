@@ -7,10 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -414,7 +411,7 @@ namespace Microsoft.CodeAnalysis
             Guid telemetryId = default,
             bool isSubmission = false,
             bool hasAllInformation = true,
-            bool runAnalyzers = true) : IChecksummedObject, IObjectWritable
+            bool runAnalyzers = true)
         {
             /// <summary>
             /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -499,6 +496,10 @@ namespace Microsoft.CodeAnalysis
             public Guid TelemetryId { get; } = telemetryId;
 
             private StrongBox<(string?, string?)>? _lazyNameAndFlavor;
+
+            /// <summary>
+            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
+            /// </summary>
             private Checksum? _lazyChecksum;
 
             /// <summary>
@@ -588,8 +589,6 @@ namespace Microsoft.CodeAnalysis
                     newRunAnalyzers);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -652,8 +651,17 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: runAnalyzers);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+            public Checksum Checksum
+            {
+                get
+                {
+                    // Ensure reading/writing from the nullable checksum is atomic.
+                    lock (this)
+                    {
+                        return _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
+                    }
+                }
+            }
         }
     }
 }

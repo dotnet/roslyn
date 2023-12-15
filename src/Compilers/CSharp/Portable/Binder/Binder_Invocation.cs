@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1338,11 +1338,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        internal void BindDefaultArguments(
+        internal void BindDefaultArgumentsAndParamsArray(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
             ArrayBuilder<BoundExpression> argumentsBuilder,
             ArrayBuilder<RefKind>? argumentRefKindsBuilder,
+            ArrayBuilder<(string Name, Location Location)?>? namesBuilder,
             ref ImmutableArray<int> argsToParamsOpt,
             out BitVector defaultArguments,
             bool expanded,
@@ -1351,6 +1352,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool assertMissingParametersAreOptional = true,
             Symbol? attributedMember = null)
         {
+            int firstParamArrayArgument = -1;
+            int paramsIndex = parameters.Length - 1;
+            var arrayArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
+
+            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArray));
 
             var visitedParameters = BitVector.Create(parameters.Length);
             for (var i = 0; i < argumentsBuilder.Count; i++)
@@ -1359,26 +1365,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parameter is not null)
                 {
                     visitedParameters[parameter.Ordinal] = true;
+
+                    if (expanded && parameter.Ordinal == paramsIndex)
+                    {
+                        Debug.Assert(arrayArgsBuilder is not null);
+                        Debug.Assert(arrayArgsBuilder.Count == 0);
+
+                        firstParamArrayArgument = i;
+                        arrayArgsBuilder.Add(argumentsBuilder[i]);
+
+                        for (int remainingArgument = i + 1; remainingArgument < argumentsBuilder.Count; ++remainingArgument)
+                        {
+                            if (GetCorrespondingParameter(remainingArgument, parameters, argsToParamsOpt, expanded: true)?.Ordinal != paramsIndex)
+                            {
+                                break;
+                            }
+
+                            arrayArgsBuilder.Add(argumentsBuilder[remainingArgument]);
+                            i++;
+                        }
+                    }
                 }
             }
 
-            // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
-            if (parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters))
+            if (expanded)
             {
+                // expanded parameter array is not treated as an optional parameter
+                visitedParameters[paramsIndex] = true;
+            }
+
+            bool haveDefaultArguments = !parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters);
+
+            if (!haveDefaultArguments && !expanded)
+            {
+                Debug.Assert(argumentsBuilder.Count >= parameters.Length); // Accounting for arglist cases
+                Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
+                Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == argumentsBuilder.Count);
+                Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == argumentsBuilder.Count);
+                Debug.Assert(arrayArgsBuilder is null);
                 defaultArguments = default;
                 return;
             }
 
-            // In a scenario like `string Prop { get; } = M();`, the containing symbol could be the synthesized field.
-            // We want to use the associated user-declared symbol instead where possible.
-            var containingMember = InAttributeArgument ? attributedMember : ContainingMember() switch
-            {
-                FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
-                var c => c
-            };
-            Debug.Assert(InAttributeArgument || (attributedMember is null && containingMember is not null));
-
-            defaultArguments = BitVector.Create(parameters.Length);
             ArrayBuilder<int>? argsToParamsBuilder = null;
             if (!argsToParamsOpt.IsDefault)
             {
@@ -1386,33 +1414,123 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.AddRange(argsToParamsOpt);
             }
 
-            // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
-            // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
-            Debug.Assert(!expanded || parameters[^1].IsParams);
-            // Params array is filled in the local rewriter
-            var lastIndex = expanded ? ^1 : ^0;
+            BoundArrayCreation? array = null;
 
-            var argumentsCount = argumentsBuilder.Count;
-            // Go over missing parameters, inserting default values for optional parameters
-            foreach (var parameter in parameters.AsSpan()[..lastIndex])
+            if (expanded)
             {
-                if (!visitedParameters[parameter.Ordinal])
+                Debug.Assert(arrayArgsBuilder is not null);
+                ImmutableArray<BoundExpression> arrayArgs = arrayArgsBuilder.ToImmutableAndFree();
+                int arrayArgsLength = arrayArgs.Length;
+
+                TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                TypeSymbol paramArrayType = parameters[paramsIndex].Type;
+                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(arrayArgsLength), int32Type) { WasCompilerGenerated = true };
+
+                array = new BoundArrayCreation(
+                            node,
+                            ImmutableArray.Create(arraySize),
+                            new BoundArrayInitialization(node, isInferred: false, arrayArgs) { WasCompilerGenerated = true },
+                            paramArrayType)
+                { WasCompilerGenerated = true, IsParamsArray = true };
+
+                if (arrayArgsLength != 0)
                 {
-                    Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
+                    Debug.Assert(firstParamArrayArgument != -1);
+                    Debug.Assert(!haveDefaultArguments || arrayArgsLength == 1);
+                    Debug.Assert(arrayArgsLength == 1 || firstParamArrayArgument + arrayArgsLength == argumentsBuilder.Count);
 
-                    defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
-
-                    if (argumentRefKindsBuilder is { Count: > 0 })
+                    for (var i = firstParamArrayArgument + arrayArgsLength - 1; i != firstParamArrayArgument; i--)
                     {
-                        argumentRefKindsBuilder.Add(RefKind.None);
+                        argumentsBuilder.RemoveAt(i);
+                        argsToParamsBuilder?.RemoveAt(i);
+
+                        if (argumentRefKindsBuilder is { Count: > 0 })
+                        {
+                            argumentRefKindsBuilder.RemoveAt(i);
+                        }
+
+                        if (namesBuilder is { Count: > 0 })
+                        {
+                            namesBuilder.RemoveAt(i);
+                        }
                     }
 
-                    argsToParamsBuilder?.Add(parameter.Ordinal);
+                    argumentsBuilder[firstParamArrayArgument] = array;
+                    array = null;
                 }
             }
-            Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
-            Debug.Assert(argsToParamsBuilder is null || argsToParamsBuilder.Count == argumentsBuilder.Count);
+
+            // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
+            if (haveDefaultArguments)
+            {
+                // In a scenario like `string Prop { get; } = M();`, the containing symbol could be the synthesized field.
+                // We want to use the associated user-declared symbol instead where possible.
+                var containingMember = InAttributeArgument ? attributedMember : ContainingMember() switch
+                {
+                    FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
+                    var c => c
+                };
+                Debug.Assert(InAttributeArgument || (attributedMember is null && containingMember is not null));
+
+                defaultArguments = BitVector.Create(parameters.Length);
+
+                // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
+                // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
+                Debug.Assert(!expanded || parameters[^1].IsParams);
+                var lastIndex = expanded ? ^1 : ^0;
+
+                var argumentsCount = argumentsBuilder.Count;
+                // Go over missing parameters, inserting default values for optional parameters
+                foreach (var parameter in parameters.AsSpan()[..lastIndex])
+                {
+                    if (!visitedParameters[parameter.Ordinal])
+                    {
+                        Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
+
+                        defaultArguments[argumentsBuilder.Count] = true;
+                        argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
+
+                        if (argumentRefKindsBuilder is { Count: > 0 })
+                        {
+                            argumentRefKindsBuilder.Add(RefKind.None);
+                        }
+
+                        argsToParamsBuilder?.Add(parameter.Ordinal);
+                        if (namesBuilder?.Count > 0)
+                        {
+                            namesBuilder.Add(null);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                defaultArguments = default;
+            }
+
+            if (array is not null)
+            {
+                Debug.Assert(expanded);
+                Debug.Assert(firstParamArrayArgument == -1);
+
+                argumentsBuilder.Add(array);
+                argsToParamsBuilder?.Add(paramsIndex);
+
+                if (argumentRefKindsBuilder is { Count: > 0 })
+                {
+                    argumentRefKindsBuilder.Add(RefKind.None);
+                }
+
+                if (namesBuilder is { Count: > 0 })
+                {
+                    namesBuilder.Add(null);
+                }
+            }
+
+            Debug.Assert(argumentsBuilder.Count == parameters.Length);
+            Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == parameters.Length);
+            Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == parameters.Length);
+            Debug.Assert(argsToParamsBuilder is null || argsToParamsBuilder.Count == parameters.Length);
 
             if (argsToParamsBuilder is object)
             {
