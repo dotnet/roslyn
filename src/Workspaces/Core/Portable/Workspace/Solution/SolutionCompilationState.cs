@@ -62,6 +62,10 @@ internal sealed partial class SolutionCompilationState
     private NonReentrantLock? _stateLockBackingField;
     private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
 
+    private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
+    private DateTime _timeOfLatestSolutionWithPartialCompilation;
+    private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
+
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
@@ -1018,10 +1022,6 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.Solution.WithOptions(options));
     }
-
-    private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
-    private DateTime _timeOfLatestSolutionWithPartialCompilation;
-    private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
 
     /// <summary>
     /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
