@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
 
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             RegisterCodeFix(context, AnalyzersResources.Use_throw_expression, nameof(AnalyzersResources.Use_throw_expression));

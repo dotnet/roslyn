@@ -162,9 +162,15 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
     private void ReportArrayCreationDiagnostics(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, CodeStyleOption2<bool> option, ExpressionSyntax expression)
     {
-        var location = expression.GetFirstToken().GetLocation();
-        var additionalLocations = ImmutableArray.Create(expression.GetLocation());
-        var fadingLocations = ImmutableArray.Create(
+        var locations = ImmutableArray.Create(expression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            expression.GetFirstToken().GetLocation(),
+            option.Notification,
+            additionalLocations: locations,
+            properties: null));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 expression.SpanStart,
                 expression is ArrayCreationExpressionSyntax arrayCreationExpression
@@ -172,11 +178,10 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                     : ((ImplicitArrayCreationExpressionSyntax)expression).CloseBracketToken.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            location,
-            option.Notification,
-            additionalLocations,
-            fadingLocations,
-            properties: null));
+            UnnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 }

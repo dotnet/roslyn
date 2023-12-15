@@ -50,33 +50,47 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, cancellationToken) is not { } analysisResult)
             return;
 
-        var location = analysisResult.DiagnosticLocation;
-        var additionalLocations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var fadingLocations = GetLocationsToFade(analysisResult);
-
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+        var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            location,
+            analysisResult.DiagnosticLocation,
             option.Notification,
-            additionalLocations,
-            fadingLocations,
+            additionalLocations: locations,
             properties: null));
+
+        FadeOutCode(context, analysisResult, locations);
     }
 
-    private static ImmutableArray<Location> GetLocationsToFade(AnalysisResult analysisResult)
+    private void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
     {
-        using var _ = ArrayBuilder<Location>.GetInstance(out var fadingLocations);
-        fadingLocations.Add(analysisResult.LocalDeclarationStatement.GetLocation());
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
+            analysisResult.LocalDeclarationStatement.GetLocation());
+
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            UnnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+            properties: null));
 
         foreach (var statementMatch in analysisResult.Matches)
         {
-            var locations = UseCollectionInitializerHelpers.GetLocationsToFade(
+            additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
                 CSharpSyntaxFacts.Instance, statementMatch);
-            if (!locations.IsDefaultOrEmpty)
-                fadingLocations.AddRange(locations);
-        }
+            if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                continue;
 
-        return fadingLocations.ToImmutable();
+            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+            // will be offered.
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                UnnecessaryCodeDescriptor,
+                additionalUnnecessaryLocations[0],
+                NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                additionalLocations: locations,
+                additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                properties: null));
+        }
     }
 
     public static AnalysisResult? AnalyzeInvocation(
