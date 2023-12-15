@@ -133,7 +133,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            translate: static (tuple, translate) => translate(tuple),
+            translate: static (tuple, translate) => translate?.Invoke(tuple),
             forkTracker,
             arg: translate);
     }
@@ -153,8 +153,8 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, CompilationAndGeneratorDriverTranslationAction?}?, bool)"/> except that it will still fork even if <paramref
-    /// name="newSolutionState"/> is unchanged from <see cref="Solution"/>.
+    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, CompilationAndGeneratorDriverTranslationAction?}?,
+    /// bool)"/> except that it will still fork even if newSolutionState is unchanged from <see cref="Solution"/>.
     /// </summary>
     private SolutionCompilationState ForceForkProject(
         StateChange stateChange,
@@ -1194,17 +1194,17 @@ internal sealed partial class SolutionCompilationState
 
             var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
-            (var newSolutionState, _, _) = newCompilationState.Solution.ForkProject(
+            var stateChange = newCompilationState.Solution.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // intentionally accessing this.Solution here not newSolutionState
                 newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
 
             newCompilationState = newCompilationState.ForkProject(
-                newSolutionState,
-                newProjectState,
-                compilationTranslationAction,
-                forkTracker: true);
+                stateChange,
+                static (_, compilationTranslationAction) => compilationTranslationAction,
+                forkTracker: true,
+                arg: compilationTranslationAction);
         }
 
         return newCompilationState;
@@ -1247,17 +1247,17 @@ internal sealed partial class SolutionCompilationState
 
             var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
 
-            (var newSolutionState, _, _) = newCompilationState.Solution.ForkProject(
+            var stateChange = newCompilationState.Solution.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // Intentionally using this.Solution here and not newSolutionState
                 newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
 
             newCompilationState = newCompilationState.ForkProject(
-                newSolutionState,
-                newProjectState,
-                compilationTranslationAction,
-                forkTracker: true);
+                stateChange,
+                static (_, compilationTranslationAction) => compilationTranslationAction,
+                forkTracker: true,
+                arg: compilationTranslationAction);
         }
 
         return newCompilationState;
