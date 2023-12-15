@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbol fieldType = fieldReference.Type;
                 Debug.Assert(fieldType.IsTypeParameter());
-                Debug.Assert(parameterReference.Type.Equals(fieldType) || 
+                Debug.Assert(parameterReference.Type.Equals(fieldType) ||
                              parameterReference.Type.IsObjectType());
 
                 var equalityComparer_get_Default = f.WellKnownMethod(
