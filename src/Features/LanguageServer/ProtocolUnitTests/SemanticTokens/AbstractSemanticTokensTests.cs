@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         /// fail. This groups rows by five (so that way the diff can't desynced from the start of a new token), and also replaces the token index
         /// back with the string again.
         /// </summary>
-        protected static ImmutableArray<string> ConvertToReadableFormat(
+        private protected static ImmutableArray<string> ConvertToReadableFormat(
             ClientCapabilities capabilities, int[] data)
         {
             var convertedStringsBuilder = ImmutableArray.CreateBuilder<string>(data.Length / 5);
