@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -1297,7 +1296,7 @@ internal sealed partial class SolutionCompilationState
             // This API has always allowed null document IDs and documents IDs not contained within the solution. So
             // skip those if we run into that (otherwise the call to WithDocumentText will throw, as it is more
             // restrictive).
-            var documentState = this.Solution.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
+            var documentState = this.Solution.GetProjectState(documentId?.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
                 result = result.WithDocumentText(documentId, text, mode);
         }
