@@ -55,7 +55,7 @@ internal sealed partial class SolutionCompilationState
 
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
-    // this lock guards all the mutable fields (do not share lock with derived classes)
+    // Lock for the partial compilation state listed below.
     private NonReentrantLock? _stateLockBackingField;
     private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
 
