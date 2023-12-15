@@ -798,6 +798,8 @@ finally {
     Stop-Processes
   }
 
-  Unsubst-TempDir
+  if (Test-Path Function:\Unsubst-TempDir) {
+    Unsubst-TempDir
+  }
   Pop-Location
 }
