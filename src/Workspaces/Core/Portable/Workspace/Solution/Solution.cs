@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis
 
             // If the project didn't change itself, there's no need to change the compilation state.
             var stateChange = _state.RemoveProjectReference(projectId, projectReference);
-            if (stateChange.newSolutionState == _state)
+            if (stateChange.NewSolutionState == _state)
             {
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
             }
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
 
             // If the project didn't change itself, there's no need to change the compilation state.
             var tuple = _state.RemoveMetadataReference(projectId, metadataReference);
-            if (tuple.newSolutionState == _state)
+            if (tuple.NewSolutionState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis
 
             // If the project didn't change itself, there's no need to change the compilation state.
             var stateChange = _state.RemoveAnalyzerReference(projectId, analyzerReference);
-            if (stateChange.newSolutionState == _state)
+            if (stateChange.NewSolutionState == _state)
             {
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
             }

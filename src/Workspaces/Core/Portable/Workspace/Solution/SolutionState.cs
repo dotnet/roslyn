@@ -19,9 +19,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     internal readonly record struct StateChange(
-        SolutionState newSolutionState,
-        ProjectState oldProjectState,
-        ProjectState newProjectState);
+        SolutionState NewSolutionState,
+        ProjectState OldProjectState,
+        ProjectState NewProjectState);
 
     /// <summary>
     /// Represents a set of projects and their source code documents.

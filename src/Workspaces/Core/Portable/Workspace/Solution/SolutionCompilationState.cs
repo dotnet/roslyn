@@ -148,7 +148,7 @@ internal sealed partial class SolutionCompilationState
         TArg arg)
     {
         // If the solution didn't actually change, there's no need to change us.
-        if (stateChange.newSolutionState == this.Solution)
+        if (stateChange.NewSolutionState == this.Solution)
             return this;
 
         return ForceForkProject(stateChange, translate.Invoke(stateChange, arg), forkTracker);
@@ -163,8 +163,8 @@ internal sealed partial class SolutionCompilationState
         CompilationAndGeneratorDriverTranslationAction? translate,
         bool forkTracker)
     {
-        var newSolutionState = stateChange.newSolutionState;
-        var newProjectState = stateChange.newProjectState;
+        var newSolutionState = stateChange.NewSolutionState;
+        var newProjectState = stateChange.NewProjectState;
         var projectId = newProjectState.Id;
 
         var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
@@ -301,7 +301,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.Solution.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: false),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -331,7 +331,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.Solution.WithProjectCompilationOptions(projectId, options),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.newProjectState, isAnalyzerConfigChange: false),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.NewProjectState, isAnalyzerConfigChange: false),
             forkTracker: true);
     }
 
@@ -354,7 +354,7 @@ internal sealed partial class SolutionCompilationState
         {
             return ForkProject(
                 stateChange,
-                static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: true),
+                static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.NewProjectState, isParseOptionChange: true),
                 forkTracker: true);
         }
     }
@@ -385,7 +385,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.Solution.WithProjectDocumentsOrder(projectId, documentIds),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.newProjectState, isParseOptionChange: false),
+            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
 
@@ -453,7 +453,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             stateChange,
             static (stateChange, analyzerReferences) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.oldProjectState.Language, referencesToAdd: analyzerReferences),
+                stateChange.OldProjectState.Language, referencesToAdd: analyzerReferences),
             forkTracker: true,
             arg: analyzerReferences);
     }
@@ -488,7 +488,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             stateChange,
             static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.oldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
+                stateChange.OldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true,
             arg: analyzerReference);
     }
@@ -498,7 +498,7 @@ internal sealed partial class SolutionCompilationState
         ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
         var stateChange = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
-        if (stateChange.newSolutionState == this.Solution)
+        if (stateChange.NewSolutionState == this.Solution)
             return this;
 
         // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
@@ -517,11 +517,11 @@ internal sealed partial class SolutionCompilationState
             stateChange,
             static stateChange =>
             {
-                var addedReferences = stateChange.newProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.oldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
-                var removedReferences = stateChange.oldProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.newProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+                var addedReferences = stateChange.NewProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.OldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
+                var removedReferences = stateChange.OldProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.NewProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
                 return new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                    stateChange.oldProjectState.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
+                    stateChange.OldProjectState.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
             },
             forkTracker: true);
     }
@@ -628,7 +628,7 @@ internal sealed partial class SolutionCompilationState
 
         // Note: state is currently not reused.
         // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(stateChange.newSolutionState != this.Solution);
+        Debug.Assert(stateChange.NewSolutionState != this.Solution);
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
@@ -643,7 +643,7 @@ internal sealed partial class SolutionCompilationState
 
         // Note: state is currently not reused.
         // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(stateChange.newSolutionState != this.Solution);
+        Debug.Assert(stateChange.NewSolutionState != this.Solution);
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
@@ -658,7 +658,7 @@ internal sealed partial class SolutionCompilationState
 
         // Note: state is currently not reused.
         // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(stateChange.newSolutionState != this.Solution);
+        Debug.Assert(stateChange.NewSolutionState != this.Solution);
 
         // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
         // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
@@ -667,18 +667,18 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.newSolutionState == this.Solution)
+        if (stateChange.NewSolutionState == this.Solution)
             return this;
 
         // This method shouldn't have been called if the document has not changed.
-        Debug.Assert(stateChange.oldProjectState != stateChange.newProjectState);
+        Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
         return ForkProject(
             stateChange,
             static (stateChange, documentId) =>
             {
-                var oldDocument = stateChange.oldProjectState.DocumentStates.GetRequiredState(documentId);
-                var newDocument = stateChange.newProjectState.DocumentStates.GetRequiredState(documentId);
+                var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
+                var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
                 return new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument);
             },
@@ -688,18 +688,18 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateAdditionalDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.newSolutionState == this.Solution)
+        if (stateChange.NewSolutionState == this.Solution)
             return this;
 
         // This method shouldn't have been called if the document has not changed.cument has not changed.
-        Debug.Assert(stateChange.oldProjectState != stateChange.newProjectState);
+        Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
         return ForkProject(
             stateChange,
             static (stateChange, documentId) =>
             {
-                var oldDocument = stateChange.oldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
-                var newDocument = stateChange.newProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
+                var oldDocument = stateChange.OldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
+                var newDocument = stateChange.NewProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
                 return new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument);
             },
@@ -711,8 +711,8 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static stateChange => stateChange.newProjectState.CompilationOptions != null
-                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.newProjectState, isAnalyzerConfigChange: true)
+            static stateChange => stateChange.NewProjectState.CompilationOptions != null
+                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(stateChange.NewProjectState, isAnalyzerConfigChange: true)
                 : null,
             forkTracker: true);
     }
@@ -1276,7 +1276,7 @@ internal sealed partial class SolutionCompilationState
         // Note: we have to force this fork to happen as the actual solution-state object is not changing. We're just
         // changing the tracker for a particular project.
         var newCompilationState = this.ForceForkProject(
-            new(this.Solution, oldProjectState: projectToUpdateState, newProjectState: projectToUpdateState),
+            new(this.Solution, projectToUpdateState, projectToUpdateState),
             translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                 tracker.GeneratorDriver,
                 newProjectState: projectToUpdateState),
