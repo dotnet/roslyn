@@ -125,20 +125,6 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     private SolutionCompilationState ForkProject(
-        (SolutionState newSolutionState, ProjectState newProjectState) stateTuple,
-        CompilationAndGeneratorDriverTranslationAction? translate,
-        //ProjectDependencyGraph? newDependencyGraph = null,
-        bool forkTracker)
-    {
-        return ForkProject(
-            stateTuple.newSolutionState,
-            stateTuple.newProjectState,
-            translate,
-            forkTracker);
-    }
-
-    /// <inheritdoc cref="SolutionState.ForkProject"/>
-    private SolutionCompilationState ForkProject(
         (SolutionState newSolutionState, ProjectState oldProjectState, ProjectState newProjectState) stateTuple,
         CompilationAndGeneratorDriverTranslationAction? translate,
         //ProjectDependencyGraph? newDependencyGraph = null,
@@ -163,6 +149,20 @@ internal sealed partial class SolutionCompilationState
         if (newSolutionState == this.Solution)
             return this;
 
+        return ForceForkProject(newSolutionState, newProjectState, translate, forkTracker);
+    }
+
+    /// <summary>
+    /// Same as <see cref="ForkProject(SolutionState, ProjectState, CompilationAndGeneratorDriverTranslationAction?,
+    /// bool)"/> except that it will still fork even if <paramref name="newSolutionState"/> is unchanged from
+    /// <see cref="Solution"/>.
+    /// </summary>
+    private SolutionCompilationState ForceForkProject(
+        SolutionState newSolutionState,
+        ProjectState newProjectState,
+        CompilationAndGeneratorDriverTranslationAction? translate,
+        bool forkTracker)
+    {
         var projectId = newProjectState.Id;
 
         var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
@@ -401,7 +401,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
     public SolutionCompilationState RemoveProjectReference(
-        (SolutionState newSolutionState, ProjectState newProject) tuple)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple)
     {
         return ForkProject(
             tuple,
@@ -431,7 +431,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
     public SolutionCompilationState RemoveMetadataReference(
-        (SolutionState newSolutionState, ProjectState newProject) tuple)
+        (SolutionState newSolutionState, ProjectState oldProject, ProjectState newProject) tuple)
     {
         return ForkProject(
             tuple,
@@ -655,16 +655,15 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState UpdateAnalyzerConfigDocumentTextLoader(
         DocumentId documentId, TextLoader loader, PreservationMode mode)
     {
-        var (newState, newProjectState) = this.Solution.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+        var tuple = this.Solution.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
 
         // Note: state is currently not reused.
         // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
-        Debug.Assert(newState != this.Solution);
+        Debug.Assert(tuple.newState != this.Solution);
 
         // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
         // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-        return UpdateAnalyzerConfigDocumentState(
-            (newState, newProjectState));
+        return UpdateAnalyzerConfigDocumentState(tuple);
     }
 
     private SolutionCompilationState UpdateDocumentState(
@@ -704,7 +703,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     private SolutionCompilationState UpdateAnalyzerConfigDocumentState(
-        (SolutionState newSolution, ProjectState newProject) tuple)
+        (SolutionState newSolution, ProjectState oldProject, ProjectState newProject) tuple)
     {
         return ForkProject(
             tuple,
@@ -1182,7 +1181,8 @@ internal sealed partial class SolutionCompilationState
 
             var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
-            (var newSolutionState, newProjectState) = newCompilationState.Solution.ForkProject(
+            (var newSolutionState, _, _) = newCompilationState.Solution.ForkProject(
+                oldProjectState,
                 newProjectState,
                 // intentionally accessing this.Solution here not newSolutionState
                 newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
@@ -1234,7 +1234,8 @@ internal sealed partial class SolutionCompilationState
 
             var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
 
-            (var newSolutionState, newProjectState) = newCompilationState.Solution.ForkProject(
+            (var newSolutionState, _, _) = newCompilationState.Solution.ForkProject(
+                oldProjectState,
                 newProjectState,
                 // Intentionally using this.Solution here and not newSolutionState
                 newFilePathToDocumentIdsMap: this.Solution.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
@@ -1265,9 +1266,9 @@ internal sealed partial class SolutionCompilationState
 
         var projectToUpdateState = this.Solution.GetRequiredProjectState(projectToUpdate);
 
-        (var newState, projectToUpdateState) = this.Solution.ForkProject(projectToUpdateState);
-        var newCompilationState = this.ForkProject(
-            newState,
+        // Note: we have to force this fork to happen as the actual solution-state object is not changing.
+        var newCompilationState = this.ForceForkProject(
+            this.Solution,
             projectToUpdateState,
             translate: new SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                 tracker.GeneratorDriver,

@@ -467,211 +467,211 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project specified updated to have the new
         /// assembly name.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectAssemblyName(ProjectId projectId, string assemblyName)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectAssemblyName(ProjectId projectId, string assemblyName)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAssemblyName(assemblyName);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputFilePath(outputFilePath);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputRefFilePath(outputRefFilePath);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOutputInfo(info);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the default namespace.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithDefaultNamespace(defaultNamespace);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public (SolutionState, ProjectState newProject) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectName(ProjectId projectId, string name)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithName(name);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the project file path.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectFilePath(ProjectId projectId, string? filePath)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectFilePath(ProjectId projectId, string? filePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithFilePath(filePath);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>
-        public (SolutionState, ProjectState newProject) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOptions(options);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified parse options.
         /// </summary>
-        public (SolutionState, ProjectState newProject) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithParseOptions(options);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
-        public (SolutionState, ProjectState) WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithHasAllInformation(hasAllInformation);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified runAnalyzers.
         /// </summary>
-        public (SolutionState, ProjectState) WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
-        public (SolutionState, ProjectState) AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (projectReferences.Count == 0)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -680,14 +680,14 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.WithProjectReferences(newReferences);
             var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences);
 
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer
         /// include the specified project reference.
         /// </summary>
-        public (SolutionState, ProjectState) RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldReferences == newReferences)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             var newProject = oldProject.WithProjectReferences(newReferences);
@@ -720,31 +720,31 @@ namespace Microsoft.CodeAnalysis
                 newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
             }
 
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
             var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public (SolutionState, ProjectState newProject) WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
             var oldProject = GetRequiredProjectState(projectId);
 
@@ -765,61 +765,61 @@ namespace Microsoft.CodeAnalysis
 
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified metadata references.
         /// </summary>
-        public (SolutionState, ProjectState) AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             if (metadataReferences.Count == 0)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(metadataReferences);
 
-            return ForkProject(oldProject.WithMetadataReferences(newReferences));
+            return ForkProject(oldProject, oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified metadata reference.
         /// </summary>
-        public (SolutionState, ProjectState) RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        public (SolutionState newState, ProjectState oldProject, ProjectState newProject) RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(metadataReference);
             if (oldReferences == newReferences)
             {
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
-            return ForkProject(oldProject.WithMetadataReferences(newReferences));
+            return ForkProject(oldProject, oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include only the
         /// specified metadata references.
         /// </summary>
-        public (SolutionState, ProjectState) WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
+        public (SolutionState, ProjectState oldProject, ProjectState newProject) WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithMetadataReferences(metadataReferences);
             if (oldProject == newProject)
             {
-                return (this, oldProject);
+                return (this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
@@ -837,8 +837,7 @@ namespace Microsoft.CodeAnalysis
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(analyzerReferences);
 
-            var (newState, newProject) = ForkProject(oldProject.WithAnalyzerReferences(newReferences));
-            return (newState, oldProject, newProject);
+            return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
@@ -855,8 +854,7 @@ namespace Microsoft.CodeAnalysis
                 return (this, oldProject, oldProject);
             }
 
-            var (newState, newProject) = ForkProject(oldProject.WithAnalyzerReferences(newReferences));
-            return (newState, oldProject, newProject);
+            return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
@@ -872,8 +870,7 @@ namespace Microsoft.CodeAnalysis
                 return (this, oldProject, newProject);
             }
 
-            (var newState, newProject) = ForkProject(newProject);
-            return (newState, oldProject, newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
@@ -958,13 +955,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public (SolutionState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
@@ -1006,13 +1003,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public (SolutionState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
                 var oldProject = GetRequiredProjectState(documentId.ProjectId);
-                return (this, oldProject);
+                return (this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
@@ -1096,7 +1093,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public (SolutionState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public (SolutionState newState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
 
@@ -1116,10 +1113,10 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.DocumentStates.GetRequiredState(newDocument.Id);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
 
-            (var newState, newProject) = ForkProject(
+            return ForkProject(
+                oldProject,
                 newProject,
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
-            return (newState, oldProject, newProject);
         }
 
         private (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
@@ -1130,11 +1127,10 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            (var newState, newProject) = ForkProject(newProject);
-            return (newState, oldProject, newProject);
+            return ForkProject(oldProject, newProject);
         }
 
-        private (SolutionState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
+        private (SolutionState, ProjectState oldProjectState, ProjectState newProjectState) UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
@@ -1142,7 +1138,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
@@ -1151,7 +1147,8 @@ namespace Microsoft.CodeAnalysis
         /// are fixed-up if the change to the new project affects its public metadata, and old
         /// dependent compilations are forgotten.
         /// </summary>
-        public (SolutionState solutionState, ProjectState newProjectState) ForkProject(
+        public (SolutionState solutionState, ProjectState oldProjectState, ProjectState newProjectState) ForkProject(
+            ProjectState oldProjectState,
             ProjectState newProjectState,
             ProjectDependencyGraph? newDependencyGraph = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
@@ -1168,7 +1165,7 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
 
-            return (newSolutionState, newProjectState);
+            return (newSolutionState, oldProjectState, newProjectState);
         }
 
         /// <summary>
