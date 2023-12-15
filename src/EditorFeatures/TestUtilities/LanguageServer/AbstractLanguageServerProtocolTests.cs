@@ -163,19 +163,10 @@ namespace Roslyn.Test.Utilities
             return compareLine != 0 ? compareLine : compareChar;
         }
 
-        protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
+        protected static string ApplyTextEdits(LSP.TextEdit[]? edits, SourceText originalMarkup)
         {
-            var text = originalMarkup;
-            foreach (var edit in edits)
-            {
-                var lines = text.Lines;
-                var startPosition = ProtocolConversions.PositionToLinePosition(edit.Range.Start);
-                var endPosition = ProtocolConversions.PositionToLinePosition(edit.Range.End);
-                var textSpan = lines.GetTextSpan(new LinePositionSpan(startPosition, endPosition));
-                text = text.Replace(textSpan, edit.NewText);
-            }
-
-            return text.ToString();
+            var changes = Array.ConvertAll(edits ?? [], edit => ProtocolConversions.TextEditToTextChange(edit, originalMarkup));
+            return originalMarkup.WithChanges(changes).ToString();
         }
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)

@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             // Code lens options
             LspOptionsStorage.LspEnableReferencesCodeLens,
             LspOptionsStorage.LspEnableTestsCodeLens,
+            LspOptionsStorage.LspFormattingSortImports,
             // Project system
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
             LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore);
