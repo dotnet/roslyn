@@ -2442,7 +2442,7 @@ class D<T> : B<{passToBase}>{constraint}
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
         public async Task TestRecordInheritance2()
         {
             await TestAllOptionsOffAsync(
@@ -2465,6 +2465,46 @@ class D<T> : B<{passToBase}>{constraint}
                 record C() : A()
                 {
                     protected override void M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
+        public async Task TestNullableGenericConstraintToSpecificReferenceType()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                #nullable enable
+                interface I<out T> { }
+
+                class C { }
+
+                abstract class Problem
+                {
+                    protected abstract void M<T>(I<T?> i) where T : C;
+                }
+
+                class [|Bad|] : Problem
+                {
+                }
+                """,
+                """
+                #nullable enable
+                interface I<out T> { }
+
+                class C { }
+
+                abstract class Problem
+                {
+                    protected abstract void M<T>(I<T?> i) where T : C;
+                }
+
+                class Bad : Problem
+                {
+                    protected override void M<T>(I<T?> i) where T : class
                     {
                         throw new System.NotImplementedException();
                     }

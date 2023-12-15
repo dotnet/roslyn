@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -228,12 +227,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (!referencedTypeParameters.Contains(typeParameter))
                     continue;
 
-                var constraint = typeParameter switch
+                TypeParameterConstraintSyntax? constraint;
+
+                if (typeParameter.HasReferenceTypeConstraint)
                 {
-                    { HasReferenceTypeConstraint: true } => s_classConstraint,
-                    { HasValueTypeConstraint: true } => s_structConstraint,
-                    _ => s_defaultConstraint
-                };
+                    constraint = s_classConstraint;
+                }
+                else if (typeParameter.HasValueTypeConstraint)
+                {
+                    constraint = s_structConstraint;
+                }
+                else if (typeParameter.ConstraintTypes.Any(t => t.IsReferenceType))
+                {
+                    constraint = s_classConstraint;
+                }
+                else
+                {
+                    constraint = s_defaultConstraint;
+                }
 
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
                     typeParameter.Name.ToIdentifierName(),
