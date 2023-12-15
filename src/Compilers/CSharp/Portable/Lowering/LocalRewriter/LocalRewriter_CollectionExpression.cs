@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder,
                 numberIncludingLastSpread,
                 sideEffects,
-                (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue) =>
+                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue) =>
                 {
                     Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
                     Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRef: false,
                             indexTemp.Type));
                 },
-                (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
                     if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
@@ -672,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(WellKnownMember.System_Span_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
+#if DEBUG
+                // We expect the array element type to be usable as a type argument
+                var useSiteInfo = GetNewCompoundUseSiteInfo();
+                Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(source: arrayType.ElementType, destination: _compilation.GetSpecialType(SpecialType.System_Object), isChecked: false, ref useSiteInfo).IsImplicit);
+#endif
                 asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
                 return true;
             }
@@ -909,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue) =>
                     {
                         Debug.Assert(spanTemp.Type is NamedTypeSymbol);
                         Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -934,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 isRef: false,
                                 indexTemp.Type));
                     },
-                    (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
                         if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                             return false;
@@ -953,13 +958,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
                     {
                         // list.Add(element);
                         expressions.Add(
                             _factory.Call(listTemp, addMethod, rewrittenValue));
                     },
-                    (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
                         if (addRangeMethod is null)
                             return false;
