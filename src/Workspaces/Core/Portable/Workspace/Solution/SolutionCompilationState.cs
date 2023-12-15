@@ -460,8 +460,7 @@ internal sealed partial class SolutionCompilationState
             arg: analyzerReferences);
     }
 
-    public SolutionCompilationState AddAnalyzerReferences(
-        SolutionState newSolutionState)
+    public SolutionCompilationState AddAnalyzerReferences(SolutionState newSolutionState)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
@@ -469,8 +468,7 @@ internal sealed partial class SolutionCompilationState
         return Branch(newSolutionState);
     }
 
-    public SolutionCompilationState RemoveAnalyzerReference(
-        SolutionState newSolutionState)
+    public SolutionCompilationState RemoveAnalyzerReference(SolutionState newSolutionState)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
@@ -478,8 +476,7 @@ internal sealed partial class SolutionCompilationState
         return Branch(newSolutionState);
     }
 
-    public SolutionCompilationState WithAnalyzerReferences(
-        SolutionState newSolutionState)
+    public SolutionCompilationState WithAnalyzerReferences(SolutionState newSolutionState)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
