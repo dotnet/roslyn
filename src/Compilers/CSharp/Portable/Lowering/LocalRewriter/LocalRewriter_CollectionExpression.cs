@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
 #if DEBUG
                 // We expect the array element type to be usable as a type argument
-                var useSiteInfo = GetNewCompoundUseSiteInfo();
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(source: arrayType.ElementType, destination: _compilation.GetSpecialType(SpecialType.System_Object), isChecked: false, ref useSiteInfo).IsImplicit);
 #endif
                 asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
