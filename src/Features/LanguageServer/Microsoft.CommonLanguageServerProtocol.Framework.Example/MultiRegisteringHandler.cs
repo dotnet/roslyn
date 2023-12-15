@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if false
-
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
@@ -18,22 +16,20 @@ public class MultiRegisteringHandler :
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
     [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
-    public Task HandleNotificationAsync(DidCloseTextDocumentParams request, ExampleRequestContext requestContext, CancellationToken cancellationToken)
+    Task INotificationHandler<DidCloseTextDocumentParams, ExampleRequestContext>.HandleNotificationAsync(DidCloseTextDocumentParams request, ExampleRequestContext requestContext, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
     [LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
     [LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 }
-
-#endif

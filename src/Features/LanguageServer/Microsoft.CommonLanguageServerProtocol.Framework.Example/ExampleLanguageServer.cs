@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if false
-
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,5 +63,3 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
         return serviceCollection;
     }
 }
-
-#endif
