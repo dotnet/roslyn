@@ -46,7 +46,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
             membersBuilder.Add(_itemField);
             membersBuilder.Add(_moveNextCalledField);
             membersBuilder.Add(
-                new SynthesizedReadOnlyListTypeSymbol.EnumeratorConstructor(this, typeParameter));
+                new EnumeratorConstructor(this, typeParameter));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
@@ -165,7 +165,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
 
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        internal override bool MangleName => true;
+        internal override bool MangleName => false;
 
         internal override bool HasDeclaredRequiredMembers => false;
 
@@ -201,7 +201,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
 
         public override ImmutableArray<Symbol> GetMembers() => _members;
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(m => m.Name == name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(static (m, name) => m.Name == name, name);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -219,7 +219,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => _interfaces;
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable();
 
@@ -250,7 +250,7 @@ internal sealed partial class SynthesizedReadOnlyListTypeSymbol
             return false;
         }
 
-        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             builderArgument = null;
             return false;

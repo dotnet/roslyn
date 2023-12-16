@@ -25954,100 +25954,90 @@ partial class Program
                 using System.Collections.Generic;
 
                 internal sealed class ReadOnlySingletonList<T> :
-                	IEnumerable,
-                	ICollection,
-                	IList,
-                	IEnumerable<T>,
-                	IReadOnlyCollection<T>,
-                	IReadOnlyList<T>,
-                	ICollection<T>,
-                	IList<T>
+                    IEnumerable,
+                    ICollection,
+                    IList,
+                    IEnumerable<T>,
+                    IReadOnlyCollection<T>,
+                    IReadOnlyList<T>,
+                    ICollection<T>,
+                    IList<T>
                 {
-                	private sealed class Enumerator : IDisposable, IEnumerator, IEnumerator<T>
-                	{
-                		private readonly T _item;
-                		private bool _moveNextCalled;
-                		object IEnumerator.Current => _item;
-                		T IEnumerator<T>.Current => _item;
-                		public Enumerator(T item) => _item = item;
-                		bool IEnumerator.MoveNext() => _moveNextCalled ? false : (_moveNextCalled = true);
-                		void IEnumerator.Reset() => _moveNextCalled = false;
-                		void IDisposable.Dispose() { }
-                	}
-                	private readonly T _item;
-                	int ICollection.Count => 1;
-                	bool ICollection.IsSynchronized => false;
-                	object ICollection.SyncRoot => this;
-                	object IList.this[int index]
-                	{
-                		get
-                		{
-                			if (index != 0)
-                			{
-                				throw new IndexOutOfRangeException();
-                			}
-                			return _item;
-                		}
-                		set => throw new NotSupportedException();
-                	}
-                	bool IList.IsFixedSize => true;
-                	bool IList.IsReadOnly => true;
-                	int IReadOnlyCollection<T>.Count => 1;
-                	T IReadOnlyList<T>.this[int index]
-                	{
-                		get
-                		{
-                			if (index != 0)
-                			{
-                				throw new IndexOutOfRangeException();
-                			}
-                			return _item;
-                		}
-                	}
+                    private sealed class Enumerator : IDisposable, IEnumerator, IEnumerator<T>
+                    {
+                        private readonly T _item;
+                        private bool _moveNextCalled;
+                        object IEnumerator.Current => _item;
+                        T IEnumerator<T>.Current => _item;
+                        public Enumerator(T item) => _item = item;
+                        bool IEnumerator.MoveNext() => _moveNextCalled ? false : (_moveNextCalled = true);
+                        void IEnumerator.Reset() => _moveNextCalled = false;
+                        void IDisposable.Dispose() { }
+                    }
+                    private readonly T _item;
+                    int ICollection.Count => 1;
+                    bool ICollection.IsSynchronized => false;
+                    object ICollection.SyncRoot => this;
+                    object IList.this[int index]
+                    {
+                        get
+                        {
+                            if (index != 0)
+                            {
+                                throw new IndexOutOfRangeException();
+                            }
+                            return _item;
+                        }
+                        set => throw new NotSupportedException();
+                    }
+                    bool IList.IsFixedSize => true;
+                    bool IList.IsReadOnly => true;
+                    int IReadOnlyCollection<T>.Count => 1;
+                    T IReadOnlyList<T>.this[int index]
+                    {
+                        get
+                        {
+                            if (index != 0)
+                            {
+                                throw new IndexOutOfRangeException();
+                            }
+                            return _item;
+                        }
+                    }
 
-                	int ICollection<T>.Count => 1;
-                	bool ICollection<T>.IsReadOnly => true;
-                	T IList<T>.this[int index]
-                	{
-                		get
-                		{
-                			if (index != 0)
-                			{
-                				throw new IndexOutOfRangeException();
-                			}
-                			return _item;
-                		}
-                		set
-                		{
-                			throw new NotSupportedException();
-                		}
-                	}
-                	public ReadOnlySingletonList(T item) => _item = item;
-                	IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_item);
-                	void ICollection.CopyTo(Array array, int index) => array.SetValue(_item, index);
-                	int IList.Add(object value) => throw new NotSupportedException();
-                	void IList.Clear() => throw new NotSupportedException();
-                	bool IList.Contains(object value) => EqualityComparer<T>.Default.Equals(_item, (T)value);
-                	int IList.IndexOf(object value)
-                	{
-                		if (!EqualityComparer<T>.Default.Equals(_item, (T)value))
-                		{
-                			return -1;
-                		}
-                		return 0;
-                	}
-                	void IList.Insert(int index, object value) => throw new NotSupportedException();
-                	void IList.Remove(object value) => throw new NotSupportedException();
-                	void IList.RemoveAt(int index) => throw new NotSupportedException();
-                	IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(_item);
-                	void ICollection<T>.Add(T item) => throw new NotSupportedException();
-                	void ICollection<T>.Clear() => throw new NotSupportedException();
-                	bool ICollection<T>.Contains(T item) => EqualityComparer<T>.Default.Equals(_item, item);
-                	void ICollection<T>.CopyTo(T[] array, int arrayIndex) => array[arrayIndex] = _item;
-                	bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
-                	int IList<T>.IndexOf(T item) => EqualityComparer<T>.Default.Equals(_item, item) ? 0 : -1;
-                	void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
-                	void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
+                    int ICollection<T>.Count => 1;
+                    bool ICollection<T>.IsReadOnly => true;
+                    T IList<T>.this[int index]
+                    {
+                        get
+                        {
+                            if (index != 0)
+                            {
+                                throw new IndexOutOfRangeException();
+                            }
+                            return _item;
+                        }
+                        set => throw new NotSupportedException();
+                    }
+                    public ReadOnlySingletonList(T item) => _item = item;
+                    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_item);
+                    void ICollection.CopyTo(Array array, int index) => array.SetValue(_item, index);
+                    int IList.Add(object value) => throw new NotSupportedException();
+                    void IList.Clear() => throw new NotSupportedException();
+                    bool IList.Contains(object value) => EqualityComparer<T>.Default.Equals(_item, (T)value);
+                    int IList.IndexOf(object value) => EqualityComparer<T>.Default.Equals(_item, (T)value) ? 0 : -1;
+                    void IList.Insert(int index, object value) => throw new NotSupportedException();
+                    void IList.Remove(object value) => throw new NotSupportedException();
+                    void IList.RemoveAt(int index) => throw new NotSupportedException();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(_item);
+                    void ICollection<T>.Add(T item) => throw new NotSupportedException();
+                    void ICollection<T>.Clear() => throw new NotSupportedException();
+                    bool ICollection<T>.Contains(T item) => EqualityComparer<T>.Default.Equals(_item, item);
+                    void ICollection<T>.CopyTo(T[] array, int arrayIndex) => array[arrayIndex] = _item;
+                    bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
+                    int IList<T>.IndexOf(T item) => EqualityComparer<T>.Default.Equals(_item, item) ? 0 : -1;
+                    void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+                    void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
                 }
                 """;
 

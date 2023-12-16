@@ -774,6 +774,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.SymbolAsMember((NamedTypeSymbol)_field.Type);
         }
 
+        public static bool CanCreateSingleton(CSharpCompilation compilation)
+        {
+            // only checking for additional well-known types and members used in the singleton implementation.
+            return compilation.GetWellKnownType(WellKnownType.System_IndexOutOfRangeException).HasUseSiteError is false &&
+                   compilation.GetWellKnownTypeMember(WellKnownMember.System_IndexOutOfRangeException__ctor) is not null &&
+                   compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__SetValue) is not null;
+        }
+        
         public override int Arity => 1;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
@@ -856,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers() => _members;
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(m => m.Name == name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(static (m, name) => m.Name == name, name);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             => _enumeratorType is not null
@@ -879,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => _interfaces;
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable();
 

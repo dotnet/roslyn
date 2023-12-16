@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeArgs = ImmutableArray.Create(elementType);
                     var kind = useKnownLength
-                        ? numberIncludingLastSpread == 0 && elements.Length == 1
+                        ? numberIncludingLastSpread == 0 && elements.Length == 1 && SynthesizedReadOnlyListTypeSymbol.CanCreateSingleton(_compilation)
                             ? SynthesizedReadOnlyListKind.Singleton
                             : SynthesizedReadOnlyListKind.Array
                         : SynthesizedReadOnlyListKind.List;
