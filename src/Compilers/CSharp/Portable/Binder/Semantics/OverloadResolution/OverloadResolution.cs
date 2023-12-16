@@ -2703,10 +2703,10 @@ outerDefault:
 
         private bool IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations type1);
-            CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations type2);
+            CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
+            CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);
 
-            return IsBetterCollectionExpressionConversion(t1, kind1, type1.Type, t2, kind2, type2.Type, ref useSiteInfo);
+            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1.Type, t2, kind2, elementType2.Type, ref useSiteInfo);
         }
 
         private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
