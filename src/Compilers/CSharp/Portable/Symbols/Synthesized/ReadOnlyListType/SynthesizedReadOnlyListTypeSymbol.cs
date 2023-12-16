@@ -776,12 +776,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanCreateSingleton(CSharpCompilation compilation)
         {
-            // only checking for additional well-known types and members used in the singleton implementation.
-            return compilation.GetWellKnownType(WellKnownType.System_IndexOutOfRangeException).HasUseSiteError is false &&
-                   compilation.GetWellKnownTypeMember(WellKnownMember.System_IndexOutOfRangeException__ctor) is not null &&
-                   compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__SetValue) is not null;
+            // only checking for additional well-known types and members used in the singleton implementation
+            return !compilation.IsTypeMissing(WellKnownType.System_IndexOutOfRangeException)
+                && !compilation.IsTypeMissing(WellKnownType.System_Collections_Generic_EqualityComparer_T)
+                && !compilation.IsMemberMissing(WellKnownMember.System_IndexOutOfRangeException__ctor)
+                && !compilation.IsMemberMissing(WellKnownMember.System_Array__SetValue)
+                && !compilation.IsMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default)
+                && !compilation.IsMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
         }
-        
+
         public override int Arity => 1;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }

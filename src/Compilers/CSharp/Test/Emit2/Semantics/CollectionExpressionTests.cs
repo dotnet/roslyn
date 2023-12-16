@@ -26116,6 +26116,40 @@ partial class Program
             }
         }
 
+        [Theory]
+        [InlineData((int)WellKnownMember.System_IndexOutOfRangeException__ctor)]
+        [InlineData((int)WellKnownMember.System_Array__SetValue)]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default)]
+        [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals)]
+        public void SynthesizedReadOnlyList_Singleton_MissingMembers(int missingMember)
+        {
+            string source = """
+                            using System.Collections.Generic;
+                            
+                            IEnumerable<int> x = [0];
+                            x.Report(includeType: true);
+                            """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
+        }
+        
+        [Theory]
+        [InlineData((int)WellKnownType.System_IndexOutOfRangeException)]
+        [InlineData((int)WellKnownType.System_Collections_Generic_EqualityComparer_T)]
+        public void SynthesizedReadOnlyList_Singleton_MissingTypes(int missingType)
+        {
+            string source = """
+                            using System.Collections.Generic;
+
+                            IEnumerable<int> x = [0];
+                            x.Report(includeType: true);
+                            """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.MakeTypeMissing((WellKnownType)missingType);
+            CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
+        }
+        
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_2()
         {
