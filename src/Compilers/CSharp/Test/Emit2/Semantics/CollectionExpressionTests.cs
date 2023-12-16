@@ -4814,7 +4814,7 @@ static class Program
                     }
                 }
                 """;
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "0, 2, ");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("0, 2, "));
         }
 
         [Fact]
@@ -4839,7 +4839,7 @@ static class Program
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "[0, 2], ");
+            CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[0, 2], "));
         }
 
         [Fact]
@@ -4861,7 +4861,7 @@ static class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "1010");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("1010"));
             verifier.VerifyIL("Program.Main", """
                 {
                   // Code size       86 (0x56)
@@ -4953,7 +4953,7 @@ static class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "10200");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("10200"));
             verifier.VerifyIL("Program.Main", """
                 {
                   // Code size      149 (0x95)

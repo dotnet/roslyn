@@ -667,18 +667,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if type is convertible to Span or ReadOnlySpan.
         /// If non-identity conversion, also returns a non-null asSpanMethod.
         /// </summary>
+        /// <remarks>We are assuming that the well-known types we are converting to/from do not have constraints on their type parameters.</remarks>
         private bool TryGetSpanConversion(TypeSymbol type, out MethodSymbol? asSpanMethod)
         {
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(WellKnownMember.System_Span_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
-#if DEBUG
-                // We expect the array element type to be usable as a type argument
+                // conversion to 'object' will fail if, for example, 'arrayType.ElementType' is a pointer.
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(source: arrayType.ElementType, destination: _compilation.GetSpecialType(SpecialType.System_Object), isChecked: false, ref useSiteInfo).IsImplicit);
-#endif
-                asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
-                return true;
+                if (_compilation.Conversions.ClassifyConversionFromType(source: arrayType.ElementType, destination: _compilation.GetSpecialType(SpecialType.System_Object), isChecked: false, ref useSiteInfo).IsImplicit)
+                {
+                    asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
+                    return true;
+                }
             }
 
             if (type is not NamedTypeSymbol namedType)
