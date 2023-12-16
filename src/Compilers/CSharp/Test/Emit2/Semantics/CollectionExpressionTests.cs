@@ -28262,7 +28262,7 @@ partial class Program
             comp.MakeMemberMissing((WellKnownMember)missingMember);
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
-        
+
         [Theory]
         [InlineData((int)WellKnownType.System_IndexOutOfRangeException)]
         [InlineData((int)WellKnownType.System_Collections_Generic_EqualityComparer_T)]
@@ -28278,7 +28278,7 @@ partial class Program
             comp.MakeTypeMissing((WellKnownType)missingType);
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
-        
+
         [CombinatorialData]
         [Theory]
         public void SynthesizedReadOnlyList_Singleton_Execution([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
