@@ -833,33 +833,28 @@ namespace Microsoft.CodeAnalysis
             {
                 null => null,
                 List<TFrom> l => CreateList(l, select),
+                SyntaxTriviaList l => CreateList(l, (Func<SyntaxTrivia, GreenNode>)(object)select),
                 IReadOnlyList<TFrom> l => CreateList(l, select),
                 _ => CreateList(enumerable.ToList(), select)
             };
 
         public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
         {
-            switch (list.Count)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    return select(list[0]);
-                case 2:
-                    return SyntaxList.List(select(list[0]), select(list[1]));
-                case 3:
-                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
-                default:
-                    {
-                        var array = new ArrayElement<GreenNode>[list.Count];
-                        for (int i = 0; i < array.Length; i++)
-                            array[i].Value = select(list[i]);
-                        return SyntaxList.List(array);
-                    }
-            }
+            return CreateListInternal(list, select);
+        }
+
+        public static GreenNode? CreateList(SyntaxTriviaList list, Func<SyntaxTrivia, GreenNode> select)
+        {
+            return CreateListInternal(list, select);
         }
 
         public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            return CreateListInternal(list, select);
+        }
+
+        private static GreenNode? CreateListInternal<TList, TFrom>(TList list, Func<TFrom, GreenNode> select)
+            where TList : IReadOnlyList<TFrom>
         {
             switch (list.Count)
             {
