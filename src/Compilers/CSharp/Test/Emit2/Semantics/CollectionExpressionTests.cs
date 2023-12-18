@@ -27498,6 +27498,26 @@ partial class Program
         }
 
         [Fact]
+        public void ElementNullability_Inference_TODO2()
+        {
+            string src = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual([0, 1]);
+                    }
+                }
+                """;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void SpreadNullability()
         {
             string src = """
