@@ -374,11 +374,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                         (_item0, _item1) = (_item1, _item0);
 
                     if (compare(_item1, _item2) > 0)
+                    {
                         (_item1, _item2) = (_item2, _item1);
 
-                    if (compare(_item0, _item1) > 0)
-                        (_item0, _item1) = (_item1, _item0);
-
+                        if (compare(_item0, _item1) > 0)
+                            (_item0, _item1) = (_item1, _item0);
+                    }
                     return;
                 case 4:
 
