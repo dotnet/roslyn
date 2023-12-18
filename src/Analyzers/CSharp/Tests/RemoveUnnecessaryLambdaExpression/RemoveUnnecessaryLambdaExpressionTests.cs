@@ -1984,6 +1984,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
                     public Repro(MethodProvider methodProvider)
                     {
+                        // Assignment that should not block feature.
                         _methodProvider = methodProvider;
                     }
 
@@ -2013,6 +2014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
                     public Repro(MethodProvider methodProvider)
                     {
+                        // Assignment that should not block feature.
                         _methodProvider = methodProvider;
                     }
 
