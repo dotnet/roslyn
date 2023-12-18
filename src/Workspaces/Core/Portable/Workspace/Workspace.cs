@@ -1468,16 +1468,14 @@ namespace Microsoft.CodeAnalysis
                     var oldSolution = projectChange.OldProject.Solution;
                     var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
                     var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
-                    if (oldDoc.HasInfoChanged(newDoc))
+                    // For linked documents, when info get changed (e.g. name/folder/filePath)
+                    // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
+                    if (oldDoc.HasInfoChanged(newDoc)
+                        && infoChangedDocumentIds.Add(docId))
                     {
                         var linkedDocumentIds = oldSolution.GetRequiredDocument(docId).GetLinkedDocumentIds();
-                        // For linked documents, when info get changed (e.g. name/folder/filePath)
-                        // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
-                        if (linkedDocumentIds.All(linkedDocId => !infoChangedDocumentIds.Contains(linkedDocId)))
-                        {
-                            infoChangedDocumentIds.Add(docId);
-                            infoChangedNewDocument.Add(newDoc);
-                        }
+                        infoChangedDocumentIds.AddRange(linkedDocumentIds);
+                        infoChangedNewDocument.Add(newDoc);
                     }
                 }
             }
