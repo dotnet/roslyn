@@ -1275,6 +1275,60 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestPointerCreateSpan_NonBlittableType()
+        {
+            var source = """
+                using System;
+                unsafe static class C
+                {
+                    static void Main()
+                    {
+                        decimal* p = stackalloc decimal[3] { 1m, 2m, 3m };
+                        Write(p);
+                    }
+
+                    static void Write(decimal* span)
+                    {
+                        for (int i = 0; i < 3; i++)
+                            Console.Write(span[i]);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+                verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.s   48
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldsfld     "decimal decimal.One"
+                  IL_000b:  stobj      "decimal"
+                  IL_0010:  dup
+                  IL_0011:  ldc.i4.s   16
+                  IL_0013:  add
+                  IL_0014:  ldc.i4.2
+                  IL_0015:  newobj     "decimal..ctor(int)"
+                  IL_001a:  stobj      "decimal"
+                  IL_001f:  dup
+                  IL_0020:  ldc.i4.2
+                  IL_0021:  conv.i
+                  IL_0022:  ldc.i4.s   16
+                  IL_0024:  mul
+                  IL_0025:  add
+                  IL_0026:  ldc.i4.3
+                  IL_0027:  newobj     "decimal..ctor(int)"
+                  IL_002c:  stobj      "decimal"
+                  IL_0031:  call       "void C.Write(decimal*)"
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
         public void TestMixed()
         {
             var source = """
