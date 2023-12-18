@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 // map the arguments to their corresponding parameters
                 var argumentCount = arguments.Count;
                 using var _ = ArrayBuilder<int>.GetInstance(argumentCount, fillWithValue: -1, out var argToParamMap);
+                argToParamMap.Count = argumentCount;
+
                 if (!TryPrepareArgToParamMap(arguments, method, argToParamMap))
                 {
                     foundParameterIndex = -1;
@@ -109,14 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 if (argumentIndexToSave >= 0)
                 {
                     var foundParam = argToParamMap[argumentIndexToSave];
-                    if (foundParam >= 0)
-                    {
-                        foundParameterIndex = foundParam;
-                    }
-                    else
-                    {
-                        foundParameterIndex = FirstUnspecifiedParameter(argToParamMap, argumentCount);
-                    }
+                    foundParameterIndex = foundParam >= 0
+                        ? foundParam
+                        : FirstUnspecifiedParameter(argToParamMap, argumentCount);
                 }
                 else
                 {
@@ -131,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 // parameter, we will highlight the first unspecified parameter.
                 static int FirstUnspecifiedParameter(ArrayBuilder<int> argToParamMap, int argumentCount)
                 {
-                    using var _ = ArrayBuilder<bool>.GetInstance(argumentCount, false, out var specified);
+                    using var _ = ArrayBuilder<bool>.GetInstance(argumentCount, fillWithValue: false, out var specified);
+                    specified.Count = argumentCount;
+
                     for (var i = 0; i < argumentCount; i++)
                     {
                         var parameterIndex = argToParamMap[i];
                         if (parameterIndex >= 0)
-                        {
                             specified[parameterIndex] = true;
-                        }
                     }
 
                     var first = specified.FindIndex(s => !s);
