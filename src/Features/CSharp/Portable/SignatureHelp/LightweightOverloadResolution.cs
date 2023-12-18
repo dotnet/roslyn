@@ -235,11 +235,8 @@ internal readonly struct LightweightOverloadResolution(
     /// Given the cursor position, find which argument is active.
     /// This will be useful to later find which parameter should be highlighted.
     /// </summary>
-    private int TryGetArgumentIndex()
+    private int GetArgumentIndex()
     {
-        if (arguments.Count == 0)
-            return -1;
-
         for (var i = 0; i < arguments.Count - 1; i++)
         {
             // `$$,` points to the argument before the separator
