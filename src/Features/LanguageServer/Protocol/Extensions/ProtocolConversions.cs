@@ -23,10 +23,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {

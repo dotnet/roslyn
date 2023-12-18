@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
