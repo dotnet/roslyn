@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
@@ -50,12 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ColorSchemeApplier _colorSchemeApplier;
+        private readonly IColorSchemeApplier _colorSchemeApplier;
 
-        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
+        public AdvancedOptionPageControl(OptionStore optionStore, IThreadingContext threadingContext, IColorSchemeApplier colorSchemeApplier) : base(optionStore)
         {
-            _threadingContext = componentModel.GetService<IThreadingContext>();
-            _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
+            _threadingContext = threadingContext;
+            _colorSchemeApplier = colorSchemeApplier;
 
             InitializeComponent();
 

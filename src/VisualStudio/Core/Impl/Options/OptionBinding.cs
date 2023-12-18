@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -18,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public OptionBinding(OptionStore optionStore, Option2<T> option)
         {
+            Debug.Assert(key.StorageLocations.Any(s => s is RoamingProfileStorageLocation or LocalUserProfileStorageLocation or FeatureFlagStorageLocation), $"Option '{key.Name}' failed assertion.");
             _optionStore = optionStore;
             _option = option;
 

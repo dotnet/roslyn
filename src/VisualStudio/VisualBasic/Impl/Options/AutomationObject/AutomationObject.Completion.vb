@@ -68,5 +68,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, value)
             End Set
         End Property
+
+        Public Property ShowCompletionItemFilters As Boolean
+            Get
+                Return GetBooleanOption(CompletionViewOptions.ShowCompletionItemFilters)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(CompletionViewOptions.ShowCompletionItemFilters, value)
+            End Set
+        End Property
     End Class
 End Namespace

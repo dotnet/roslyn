@@ -320,5 +320,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnTyping); }
             set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnTyping, value); }
         }
+
+        public int FormatOnReturn
+        {
+            get { return GetBooleanOption(AutoFormattingOptionsStorage.FormatOnReturn); }
+            set { SetBooleanOption(AutoFormattingOptionsStorage.FormatOnReturn, value); }
+        }
     }
 }

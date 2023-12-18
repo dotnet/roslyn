@@ -137,5 +137,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds); }
             set { SetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, value); }
         }
+
+        public int ShowInheritanceMargin
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.ShowInheritanceMargin); }
+            set { SetBooleanOption(FeatureOnOffOptions.ShowInheritanceMargin, value); }
+        }
+
+        public int InheritanceMarginCombinedWithIndicatorMargin
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin); }
+            set { SetBooleanOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, value); }
+        }
+
+        public int InheritanceMarginIncludeGlobalImports
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports); }
+            set { SetBooleanOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, value); }
+        }
     }
 }

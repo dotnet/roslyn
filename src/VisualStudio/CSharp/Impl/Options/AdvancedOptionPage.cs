@@ -4,6 +4,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.ColorSchemes;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
-            return new AdvancedOptionPageControl(optionStore, componentModel);
+            return new AdvancedOptionPageControl(optionStore, componentModel.GetService<IThreadingContext>(), componentModel.GetService<IColorSchemeApplier>());
         }
     }
 }
