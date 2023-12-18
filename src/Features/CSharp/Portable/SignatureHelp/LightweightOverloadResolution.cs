@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
+/// <summary>
+/// Helper type that allows signature help to make better decisions about which overload the user is likely choosing
+/// when the compiler itself bails out and gives a generic list of options.
+/// </summary>
 internal readonly struct LightweightOverloadResolution(
     SemanticModel semanticModel,
     int position,
@@ -86,7 +90,7 @@ internal readonly struct LightweightOverloadResolution(
         }
 
         // find the parameter at the cursor position
-        var argumentIndexToSave = TryGetArgumentIndex();
+        var argumentIndexToSave = GetArgumentIndex();
         var foundParameterIndex = -1;
         if (argumentIndexToSave >= 0)
         {
