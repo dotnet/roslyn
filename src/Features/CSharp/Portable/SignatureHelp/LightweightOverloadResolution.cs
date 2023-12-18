@@ -153,7 +153,7 @@ internal readonly struct LightweightOverloadResolution(
         for (var i = 0; i < arguments.Count; i++)
         {
             var parameterIndex = argumentToParameterMap[i];
-            if (parameterIndex >= 0)
+            if (parameterIndex >= 0 && parameterIndex < arguments.Count)
                 specified.AsRef()[parameterIndex] = true;
         }
 
