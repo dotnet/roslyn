@@ -19,7 +19,6 @@
              Focusable="False"
              UseLayoutRounding="True"
              Cursor="Arrow"
-             IsVisibleChanged="Control_IsVisibleChanged"
              x:Name="control">
 
     <UserControl.Resources>
