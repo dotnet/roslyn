@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             // guess the best candidate if needed and determine parameter index
-            var arguments = constructorInitializer.ArgumentList.Arguments;
             var candidates = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol is IMethodSymbol exactSymbol
                 ? ImmutableArray.Create(exactSymbol)
                 : constructors;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndexOverride);
+
+            var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, constructorInitializer.ArgumentList.Arguments)
+                .RefineOverloadAndPickParameter(candidates);
 
             // present items and select
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);

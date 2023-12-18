@@ -97,13 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             // guess the best candidate if needed and determine parameter index
-            var arguments = objectCreationExpression.ArgumentList.Arguments;
             var candidates = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
                 ? ImmutableArray.Create(exactMatch)
                 : methods;
 
-            var (currentSymbol, parameterIndexOverride) =
-                new LightweightOverloadResolution(semanticModel, position, arguments).RefineOverloadAndPickParameter(methods);
+            var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+                .RefineOverloadAndPickParameter(methods);
 
             // present items and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
@@ -132,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             // determine parameter index
-            var arguments = objectCreationExpression.ArgumentList.Arguments;
-            (_, var parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, arguments).FindParameterIndexIfCompatibleMethod(invokeMethod);
+            var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+                .FindParameterIndexIfCompatibleMethod(invokeMethod);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();

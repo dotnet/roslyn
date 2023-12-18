@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -26,8 +25,14 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
             // If the compiler told us the correct overload or we only have one choice, but we need to find out the
             // parameter to highlight given cursor position
             return candidates.Length == 1
-                ? FindParameterIndexIfCompatibleMethod(candidates[0])
+                ? TryFindParameterIndexIfCompatibleMethod(candidates[0])
                 : GuessCurrentSymbolAndParameter(candidates);
+        }
+
+        public int FindParameterIndexIfCompatibleMethod(IMethodSymbol method)
+        {
+            var (match, parameterIndex) = TryFindParameterIndexIfCompatibleMethod(method);
+            return match is null ? -1 : parameterIndex;
         }
 
         /// <summary>
@@ -39,7 +44,7 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
             {
                 foreach (var method in methodGroup)
                 {
-                    var (candidateMethod, parameterIndex) = FindParameterIndexIfCompatibleMethod(method);
+                    var (candidateMethod, parameterIndex) = TryFindParameterIndexIfCompatibleMethod(method);
                     if (candidateMethod != null)
                         return (candidateMethod, parameterIndex);
                 }
@@ -54,7 +59,7 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
         /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
         /// position in the partial invocation.
         /// </summary>
-        public (IMethodSymbol? method, int parameterIndex) FindParameterIndexIfCompatibleMethod(IMethodSymbol method)
+        private (IMethodSymbol? method, int parameterIndex) TryFindParameterIndexIfCompatibleMethod(IMethodSymbol method)
         {
             // map the arguments to their corresponding parameters
             using var argumentToParameterMap = TemporaryArray<int>.Empty;
