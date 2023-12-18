@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // returnsVoid argument to MakeFlags is ignored.
             Flags flags = MakeFlags(MethodKind.PropertyGet, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
                                     isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: false, isExplicitInterfaceImplementation: property.IsExplicitInterfaceImplementation);
+                                    isVarArg: false, isExplicitInterfaceImplementation: property.IsExplicitInterfaceImplementation, hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // returnsVoid argument to MakeFlags is ignored.
             Flags flags = MakeFlags(methodKind, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
                                     isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: false, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation);
+                                    isVarArg: false, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
