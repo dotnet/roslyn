@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             codeActions.Add(currentAction);
                     }
 
-                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    foreach (var nestedAction in currentAction.NestedActions)
                         builder.Push(nestedAction);
                 }
             };
