@@ -6857,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
-                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType);
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false), boundType, typeDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false)), leftType);
                             }
 
                             typeDiagnostics.Free();
@@ -9738,7 +9738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            var sealedDiagnostics = ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);

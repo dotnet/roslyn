@@ -4,37 +4,15 @@
 
 #nullable disable
 
-using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 internal interface IFSharpDocumentNavigationService : IWorkspaceService
 {
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan);
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset);
-#pragma warning disable RS0060 // API with optional parameter(s) should have the most parameters amongst its public overloads
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0);
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null);
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null);
-    [Obsolete("Call overload that takes a CancellationToken", error: false)]
-    bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null);
-#pragma warning restore RS0060 // API with optional parameter(s) should have the most parameters amongst its public overloads
-
-    [Obsolete("Call overloads that take a span or position", error: false)]
-    bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
-    [Obsolete("Call overloads that take a span or position", error: false)]
-    bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
-
     /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToSpanAsync"/>
     bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
     /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToPositionAsync"/>
