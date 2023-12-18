@@ -28180,7 +28180,7 @@ partial class Program
                 y.Report(includeType: true);
                 """;
 
-            var compilation = CreateCompilation(new[] { s_collectionExtensions, singleton, source });
+            var compilation = CreateCompilation([s_collectionExtensions, singleton, source]);
             compilation.VerifyEmitDiagnostics();
             string expectedOutput = "(<>z__ReadOnlySingletonList<System.Int32>) [1], (ReadOnlySingletonList<System.Int32>) [1], ";
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -28258,7 +28258,7 @@ partial class Program
                             IEnumerable<int> x = [0];
                             x.Report(includeType: true);
                             """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation([source, s_collectionExtensions]);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
@@ -28274,7 +28274,7 @@ partial class Program
                             IEnumerable<int> x = [0];
                             x.Report(includeType: true);
                             """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation([source, s_collectionExtensions]);
             comp.MakeTypeMissing((WellKnownType)missingType);
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
@@ -28363,7 +28363,7 @@ partial class Program
                 }
                 """;
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                [source, s_collectionExtensions],
                 symbolValidator: module =>
                 {
                     var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlySingletonList");
