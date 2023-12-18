@@ -298,7 +298,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
         context.Console.WriteMessage("");
         context.Console.WriteImportantMessage("Pushing packages.");
 
-        var publisher = new NugetPublisher(Pattern.Empty, "MetalamaDependencies", "az");
+        var publisher = new NugetPublisher(Pattern.Empty, "MetalamaCompilerDependencies", "az");
 
         var j = 1;
         foreach (var packagePath in packagePathsToUpload)
