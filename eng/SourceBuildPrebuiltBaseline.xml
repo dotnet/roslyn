@@ -23,5 +23,8 @@
 
      <!-- This is upgraded to latest version in full source-build and can be baselined for repo build -->
     <UsagePattern IdentityGlob="System.Composition*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
   </IgnorePatterns>
 </UsageData>

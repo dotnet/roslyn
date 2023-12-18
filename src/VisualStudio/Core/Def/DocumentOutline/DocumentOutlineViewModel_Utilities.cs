@@ -13,15 +13,18 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
-    using Range = LanguageServer.Protocol.Range;
+    using Range = Roslyn.LanguageServer.Protocol.Range;
+
+    internal delegate Task<ManualInvocationResponse?> LanguageServiceBrokerCallback(
+        ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken);
 
     internal sealed partial class DocumentOutlineViewModel
     {
@@ -31,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public static async Task<(JToken response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
-            ILanguageServiceBroker2 languageServiceBroker,
+            LanguageServiceBrokerCallback callbackAsync,
             string textViewFilePath,
             CancellationToken cancellationToken)
         {
@@ -49,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 });
             }
 
-            var manualResponse = await languageServiceBroker.RequestAsync(
+            var manualResponse = await callbackAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: _ => true,

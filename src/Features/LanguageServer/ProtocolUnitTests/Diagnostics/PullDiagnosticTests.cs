@@ -14,13 +14,13 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
@@ -1115,15 +1115,16 @@ class A {
         }
 
         [Theory]
-        [InlineData("1", VSDiagnosticRank.Low, false)]
-        [InlineData("1", VSDiagnosticRank.Low, true)]
-        [InlineData("2", VSDiagnosticRank.Default, false)]
-        [InlineData("2", VSDiagnosticRank.Default, true)]
-        [InlineData("3", VSDiagnosticRank.High, false)]
-        [InlineData("3", VSDiagnosticRank.High, true)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, false)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, true)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, false)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, true)]
+        [InlineData("3", (int)VSDiagnosticRank.High, false)]
+        [InlineData("3", (int)VSDiagnosticRank.High, true)]
         public async Task TestWorkspaceTodoForClosedFilesWithFSAOffAndTodoOn_Priorities(
-            string priString, VSDiagnosticRank rank, bool mutatingLspWorkspace)
+            string priString, int intRank, bool mutatingLspWorkspace)
         {
+            var rank = (VSDiagnosticRank)intRank;
             var markup1 =
 @"
 // todo: goo

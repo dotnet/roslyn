@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
         {
             var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
-            if (packageReferenceItems == null)
-            {
-                return ImmutableArray<PackageReference>.Empty;
-            }
-
             using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
 
             foreach (var item in packageReferenceItems)

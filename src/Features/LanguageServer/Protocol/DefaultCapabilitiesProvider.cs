@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
             capabilities.ImplementationProvider = true;
             capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
-            capabilities.CompletionProvider = new VisualStudio.LanguageServer.Protocol.CompletionOptions
+            capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
             {
                 ResolveProvider = true,
                 AllCommitCharacters = commitCharacters,

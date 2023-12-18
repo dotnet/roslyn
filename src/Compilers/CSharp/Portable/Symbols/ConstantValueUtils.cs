@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class EvaluatedConstant
     {
         public readonly ConstantValue Value;
-        public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
+        public readonly ReadOnlyBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-        public EvaluatedConstant(ConstantValue value, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+        public EvaluatedConstant(ConstantValue value, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
         {
             this.Value = value;
             this.Diagnostics = diagnostics.NullToEmpty();

@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LanguageServer.Protocol;
+namespace Roslyn.LanguageServer.Protocol;
 
 [DataContract]
 internal class DidChangeWatchedFilesRegistrationOptions

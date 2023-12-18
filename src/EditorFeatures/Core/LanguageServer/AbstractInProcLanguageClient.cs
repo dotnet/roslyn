@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
         /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
         /// </summary>
-        public object? CustomMessageTarget => null;
+        public virtual object? CustomMessageTarget => null;
 
         /// <summary>
         /// An enum representing this server instance.
@@ -256,5 +256,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// This method is called after the language server has been activated, but connection has not been established.
         /// </summary>
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractInProcLanguageClient _instance;
+
+            internal TestAccessor(AbstractInProcLanguageClient instance)
+            {
+                _instance = instance;
+            }
+
+            public AbstractLanguageServer<RequestContext>? LanguageServer => _instance._languageServer;
+        }
     }
 }

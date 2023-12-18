@@ -3593,6 +3593,184 @@ End Module",
             verifier.VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefIndexer()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T this[int i]
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst(0)
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefProperty()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst.P
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefMethod()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst.GetP()
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        Protected Shared Function GetSymbolNamesJoined(Of T As ISymbol)(symbols As IEnumerable(Of T)) As String
+            Return If(Not symbols.IsEmpty(), String.Join(", ", symbols.Select(Function(symbol) "[" + symbol.Name + "]")), Nothing)
+        End Function
+
     End Class
 
 End Namespace
