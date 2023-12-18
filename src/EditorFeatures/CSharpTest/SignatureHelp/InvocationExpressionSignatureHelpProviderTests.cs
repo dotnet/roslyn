@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Regular tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationAfterCloseParen()
         {
             var markup = @"
@@ -37,13 +37,10 @@ class C
     }
 }";
 
-            var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0));
-
-            await TestAsync(markup, expectedOrderedItems);
+            await TestAsync(markup, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationInsideLambda()
         {
             var markup = @"
@@ -63,7 +60,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationInsideLambda2()
         {
             var markup = @"
@@ -83,7 +80,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutParameters()
         {
             var markup = @"
@@ -101,7 +98,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutParametersMethodXmlComments()
         {
             var markup = @"
@@ -122,7 +119,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersOn1()
         {
             var markup = @"
@@ -140,7 +137,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersXmlCommentsOn1()
         {
             var markup = @"
@@ -163,7 +160,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersOn2()
         {
             var markup = @"
@@ -180,7 +177,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithParametersXmlComentsOn2()
         {
             var markup = @"
@@ -203,7 +200,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
         public async Task TestDelegateParameterWithDocumentation_Invoke()
         {
@@ -227,7 +224,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
         public async Task TestDelegateParameterWithDocumentation_Invoke2()
         {
@@ -251,7 +248,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
         public async Task TestDelegateParameterWithDocumentation_BeginInvoke()
         {
@@ -275,7 +272,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
         public async Task TestDelegateParameterWithDocumentation_BeginInvoke2()
         {
@@ -300,7 +297,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -318,7 +315,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParenWithParameters()
         {
             var markup =
@@ -336,7 +333,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithoutClosingParenWithParametersOn2()
         {
             var markup = @"
@@ -354,7 +351,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnLambda()
         {
             var markup = @"
@@ -375,7 +372,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnMemberAccessExpression()
         {
             var markup = @"
@@ -397,7 +394,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestExtensionMethod1()
         {
             var markup = @"
@@ -427,7 +424,7 @@ public static class MyExtension
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestOptionalParameters()
         {
             var markup = @"
@@ -449,7 +446,7 @@ class Class1
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestNoInvocationOnEventNotInCurrentClass()
         {
             var markup = @"
@@ -472,7 +469,7 @@ public class D
             await TestAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         public async Task TestInvocationOnNamedType()
         {
@@ -504,7 +501,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         public async Task TestInvocationOnInstance()
         {
@@ -536,7 +533,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         public async Task TestStatic1()
         {
@@ -565,7 +562,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         public async Task TestStatic2()
         {
@@ -595,7 +592,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
         public async Task TestInvocationOnAnonymousType()
         {
@@ -634,7 +631,7 @@ $@"void List<'a>.Add('a item)
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
         {
@@ -671,7 +668,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_AbstractBase()
         {
@@ -708,7 +705,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
         {
@@ -740,7 +737,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
         {
@@ -777,7 +774,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
         {
@@ -809,7 +806,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
         {
@@ -846,7 +843,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
         {
@@ -883,7 +880,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
         {
@@ -910,7 +907,7 @@ public class Derived : Base
             await TestAsync(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
         {
@@ -941,7 +938,7 @@ public class Derived : Base
 
         #region "Current Parameter Name"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestCurrentParameterName()
         {
             var markup = @"
@@ -960,7 +957,7 @@ class C
 
         #region "Trigger tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/47364")]
         public async Task TestInvocationOnTriggerParens_OptionalDefaultStruct()
         {
@@ -984,7 +981,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
@@ -1002,7 +999,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -1020,7 +1017,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestNoInvocationOnSpace()
         {
             var markup = @"
@@ -1035,7 +1032,7 @@ class C
             await TestAsync(markup, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestTriggerCharacterInComment01()
         {
             var markup = @"
@@ -1049,7 +1046,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestTriggerCharacterInComment02()
         {
             var markup = @"
@@ -1064,7 +1061,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestTriggerCharacterInString01()
         {
             var markup = @"
@@ -1078,7 +1075,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = [',', '('];
@@ -1091,7 +1088,7 @@ class C
 
         #region "EditorBrowsable tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateAlways()
         {
@@ -1123,7 +1120,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateNever()
         {
@@ -1156,7 +1153,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_BrowsableStateAdvanced()
         {
@@ -1197,7 +1194,7 @@ public class Goo
                                                 hideAdvancedMembers: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
         {
@@ -1239,7 +1236,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_Method_Overloads_BothBrowsableNever()
         {
@@ -1277,7 +1274,7 @@ public class Goo
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task OverriddenSymbolsFilteredFromSigHelp()
         {
@@ -1316,7 +1313,7 @@ public class D : B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
         {
@@ -1348,7 +1345,7 @@ public class C
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
         {
@@ -1390,7 +1387,7 @@ public class D : B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
         {
@@ -1422,7 +1419,7 @@ public class B
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
         {
@@ -1453,7 +1450,7 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
         {
@@ -1489,7 +1486,7 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
         {
@@ -1524,7 +1521,7 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
         {
@@ -1559,7 +1556,7 @@ public class C<T>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
         {
@@ -1591,7 +1588,7 @@ public class C<T, U>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
         {
@@ -1626,7 +1623,7 @@ public class C<T, U>
                                                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
         {
@@ -1662,7 +1659,7 @@ public class C<T, U>
         #endregion
 
         #region "Awaitable tests"
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task AwaitableMethod()
         {
             var markup = @"
@@ -1681,7 +1678,7 @@ class C
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task AwaitableMethod2()
         {
             var markup = @"
@@ -1702,7 +1699,7 @@ class C
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem(13849, "DevDiv_Projects/Roslyn")]
         public async Task TestSpecificity1()
         {
@@ -1732,7 +1729,7 @@ class C<T>
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
         public async Task LongSignature()
         {
@@ -1758,7 +1755,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task GenericExtensionMethod()
         {
             var markup = @"
@@ -1791,7 +1788,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickInt()
         {
@@ -1815,7 +1812,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickInt_ReverseOrder()
         {
@@ -1839,7 +1836,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
@@ -1863,7 +1860,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_OtherName_PickIntRemaining()
         {
@@ -1888,7 +1885,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_OtherName_PickIntRemaining_ConversionToD()
         {
@@ -1914,7 +1911,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_OtherName_PickIntRemaining_ReversedOrder()
         {
@@ -1939,7 +1936,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_OtherName_PickStringRemaining()
         {
@@ -1964,7 +1961,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_RefKind()
         {
@@ -2219,7 +2216,7 @@ class Program
             await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TestInvocationWithCrefXmlComments()
         {
             var markup = @"
@@ -2242,7 +2239,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -2271,7 +2268,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -2307,7 +2304,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown1()
         {
@@ -2337,7 +2334,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown2()
         {
@@ -2367,7 +2364,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown3()
         {
@@ -2397,7 +2394,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown4()
         {
@@ -2421,7 +2418,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         public async Task InstanceAndStaticMethodsShown5()
         {
@@ -2445,7 +2442,7 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/33549")]
         public async Task ShowOnlyStaticMethodsForBuildInTypes()
         {
@@ -2467,7 +2464,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/23133")]
         public async Task ShowOnlyStaticMethodsForNotImportedTypes()
         {
@@ -2496,7 +2493,7 @@ namespace Test
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         public async Task InvokedWithNoToken()
         {
@@ -2536,7 +2533,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/699")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
         public async Task TestGenericParameters1()
@@ -2563,7 +2560,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/699")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
         public async Task TestGenericParameters2()
@@ -2590,7 +2587,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/4144")]
         public async Task TestSigHelpIsVisibleOnInaccessibleItem()
         {
@@ -2614,7 +2611,7 @@ class B : A
             await TestAsync(markup, new[] { new SignatureHelpTestItem("void List<int>.Add(int item)") });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss1()
         {
             var markup = @"
@@ -2632,7 +2629,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss2()
         {
             var markup = @"
@@ -2650,7 +2647,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss3()
         {
             var markup = @"
@@ -2668,7 +2665,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task TypingTupleDoesNotDismiss4()
         {
             var markup = @"
@@ -2686,7 +2683,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task PickCorrectOverload_WithCorrectSelectionAfterFilteringOutNoApplicableItems()
         {
             var markup = @"
@@ -2715,7 +2712,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction()
@@ -2735,7 +2732,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunctionInStaticMethod()
@@ -2755,7 +2752,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task TestFunctionPointer()
         {
@@ -2774,7 +2771,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         [CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task TestFunctionPointerMultipleArguments()
         {
@@ -2793,7 +2790,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Theory, CombinatorialData]
         public async Task ShowWarningForOverloadUnavailableInRelatedDocument(bool typeParameterProvided)
         {
             var markup = $@"<Workspace>
@@ -2823,7 +2820,7 @@ class C
 
             if (typeParameterProvided)
             {
-                // If generic method is instantiated, non-generic overloads would be excluded (desciption would be instantiated as well, i.e. object instead of T)
+                // If generic method is instantiated, non-generic overloads would be excluded (description would be instantiated as well, i.e. object instead of T)
                 expectedItems.Add(new SignatureHelpTestItem($"void C.M<object>(Action<object> arg1, object arg2, bool flag)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0));
             }
             else
@@ -2833,6 +2830,79 @@ class C
             }
 
             await VerifyItemWithReferenceWorkerAsync(markup, expectedItems, hideAdvancedMembers: false);
+        }
+
+        [Fact]
+        public async Task TestLightweightOverloadResolution1()
+        {
+            var markup = """
+                class C : IResource
+                {
+                }
+
+                class X
+                {
+                    void M()
+                    {
+                        IResourceBuilder<C> builder = null;
+                        builder.WithServiceBinding(scheme: "http", env: "PORT", $$);
+                    }
+                }
+
+                public static class Extensions
+                {
+                    public static IResourceBuilder<T> WithServiceBinding<T>(
+                        this IResourceBuilder<T> builder, int containerPort, int? hostPort = null, string? scheme = null, string? name = null, string? env = null) where T : IResource
+                    {
+                        return builder;
+                    }
+                }
+
+                public interface IResource
+                {
+                }
+
+                public interface IResourceBuilder<T> where T : IResource { }
+                """;
+
+            await TestAsync(markup, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
+        }
+
+        [Fact]
+        public async Task TestLightweightOverloadResolution2()
+        {
+            var markup = """
+                class C : IResource
+                {
+                }
+
+                class X
+                {
+                    void M()
+                    {
+                        IResourceBuilder<C> builder = null;
+                        builder.WithServiceBinding(scheme: "http", env: "PORT", $$)
+                               .WithServiceBinding();
+                    }
+                }
+
+                public static class Extensions
+                {
+                    public static IResourceBuilder<T> WithServiceBinding<T>(
+                        this IResourceBuilder<T> builder, int containerPort, int? hostPort = null, string? scheme = null, string? name = null, string? env = null) where T : IResource
+                    {
+                        return builder;
+                    }
+                }
+
+                public interface IResource
+                {
+                }
+
+                public interface IResourceBuilder<T> where T : IResource { }
+                """;
+
+            await TestAsync(markup, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
         }
     }
 }
