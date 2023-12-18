@@ -71,11 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // special handling for initializers converted to ROS<T>
             if (node.Operand is BoundConvertedStackAllocExpression stackAllocExpression &&
                 TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything) &&
-                Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: node.Operand.Syntax, isOptional: true) is not null &&
-                CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanStackAlloc(stackAllocExpression.ElementType, stackAllocExpression.InitializerOpt, isEncDelta: this.EmitModule?.IsEncDelta == true))
+                Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: node.Operand.Syntax, isOptional: true) is not null)
             {
                 var count = VisitExpression(stackAllocExpression.Count);
-                return new BoundConvertedStackAllocExpression(node.Operand.Syntax, stackAllocExpression.ElementType, count, stackAllocExpression.InitializerOpt, rewrittenType);
+                var elementType = VisitType(stackAllocExpression.ElementType);
+                var initializer = (BoundArrayInitialization)VisitExpression(stackAllocExpression.InitializerOpt);
+                if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanStackAlloc(elementType, initializer, isEncDelta: this.EmitModule?.IsEncDelta == true))
+                {
+                    return new BoundConvertedStackAllocExpression(node.Operand.Syntax, elementType, count, initializer, rewrittenType);
+                }
             }
 
             bool wasInExpressionLambda = _inExpressionLambda;
