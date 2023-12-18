@@ -20,12 +20,12 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
         int position,
         SeparatedSyntaxList<ArgumentSyntax> arguments)
     {
-        public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(ImmutableArray<IMethodSymbol> candidates)
+        public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(SymbolInfo symbolInfo, ImmutableArray<IMethodSymbol> candidates)
         {
             // If the compiler told us the correct overload or we only have one choice, but we need to find out the
             // parameter to highlight given cursor position
-            return candidates.Length == 1
-                ? TryFindParameterIndexIfCompatibleMethod(candidates[0])
+            return symbolInfo.Symbol is IMethodSymbol method
+                ? TryFindParameterIndexIfCompatibleMethod(method)
                 : GuessCurrentSymbolAndParameter(candidates);
         }
 

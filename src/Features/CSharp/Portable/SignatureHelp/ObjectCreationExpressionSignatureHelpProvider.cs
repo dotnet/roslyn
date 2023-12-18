@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -97,12 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             // guess the best candidate if needed and determine parameter index
-            var candidates = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
-                ? ImmutableArray.Create(exactMatch)
-                : methods;
-
             var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
-                .RefineOverloadAndPickParameter(methods);
+                .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
             // present items and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();

@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -98,23 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
             methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 
-            if (!methods.Any())
+            if (methods.Length == 0)
                 return null;
 
             // guess the best candidate if needed and determine parameter index
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            var candidates = symbolInfo.Symbol is IMethodSymbol exactMatch
-                ? ImmutableArray.Create(exactMatch)
-                : methods;
-
             var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
-                .RefineOverloadAndPickParameter(candidates);
+                .RefineOverloadAndPickParameter(symbolInfo, methods);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
-            {
                 methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m) ? currentSymbol : m);
-            }
 
             // present items and select
             var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
