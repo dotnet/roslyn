@@ -60,4 +60,27 @@
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
   </ItemGroup>
+
+  <Target Name="RequireVsixOutputsBeInstalled"
+          Condition="'$(ContinuousIntegrationBuild)' == 'true'"
+          BeforeTargets="GetAssemblyAttributes"
+          DependsOnTargets="PrepareProjectReferences">
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             Targets="VSIXContainerProjectOutputGroup"
+             SkipNonexistentTargets="true"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework)"
+             ContinueOnError="!$(BuildingProject)"
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="_ProjectReferenceVsixOutputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
+        <_Parameter1>%(_ProjectReferenceVsixOutputs.Identity)</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -314,9 +314,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
 	ProjectSection(ProjectDependencies) = postProject
-		{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2} = {B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}
-		{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD} = {49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}
 		{3CDEEAB7-2256-418A-BEB2-620B5CB16302} = {3CDEEAB7-2256-418A-BEB2-620B5CB16302}
+		{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD} = {49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}
+		{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2} = {B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
@@ -464,9 +464,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests", "src\Workspaces\Remote\ServiceHubTest\Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests.csproj", "{8D830CBB-CA6E-47D8-9FB8-9230AAD272F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests", "src\VisualStudio\IntegrationTest\New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj", "{6272739B-31E4-483E-A3A5-2ABB5040ABF0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}
-	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CscCommandLine", "src\Compilers\CSharp\csc\CscCommandLine.shproj", "{B021CCBC-B2AF-4560-AF28-ED055F0ED696}"
 EndProject
