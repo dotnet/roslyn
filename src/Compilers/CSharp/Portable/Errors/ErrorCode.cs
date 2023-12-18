@@ -2001,6 +2001,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region diagnostics introduced for C# preview
+
+        // PROTOTYPE: renumber these
+        ERR_PlusEqualsMustReferToEvent = 9000,
+        ERR_EventCanOnlyBeReferencedWithPlusEquals = 9001,
+
+        #endregion
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
