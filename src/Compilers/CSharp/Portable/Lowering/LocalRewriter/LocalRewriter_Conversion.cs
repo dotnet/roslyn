@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // special handling for initializers converted to ROS<T>
             if (node.Operand is BoundConvertedStackAllocExpression stackAllocExpression &&
                 TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything) &&
-                _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle) is not null &&
+                Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: node.Operand.Syntax, isOptional: true) is not null &&
                 CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanStackAlloc(stackAllocExpression.ElementType, stackAllocExpression.InitializerOpt, isEncDelta: this.EmitModule?.IsEncDelta == true))
             {
                 var count = VisitExpression(stackAllocExpression.Count);

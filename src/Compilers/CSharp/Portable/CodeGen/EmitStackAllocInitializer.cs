@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (TypeSymbol.Equals(type.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
             {
-                var createSpanHelper = getCreateSpanHelper(_module, elementType);
+                var createSpanHelper = getCreateSpanHelper();
 
                 // ROS<T> is only used here if it has already been decided to use CreateSpan
                 Debug.Assert(createSpanHelper is not null);
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    if (getCreateSpanHelper(_module, elementType) is { } createSpanHelper &&
-                        _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference) is MethodSymbol getPinnableReferenceDefinition)
+                    if (getCreateSpanHelper() is { } createSpanHelper &&
+                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference, _diagnostics, syntax: inits.Syntax, isOptional: true) is MethodSymbol getPinnableReferenceDefinition)
                     {
                         // Use RuntimeHelpers.CreateSpan and cpblk.
                         var syntaxNode = inits.Syntax;
@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
 
-            static Cci.IMethodReference? getCreateSpanHelper(Emit.PEModuleBuilder module, TypeSymbol elementType)
+            Cci.IMethodReference? getCreateSpanHelper()
             {
-                var member = module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
+                var member = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: inits.Syntax, isOptional: true);
                 return ((MethodSymbol?)member)?.Construct(elementType).GetCciAdapter();
             }
         }
