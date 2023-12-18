@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static T F<T>(T t) => t;
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation([source, s_collectionExtensions]);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(5,9): error CS0411: The type arguments for method 'Program.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([1, 2]).Report();
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            var comp = CreateCompilation([source, s_collectionExtensions]);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(6,25): error CS9174: Cannot initialize type 'IEnumerable' with a collection expression because the type is not constructible.
                 //         IEnumerable a = [1];
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                [source, s_collectionExtensions],
                 expectedOutput: "(System.Int32[]) [], (System.Collections.Generic.List<System.Int32>) [], (System.Collections.Generic.List<System.Int32>) [], (System.Int32[]) [], (System.Int32[]) [], ");
         }
 
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(
-                new[] { source, s_collectionExtensions },
+                [source, s_collectionExtensions],
                 expectedOutput: "(<>z__ReadOnlySingletonList<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlySingletonList<System.Int32>) [4], (<>z__ReadOnlySingletonList<System.Int32>) [5], ");
         }
 
