@@ -28,15 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations
                 : ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]).Type;
 
-            bool isReadOnlySpan = TypeSymbol.Equals(
-                (type as NamedTypeSymbol)?.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything);
-
             var initExprs = inits.Initializers;
 
             bool isEncDelta = _module.IsEncDelta;
             var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, isEncDelta);
 
-            if (isReadOnlySpan)
+            if (TypeSymbol.Equals(type.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
             {
                 var createSpanHelper = getCreateSpanHelper(_module, elementType);
 
