@@ -719,9 +719,11 @@ public class Class2
 }", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
         public async Task VerifyRenameLinkedDocumentsAsync()
         {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
             var projectName = "MultiTFMProject";
             await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", @"
 <Project Sdk=""Microsoft.NET.Sdk"">
@@ -751,6 +753,8 @@ public class MyClass
     }
 }";
             await TestServices.SolutionExplorer.AddFileAsync(projectName, "MyClass.cs", referencedCode, cancellationToken: HangMitigatingCancellationToken);
+            // We made csproj changes, so need to wait for PS to finish all the tasks before moving on.
+            await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(projectName, "TestClass.cs", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(projectName, "MyClass.cs", HangMitigatingCancellationToken);
@@ -764,11 +768,11 @@ public class MyClass
 {
     void Method()
     {
-        MyTestClass x = new MyTestClass();
+        MyTestClass$$ x = new MyTestClass();
     }
 }", HangMitigatingCancellationToken);
             // Make sure the file is renamed.
-            await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "./MyTestClass.cs", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
         }
     }
 }
