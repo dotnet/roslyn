@@ -27498,8 +27498,14 @@ partial class Program
         }
 
         [Fact]
-        public void ElementNullability_Inference_TODO2()
+        public void ElementNullability_Inference_BadCall()
         {
+            // This scenario illustrates a limitation in `NullableWalker.VisitArguments`.
+            // We expect that every target-typed expression with a pending completion
+            // should be able to be completed.
+            // However, in this case, the nullable walker's logic for finding the corresponding
+            // parameter type (ie. target-type for the conversion) lags behind the one we use
+            // in the binder (`Binder.BuildArgumentsForErrorRecovery`).
             string src = """
                 #nullable enable
                 using System;
@@ -27514,7 +27520,11 @@ partial class Program
                 }
                 """;
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
+                // (9,9): error CS1929: 'Span<byte>' does not contain a definition for 'SequenceEqual' and the best extension method overload 'MemoryExtensions.SequenceEqual<int>(ReadOnlySpan<int>, ReadOnlySpan<int>)' requires a receiver of type 'System.ReadOnlySpan<int>'
+                //         a.AsSpan().SequenceEqual([0, 1]);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a.AsSpan()").WithArguments("System.Span<byte>", "SequenceEqual", "System.MemoryExtensions.SequenceEqual<int>(System.ReadOnlySpan<int>, System.ReadOnlySpan<int>)", "System.ReadOnlySpan<int>").WithLocation(9, 9)
+                );
         }
 
         [Fact]

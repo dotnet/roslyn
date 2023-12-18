@@ -6577,9 +6577,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (parameter is null)
                         {
-                            // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
-                            // (we won't be able to complete that continuation)
-                            Debug.Assert(!(IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true));
+                            if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true)
+                            {
+                                if (method is ErrorMethodSymbol)
+                                {
+                                    // The parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                                    // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                                    // We flush the completion with a plausible/dummy type and remove it.
+                                    TargetTypedAnalysisCompletion[argumentNoConversion](TypeWithAnnotations.Create(argument.Type));
+                                    TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
+                                }
+                                else
+                                {
+                                    // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
+                                    // (we won't be able to complete that continuation)
+                                    Debug.Assert(false);
+                                }
+                            }
                             continue;
                         }
 
