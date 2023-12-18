@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 var createSpanHelper = getCreateSpanHelper();
 
-                // ROS<T> is only used here if it has already been decided to use CreateSpan
+                // ROS<T> is only used here if it has already been decided to use CreateSpan by `UseCreateSpanForReadOnlySpanStackAlloc` in conversion lowering.
                 Debug.Assert(createSpanHelper is not null);
                 Debug.Assert(UseCreateSpanForReadOnlySpanStackAlloc(elementType, inits, isEncDelta: isEncDelta));
 
