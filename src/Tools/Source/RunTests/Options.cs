@@ -115,6 +115,14 @@ namespace RunTests
 
         public string? TargetBranchName { get; set; }
 
+        public bool TestVsi { get; set; }
+
+        public bool Oop64Bit { get; set; }
+
+        public bool OopCoreClr { get; set; }
+
+        public bool LspEditor { get; set; }
+
         public Options(
             string dotnetFilePath,
             string artifactsDirectory,
@@ -157,6 +165,10 @@ namespace RunTests
             string? pipelineDefinitionId = null;
             string? phaseName = null;
             string? targetBranchName = null;
+            var testVsi = false;
+            var oop64bit = true;
+            var oopCoreClr = false;
+            var lspEditor = false;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
@@ -183,6 +195,10 @@ namespace RunTests
                 { "pipelineDefinitionId=", "Pipeline definition id", (string s) => pipelineDefinitionId = s },
                 { "phaseName=", "Pipeline phase name associated with this test run", (string s) => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", (string s) => targetBranchName = s },
+                { "testVsi", "If this is an integration test run", o => testVsi = o is not null },
+                { "oop64bit", "If integration tests should use the 64bit out of process", o => oop64bit = o is not null },
+                { "oopCoreClr", "If integration tests should use the core clr process", o => oopCoreClr = o is not null },
+                { "lspEditor", "If integration tests should use the LSP editor", o => lspEditor = o is not null }
             };
 
             List<string> assemblyList;
@@ -258,6 +274,10 @@ namespace RunTests
                 PipelineDefinitionId = pipelineDefinitionId,
                 PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
+                TestVsi = testVsi,
+                Oop64Bit = oop64bit,
+                OopCoreClr = oopCoreClr,
+                LspEditor = lspEditor,
             };
 
             static string? TryGetArtifactsPath()

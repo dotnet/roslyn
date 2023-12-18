@@ -44,6 +44,8 @@ namespace ConsoleApplication1
         }
     }", HangMitigatingCancellationToken);
 
+            Assert.False(true);
+
             await TestServices.Editor.PlaceCaretAsync("class", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "keyword", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("{", charsOffset: 0, HangMitigatingCancellationToken);

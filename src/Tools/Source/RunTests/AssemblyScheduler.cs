@@ -49,13 +49,14 @@ namespace RunTests
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private readonly int _maxMethodCount;
 
         private readonly Options _options;
 
         internal AssemblyScheduler(Options options)
         {
             _options = options;
+            _maxMethodCount = options.TestVsi ? 100 : 500;
         }
 
         public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
@@ -81,7 +82,7 @@ namespace RunTests
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
                 var workItemsByMethodCount = BuildWorkItems<int>(
                     orderedTypeInfos,
-                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
+                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= _maxMethodCount,
                     addFunc: (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
 
                 LogWorkItems(workItemsByMethodCount);

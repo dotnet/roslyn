@@ -177,13 +177,13 @@ namespace RunTests
                 }
             }
 
-            static string GetHelixRelativeAssemblyPath(string assemblyPath)
+            static string GetHelixRelativeAssemblyPath(string assemblyPath, string relativePathToTestAssemblies)
             {
                 var tfmDir = Path.GetDirectoryName(assemblyPath)!;
                 var configurationDir = Path.GetDirectoryName(tfmDir)!;
                 var projectDir = Path.GetDirectoryName(configurationDir)!;
 
-                var assemblyRelativePath = Path.Combine(Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
+                var assemblyRelativePath = Path.Combine(relativePathToTestAssemblies, Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
                 return assemblyRelativePath;
             }
 
@@ -213,11 +213,28 @@ namespace RunTests
 
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
+                var relativePathToTestAssemblies = string.Empty;
+                if (options.TestVsi)
+                {
+                    // For integration tests we'll need the whole test payload directory which includes
+                    // the eng/ folder (to run setup scripts) and the artifacts/VSSetup/ folder which includes the vsixes
+                    payloadDirectory = msbuildTestPayloadRoot;
+
+                    // Since our payload root is not in the artifacts directory, we have to set the relative path to the test assemblies.
+                    relativePathToTestAssemblies = Path.Combine("artifacts", "bin");
+                }
 
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
-                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
+                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath, relativePathToTestAssemblies) }, kvp => kvp.Value) };
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+
+                if (options.TestVsi)
+                {
+                    // We need to prepare the integration tests by running the setup scripts.
+                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng/setup-integration-test.ps1 -configuration {options.Configuration} -oop64bit:${options.Oop64Bit} -oopCoreClr:${options.OopCoreClr} -lspEditor:${options.LspEditor} -ci:$true""");
+                    // We need to prepare the integration tests by running the setup scripts.
+                }
 
                 var xmlResultsFilePath = ProcessTestExecutor.GetResultsFilePath(workItemInfo, options, "xml");
                 Contract.Assert(!options.IncludeHtml);
@@ -260,6 +277,18 @@ namespace RunTests
                 // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
                 // precisely to address this problem.
                 var postCommands = new StringBuilder();
+
+                if (options.TestVsi)
+                {
+                    var testResultsDirectory = Path.Combine("artifacts", "TestResults", options.Configuration);
+                    // Copy integration test artifacts to the helix upload directory.
+                    postCommands.AppendLine($@"xcopy %HELIX_WORKITEM_ROOT%\{testResultsDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E");
+
+                    // Copy misc VS logs to work item upload directory.
+                    postCommands.AppendLine($@"xcopy %TEMP%\servicehub\logs %HELIX_WORKITEM_UPLOAD_ROOT%\servicehub\ /E /I");
+                    postCommands.AppendLine($@"xcopy %TEMP%\VSLogs %HELIX_WORKITEM_UPLOAD_ROOT%\loghub\ /E /I");
+                    postCommands.AppendLine($@"xcopy %TEMP%\VSTelemetryLog %HELIX_WORKITEM_UPLOAD_ROOT%\telemetry\ /E /I");
+                }
 
                 if (isUnix)
                 {
