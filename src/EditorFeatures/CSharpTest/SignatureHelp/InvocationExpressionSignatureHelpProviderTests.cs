@@ -2865,7 +2865,9 @@ class C
                 public interface IResourceBuilder<T> where T : IResource { }
                 """;
 
-            await TestAsync(markup, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
+            await TestAsync(
+                markup, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
+                sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [Fact]
@@ -2902,7 +2904,9 @@ class C
                 public interface IResourceBuilder<T> where T : IResource { }
                 """;
 
-            await TestAsync(markup, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
+            await TestAsync(
+                markup, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
+                sourceCodeKind: SourceCodeKind.Regular);
         }
     }
 }
