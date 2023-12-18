@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var count = VisitExpression(stackAllocExpression.Count);
                 var elementType = VisitType(stackAllocExpression.ElementType);
-                var initializer = (BoundArrayInitialization)VisitExpression(stackAllocExpression.InitializerOpt);
+                var initializer = (BoundArrayInitialization?)VisitExpression(stackAllocExpression.InitializerOpt);
                 if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanStackAlloc(elementType, initializer, isEncDelta: this.EmitModule?.IsEncDelta == true))
                 {
                     return new BoundConvertedStackAllocExpression(node.Operand.Syntax, elementType, count, initializer, rewrittenType);
