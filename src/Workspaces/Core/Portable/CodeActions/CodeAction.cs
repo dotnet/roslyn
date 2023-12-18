@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -152,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// Child actions contained within this <see cref="CodeAction"/>.  Can be presented in a host to provide more
-        /// potential solution actions to a particular problem.
+        /// potential solution actions to a particular problem.  To create a <see cref="CodeAction"/> with nested
+        /// actions, use <see cref="Create(string, ImmutableArray{CodeAction}, bool)"/>.
         /// </summary>
         public virtual ImmutableArray<CodeAction> NestedActions
             => ImmutableArray<CodeAction>.Empty;
@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// already has a lot of top-level actions to show, it should consider <em>not</em> inlining this action, to
         /// keep the number of options presented to the user low.  However, if there are few options to show to the
         /// user, inlining this action could be beneficial as it would allow the user to see and choose one of the
-        /// nested options with less steps.
+        /// nested options with less steps.  To create a <see cref="CodeAction"/> with nested actions, use <see
+        /// cref="Create(string, ImmutableArray{CodeAction}, bool)"/>.
         /// </summary>
         public virtual bool IsInlinable => false;
 
