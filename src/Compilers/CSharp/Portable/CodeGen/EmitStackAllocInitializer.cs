@@ -79,10 +79,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     if (getCreateSpanHelper(_module, elementType) is { } createSpanHelper &&
-                        _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference) is MethodSymbol getPinnableReference)
+                        _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference) is MethodSymbol getPinnableReferenceDefinition)
                     {
                         // Use RuntimeHelpers.CreateSpan and cpblk.
-                        EmitStackAllocBlockMultiByteInitializer(data, createSpanHelper, getPinnableReference, elementType, inits.Syntax, _diagnostics.DiagnosticBag);
+                        var syntaxNode = inits.Syntax;
+                        var readOnlySpan = getPinnableReferenceDefinition.ContainingType.Construct(elementType);
+                        Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
+                        var getPinnableReference = getPinnableReferenceDefinition.AsMember(readOnlySpan);
+
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        _builder.EmitCreateSpan(data, createSpanHelper, syntaxNode, _diagnostics.DiagnosticBag);
+
+                        var temp = AllocateTemp(readOnlySpan, syntaxNode);
+                        _builder.EmitLocalStore(temp);
+                        _builder.EmitLocalAddress(temp);
+
+                        _builder.EmitOpCode(ILOpCode.Call, 0);
+                        EmitSymbolToken(getPinnableReference, syntaxNode, optArgList: null);
+                        _builder.EmitIntConstant(data.Length);
+                        _builder.EmitOpCode(ILOpCode.Cpblk, -3);
+
+                        FreeTemp(temp);
                     }
                     else
                     {
@@ -110,27 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var member = module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
                 return ((MethodSymbol?)member)?.Construct(elementType).GetCciAdapter();
             }
-        }
-
-        private void EmitStackAllocBlockMultiByteInitializer(ImmutableArray<byte> data, Cci.IMethodReference createSpanHelper, MethodSymbol getPinnableReferenceDefinition, TypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            var readOnlySpan = getPinnableReferenceDefinition.ContainingType.Construct(elementType);
-            Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
-            var getPinnableReference = getPinnableReferenceDefinition.AsMember(readOnlySpan);
-
-            _builder.EmitOpCode(ILOpCode.Dup);
-            _builder.EmitCreateSpan(data, createSpanHelper, syntaxNode, diagnostics);
-
-            var temp = AllocateTemp(readOnlySpan, syntaxNode);
-            _builder.EmitLocalStore(temp);
-            _builder.EmitLocalAddress(temp);
-
-            _builder.EmitOpCode(ILOpCode.Call, 0);
-            EmitSymbolToken(getPinnableReference, syntaxNode, optArgList: null);
-            _builder.EmitIntConstant(data.Length);
-            _builder.EmitOpCode(ILOpCode.Cpblk, -3);
-
-            FreeTemp(temp);
         }
 
         internal static bool UseCreateSpanForReadOnlySpanStackAlloc(TypeSymbol elementType, BoundArrayInitialization? inits, bool isEncDelta)
