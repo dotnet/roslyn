@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.Extensions.Logging
 Imports Roslyn.Utilities
-Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
+Imports LSP = Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
