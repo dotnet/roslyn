@@ -187,7 +187,7 @@ internal readonly struct LightweightOverloadResolution(
             var argument = arguments[argumentIndex];
             if (argument is { NameColon.Name.Identifier.ValueText: var argumentName })
             {
-                // If this was a named argument but the method has no parameter with that name, tehre's definitely
+                // If this was a named argument but the method has no parameter with that name, there's definitely
                 // no match.  Note: this is C# only, so we don't need to worry about case matching.
                 var namedParameterIndex = method.Parameters.IndexOf(p => p.Name == argumentName);
                 if (namedParameterIndex < 0)
