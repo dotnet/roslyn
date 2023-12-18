@@ -158,6 +158,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
+        /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
+        /// </summary>
+        internal ImmutableArray<CodeAction> NestedCodeActions
+            => NestedActions;
+
+        /// <summary>
         /// If this code action contains <see cref="NestedActions"/>, this property provides a hint to hosts as to
         /// whether or not it's ok to elide this code action and just present the nested actions instead.  When a host
         /// already has a lot of top-level actions to show, it should consider <em>not</em> inlining this action, to
