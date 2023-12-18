@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
@@ -67,7 +63,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// <summary>
     /// Initializes the LanguageServer.
     /// </summary>
-    /// <remarks>Should be called at the bottom of the implementing constructor or immedietly after construction.</remarks>
+    /// <remarks>Should be called at the bottom of the implementing constructor or immediately after construction.</remarks>
     public void Initialize()
     {
         GetRequestExecutionQueue();
@@ -80,6 +76,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// <remarks>This should only be called once, and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
 
+    [Obsolete($"Use {nameof(HandlerProvider)} property instead.", error: false)]
     protected virtual IHandlerProvider GetHandlerProvider()
     {
         var lspServices = _lspServices.Value;
@@ -89,11 +86,31 @@ public abstract class AbstractLanguageServer<TRequestContext>
         return handlerProvider;
     }
 
+    protected virtual AbstractHandlerProvider HandlerProvider
+    {
+        get
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var handlerProvider = GetHandlerProvider();
+#pragma warning restore CS0618 // Type or member is obsolete
+            if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
+            {
+                return abstractHandlerProvider;
+            }
+
+            return new WrappedHandlerProvider(handlerProvider);
+        }
+    }
+
     public ILspServices GetLspServices() => _lspServices.Value;
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
-        foreach (var metadata in handlerProvider.GetRegisteredMethods())
+        // Get unique set of methods from the handler provider for the default language.
+        foreach (var metadata in handlerProvider
+            .GetRegisteredMethods()
+            .Select(m => new RequestHandlerMetadata(m.MethodName, m.RequestType, m.ResponseType, LanguageServerConstants.DefaultLanguageName))
+            .Distinct())
         {
             // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
             // generic method info from the exported handler types.  This allows us to define multiple handlers for
@@ -129,7 +146,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
-        var handlerProvider = GetHandlerProvider();
+        var handlerProvider = HandlerProvider;
         var queue = new RequestExecutionQueue<TRequestContext>(this, _logger, handlerProvider);
 
         queue.Start();

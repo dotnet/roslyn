@@ -39,7 +39,7 @@ public class RequestExecutionQueueTests
 
     private static TestLspServices GetLspServices()
         => new(
-            services: new[] { (typeof(IRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
+            services: new[] { (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
             supportsGetRegisteredServices: false);
 
     [Fact]
@@ -153,7 +153,7 @@ public class RequestExecutionQueueTests
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 
-        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
+        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
             : base(languageServer, logger, handlerProvider)
         {
             _cancelInProgressWorkUponMutatingRequest = cancelInProgressWorkUponMutatingRequest;

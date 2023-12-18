@@ -12,4 +12,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 /// <param name="SyntaxVersion">the syntax version of the text document.</param>
 /// <param name="ListIndex">the index of the specific code lens item in the original list.</param>
 /// <param name="TextDocument">the text document associated with the code lens to resolve.</param>
-internal sealed record CodeLensResolveData(string SyntaxVersion, int ListIndex, TextDocumentIdentifier TextDocument);
+internal sealed record CodeLensResolveData(string SyntaxVersion, int ListIndex, TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);

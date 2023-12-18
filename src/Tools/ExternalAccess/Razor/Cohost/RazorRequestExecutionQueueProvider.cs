@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorRequestExecutionQueueProvider() : IRequestExecutionQueueProvider<RequestContext>
 {
-    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
         var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider);
         queue.Start();
