@@ -4386,6 +4386,63 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0,                       // Parameter Type
+
+                // System_Span_T__ToArray
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
+                // System_ReadOnlySpan_T__ToArray
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),   // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
+
+                // System_Span_T__CopyTo_Span_T
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_ReadOnlySpan_T__CopyTo_Span_T
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),   // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Collections_Immutable_ImmutableArray_T__AsSpan
+                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,         // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),  // Return Type
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Collections_Generic_List_T__AddRange
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4929,6 +4986,12 @@ namespace Microsoft.CodeAnalysis
                 "AsSpan",                                   // System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T
                 "SetCount",                                 // System_Runtime_InteropServices_CollectionsMarshal__SetCount_T
                 "AsImmutableArray",                         // System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
+                "ToArray",                                  // System_Span_T__ToArray
+                "ToArray",                                  // System_ReadOnlySpan_T__ToArray
+                "CopyTo",                                   // System_Span_T__CopyTo_Span_T
+                "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
+                "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
+                "AddRange",                                 // System_Collections_Generic_List_T__AddRange
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

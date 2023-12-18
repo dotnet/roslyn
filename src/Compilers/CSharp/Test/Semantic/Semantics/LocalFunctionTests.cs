@@ -10278,5 +10278,26 @@ public class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
         }
+
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var compilation = CreateCompilation("""
+                                                class Test
+                                                {
+                                                  void M()
+                                                  {
+                                                      int LocalFunc(string s) {}
+                                                  }
+                                                }
+                                                """);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
+
+            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
+        }
     }
 }

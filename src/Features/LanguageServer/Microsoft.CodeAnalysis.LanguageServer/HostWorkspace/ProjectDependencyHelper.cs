@@ -15,21 +15,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal static class ProjectDependencyHelper
 {
-    private const string UnresolvedProjectDependenciesName = "workspace/_roslyn_projectHasUnresolvedDependencies";
+    private const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
 
-    internal static bool HasUnresolvedDependencies(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
+    internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
         if (previousProjectFileInfo is null)
         {
             // This means we're likely opening the project for the first time.
             // We need to check the assets on disk to see if we need to restore.
             return CheckProjectAssetsForUnresolvedDependencies(newProjectFileInfo, logger);
-        }
-
-        if (newProjectFileInfo.TargetFramework != previousProjectFileInfo.TargetFramework)
-        {
-            // If the target framework has changed then we need to run a restore.
-            return true;
         }
 
         var newPackageReferences = newProjectFileInfo.PackageReferences;
@@ -136,7 +130,7 @@ internal static class ProjectDependencyHelper
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
         var unresolvedParams = new UnresolvedDependenciesParams(projectPaths.ToArray());
-        await languageServerManager.SendRequestAsync(UnresolvedProjectDependenciesName, unresolvedParams, cancellationToken);
+        await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
     [DataContract]
