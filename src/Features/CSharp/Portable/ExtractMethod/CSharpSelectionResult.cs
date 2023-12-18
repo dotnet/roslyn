@@ -13,16 +13,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal abstract partial class CSharpSelectionResult : SelectionResult
+    internal abstract partial class CSharpSelectionResult : SelectionResult<StatementSyntax>
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
@@ -33,36 +33,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             bool selectionChanged,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(status);
             Contract.ThrowIfNull(document);
 
             var firstTokenAnnotation = new SyntaxAnnotation();
             var lastTokenAnnotation = new SyntaxAnnotation();
 
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(root.AddAnnotations(
-                    new[]
-                    {
-                        Tuple.Create<SyntaxToken, SyntaxAnnotation>(firstToken, firstTokenAnnotation),
-                        Tuple.Create<SyntaxToken, SyntaxAnnotation>(lastToken, lastTokenAnnotation)
-                    })), cancellationToken).ConfigureAwait(false);
+            var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
+                root,
+                new[]
+                {
+                    (firstToken, firstTokenAnnotation),
+                    (lastToken, lastTokenAnnotation)
+                })), cancellationToken).ConfigureAwait(false);
 
             if (selectionInExpression)
             {
                 return new ExpressionResult(
-                    status, originalSpan, finalSpan, options, selectionInExpression,
+                    originalSpan, finalSpan, options, selectionInExpression,
                     newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
             else
             {
                 return new StatementResult(
-                    status, originalSpan, finalSpan, options, selectionInExpression,
+                    originalSpan, finalSpan, options, selectionInExpression,
                     newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
             }
         }
 
         protected CSharpSelectionResult(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
@@ -71,55 +70,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             SyntaxAnnotation firstTokenAnnotation,
             SyntaxAnnotation lastTokenAnnotation,
             bool selectionChanged)
-            : base(status, originalSpan, finalSpan, options, selectionInExpression,
+            : base(originalSpan, finalSpan, options, selectionInExpression,
                    document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
         {
         }
 
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        public override SyntaxNode GetNodeForDataFlowAnalysis()
+        {
+            var node = base.GetNodeForDataFlowAnalysis();
+
+            // If we're returning a value by ref we actually want to do the analysis on the underlying expression.
+            return node is RefExpressionSyntax refExpression
+                ? refExpression.Expression
+                : node;
+        }
+
         protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
         {
-            var current = token.Parent;
-            for (; current != null; current = current.Parent)
+            for (var current = token.Parent; current != null; current = current.Parent)
             {
-                if (current is MemberDeclarationSyntax or
-                    SimpleLambdaExpressionSyntax or
-                    ParenthesizedLambdaExpressionSyntax or
-                    AnonymousMethodExpressionSyntax or
-                    LocalFunctionStatementSyntax)
+                if (current is MemberDeclarationSyntax)
+                    return false;
+
+                if (current is
+                        SimpleLambdaExpressionSyntax or
+                        ParenthesizedLambdaExpressionSyntax or
+                        AnonymousMethodExpressionSyntax or
+                        LocalFunctionStatementSyntax)
                 {
-                    break;
+                    // make sure the selection contains the lambda
+                    return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
+                        current.GetLastToken().Span.End <= lastToken.Span.End;
                 }
-            }
-
-            if (current is null or MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            // make sure the selection contains the lambda
-            return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
-                   current.GetLastToken().Span.End <= lastToken.Span.End;
-        }
-
-        public override bool IsExtractMethodOnSingleStatement()
-        {
-            var firstStatement = this.GetFirstStatement();
-            var lastStatement = this.GetLastStatement();
-
-            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
-        }
-
-        public override bool IsExtractMethodOnMultipleStatements()
-        {
-            var first = this.GetFirstStatement();
-            var last = this.GetLastStatement();
-
-            if (first != last)
-            {
-                var firstUnderContainer = this.GetFirstStatementUnderContainer();
-                var lastUnderContainer = this.GetLastStatementUnderContainer();
-                Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
-                return true;
             }
 
             return false;
@@ -159,13 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             throw ExceptionUtilities.Unreachable();
         }
 
-        public StatementSyntax GetFirstStatement()
-            => GetFirstStatement<StatementSyntax>();
-
-        public StatementSyntax GetLastStatement()
-            => GetLastStatement<StatementSyntax>();
-
-        public StatementSyntax GetFirstStatementUnderContainer()
+        public override StatementSyntax GetFirstStatementUnderContainer()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
@@ -176,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return statement;
         }
 
-        public StatementSyntax GetLastStatementUnderContainer()
+        public override StatementSyntax GetLastStatementUnderContainer()
         {
             Contract.ThrowIfTrue(SelectionInExpression);
 
@@ -241,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var ancestors = token.GetAncestors<SyntaxNode>();
 
             // if enclosing type contains unsafe keyword, we don't need to put it again
-            if (ancestors.Where(a => SyntaxFacts.IsTypeDeclaration(a.Kind()))
+            if (ancestors.Where(a => CSharp.SyntaxFacts.IsTypeDeclaration(a.Kind()))
                          .Cast<MemberDeclarationSyntax>()
                          .Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword)))
             {

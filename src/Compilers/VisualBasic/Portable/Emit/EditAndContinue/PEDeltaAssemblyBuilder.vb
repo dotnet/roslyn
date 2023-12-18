@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
+            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
 
             ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -46,19 +47,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
             Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
 
+            Dim previousSourceToMetadata = New VisualBasicSymbolMatcher(
+                metadataSymbols.SynthesizedTypes,
+                previousSourceAssembly,
+                metadataAssembly)
+
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
-                Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
 
                 matchToPrevious = New VisualBasicSymbolMatcher(
                     sourceAssembly:=sourceAssembly,
-                    otherAssembly:=previousAssembly,
+                    otherAssembly:=previousSourceAssembly,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
                     otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
             End If
 
-            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration)
+            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, matchToMetadata, matchToPrevious, previousGeneration)
             _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected sealed class AnalyzerResult(
             IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ImmutableArray<VariableInfo> variables,
             VariableInfo variableToUseAsReturnValue,
             ITypeSymbol returnType,
+            bool returnsByRef,
             bool awaitTaskReturn,
             bool instanceMemberIsUsed,
             bool shouldBeReadOnly,
@@ -53,10 +54,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public bool AwaitTaskReturn { get; } = awaitTaskReturn;
 
-            /// <summary>
-            /// return type
-            /// </summary>
             public ITypeSymbol ReturnType { get; } = returnType;
+            public bool ReturnsByRef { get; } = returnsByRef;
 
             /// <summary>
             /// analyzer result operation status
@@ -146,8 +145,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (variables.Count <= 0)
                     return null;
 
-                VariableInfo.SortVariables(variables);
-                return variables[0];
+                return variables.Min();
             }
         }
     }

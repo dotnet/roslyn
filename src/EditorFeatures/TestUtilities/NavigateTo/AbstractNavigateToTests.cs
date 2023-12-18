@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -20,11 +21,11 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -39,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
-        protected static readonly TestComposition DefaultComposition = EditorTestCompositions.EditorFeatures;
-        protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
-        protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory));
+        protected static readonly TestComposition DefaultComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService));
+        protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
+        protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory));
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
@@ -295,6 +296,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                     => new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
             }
+        }
+
+        [ExportWorkspaceService(typeof(IWorkspaceNavigateToSearcherHostService))]
+        [PartNotDiscoverable, Shared]
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
+        {
+            public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+                => new(true);
         }
     }
 }

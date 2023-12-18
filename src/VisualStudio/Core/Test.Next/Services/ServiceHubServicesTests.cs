@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -49,7 +50,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { code }, openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -71,7 +72,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { code }, openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code], openDocuments: false);
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
@@ -124,7 +125,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var source = @"[System.ComponentModel.DesignerCategory(""Form"")] class Test { }";
 
             using var workspace = CreateWorkspace();
-            workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: [source], openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
@@ -180,7 +181,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task TestUnknownProject()
         {
-            var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -402,7 +403,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return sourceTexts;
                 });
 
-            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : new[] { typeof(NoSyncWorkspaceConfigurationService) });
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : [typeof(NoSyncWorkspaceConfigurationService)]);
 
             DocumentId tempDocId;
 
@@ -477,6 +478,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static SourceText CreateText(string content, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
             => SourceText.From(content, encoding ?? Encoding.UTF8, checksumAlgorithm);
+
+        private static SourceText CreateStreamText(string content, bool useBOM, bool useMemoryStream)
+        {
+            var encoding = new UTF8Encoding(useBOM);
+            var bytes = encoding.GetBytes(content);
+            if (useMemoryStream)
+            {
+                using var stream = new MemoryStream(bytes);
+                return SourceText.From(stream, encoding, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            }
+            else
+            {
+                return SourceText.From(bytes, bytes.Length, encoding, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            }
+        }
 
         [Theory, CombinatorialData]
         public async Task InProcAndRemoteWorkspaceAgree1(bool syncWithRemoteServer)
@@ -669,6 +685,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
         }
 
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree21(
+            bool syncWithRemoteServer, bool useBOM1, bool useMemoryStream1, bool useBOM2, bool useMemoryStream2)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM1, useMemoryStream: useMemoryStream1))),
+                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM2, useMemoryStream: useMemoryStream2))));
+        }
+
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
             TestWorkspace localWorkspace,
             Workspace remoteWorkspace,
@@ -821,65 +848,65 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static Solution Populate(Solution solution)
         {
-            solution = AddProject(solution, LanguageNames.CSharp, new[]
-            {
+            solution = AddProject(solution, LanguageNames.CSharp,
+            [
                 "class CS { }",
                 "class CS2 { }"
-            }, new[]
-            {
+            ],
+            [
                 "cs additional file content"
-            }, Array.Empty<ProjectId>());
+            ], Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.VisualBasic, new[]
-            {
+            solution = AddProject(solution, LanguageNames.VisualBasic,
+            [
                 "Class VB\r\nEnd Class",
                 "Class VB2\r\nEnd Class"
-            }, new[]
-            {
+            ],
+            [
                 "vb additional file content"
-            }, new ProjectId[] { solution.ProjectIds.First() });
+            ], [solution.ProjectIds.First()]);
 
-            solution = AddProject(solution, LanguageNames.CSharp, new[]
-            {
+            solution = AddProject(solution, LanguageNames.CSharp,
+            [
                 "class Top { }"
-            }, new[]
-            {
+            ],
+            [
                 "cs additional file content"
-            }, solution.ProjectIds.ToArray());
+            ], solution.ProjectIds.ToArray());
 
-            solution = AddProject(solution, LanguageNames.CSharp, new[]
-            {
+            solution = AddProject(solution, LanguageNames.CSharp,
+            [
                 "class OrphanCS { }",
                 "class OrphanCS2 { }"
-            }, new[]
-            {
+            ],
+            [
                 "cs additional file content",
                 "cs additional file content2"
-            }, Array.Empty<ProjectId>());
+            ], Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.CSharp, new[]
-            {
+            solution = AddProject(solution, LanguageNames.CSharp,
+            [
                 "class CS { }",
                 "class CS2 { }",
                 "class CS3 { }",
                 "class CS4 { }",
                 "class CS5 { }",
-            }, new[]
-            {
+            ],
+            [
                 "cs additional file content"
-            }, Array.Empty<ProjectId>());
+            ], Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.VisualBasic, new[]
-            {
+            solution = AddProject(solution, LanguageNames.VisualBasic,
+            [
                 "Class VB\r\nEnd Class",
                 "Class VB2\r\nEnd Class",
                 "Class VB3\r\nEnd Class",
                 "Class VB4\r\nEnd Class",
                 "Class VB5\r\nEnd Class",
-            }, new[]
-            {
+            ],
+            [
                 "vb additional file content"
-            }, Array.Empty<ProjectId>());
+            ], Array.Empty<ProjectId>());
 
             return solution;
         }

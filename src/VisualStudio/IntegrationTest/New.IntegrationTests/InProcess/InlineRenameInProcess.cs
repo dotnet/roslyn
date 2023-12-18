@@ -28,19 +28,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task ToggleIncludeCommentsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_C, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_C, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeStringsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_S, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_S, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeOverloadsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { (VirtualKeyCode.VK_O, VirtualKeyCode.MENU) }, cancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([(VirtualKeyCode.VK_O, VirtualKeyCode.MENU)], cancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 

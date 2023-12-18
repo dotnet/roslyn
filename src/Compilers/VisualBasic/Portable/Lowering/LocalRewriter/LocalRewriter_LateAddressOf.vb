@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
+                                          ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           ConversionKind.DelegateRelaxationLevelWidening,
                                           MethodConversionKind.Identity)

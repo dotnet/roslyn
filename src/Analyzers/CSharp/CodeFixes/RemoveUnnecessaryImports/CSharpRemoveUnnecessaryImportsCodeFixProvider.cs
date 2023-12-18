@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         }
 
         protected override string GetTitle()
-            => CSharpCodeFixesResources.Remove_Unnecessary_Usings;
+            => CSharpCodeFixesResources.Remove_unnecessary_usings;
 
         protected override ISyntaxFormatting GetSyntaxFormatting()
             => CSharpSyntaxFormatting.Instance;

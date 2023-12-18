@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
@@ -44,7 +44,6 @@ internal sealed class CodeActionFixAllResolveHandler(
         Assumes.Present(data);
 
         var options = _globalOptions.GetCodeActionOptionsProvider();
-
         var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
             document,
             data.Range,
@@ -54,8 +53,8 @@ internal sealed class CodeActionFixAllResolveHandler(
             request.Scope,
             cancellationToken).ConfigureAwait(false);
 
-        var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
-        Contract.ThrowIfNull(codeActionToResolve);
+        Contract.ThrowIfNull(data.CodeActionPath);
+        var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: true);
 
         var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
         Contract.ThrowIfNull(fixAllCodeAction);

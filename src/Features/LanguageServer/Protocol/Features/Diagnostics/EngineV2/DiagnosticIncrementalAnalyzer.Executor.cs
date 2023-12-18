@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     others: ImmutableArray<DiagnosticData>.Empty,
                     documentIds: null));
 
-            var generatorDiagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            var generatorDiagnostics = await InProcOrRemoteHostAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
             foreach (var generatorDiagnostic in generatorDiagnostics)
             {

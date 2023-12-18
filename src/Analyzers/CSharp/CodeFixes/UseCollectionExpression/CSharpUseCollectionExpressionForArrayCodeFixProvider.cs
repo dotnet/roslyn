@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -70,7 +71,8 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         else
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var matches = GetMatches(semanticModel, arrayCreationExpression);
+            var expressionType = semanticModel.Compilation.ExpressionOfTType();
+            var matches = GetMatches(semanticModel, arrayCreationExpression, expressionType);
             if (matches.IsDefault)
                 return;
 
@@ -103,18 +105,17 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
+        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(
+            SemanticModel semanticModel, ExpressionSyntax expression, INamedTypeSymbol? expressionType)
             => expression switch
             {
-                // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
-                // from within the initializer.
-                ImplicitArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
+                ImplicitArrayCreationExpressionSyntax arrayCreation
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
+                        semanticModel, arrayCreation, expressionType, cancellationToken),
 
-                // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
-                // be added to the collection expression.
                 ArrayCreationExpressionSyntax arrayCreation
-                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
+                        semanticModel, arrayCreation, expressionType, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

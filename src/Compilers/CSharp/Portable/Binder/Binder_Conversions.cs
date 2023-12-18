@@ -438,7 +438,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInlineArrays, diagnostics);
-                    diagnostics.ReportUseSite(source.Type!.TryGetInlineArrayElementField(), syntax);
+
+                    Debug.Assert(source.Type is { });
+
+                    FieldSymbol? elementField = source.Type.TryGetInlineArrayElementField();
+                    Debug.Assert(elementField is { });
+
+                    diagnostics.ReportUseSite(elementField, syntax);
+
+                    Symbol? unsafeAsMethod = null;
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
@@ -446,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T, diagnostics, syntax: syntax);
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
@@ -460,12 +468,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (CheckValueKind(syntax, source, BindValueKind.RefersToLocation | BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                         {
                             _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan, diagnostics, syntax: syntax); // This also takes care of an 'int' type
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
+                            unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: syntax);
                         }
                         else
                         {
                             Error(diagnostics, ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, syntax, destination);
                         }
+                    }
+
+                    if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
+                    {
+                        method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(source.Type), elementField.TypeWithAnnotations)).
+                            CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, syntax.GetLocation(), diagnostics));
                     }
                 }
             }
@@ -537,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertCollectionExpression(
+        private BoundCollectionExpression ConvertCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             Conversion conversion,
@@ -603,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
-                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType);
+                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
 
                         ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
@@ -650,9 +664,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (targetType is TypeParameterSymbol typeParameter)
                 {
-                    var arguments = AnalyzedArguments.GetInstance();
-                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                    arguments.Free();
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    collectionCreation.WasCompilerGenerated = true;
+                    analyzedArguments.Free();
                 }
                 else
                 {
@@ -673,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.List) ||
+                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
@@ -682,11 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
-
-                    if (collectionTypeKind != CollectionExpressionTypeKind.List)
-                    {
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-                    }
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 }
 
                 var elementConversions = conversion.UnderlyingConversions;
@@ -735,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(enumeratorInfo is { });
                 Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
-                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
                 var convertElement = CreateConversion(
                     element.Syntax,
                     elementPlaceholder,
@@ -756,6 +767,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static BoundExpression GetUnderlyingCollectionExpressionElement(BoundExpression element)
+        {
+            return element switch
+            {
+                BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                _ => element,
+            };
+        }
+
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
@@ -764,6 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
+                isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
                 builder: out _);

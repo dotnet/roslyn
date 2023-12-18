@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            draftSubstitute As BoundExpression,
                            draftInitializers As ImmutableArray(Of BoundExpression),
                            capturedLvalueByRefCallOrProperty As BoundExpression,
-                           diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol))
+                           diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol))
 
                 Debug.Assert(originalExpression IsNot Nothing)
                 Debug.Assert(expressionPlaceholder IsNot Nothing AndAlso (expressionPlaceholder.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse expressionPlaceholder.Kind = BoundKind.WithRValueExpressionPlaceholder))
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly ExpressionPlaceholder As BoundValuePlaceholderBase
 
             ''' <summary> Diagnostics produced while binding the expression </summary>
-            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public ReadOnly Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             ''' <summary> 
             ''' Draft initializers for With statement, is based on initial binding tree 

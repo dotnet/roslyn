@@ -90,6 +90,13 @@ namespace Microsoft.Cci
 
         public override void Visit(IGenericParameter genericParameter)
         {
+            if (genericParameter.IsEncDeleted)
+            {
+                // Attributes and constraints do not contribute to a method signature and
+                // are not available for deleted generic parameters.
+                return;
+            }
+
             this.Visit(genericParameter.GetAttributes(Context));
             this.VisitTypeReferencesThatNeedTokens(genericParameter.GetConstraints(Context));
         }
