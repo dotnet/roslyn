@@ -1029,12 +1029,13 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """;
         List<SignatureHelpTestItem> expectedOrderedItems = [new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)];
 
-        await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+        await TestSignatureHelpInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1061,14 +1062,13 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             }
             """;
 
-        List<SignatureHelpTestItem> expectedOrderedItems = [new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)];
-
-        await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+        await TestSignatureHelpInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: [new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1097,20 +1097,20 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         List<SignatureHelpTestItem> expectedOrderedItems = [new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)];
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp,
-                                            hideAdvancedMembers: true);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp,
+            hideAdvancedMembers: true);
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp,
-                                            hideAdvancedMembers: false);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp,
+            hideAdvancedMembers: false);
     }
 
     [Fact]
@@ -1142,23 +1142,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             }
             """;
 
-        var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)
-        };
-
-        var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void Goo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0)],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void Goo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1189,18 +1180,16 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """;
-        var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void Goo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
 
-        await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+        await TestSignatureHelpInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void Goo.Bar()", string.Empty, null, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void Goo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1272,11 +1261,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         List<SignatureHelpTestItem> expectedOrderedItems = [new SignatureHelpTestItem("void C.Goo()", string.Empty, null, currentParameterIndex: 0)];
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1316,11 +1305,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1346,14 +1335,13 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """;
-        List<SignatureHelpTestItem> expectedOrderedItems = [new SignatureHelpTestItem("void B.Goo()", string.Empty, null, currentParameterIndex: 0)];
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: [new SignatureHelpTestItem("void B.Goo()", string.Empty, null, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1384,11 +1372,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         ];
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1414,23 +1402,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             }
             """;
 
-        var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1455,23 +1434,15 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public void Goo(int i) { }
             }
             """;
-        var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1499,18 +1470,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             }
             """;
 
-        List<SignatureHelpTestItem> expectedOrderedItems =
-        [
-            new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0),
-        ];
-
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void C<int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C<int>.Goo(int i)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1542,11 +1509,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         ];
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItems,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: expectedOrderedItems,
+            expectedOrderedItemsSameSolution: expectedOrderedItems,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1571,23 +1538,15 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public void Goo(U u) { }
             }
             """;
-        var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C<int, int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
-                                            expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void C<int, int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
 
     [Fact]
@@ -1614,18 +1573,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             }
             """;
 
-        List<SignatureHelpTestItem> expectedOrderedItems =
-        [
-            new SignatureHelpTestItem("void C<int, int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0),
-        ];
-
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
-                                            referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
-                                            expectedOrderedItemsSameSolution: expectedOrderedItems,
-                                            sourceLanguage: LanguageNames.CSharp,
-                                            referencedLanguage: LanguageNames.CSharp);
+            referencedCode: referencedCode,
+            expectedOrderedItemsMetadataReference: [],
+            expectedOrderedItemsSameSolution: [
+                new SignatureHelpTestItem("void C<int, int>.Goo(int t)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C<int, int>.Goo(int u)", string.Empty, string.Empty, currentParameterIndex: 0)],
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
     #endregion
 
