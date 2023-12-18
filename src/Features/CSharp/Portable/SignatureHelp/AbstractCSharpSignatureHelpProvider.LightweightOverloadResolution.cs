@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 internal abstract partial class AbstractCSharpSignatureHelpProvider
 {
     protected readonly struct LightweightOverloadResolution(
-        ISemanticFactsService semanticFactsService,
         SemanticModel semanticModel,
         int position,
         SeparatedSyntaxList<ArgumentSyntax> arguments)
     {
         public (IMethodSymbol? method, int parameterIndex) RefineOverloadAndPickParameter(ImmutableArray<IMethodSymbol> candidates)
         {
-            // If the compiler told us the correct overload or we only have one choice, but we need to find out the parameter to highlight given cursor position
+            // If the compiler told us the correct overload or we only have one choice, but we need to find out the
+            // parameter to highlight given cursor position
             return candidates.Length == 1
                 ? FindParameterIndexIfCompatibleMethod(candidates[0])
                 : GuessCurrentSymbolAndParameter(candidates);
@@ -41,8 +39,9 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
             {
                 foreach (var method in methodGroup)
                 {
-                    if (TryFindParameterIndexIfCompatibleMethod(method, out var parameterIndex))
-                        return (method, parameterIndex);
+                    var (candidateMethod, parameterIndex) = FindParameterIndexIfCompatibleMethod(method);
+                    if (candidateMethod != null)
+                        return (candidateMethod, parameterIndex);
                 }
             }
 
@@ -55,120 +54,109 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
         /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
         /// position in the partial invocation.
         /// </summary>
-        public bool TryFindParameterIndexIfCompatibleMethod(IMethodSymbol method, out int parameterIndex)
+        public (IMethodSymbol? method, int parameterIndex) FindParameterIndexIfCompatibleMethod(IMethodSymbol method)
         {
             // map the arguments to their corresponding parameters
-            var argumentCount = arguments.Count;
-            using var argToParamMap = TemporaryArray<int>.Empty;
+            using var argumentToParameterMap = TemporaryArray<int>.Empty;
 
-            for (var i = 0; i < argumentCount; i++)
-                argToParamMap.Add(-1);
+            for (var i = 0; i < arguments.Count; i++)
+                argumentToParameterMap.Add(-1);
 
-            if (!TryPrepareArgumentToParameterMap(method, ref argToParamMap.AsRef()))
-            {
-                parameterIndex = -1;
-                return false;
-            }
+            if (!TryPrepareArgumentToParameterMap(method, ref argumentToParameterMap.AsRef()))
+                return (null, -1);
 
             // verify that the arguments are compatible with their corresponding parameters
             var parameters = method.Parameters;
-            for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+            for (var argumentIndex = 0; argumentIndex < arguments.Count; argumentIndex++)
             {
-                var parameterIndex = argToParamMap[argumentIndex];
+                var parameterIndex = argumentToParameterMap[argumentIndex];
                 if (parameterIndex < 0)
                     continue;
 
                 var parameter = parameters[parameterIndex];
                 var argument = arguments[argumentIndex];
 
+                // We found a corresponding argument for this parameter.  If it's not compatible (say, a string passed
+                // to an int parameter), then this is not a suitable overload.
                 if (!IsCompatibleArgument(argument, parameter))
-                {
-                    foundParameterIndex = -1;
-                    return false;
-                }
+                    return (null, -1);
             }
 
             // find the parameter at the cursor position
-            var argumentIndexToSave = TryGetArgumentIndex(arguments, position);
+            var argumentIndexToSave = TryGetArgumentIndex();
+            var foundParameterIndex = -1;
             if (argumentIndexToSave >= 0)
             {
-                var foundParam = argToParamMap[argumentIndexToSave];
-                foundParameterIndex = foundParam >= 0
-                    ? foundParam
-                    : FirstUnspecifiedParameter(argToParamMap, argumentCount);
-            }
-            else
-            {
-                foundParameterIndex = -1;
+                foundParameterIndex = argumentToParameterMap[argumentIndexToSave];
+                if (foundParameterIndex < 0)
+                    foundParameterIndex = FirstUnspecifiedParameter(ref argumentToParameterMap.AsRef());
             }
 
             Debug.Assert(foundParameterIndex < parameters.Length);
 
-            return true;
+            return (method, foundParameterIndex);
+        }
 
-            // If the cursor is pointing at an argument for which we did not find the corresponding
-            // parameter, we will highlight the first unspecified parameter.
-            static int FirstUnspecifiedParameter(ArrayBuilder<int> argToParamMap, int argumentCount)
+        /// <summary>
+        /// Determines if the given argument is compatible with the given parameter
+        /// </summary>
+        private bool IsCompatibleArgument(ArgumentSyntax argument, IParameterSymbol parameter)
+        {
+            var parameterRefKind = parameter.RefKind;
+            if (parameterRefKind == RefKind.None)
             {
-                using var _ = ArrayBuilder<bool>.GetInstance(argumentCount, fillWithValue: false, out var specified);
-                specified.Count = argumentCount;
-
-                for (var i = 0; i < argumentCount; i++)
+                if (IsEmptyArgument(argument.Expression))
                 {
-                    var parameterIndex = argToParamMap[i];
-                    if (parameterIndex >= 0)
-                        specified[parameterIndex] = true;
-                }
-
-                var first = specified.FindIndex(s => !s);
-                return first <= 0 ? 0 : first;
-            }
-
-            // Determines if the given argument is compatible with the given parameter
-            bool IsCompatibleArgument(ArgumentSyntax argument, IParameterSymbol parameter)
-            {
-                var parameterRefKind = parameter.RefKind;
-                if (parameterRefKind == RefKind.None)
-                {
-                    if (IsEmptyArgument(argument.Expression))
-                    {
-                        // An argument left empty is considered to match any parameter
-                        // M(1, $$)
-                        // M(1, , 2$$)
-                        return true;
-                    }
-
-                    var type = parameter.Type;
-                    if (parameter.IsParams
-                        && type is IArrayTypeSymbol arrayType
-                        && HasImplicitConversion(argument.Expression, arrayType.ElementType))
-                    {
-                        return true;
-                    }
-
-                    return HasImplicitConversion(argument.Expression, type);
-                }
-
-                var argumentRefKind = argument.GetRefKind();
-                if (parameterRefKind == RefKind.In && argumentRefKind == RefKind.None)
-                {
-                    // A by-value argument matches an `in` parameter
+                    // An argument left empty is considered to match any parameter
+                    // M(1, $$)
+                    // M(1, , 2$$)
                     return true;
                 }
 
-                if (parameterRefKind == argumentRefKind)
+                var type = parameter.Type;
+                if (parameter.IsParams
+                    && type is IArrayTypeSymbol arrayType
+                    && semanticModel.ClassifyConversion(argument.Expression, arrayType.ElementType).IsImplicit)
                 {
                     return true;
                 }
 
-                return false;
+                return semanticModel.ClassifyConversion(argument.Expression, type).IsImplicit;
             }
 
-            bool HasImplicitConversion(SyntaxNode expression, ITypeSymbol destination)
+            var argumentRefKind = argument.GetRefKind();
+            if (parameterRefKind == argumentRefKind)
+                return true;
+
+            // A by-value argument matches an `in` parameter
+            if (parameterRefKind == RefKind.In && argumentRefKind == RefKind.None)
+                return true;
+
+            return false;
+        }
+
+        // If the cursor is pointing at an argument for which we did not find the corresponding
+        // parameter, we will highlight the first unspecified parameter.
+        private int FirstUnspecifiedParameter(ref TemporaryArray<int> argumentToParameterMap)
+        {
+            using var specified = TemporaryArray<bool>.Empty;
+            for (var i = 0; i < arguments.Count; i++)
+                specified.Add(false);
+
+            for (var i = 0; i < arguments.Count; i++)
             {
-                var conversion = semanticFactsService.ClassifyConversion(semanticModel, expression, destination);
-                return conversion.IsImplicit;
+                var parameterIndex = argumentToParameterMap[i];
+                if (parameterIndex >= 0)
+                    specified.AsRef()[parameterIndex] = true;
             }
+
+            for (var i = 0; i < specified.Count; i++)
+            {
+                if (!specified[i])
+                    return i;
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -244,7 +232,7 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
         /// Given the cursor position, find which argument is active.
         /// This will be useful to later find which parameter should be highlighted.
         /// </summary>
-        private static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
+        private int TryGetArgumentIndex()
         {
             if (arguments.Count == 0)
                 return -1;
@@ -258,12 +246,6 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider
             }
 
             return arguments.Count - 1;
-        }
-
-        private static bool HasName(ArgumentSyntax argument, [NotNullWhen(true)] out string? name)
-        {
-            name = argument.NameColon?.Name.Identifier.ValueText;
-            return name != null;
         }
     }
 }

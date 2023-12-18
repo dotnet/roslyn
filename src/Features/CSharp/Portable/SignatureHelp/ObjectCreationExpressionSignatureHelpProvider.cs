@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // get the candidate methods
             var methods = type.InstanceConstructors
-                             .WhereAsArray(c => c.IsAccessibleWithin(within))
-                             .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
-                             .Sort(semanticModel, objectCreationExpression.SpanStart);
+                .WhereAsArray(c => c.IsAccessibleWithin(within))
+                .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                .Sort(semanticModel, objectCreationExpression.SpanStart);
 
             if (!methods.Any())
                 return null;
@@ -101,8 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var candidates = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
                 ? ImmutableArray.Create(exactMatch)
                 : methods;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, methods, arguments, out var currentSymbol, out var parameterIndexOverride);
+
+            var (currentSymbol, parameterIndexOverride) =
+                new LightweightOverloadResolution(semanticModel, position, arguments).RefineOverloadAndPickParameter(methods);
 
             // present items and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
@@ -132,9 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // determine parameter index
             var arguments = objectCreationExpression.ArgumentList.Arguments;
-            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(
-                arguments, invokeMethod, position, semanticModel, semanticFactsService, out var parameterIndexOverride);
+            (_, var parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, arguments).FindParameterIndexIfCompatibleMethod(invokeMethod);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
