@@ -27,14 +27,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
             VerifyRecommendationsContain(<MethodBody>For i|</MethodBody>, "Each")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <MethodBody>For 
 |</MethodBody>, "Each")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>For _
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
 |</MethodBody>, "Each")
         End Sub
 
-        <Fact, WorkItem(4946, "http://github.com/dotnet/roslyn/issues/4946")>
+        <Fact, WorkItem("http://github.com/dotnet/roslyn/issues/4946")>
         Public Sub NotInForLoop()
             VerifyNoRecommendations(
 <MethodBody>For | = 1 To 100

@@ -21,23 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public static ExpressionSyntax GenerateExpressionSyntax(
-            this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance)!.WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+        /// <paramref name="nameSyntax"><see langword="true"/> if only normal name-syntax nodes should be returned.
+        /// <see langword="false"/> if special nodes (like predefined types) can be used.</paramref>
+        public static ExpressionSyntax GenerateExpressionSyntax(this ITypeSymbol typeSymbol, bool nameSyntax = false)
+            => typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
 
-        public static NameSyntax GenerateNameSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
-        }
+        public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+            => (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
 
-        public static TypeSyntax GenerateTypeSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
-        }
+        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+            => GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
 
         private static TypeSyntax GenerateTypeSyntax(
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
@@ -153,27 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? compilationUnit.Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
-        }
-
-        public static bool TryGetRecordPrimaryConstructor(this INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
-        {
-            if (typeSymbol.IsRecord)
-            {
-                Debug.Assert(typeSymbol.GetParameters().IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
-
-                // A bit hacky to determine the parameters of primary constructor associated with a given record.
-                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
-                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
-                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
-                // of the extension method and make sure the change is applicable to all these usages.
-
-                primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
-                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
-                return primaryConstructor is not null;
-            }
-
-            primaryConstructor = null;
-            return false;
         }
     }
 }

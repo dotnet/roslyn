@@ -340,7 +340,7 @@ namespace System
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(41598, "https://github.com/dotnet/roslyn/issues/41598")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
             Dim input =

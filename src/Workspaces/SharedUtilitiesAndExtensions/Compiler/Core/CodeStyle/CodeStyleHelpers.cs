@@ -62,25 +62,26 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryGetCodeStyleValueAndOptionalNotification(
             string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2 notification)
         {
-            var args = arg.Split(':');
-            Debug.Assert(args.Length > 0);
+            var firstColonIndex = arg.IndexOf(':');
 
             // We allow a single value to be provided without an explicit notification.
-            if (args.Length == 1)
+            if (firstColonIndex == -1)
             {
-                value = args[0].Trim();
+                value = arg.Trim();
                 notification = defaultNotification;
                 return true;
             }
 
-            if (args.Length == 2)
+            var secondColonIndex = arg.IndexOf(':', firstColonIndex + 1);
+            if (secondColonIndex == -1)
             {
                 // If we have two args, then the second must be a notification option.  If 
                 // it isn't, then this isn't a valid code style option at all.
-                if (TryParseNotification(args[1], out var localNotification))
+                if (TryParseNotification(arg.AsSpan(firstColonIndex + 1), out var localNotification))
                 {
-                    value = args[0].Trim();
-                    notification = localNotification;
+                    var firstValue = arg[..firstColonIndex];
+                    value = firstValue.Trim();
+                    notification = localNotification.WithIsExplicitlySpecified(true);
                     return true;
                 }
             }
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        private static bool TryParseNotification(string value, out NotificationOption2 notification)
+        private static bool TryParseNotification(ReadOnlySpan<char> value, out NotificationOption2 notification)
         {
             switch (value.Trim())
             {

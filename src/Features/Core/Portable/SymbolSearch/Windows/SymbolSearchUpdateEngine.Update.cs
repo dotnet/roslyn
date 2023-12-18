@@ -96,20 +96,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 s_logs.RemoveFirst();
         }
 
-        private sealed class Updater
+        private sealed class Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
         {
-            private readonly SymbolSearchUpdateEngine _service;
-            private readonly string _source;
-            private readonly DirectoryInfo _cacheDirectoryInfo;
-
-            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
-            {
-                _service = service;
-                _source = source;
-
-                _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+            private readonly SymbolSearchUpdateEngine _service = service;
+            private readonly string _source = source;
+            private readonly DirectoryInfo _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                     localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
-            }
 
             /// <summary>
             /// Internal for testing purposes.
@@ -242,6 +234,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
             {
+                // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
+                // link in the source to make it easy for maintainers to hit the endpoint to see if it succeeds and that
+                // the data and http headers are what are expected.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/Latest.xml");
 
                 LogInfo($"Downloading and processing full database: {serverPath}");
@@ -378,6 +373,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Now attempt to download and apply patch file.
+                //
+                // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
+                // Providing this link in the source to make it easy for maintainers to hit the endpoint to see if it
+                // succeeds and that the data and http headers are what are expected.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
                 LogInfo("Downloading and processing patch file: " + serverPath);

@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBTests : CSharpPDBTestBase
     {
+        public const PdbValidationOptions SyntaxOffsetPdbValidationOptions =
+            PdbValidationOptions.ExcludeDocuments |
+            PdbValidationOptions.ExcludeSequencePoints |
+            PdbValidationOptions.ExcludeScopes |
+            PdbValidationOptions.ExcludeNamespaces;
+
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 
         #region General
@@ -8530,10 +8536,8 @@ class C
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
-            c.VerifyPdb("C.F", @"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
+            c.VerifyPdb("C.F", @"
+<symbols>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""o"">
       <customDebugInfo>
@@ -8544,15 +8548,10 @@ class C
           <slot kind=""0"" offset=""12"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2d"">
-        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
@@ -10759,47 +10758,26 @@ public class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C..ctor", @"
-    <symbols>
-      <files>
-        <file id=""1"" name="""" language=""C#"" />
-      </files>
-      <methods>
-        <method containingType=""C"" name="".ctor"">
-          <customDebugInfo>
-            <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
-            <encLocalSlotMap>
-              <slot kind=""30"" offset=""-26"" />
-              <slot kind=""temp"" />
-              <slot kind=""35"" offset=""-26"" />
-            </encLocalSlotMap>
-            <encLambdaMap>
-              <methodOrdinal>2</methodOrdinal>
-              <closure offset=""-26"" />
-              <lambda offset=""-4"" closure=""0"" />
-            </encLambdaMap>
-          </customDebugInfo>
-          <sequencePoints>
-            <entry offset=""0x0"" hidden=""true"" document=""1"" />
-            <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""54"" document=""1"" />
-            <entry offset=""0x15"" startLine=""7"" startColumn=""27"" endLine=""7"" endColumn=""53"" document=""1"" />
-            <entry offset=""0x16"" hidden=""true"" document=""1"" />
-            <entry offset=""0x18"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""51"" document=""1"" />
-            <entry offset=""0x2c"" hidden=""true"" document=""1"" />
-            <entry offset=""0x2f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""54"" document=""1"" />
-            <entry offset=""0x30"" hidden=""true"" document=""1"" />
-            <entry offset=""0x37"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" document=""1"" />
-            <entry offset=""0x3e"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""10"" document=""1"" />
-            <entry offset=""0x3f"" startLine=""5"" startColumn=""11"" endLine=""5"" endColumn=""12"" document=""1"" />
-          </sequencePoints>
-          <scope startOffset=""0x0"" endOffset=""0x40"">
-            <scope startOffset=""0x0"" endOffset=""0x37"">
-              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x37"" attributes=""0"" />
-            </scope>
-          </scope>
-        </method>
-      </methods>
-    </symbols>
-");
+<symbols>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""-26"" />
+          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""-26"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <closure offset=""-26"" />
+          <lambda offset=""-4"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [WorkItem(43468, "https://github.com/dotnet/roslyn/issues/43468")]
@@ -11188,10 +11166,8 @@ public class C
             var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
-            c.VerifyPdb("C.F", @"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
+            c.VerifyPdb("C.F", @"
+<symbols>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -11204,19 +11180,9 @@ public class C
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" document=""1"" />
-        <entry offset=""0x5"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""69"" document=""1"" />
-        <entry offset=""0xb"" startLine=""1"" startColumn=""70"" endLine=""1"" endColumn=""71"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xd"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
-        <local name=""c"" il_index=""1"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11271,10 +11237,8 @@ public class C
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
-            c.VerifyPdb("C.F", @"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
+            c.VerifyPdb("C.F", @"
+<symbols>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -11286,19 +11250,9 @@ public class C
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" document=""1"" />
-        <entry offset=""0x10"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""103"" document=""1"" />
-        <entry offset=""0x31"" startLine=""1"" startColumn=""104"" endLine=""1"" endColumn=""105"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x33"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x33"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
-</symbols>"
-);
+</symbols>", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11307,10 +11261,8 @@ public class C
             var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
-            c.VerifyPdb("C.F", @"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
+            c.VerifyPdb("C.F", @"
+<symbols>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -11322,18 +11274,9 @@ public class C
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""36"" document=""1"" />
-        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""62"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""1"" startColumn=""63"" endLine=""1"" endColumn=""64"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11342,10 +11285,8 @@ public class C
             var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
-            c.VerifyPdb("C.F", @"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
+            c.VerifyPdb("C.F", @"
+<symbols>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -11360,18 +11301,9 @@ public class C
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""73"" document=""1"" />
-        <entry offset=""0x19"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1b"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", options: SyntaxOffsetPdbValidationOptions);
         }
 
         #endregion
@@ -11424,9 +11356,6 @@ class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name=""G"" parameterNames=""x"">
       <customDebugInfo>
@@ -11441,23 +11370,10 @@ class C
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""28"" endLine=""1"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""30"" endLine=""1"" endColumn=""40"" document=""1"" />
-        <entry offset=""0x3"" startLine=""1"" startColumn=""41"" endLine=""1"" endColumn=""54"" document=""1"" />
-        <entry offset=""0xc"" startLine=""1"" startColumn=""55"" endLine=""1"" endColumn=""68"" document=""1"" />
-        <entry offset=""0x15"" startLine=""1"" startColumn=""69"" endLine=""1"" endColumn=""82"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""1"" startColumn=""83"" endLine=""1"" endColumn=""84"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x22"">
-        <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
-        <local name=""y"" il_index=""1"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
-        <local name=""w"" il_index=""2"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11489,9 +11405,6 @@ class A
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11504,28 +11417,10 @@ class A
           <slot kind=""0"" offset=""-3"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""26"" document=""1"" />
-        <entry offset=""0xd"" startLine=""5"" startColumn=""20"" endLine=""5"" endColumn=""32"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""7"" startColumn=""11"" endLine=""7"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x28"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x29"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2a"">
-        <scope startOffset=""0x0"" endOffset=""0xd"">
-          <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0xd"" endOffset=""0x1a"">
-          <local name=""y"" il_index=""1"" il_start=""0xd"" il_end=""0x1a"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x1a"" endOffset=""0x2a"">
-          <local name=""z"" il_index=""2"" il_start=""0x1a"" il_end=""0x2a"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11556,9 +11451,6 @@ class A
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11570,23 +11462,10 @@ class A
           <slot kind=""0"" offset=""16"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""11"" endLine=""4"" endColumn=""29"" document=""1"" />
-        <entry offset=""0xe"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""19"" document=""1"" />
-        <entry offset=""0x11"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""13"" document=""1"" />
-        <entry offset=""0x15"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x16"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0x16"">
-          <local name=""y"" il_index=""1"" il_start=""0xe"" il_end=""0x16"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11614,9 +11493,6 @@ class A
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11628,20 +11504,10 @@ class A
           <slot kind=""0"" offset=""13"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""11"" endLine=""4"" endColumn=""29"" document=""1"" />
-        <entry offset=""0xe"" startLine=""5"" startColumn=""8"" endLine=""5"" endColumn=""20"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x17"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x17"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0x17"">
-          <local name=""y"" il_index=""1"" il_start=""0xe"" il_end=""0x17"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11673,9 +11539,6 @@ class C
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11689,40 +11552,22 @@ class C
           <lambda offset=""-2"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6"" startLine=""2000"" startColumn=""5"" endLine=""2000"" endColumn=""40"" document=""1"" />
-        <entry offset=""0x29"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""8"" document=""1"" />
-        <entry offset=""0x30"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x31"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x32"">
-        <scope startOffset=""0x0"" endOffset=""0x29"">
-          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass2_0.<.ctor>b__0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2000"" startColumn=""37"" endLine=""2000"" endColumn=""38"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11750,9 +11595,6 @@ class C
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11766,37 +11608,22 @@ class C
           <lambda offset=""-2"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6"" startLine=""2000"" startColumn=""23"" endLine=""2000"" endColumn=""48"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x31"">
-        <scope startOffset=""0x0"" endOffset=""0x29"">
-          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass5_0.<.ctor>b__0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass5_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2000"" startColumn=""46"" endLine=""2000"" endColumn=""47"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11862,9 +11689,6 @@ class C
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11881,60 +11705,34 @@ class C
           <lambda offset=""-2"" closure=""1"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6"" startLine=""2000"" startColumn=""5"" endLine=""2000"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x29"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2f"" startLine=""2000"" startColumn=""41"" endLine=""2000"" endColumn=""71"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x5a"">
-        <scope startOffset=""0x0"" endOffset=""0x29"">
-          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x29"" endOffset=""0x52"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x29"" il_end=""0x52"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass4_0.<.ctor>b__0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass4_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2000"" startColumn=""37"" endLine=""2000"" endColumn=""38"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass4_1.<.ctor>b__1", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass4_1"" name=""&lt;.ctor&gt;b__1"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2000"" startColumn=""69"" endLine=""2000"" endColumn=""70"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -11968,9 +11766,6 @@ class A
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -11986,37 +11781,22 @@ class A
           <lambda offset=""-3"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6"" startLine=""2000"" startColumn=""11"" endLine=""2000"" endColumn=""41"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""2001"" startColumn=""5"" endLine=""2001"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""2002"" startColumn=""5"" endLine=""2002"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2c"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x2c"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass0_0.<.ctor>b__0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2000"" startColumn=""38"" endLine=""2000"" endColumn=""39"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -12046,9 +11826,6 @@ class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -12063,28 +11840,13 @@ class C
           <lambda offset=""88"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""8"" document=""1"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""11"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x37"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x38"">
-        <namespace name=""System.Linq"" />
-        <scope startOffset=""0x7"" endOffset=""0x38"">
-          <local name=""q"" il_index=""0"" il_start=""0x7"" il_end=""0x38"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c.<.ctor>b__0_0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__0_0"" parameterNames=""a"">
       <customDebugInfo>
@@ -12093,16 +11855,10 @@ class C
           <slot kind=""0"" offset=""98"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""40"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xb"">
-        <local name=""x1"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -12137,9 +11893,6 @@ class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -12156,28 +11909,13 @@ class C
           <lambda offset=""112"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""8"" document=""1"" />
-        <entry offset=""0x7"" startLine=""2000"" startColumn=""5"" endLine=""2000"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x8"" startLine=""2001"" startColumn=""9"" endLine=""2004"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x37"" startLine=""2005"" startColumn=""5"" endLine=""2005"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x38"">
-        <namespace name=""System.Linq"" />
-        <scope startOffset=""0x7"" endOffset=""0x38"">
-          <local name=""q"" il_index=""0"" il_start=""0x7"" il_end=""0x38"" attributes=""0"" />
-        </scope>
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c.<.ctor>b__0_0", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__0_0"" parameterNames=""a"">
       <customDebugInfo>
@@ -12186,35 +11924,22 @@ class C
           <slot kind=""30"" offset=""88"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6"" startLine=""2003"" startColumn=""23"" endLine=""2003"" endColumn=""50"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x25"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x25"" attributes=""0"" />
-      </scope>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
 
             c.VerifyPdb("C+<>c__DisplayClass0_0.<.ctor>b__1", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__1"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""2003"" startColumn=""47"" endLine=""2003"" endColumn=""49"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>
-");
+", options: SyntaxOffsetPdbValidationOptions);
         }
 
         [Fact]
@@ -12224,46 +11949,256 @@ class C
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
-    <symbols>
-      <files>
-        <file id=""1"" name="""" language=""C#"" />
-      </files>
-      <methods>
-        <method containingType=""C"" name=""G"">
-          <customDebugInfo>
-            <using>
-              <namespace usingCount=""0"" />
-            </using>
-            <encLocalSlotMap>
-              <slot kind=""0"" offset=""13"" />
-              <slot kind=""temp"" />
-              <slot kind=""35"" offset=""16"" />
-              <slot kind=""temp"" />
-            </encLocalSlotMap>
-          </customDebugInfo>
-          <sequencePoints>
-            <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
-            <entry offset=""0xb"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
-            <entry offset=""0xc"" hidden=""true"" document=""1"" />
-            <entry offset=""0x11"" hidden=""true"" document=""1"" />
-            <entry offset=""0x14"" startLine=""1"" startColumn=""64"" endLine=""1"" endColumn=""89"" document=""1"" />
-            <entry offset=""0x15"" hidden=""true"" document=""1"" />
-            <entry offset=""0x1b"" startLine=""1"" startColumn=""78"" endLine=""1"" endColumn=""79"" document=""1"" />
-            <entry offset=""0x1f"" startLine=""1"" startColumn=""86"" endLine=""1"" endColumn=""87"" document=""1"" />
-            <entry offset=""0x23"" hidden=""true"" document=""1"" />
-            <entry offset=""0x26"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
-            <entry offset=""0x27"" startLine=""1"" startColumn=""62"" endLine=""1"" endColumn=""89"" document=""1"" />
-            <entry offset=""0x2b"" startLine=""1"" startColumn=""96"" endLine=""1"" endColumn=""97"" document=""1"" />
-            <entry offset=""0x2f"" hidden=""true"" document=""1"" />
-            <entry offset=""0x32"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
-            <entry offset=""0x33"" hidden=""true"" document=""1"" />
-          </sequencePoints>
-          <scope startOffset=""0x0"" endOffset=""0x3a"">
-            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x3a"" attributes=""0"" />
-          </scope>
-        </method>
-      </methods>
-    </symbols>
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""G"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""13"" />
+          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""16"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+", options: SyntaxOffsetPdbValidationOptions);
+        }
+
+        [Fact]
+        public void SyntaxOffset_OutVarInPrimaryConstructorInitializer()
+        {
+            var source = @"
+class B(int x, int y)
+{
+}
+
+class C(int x) : B(F(out var y), y)
+{
+    int Z = F(out var z);
+    static int F(out int a) => a = 1;
+}";
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""B"" name="".ctor"" parameterNames=""x, y"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""x, y"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""-6"" />
+          <slot kind=""0"" offset=""-20"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""x, y"" />
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+", options: SyntaxOffsetPdbValidationOptions);
+        }
+
+        #endregion
+
+        #region Primary Constructors
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_PrimaryConstructor_ExplicitBaseInitializer()
+        {
+            var source = @"
+class B() : object()
+{
+}
+
+class C(int x) : B()
+{
+    int y = 1;
+}";
+
+            var c = CompileAndVerify(source);
+            c.VerifyMethodBody("B..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: object()
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor", @"
+ {
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: int y = 1;
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.y""
+  // sequence point: B()
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""B..ctor()""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_PrimaryConstructor_ImplicitBaseInitializer()
+        {
+            var source = @"
+class B()
+{
+}
+
+class C(int x) : B
+{
+}";
+
+            var c = CompileAndVerify(source);
+            c.VerifyMethodBody("B..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: B()
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+            c.VerifyMethodBody("C..ctor", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: C(int x)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""B..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_RecordConstructors_ModifiersAndDefault()
+        {
+            var source = @"
+record C<T>([A]in T P = default) where T : struct;
+
+class A : System.Attribute {}
+" + IsExternalInitTypeDefinition;
+
+            var c = CompileAndVerify(source, verify: Verification.Skipped);
+
+            // primary constructor
+            c.VerifyMethodBody("C<T>..ctor(in T)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldobj      ""T""
+  IL_0007:  stfld      ""T C<T>.<P>k__BackingField""
+  // sequence point: C<T>([A]in T P = default)
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""object..ctor()""
+  IL_0012:  ret
+}
+");
+            // copy constructor
+            c.VerifyMethodBody("C<T>..ctor(C<T>)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""T C<T>.<P>k__BackingField""
+  IL_000d:  stfld      ""T C<T>.<P>k__BackingField""
+  // sequence point: C<T>
+  IL_0012:  ret
+}
+");
+            // primary auto-property getter
+            c.VerifyMethodBody("C<T>.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: in T P
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+            // primary auto-property setter
+            c.VerifyMethodBody("C<T>.P.init", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  // sequence point: in T P
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""T C<T>.<P>k__BackingField""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("int[] P = default", "int[] P")]
+        [InlineData("[A]int[] P", "int[] P")]
+        [InlineData("params int[] P", "params int[] P")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63299")]
+        public void SequencePoints_RecordPropertyAccessors(string parameterSyntax, string expectedSpan)
+        {
+            var source =
+                "record C(" + parameterSyntax + ");" +
+                "class A : System.Attribute { }" +
+                IsExternalInitTypeDefinition;
+
+            var c = CompileAndVerify(source, verify: Verification.Skipped);
+
+            // primary auto-property getter
+            c.VerifyMethodBody("C.P.get", $@"
+{{
+  // Code size        7 (0x7)
+  .maxstack  1
+  // sequence point: {expectedSpan}
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] C.<P>k__BackingField""
+  IL_0006:  ret
+}}
+");
+            // primary auto-property setter
+            c.VerifyMethodBody("C.P.init", $@"
+{{
+  // Code size        8 (0x8)
+  .maxstack  2
+  // sequence point: {expectedSpan}
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int[] C.<P>k__BackingField""
+  IL_0007:  ret
+}}
 ");
         }
 

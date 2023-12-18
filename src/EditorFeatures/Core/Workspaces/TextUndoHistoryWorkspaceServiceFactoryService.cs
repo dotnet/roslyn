@@ -14,24 +14,18 @@ using Microsoft.VisualStudio.Text.Operations;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Default), Shared]
-    internal class TextUndoHistoryWorkspaceServiceFactoryService : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : IWorkspaceServiceFactory
     {
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-            => _textUndoHistoryRegistry = textUndoHistoryRegistry;
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new TextUndoHistoryWorkspaceService(_textUndoHistoryRegistry);
 
-        private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+        private class TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry) : ITextUndoHistoryWorkspaceService
         {
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-
-            public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-                => _textUndoHistoryRegistry = textUndoHistoryRegistry;
+            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
             public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
                 => _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);

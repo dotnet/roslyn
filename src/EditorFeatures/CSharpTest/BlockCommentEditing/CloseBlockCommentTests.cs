@@ -25,182 +25,182 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
         [WpfFact]
         public void ClosedRegularlyAfterAsterisk()
         {
-            var code = @"
-    /*
-     *
-     *$$
-";
-            var expected = @"
-    /*
-     *
-     */$$
-";
+            var code = """
+                /*
+                 *
+                 *$$
+                """;
+            var expected = """
+                /*
+                 *
+                 */$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void ClosedAfterAsteriskSpace1()
         {
-            var code = @"
-    /*
-     *
-     * $$
-";
-            var expected = @"
-    /*
-     *
-     */$$
-";
+            var code = """
+                /*
+                 *
+                 * $$
+                """;
+            var expected = """
+                /*
+                 *
+                 */$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void ClosedAfterAsteriskSpace2()
         {
-            var code = @"
-    /*
-     * $$
-";
-            var expected = @"
-    /*
-     */$$
-";
+            var code = """
+                /*
+                 * $$
+                """;
+            var expected = """
+                /*
+                 */$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterSlashAsteriskSpace()
         {
-            var code = @"
-    /* $$
-";
-            var expected = @"
-    /* /$$
-";
+            var code = """
+                /* $$
+                """;
+            var expected = """
+                /* /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterSlashDoubleAsteriskSpace()
         {
-            var code = @"
-    /** $$
-";
-            var expected = @"
-    /** /$$
-";
+            var code = """
+                /** $$
+                """;
+            var expected = """
+                /** /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterSpaceWithoutAsterisk()
         {
-            var code = @"
-    /*
-     *
-       $$
-";
-            var expected = @"
-    /*
-     *
-       /$$
-";
+            var code = """
+                /*
+                 *
+                   $$
+                """;
+            var expected = """
+                /*
+                 *
+                   /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk1()
         {
-            var code = @"
-    /*
-     *
-    ** $$
-";
-            var expected = @"
-    /*
-     *
-    ** /$$
-";
+            var code = """
+                /*
+                 *
+                ** $$
+                """;
+            var expected = """
+                /*
+                 *
+                ** /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk2()
         {
-            var code = @"
-    /*
-     *
-    /* $$
-";
-            var expected = @"
-    /*
-     *
-    /* /$$
-";
+            var code = """
+                /*
+                 *
+                /* $$
+                """;
+            var expected = """
+                /*
+                 *
+                /* /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceBeforeAsterisk3()
         {
-            var code = @"
-    /*
-     *
-a    * $$
-";
-            var expected = @"
-    /*
-     *
-a    * /$$
-";
+            var code = """
+                    /*
+                     *
+                a    * $$
+                """;
+            var expected = """
+                    /*
+                     *
+                a    * /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor1()
         {
-            var code = @"
-    /*
-     *
-     * $$/
-";
-            var expected = @"
-    /*
-     *
-     * /$$/
-";
+            var code = """
+                /*
+                 *
+                 * $$/
+                """;
+            var expected = """
+                /*
+                 *
+                 * /$$/
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor2()
         {
-            var code = @"
-    /*
-     *
-     * $$*
-";
-            var expected = @"
-    /*
-     *
-     * /$$*
-";
+            var code = """
+                /*
+                 *
+                 * $$*
+                """;
+            var expected = """
+                /*
+                 *
+                 * /$$*
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithNonWhitespaceAfterCursor3()
         {
-            var code = @"
-    /*
-     *
-     * $$ a
-";
-            var expected = @"
-    /*
-     *
-     * /$$ a
-";
+            var code = """
+                /*
+                 *
+                 * $$ a
+                """;
+            var expected = """
+                /*
+                 *
+                 * /$$ a
+                """;
             Verify(code, expected);
         }
 
@@ -208,80 +208,80 @@ a    * /$$
         public void NotClosedAfterAsteriskSpaceWithWhitespaceAfterCursor()
         {
             // Note: There is a single trailing space after the cursor.
-            var code = @"
-    /*
-     *
-     * $$ 
-";
-            var expected = @"
-    /*
-     *
-     * /$$ 
-";
+            var code = """
+                /*
+                 *
+                 * $$ 
+                """;
+            var expected = """
+                /*
+                 *
+                 * /$$ 
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskDoubleSpace()
         {
-            var code = @"
-    /*
-     *
-     *  $$
-";
-            var expected = @"
-    /*
-     *
-     *  /$$
-";
+            var code = """
+                /*
+                 *
+                 *  $$
+                """;
+            var expected = """
+                /*
+                 *
+                 *  /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void ClosedAfterAsteriskSpaceWithNothingBeforeAsterisk()
         {
-            var code = @"
-    /*
-     *
-* $$
-";
-            var expected = @"
-    /*
-     *
-*/$$
-";
+            var code = """
+                    /*
+                     *
+                * $$
+                """;
+            var expected = """
+                    /*
+                     *
+                */$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void ClosedAfterAsteriskSpaceWithTabsBeforeAsterisk()
         {
-            var code = @"
-    /*
-     *
-<tab><tab>* $$
-";
-            var expected = @"
-    /*
-     *
-<tab><tab>*/$$
-";
+            var code = """
+                    /*
+                     *
+                <tab><tab>* $$
+                """;
+            var expected = """
+                    /*
+                     *
+                <tab><tab>*/$$
+                """;
             VerifyTabs(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceWithOptionOff()
         {
-            var code = @"
-    /*
-     *
-     * $$
-";
-            var expected = @"
-    /*
-     *
-     * /$$
-";
+            var code = """
+                /*
+                 *
+                 * $$
+                """;
+            var expected = """
+                /*
+                 *
+                 * /$$
+                """;
             Verify(code, expected, workspace =>
             {
                 var globalOptions = workspace.GetService<IGlobalOptionService>();
@@ -292,50 +292,52 @@ a    * /$$
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceOutsideComment()
         {
-            var code = @"
-   / *
-     *
-     * $$
-";
-            var expected = @"
-   / *
-     *
-     * /$$
-";
+            var code = """
+                / *
+                  *
+                  * $$
+                """;
+            var expected = """
+                / *
+                  *
+                  * /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void NotClosedAfterAsteriskSpaceInsideString()
         {
-            var code = @"
-class C
-{
-    string s = @""
-    /*
-     *
-     * $$
-";
-            var expected = @"
-class C
-{
-    string s = @""
-    /*
-     *
-     * /$$
-";
+            var code = """
+                class C
+                {
+                    string s = @"
+                    /*
+                     *
+                     * $$
+                """;
+            var expected = """
+                class C
+                {
+                    string s = @"
+                    /*
+                     *
+                     * /$$
+                """;
             Verify(code, expected);
         }
 
         [WpfFact]
         public void ClosedAfterAsteriskSpaceEndOfFile()
         {
-            var code = @"
-    /*
-     * $$";
-            var expected = @"
-    /*
-     */$$";
+            var code = """
+                /*
+                 * $$
+                """;
+            var expected = """
+                /*
+                 */$$
+                """;
             Verify(code, expected);
         }
 

@@ -37,10 +37,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     append("catch (");
                                     append(catchBlock.ExceptionTypeOpt?.Name);
-                                    append(") ");
-                                    if (catchBlock.ExceptionFilterOpt != null)
+                                    append(" ");
+                                    appendSource(catchBlock.ExceptionSourceOpt);
+                                    append(")");
+                                    if (catchBlock.ExceptionFilterOpt is { } exceptionFilter)
                                     {
-                                        append("... exception filter omitted ...");
+                                        if (catchBlock.ExceptionFilterPrologueOpt is { } exceptionFilterPrologue)
+                                        {
+                                            appendLine("");
+                                            appendLine("{");
+                                            appendSource(exceptionFilterPrologue);
+                                            appendLine("}");
+                                        }
+                                        else
+                                        {
+                                            append(" ");
+                                        }
+                                        append("when (");
+                                        appendSource(exceptionFilter);
+                                        append(")");
                                     }
                                     appendLine("");
 
@@ -300,6 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             append($" {unary.OperatorKind.ToString()} ");
                             appendSource(unary.Operand);
+                            break;
+                        }
+                    case BoundConversion conversion:
+                        {
+                            append($" {conversion.Conversion} ");
+                            appendSource(conversion.Operand);
                             break;
                         }
                     case BoundStatementList list:

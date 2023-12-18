@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// (compile-time assembly) since those are the assemblies
         /// loaded in the debuggee.
         /// </summary>
-        [WorkItem(981104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981104")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void Win8RuntimeAssemblies()
         {
@@ -146,7 +146,7 @@ class C
                 "Windows.Storage");
         }
 
-        [Fact, WorkItem(1108135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108135")]
         public void Win10OnWin10()
         {
             CompileTimeAndRuntimeAssemblies(
@@ -244,7 +244,7 @@ class C
         /// Assembly-qualified name containing "ContentType=WindowsRuntime",
         /// and referencing runtime assembly.
         /// </summary>
-        [WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
         [ConditionalFact(typeof(OSVersionWin8), typeof(IsRelease))] // https://github.com/dotnet/roslyn/issues/25702
         public void AssemblyQualifiedName()
         {
@@ -294,7 +294,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(1117084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1117084")]
         public void OtherFrameworkAssembly()
         {
             var source =
@@ -327,7 +327,7 @@ class C
             });
         }
 
-        [WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void WinMdAssemblyReferenceRequiresRedirect()
         {

@@ -32,6 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
+        /// <summary>
+        /// Additional locals that will be added to the outermost block of the current method, lambda,
+        /// or local function. This is used for inline array temporaries where the scope of the
+        /// temporary must be at least as wide as the scope of references to that temporary.
+        /// </summary>
+        private ArrayBuilder<LocalSymbol>? _additionalLocals;
+
+        /// <summary>
+        /// The original body of the current lambda or local function body, or null if not currently lowering a lambda.
+        /// </summary>
+        private BoundBlock? _currentLambdaBody;
+
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
@@ -78,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            bool instrumentForDynamicAnalysis,
-            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
+            MethodInstrumentation instrumentation,
             DebugDocumentProvider debugDocumentProvider,
             BindingDiagnosticBag diagnostics,
+            out ImmutableArray<SourceSpan> codeCoverageSpans,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -98,8 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var instrumenter = Instrumenter.NoOp;
 
+                if (instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) &&
+                    LocalStateTracingInstrumenter.TryCreate(method, statement, factory, diagnostics, instrumenter, out var localStateTracingInstrumenter))
+                {
+                    instrumenter = localStateTracingInstrumenter;
+                }
+
                 CodeCoverageInstrumenter? codeCoverageInstrumenter = null;
-                if (instrumentForDynamicAnalysis &&
+                if (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) &&
                     CodeCoverageInstrumenter.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out codeCoverageInstrumenter))
                 {
                     instrumenter = codeCoverageInstrumenter;
@@ -126,10 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (codeCoverageInstrumenter != null)
-                {
-                    dynamicAnalysisSpans = codeCoverageInstrumenter.DynamicAnalysisSpans;
-                }
+                codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
                 localRewriter.AssertNoPlaceholderReplacements();
@@ -140,12 +155,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ex.Diagnostic);
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
+                codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
 
         internal SyntheticBoundNodeFactory Factory
             => _factory;
+
+        internal BoundBlock? CurrentLambdaBody
+            => _currentLambdaBody;
 
         internal BoundStatement CurrentMethodBody
             => _rootStatement;
@@ -210,13 +229,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
+            if (node is BoundNameOfOperator nameofOperator)
+            {
+                Debug.Assert(!nameofOperator.WasCompilerGenerated);
+                var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
+                }
+            }
+
             ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
                 TypeSymbol? type = node.Type;
                 if (type?.IsNullableType() != true)
                 {
-                    return MakeLiteral(node.Syntax, constantValue, type);
+                    var result = MakeLiteral(node.Syntax, constantValue, type);
+
+                    if (node.WasCompilerGenerated)
+                    {
+                        result.MakeCompilerGenerated();
+                    }
+
+                    return result;
                 }
             }
 
@@ -259,6 +295,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DeconstructionAssignmentOperator && !((BoundDeconstructionAssignmentOperator)node).IsUsed;
         }
 
+        public override BoundNode? VisitParameter(BoundParameter node)
+        {
+            if (node.ParameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryCtor &&
+                primaryCtor.GetCapturedParameters().TryGetValue(node.ParameterSymbol, out var field))
+            {
+                Debug.Assert(CanBePassedByReference(node));
+                var result = new BoundFieldAccess(node.Syntax, new BoundThisReference(node.Syntax, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
+                Debug.Assert(CanBePassedByReference(result));
+                return result;
+            }
+
+            return base.VisitParameter(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
@@ -268,8 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
+            var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
+                _currentLambdaBody = node.Body;
+                _additionalLocals = null;
+
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
@@ -282,6 +337,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
+                _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -327,8 +384,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
+            var oldLambdaBody = _currentLambdaBody;
+            var oldAdditionalLocals = _additionalLocals;
             try
             {
+                _currentLambdaBody = node.Body;
+                _additionalLocals = null;
                 _factory.CurrentFunction = localFunction;
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
@@ -351,6 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
+                _currentLambdaBody = oldLambdaBody;
+                _additionalLocals = oldAdditionalLocals;
             }
         }
 
@@ -389,6 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
             => PlaceholderReplacement(node);
+
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
 
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
@@ -500,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
@@ -510,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
@@ -530,14 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
+        private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method, bool isOptional = false)
         {
-            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
+            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method, isOptional);
         }
 
-        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method)
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method, bool isOptional = false)
         {
-            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
+            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method, isOptional);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
@@ -575,6 +643,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(operand, getTypeFromHandle, type);
         }
 
+        private BoundStatement? RewriteFieldOrPropertyInitializer(BoundStatement initializer)
+        {
+            // If _additionalLocals is null, this must be the outermost block of the current function.
+            // If so, create a collection where child statements can insert inline array temporaries,
+            // and add those temporaries to the generated block.
+            var previousLocals = _additionalLocals;
+            if (previousLocals is null)
+            {
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            }
+
+            try
+            {
+                if (initializer.Kind == BoundKind.Block)
+                {
+                    var block = (BoundBlock)initializer;
+
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
+                    Debug.Assert(statement is { });
+                    var locals = block.Locals;
+                    if (previousLocals is null)
+                    {
+                        locals = locals.AddRange(_additionalLocals!);
+                    }
+                    return block.Update(locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement));
+                }
+                else
+                {
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true);
+                    if (statement is null || previousLocals is { } || _additionalLocals!.Count == 0)
+                    {
+                        return statement;
+                    }
+                    return new BoundBlock(
+                        statement.Syntax,
+                        _additionalLocals.ToImmutable(),
+                        ImmutableArray.Create(statement));
+                }
+            }
+            finally
+            {
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
+            }
+        }
+
         public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
             ImmutableArray<BoundStatement> originalStatements = node.Statements;
@@ -583,18 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFieldOrPropertyInitializer(initializer))
                 {
-                    if (initializer.Kind == BoundKind.Block)
-                    {
-                        var block = (BoundBlock)initializer;
-
-                        var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
-                        Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
-                    }
-                    else
-                    {
-                        statements.Add(RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true));
-                    }
+                    statements.Add(RewriteFieldOrPropertyInitializer(initializer));
                 }
                 else
                 {
@@ -889,6 +995,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // or AppendFormatted calls, and should never be defensively copied.
                     return true;
 
+                case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
+                    // Used for Length or Count properties only which are effectively readonly.
+                    return true;
+
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)
@@ -938,6 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     // That placeholder is always replaced with a temp local
                     return true;
+
+                case BoundKind.InlineArrayAccess:
+                    return ((BoundInlineArrayAccess)expr) is { IsValue: false, GetItemOrSliceHelper: WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item };
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Implicit Index or Range indexers only have by-value parameters:

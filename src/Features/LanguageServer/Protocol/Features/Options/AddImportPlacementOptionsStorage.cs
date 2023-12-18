@@ -15,8 +15,5 @@ internal static class AddImportPlacementOptionsStorage
         => document.GetAddImportPlacementOptionsAsync(globalOptions.GetAddImportPlacementOptions(document.Project.Services), cancellationToken);
 
     public static AddImportPlacementOptions GetAddImportPlacementOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(
-            globalOptions,
-            allowInHiddenRegions: AddImportPlacementOptions.Default.AllowInHiddenRegions, // no global option available
-            fallbackOptions: null);
+        => globalOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions: null, fallbackOptions: null);
 }

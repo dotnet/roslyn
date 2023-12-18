@@ -3470,6 +3470,52 @@ class BAttribute : System.Attribute { }
                 );
         }
 
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound07()
+        {
+            var text =
+@"class C
+{
+    [SomeAttribute<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttributeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttributeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttribute<>")
+                );
+        }
+
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound08()
+        {
+            var text =
+@"class C
+{
+    [Some<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("SomeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'Some<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("Some<>")
+                );
+        }
+
         [Fact]
         public void CS0249ERR_OverrideFinalizeDeprecated()
         {
@@ -4344,7 +4390,10 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C<int*>()").WithLocation(7, 9),
                 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
@@ -4375,6 +4424,86 @@ static class S
                 // (17,43): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         Console.WriteLine(typeof(Nullable<TypedReference>));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
+
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C<int*>()").WithLocation(7, 9),
+                // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 15),
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,15): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         new C<ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 15),
+                // (9,15): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         new C<RuntimeArgumentHandle>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 15),
+                // (10,15): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         new C<TypedReference>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(10, 15),
+                // (11,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(11, 9),
+                // (11,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 11),
+                // (12,11): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //         o.E<object, ArgIterator>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E<object, ArgIterator>").WithArguments("System.ArgIterator").WithLocation(12, 11),
+                // (14,13): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
+                //         a = F<RuntimeArgumentHandle>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle").WithLocation(14, 13),
+                // (15,13): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         a = o.E<T, TypedReference>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference").WithLocation(15, 13),
+                // (16,34): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(TypedReference?));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference").WithLocation(16, 34),
+                // (17,43): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //         Console.WriteLine(typeof(Nullable<TypedReference>));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
+        }
+
+        [Fact]
+        public void CS0306ERR_BadTypeArgument01_UnsafeContext()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    static void F<U>() { }
+    unsafe static void M(object o)
+    {
+        new C<int*>();
+        F<int*>();
+    }
+}
+static class S
+{
+    internal static void E<T, U>(this object o) { }
+}
+";
+            var expected = new[]
+            {
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
+                //         new C<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
+                // (8,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(8, 9)
+            };
+
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12)
+                .VerifyDiagnostics(expected);
+
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11)
+                .VerifyDiagnostics(expected);
         }
 
         /// <summary>
@@ -4400,13 +4529,45 @@ class C<T>
         COfIntPtr.F<object>();
     }
 }";
-            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
-                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
-                // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+                // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "COfIntPtr").WithLocation(9, 13),
+                // (9,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new COfIntPtr()").WithLocation(9, 9),
+                // (10,19): error CS0306: The type 'int*' may not be used as a type argument
+                //         COfObject.F<int*>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
+
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using COfIntPtr = C<int*>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
+                // (2,7): error CS0306: The type 'int*' may not be used as a type argument
+                // using COfIntPtr = C<int*>;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
+                // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "COfIntPtr").WithLocation(9, 13),
+                // (9,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new COfIntPtr();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new COfIntPtr()").WithLocation(9, 9),
+                // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         COfObject.F<int*>();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 21),
                 // (10,19): error CS0306: The type 'int*' may not be used as a type argument
                 //         COfObject.F<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
@@ -12381,8 +12542,13 @@ class C2 : I
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (11,14): error CS0682: 'C2.I.P' cannot implement 'I.P' because it is not supported by the language
+                //     object I.P
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("C2.I.P", "I.P").WithLocation(11, 14),
+                // (14,9): warning CS9196: Reference kind modifier of parameter 'object value' doesn't match the corresponding parameter 'ref object v' in overridden or implemented member.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("object value", "ref object v").WithLocation(14, 9),
                 // (16,20): error CS0682: 'C2.I.E' cannot implement 'I.E' because it is not supported by the language
+                //     event Action I.E
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "E").WithArguments("C2.I.E", "I.E").WithLocation(16, 20));
         }
 
@@ -16526,7 +16692,7 @@ public interface ISomeInterface
                 Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ErrorCode"));
         }
 
-        [Fact, WorkItem(552740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
         public void CS1966ERR_DeriveFromConstructedDynamic()
         {
             var text = @"
@@ -16540,9 +16706,42 @@ class C<T>
 
 class E1 : I<dynamic> {}
 class E2 : I<C<dynamic>.D*[]> {}
-
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
+                // class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),
+                // (10,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
+                // class E1 : I<dynamic> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>"));
+        }
+
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
+        public void CS1966ERR_DeriveFromConstructedDynamic_UnsafeContext()
+        {
+            var text = @"
+interface I<T> { }
+
+class C<T>
+{
+    public enum D { }
+}
+
+class E1 : I<dynamic> {}
+unsafe class E2 : I<C<dynamic>.D*[]> {}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
+                // (9,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
+                // class E1 : I<dynamic> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>").WithLocation(9, 12),
+                // (10,19): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
+                // unsafe class E2 : I<C<dynamic>.D*[]> {}
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>").WithLocation(10, 19));
+
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
                 // class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),

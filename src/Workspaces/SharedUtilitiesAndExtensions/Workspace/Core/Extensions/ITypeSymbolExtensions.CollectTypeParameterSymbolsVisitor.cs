@@ -11,19 +11,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class CollectTypeParameterSymbolsVisitor : SymbolVisitor
+        private class CollectTypeParameterSymbolsVisitor(
+             IList<ITypeParameterSymbol> typeParameters,
+            bool onlyMethodTypeParameters) : SymbolVisitor
         {
             private readonly HashSet<ISymbol> _visited = new();
-            private readonly bool _onlyMethodTypeParameters;
-            private readonly IList<ITypeParameterSymbol> _typeParameters;
-
-            public CollectTypeParameterSymbolsVisitor(
-                 IList<ITypeParameterSymbol> typeParameters,
-                bool onlyMethodTypeParameters)
-            {
-                _onlyMethodTypeParameters = onlyMethodTypeParameters;
-                _typeParameters = typeParameters;
-            }
 
             public override void DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
@@ -82,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (_visited.Add(symbol))
                 {
-                    if (symbol.TypeParameterKind == TypeParameterKind.Method || !_onlyMethodTypeParameters)
+                    if (symbol.TypeParameterKind == TypeParameterKind.Method || !onlyMethodTypeParameters)
                     {
-                        if (!_typeParameters.Contains(symbol))
+                        if (!typeParameters.Contains(symbol))
                         {
-                            _typeParameters.Add(symbol);
+                            typeParameters.Add(symbol);
                         }
                     }
 

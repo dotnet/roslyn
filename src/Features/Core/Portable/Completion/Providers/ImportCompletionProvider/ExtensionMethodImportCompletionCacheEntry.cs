@@ -30,20 +30,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
         }
 
-        public class Builder
+        public class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
         {
-            private readonly Checksum _checksum;
-            private readonly string _language;
+            private readonly Checksum _checksum = checksum;
+            private readonly string _language = langauge;
 
-            private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder;
-
-            public Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
-            {
-                _checksum = checksum;
-                _language = langauge;
-
-                _mapBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
-            }
+            private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
 
             public ExtensionMethodImportCompletionCacheEntry ToCacheEntry()
             {

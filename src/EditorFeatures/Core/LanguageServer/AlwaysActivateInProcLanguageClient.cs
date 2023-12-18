@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -15,11 +14,10 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -33,33 +31,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [ContentType(ContentTypeNames.FSharpContentType)]
     [Export(typeof(ILanguageClient))]
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
-    internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    internal class AlwaysActivateInProcLanguageClient(
+        CSharpVisualBasicLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider,
+        [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
     {
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
-        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public AlwaysActivateInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
-        {
-            _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
-            _buildOnlyDiagnostics = buildOnlyDiagnostics;
-        }
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
+        private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
             var serverCapabilities = isLspEditorEnabled
                 ? (VSInternalServerCapabilities)_experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities)
@@ -82,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverCapabilities.SupportsDiagnosticRequests = true;
                 serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
                 serverCapabilities.DiagnosticProvider ??= new();
-                serverCapabilities.DiagnosticProvider.DiagnosticKinds = new VSInternalDiagnosticKind[]
-                {
+                serverCapabilities.DiagnosticProvider.DiagnosticKinds =
+                [
                     // Support a specialized requests dedicated to task-list items.  This way the client can ask just
                     // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
                     // the task list would not be visible.
@@ -99,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     new(PullDiagnosticCategories.DocumentCompilerSemantic),
                     new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                     new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-                };
+                ];
                 serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
                     .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                     .Distinct()
@@ -114,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
 
-            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
                 // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
@@ -127,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
-                        TokenTypes = SemanticTokensHelpers.AllTokenTypes.ToArray(),
-                        TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                        TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                        TokenModifiers = SemanticTokensSchema.TokenModifiers
                     }
                 };
             }

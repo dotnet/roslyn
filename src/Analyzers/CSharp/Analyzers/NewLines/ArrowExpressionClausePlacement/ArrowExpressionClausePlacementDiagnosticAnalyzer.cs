@@ -28,33 +28,37 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLineAfterTokenInArrowExpressionClause;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
             if (node is ArrowExpressionClauseSyntax arrowExpressionClause)
-                ProcessArrowExpressionClause(context, severity, arrowExpressionClause);
+                ProcessArrowExpressionClause(context, notificationOption, arrowExpressionClause);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!);
+                    Recurse(context, notificationOption, child.AsNode()!);
             }
         }
 
         private void ProcessArrowExpressionClause(
-            SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ArrowExpressionClauseSyntax arrowExpressionClause)
+            SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, ArrowExpressionClauseSyntax arrowExpressionClause)
         {
             // get
             //     => 1 + 2;
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 arrowExpressionClause.ArrowToken.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
 

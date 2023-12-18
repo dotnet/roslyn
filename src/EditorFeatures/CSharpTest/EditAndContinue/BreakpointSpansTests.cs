@@ -54,7 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             else
             {
                 Assert.True(hasBreakpoint);
-                Assert.Equal(expectedSpan.Value, breakpointSpan);
+                AssertEx.AreEqual(
+                    expectedSpan.Value,
+                    breakpointSpan,
+                    message: $"Expected: [|{source.Substring(expectedSpan.Value.Start, expectedSpan.Value.Length)}|], Actual: [|{source.Substring(breakpointSpan.Start, breakpointSpan.Length)}|]");
             }
         }
 
@@ -68,8 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         private static void VerifyAllSpansInDeclaration<TDeclaration>(string markup)
             where TDeclaration : SyntaxNode
         {
-            MarkupTestFile.GetPositionAndSpans(markup,
-                out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetPositionAndSpans(markup, out var source, out var position, out var expectedSpans);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var root = tree.GetRoot();
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var expectedEnvelope = expectedSpans.IsEmpty ? default : TextSpan.FromBounds(expectedSpans[0].Start, expectedSpans[^1].End);
             Assert.NotNull(declarationNode);
 
-            var actualEnvelope = BreakpointSpans.GetEnvelope(declarationNode);
+            var actualEnvelope = SyntaxUtilities.TryGetDeclarationBody(declarationNode, symbol: null)?.Envelope ?? default;
             Assert.Equal(expectedEnvelope, actualEnvelope);
         }
 
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var endPosition = root.Span.End;
             for (var p = position; p < endPosition; p++)
             {
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, minLength: 0, out var span) && span.Start > lastSpan.Start)
                 {
                     lastSpan = span;
                     yield return span;
@@ -252,16 +254,6 @@ class C
             [|}|]    
         [|}|]
     [|}|]
-}");
-        }
-
-        [Fact]
-        public void GetBreakpointSequence_InstanceContructor_NoBody()
-        {
-            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
-class Class
-{
-    [|Clas$$s()|]
 }");
         }
 
@@ -1291,7 +1283,7 @@ $$    (
 
         #endregion
 
-        #region Field and Veriable Declarators
+        #region Field and Variable Declarators
 
         [Fact]
         public void FieldDeclarator_WithoutInitializer_All()
@@ -1474,7 +1466,7 @@ $$    [|private int i = 3;|]
         public void ConstFieldVariableDeclarator2()
             => TestMissing("class C { $$const int a = 1; }");
 
-        [Fact, WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
             => TestMissing("class C { void Goo() { int$$ } }");
 
@@ -3961,7 +3953,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48504")]
         public void OnPropertyAccessor5()
         {
             TestSpan(
@@ -4007,7 +3999,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(932711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
         public void OnPropertyWithInitializer()
         {
             TestSpan(
@@ -4319,7 +4311,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody1()
         {
             // a sequence point for base constructor call
@@ -4330,7 +4322,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody2()
         {
             // a sequence point for base constructor call
@@ -4341,7 +4333,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody3()
         {
             // a sequence point for base constructor call
@@ -4352,7 +4344,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody4()
         {
             // a sequence point for base constructor call
@@ -4363,7 +4355,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody5()
         {
             TestSpan(
@@ -4373,7 +4365,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody6()
         {
             TestSpan(
@@ -4383,7 +4375,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void InstanceConstructor_NoInitializer_ExpressionBody7()
         {
             TestSpan(
@@ -4407,6 +4399,160 @@ $$    using ([|var vv = goo()|])
     {
     }
 }");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class [|C()|];",
+                "$$class [|C()|];",
+                "class$$ [|C()|];",
+                "class [|C($$)|];",
+                "$$class [|C(int a)|];",
+                "$$class [|C(int a, int b)|];",
+                "class [|C(int a, int b)|]$$;",
+                "class [|C(int a, int b)|]$$ { }",
+                "class [|C(int a, int b)|]$$ : B { }",
+                "class [|C(int a, int b)|] : B$$ { }",
+                "class [|C(int a, int b)|] : B, $$I { }",
+                "class [|C<T>(int a, int b)|]$$ where T : notnull;",
+                "class [|C<T>(int a, int b)|] where $$T : notnull;",
+                "class [|C<T>(int a, int b)|] where T : notnull$$;",
+                "class [|C<T>(int a, int b)|] where T : notnull$$ { }")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
+            [CombinatorialValues("class", "struct")] string keyword,
+            [CombinatorialValues(
+                "class [|$$C(int a, int b)|];",
+                "class [|C$$(int a, int b)|];",
+                "class [|C$$<T>(int a, int b)|];",
+                "class [|C<$$T>(int a, int b)|];",
+                "class [|C<$$[A]T>(int a, int b)|];",
+                "class [|C<T>$$(int a, int b)|];",
+                "class [|C<T>($$int a, int b)|];",
+                "class [|C<T>($$[A]int a, int b)|];",
+                "class [|C<T>(int a, int b$$)|];")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
+            [CombinatorialValues("record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "record [|$$C|](int a, int b);",          // copy-ctor
+                "record [|C$$|](int a, int b);",          // copy-ctor
+                "record [|C$$<T>|](int a, int b);",       // copy-ctor
+                "record [|C<$$T>|](int a, int b);",       // copy-ctor
+                "record [|C<$$[A]T>|](int a, int b);",    // copy-ctor
+                "record [|C<T>$$|](int a, int b);",       // copy-ctor
+                "record C<T>([|$$int a|], int b);",       // property getter and setter
+                "record C<T>($$[A][|int a|], int b);",    // property getter and setter
+                "record C<T>($$   [A][|int a|], int b);", // property getter and setter
+                "record C<T>(int a, [|int b$$|]);",       // property getter and setter
+                "record C<T>(int a,  $$ [|int b|]);",     // property getter and setter
+                "record C<T>(int a, [|params int[] b|]  $$);",     // property getter and setter
+                "record C<T>(int a, [|int b|] = default$$);")] string source) // property getter and setter
+        {
+            TestSpan(source.Replace("record", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_NoBreakpoint(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class C;",
+                "$$class C;",
+                "class C$$;",
+                "class C;$$",
+                "class C(int a, int b);$$",
+                "class C(int a, int b) : B;$$",
+                "class C(int a, int b) : B { }$$")] string source)
+        {
+            TestMissing(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class C() : [|B()|];",
+                "$$class C() : [|B()|];",
+                "$$class C(int a) : [|B()|];",
+                "$$class C(int a, int b) : [|B()|];",
+                "class C(int a, int b)$$ : [|B()|];",
+                "class C(int a, int b) :$$ [|B()|];",
+                "class C(int a, int b) : [|$$B()|];",
+                "class C(int a, int b) : [|B($$)|];",
+                "class C(int a, int b) : [|B()$$|];",
+                "class C(int a, int b) : [|B()|] $$;",
+                "class C(int a, int b) : [|B()|] $$ {}",
+                "class C(int a, int b) : [|B()|], $$I {}",
+                "class C(int a, int b) : [|B()|], I$$ {}",
+                "class C<T>(int a, int b) : [|B()|] $$ where T : notnull;",
+                "class C<T>(int a, int b) : [|B()|], $$I where T : notnull { }",
+                "class C<T>(int a, int b) : [|B()|], I$$ where T : notnull { }",
+                "class C<T>(int a, int b) : [|B()|]  where $$T : notnull;",
+                "class C<T>(int a, int b) : [|B()|]  where T : notnull$$;",
+                "class C<T>(int a, int b) : [|B()|]  where T : notnull$$ { }")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
+            [CombinatorialValues("class", "struct")] string keyword,
+            [CombinatorialValues(
+                "class $$C(int a, int b) : [|B()|];",
+                "class C$$(int a, int b) : [|B()|];",
+                "class C<$$[A]T>(int a, int b) : [|B()|];",
+                "class C<T>$$(int a, int b) : [|B()|];",
+                "class C<T>($$int a, int b) : [|B()|];",
+                "class C<T>(int a, $$int b) : [|B()|];",
+                "class C<T>(int a, int b =$$ 1) : [|B()|];")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
+            [CombinatorialValues("record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "record [|$$C|](int a, int b) : B();",        // copy-constructor
+                "record [|C$$|](int a, int b) : B();",        // copy-constructor
+                "record [|C<$$[A]T>|](int a, int b) : B();",  // copy-constructor
+                "record [|C<T>$$|](int a, int b) : B();",     // copy-constructor
+                "record C<T>([|$$int a|], int b) : B();",     // property getter and setter
+                "record C<T>(int a, [|$$int b|]) : B();",     // property getter and setter
+                "record C<T>(int a, [|$$int b|] = 1) : B();")] string source) // property getter and setter
+        {
+            TestSpan(source.Replace("record", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_NoBreakpoint(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "class C(int a, int b) : B() {$$ }",
+                "class C(int a, int b) : B();$$",
+                "class C(int a, int b) : B() { }$$",
+                "class C(int a, int b) : B {$$ }",
+                "class C(int a, int b) : B(), I { }$$")] string source)
+        {
+            TestMissing(source.Replace("class", keyword));
         }
 
         [Fact]
@@ -4571,7 +4717,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Fact, WorkItem(543968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
         public void ConstructorInitializer()
         {
             // a sequence point for base constructor call
@@ -4729,7 +4875,7 @@ $$ [method: Obsolete]
 }");
         }
 
-        [Fact, WorkItem(538058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
         public void InInactivePPRegion()
         {
             TestLine(
@@ -4740,7 +4886,7 @@ $$gooby
 #endif");
         }
 
-        [Fact, WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void WithIncompleteDeclaration()
         {
             TestMissing(
@@ -4754,7 +4900,7 @@ $$        int
 }");
         }
 
-        [Fact, WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnGetter()
         {
             TestSpan(
@@ -4782,7 +4928,7 @@ $$        int
 }");
         }
 
-        [Fact, WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         public void OnSetter()
         {
             TestSpan(
@@ -4959,7 +5105,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody1()
         {
             TestSpan(
@@ -4969,7 +5115,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody2()
         {
             TestSpan(
@@ -4979,7 +5125,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody3()
         {
             TestSpan(
@@ -4989,7 +5135,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody4()
         {
             TestSpan(
@@ -4999,7 +5145,7 @@ $$    [|var (x, y) = (1, 2);|]
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody5()
         {
             TestSpan(
@@ -5009,7 +5155,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody6()
         {
             TestSpan(
@@ -5019,7 +5165,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody7()
         {
             TestSpan(
@@ -5029,7 +5175,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnAccessorExpressionBody8()
         {
             TestSpan(
@@ -5039,7 +5185,7 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody1()
         {
             TestSpan(
@@ -5049,7 +5195,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody2()
         {
             TestSpan(
@@ -5059,7 +5205,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody3()
         {
             TestSpan(
@@ -5069,7 +5215,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody4()
         {
             TestSpan(
@@ -5079,7 +5225,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14438")]
         public void OnDtorExpressionBody5()
         {
             TestSpan(
@@ -5089,7 +5235,7 @@ $$    public ~C() => [|x = 1|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_1()
         {
             TestSpan(
@@ -5105,7 +5251,7 @@ $$        int Local(object[] a)
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_2()
         {
             TestSpan(
@@ -5121,7 +5267,7 @@ $$        int Local(object[] a)
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_3()
         {
             TestSpan(
@@ -5137,7 +5283,7 @@ $$        [|{|]
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_4()
         {
             TestSpan(
@@ -5150,7 +5296,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_5()
         {
             TestSpan(
@@ -5163,7 +5309,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14437")]
         public void OnLocalFunctionDecl_6()
         {
             TestSpan(
@@ -5176,7 +5322,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
+        [Fact, WorkItem("https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
         public void IncompleteExpressionStatement()
         {
             TestSpan(

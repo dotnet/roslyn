@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
             var unnecessaryImports = new HashSet<T>(this);
             unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                model, predicate, cancellationToken));
+                model, span: null, predicate, cancellationToken));
             foreach (var current in document.GetLinkedDocuments())
             {
                 var currentModel = await current.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                    currentModel, predicate, cancellationToken));
+                    currentModel, span: null, predicate, cancellationToken));
             }
 
             return unnecessaryImports;

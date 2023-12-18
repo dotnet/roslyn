@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [IdeFact, WorkItem(957250, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/957250")]
+        [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/957250")]
         public async Task TypingInPartialType()
         {
             await SetUpEditorAsync(@"

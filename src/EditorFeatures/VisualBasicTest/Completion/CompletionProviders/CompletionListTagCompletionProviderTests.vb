@@ -310,7 +310,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Program.Goo")
         End Function
 
-        <Fact, WorkItem(954694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>
         Public Async Function TestAnyAccessibleMember() As Task
             Dim markup = <Text><![CDATA[
 Public Class Program
@@ -329,7 +329,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Program.field1")
         End Function
 
-        <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestLocalNoAs() As Task
             Dim markup = <Text><![CDATA[
 Enum E
@@ -345,7 +345,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "e As E")
         End Function
 
-        <Fact, WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3518")>
         Public Async Function TestNotInTrivia() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -370,7 +370,7 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3518")>
         Public Async Function TestNotAfterInvocationWithCompletionListTagTypeAsFirstParameter() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -395,7 +395,7 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <Fact, WorkItem(18787, "https://github.com/dotnet/roslyn/issues/18787")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18787")>
         Public Async Function NotAfterDot() As Task
             Dim markup = <Text><![CDATA[
 Public Class Program

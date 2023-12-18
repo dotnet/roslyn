@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65302")]
         public async Task ReturnTypelessTuple()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65302")]
         public async Task ReturnTypelessTuple_Nested()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65302")]
         public async Task ReturnTypelessTuple_Async()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(65302, "https://github.com/dotnet/roslyn/issues/65302")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65302")]
         public async Task ReturnTypelessTuple_Nested_Async()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(47089, "https://github.com/dotnet/roslyn/issues/47089")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47089")]
         public async Task ExpressionAndReturnTypeAreVoid()
         {
             var markup = """
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
             await VerifyCS.VerifyCodeFixAsync(markup, markup);
         }
 
-        [Fact, WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53574")]
         public async Task TestAnonymousTypeTopLevel()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53574")]
         public async Task TestAnonymousTypeTopNested()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
                 """);
         }
 
-        [Fact, WorkItem(64901, "https://github.com/dotnet/roslyn/issues/64901")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64901")]
         public async Task ReturnString_ValueTask()
         {
             await new VerifyCS.Test
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
             }.RunAsync();
         }
 
-        [Fact, WorkItem(64901, "https://github.com/dotnet/roslyn/issues/64901")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64901")]
         public async Task ReturnString_CustomTaskType()
         {
             var markup = """

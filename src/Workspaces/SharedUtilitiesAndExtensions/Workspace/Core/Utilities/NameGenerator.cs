@@ -21,24 +21,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> reservedNames,
             bool isCaseSensitive = true)
         {
-            using var namesDisposer = ArrayBuilder<string>.GetInstance(out var names);
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(out var isFixed);
-            using var nameSetDisposer = PooledHashSet<string>.GetInstance(out var nameSet);
+            using var nameSetPool = (isCaseSensitive ? SharedPools.StringHashSet : SharedPools.StringIgnoreCaseHashSet).GetPooledObject();
+            var nameSet = nameSetPool.Object;
 
-            names.Add(baseName);
-            isFixed.Add(false);
+            nameSet.AddRange(reservedNames);
 
-            foreach (var reservedName in reservedNames)
+            var index = 1;
+            var result = baseName;
+
+            while (nameSet.Contains(result))
             {
-                if (nameSet.Add(reservedName))
-                {
-                    names.Add(reservedName);
-                    isFixed.Add(true);
-                }
+                result = baseName + index;
+                index++;
             }
 
-            EnsureUniquenessInPlace(names, isFixed, isCaseSensitive: isCaseSensitive);
-            return names.First();
+            return result;
         }
 
         public static ImmutableArray<string> EnsureUniqueness(
@@ -91,71 +88,46 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             canUse ??= Functions<string>.True;
 
-            using var _ = ArrayBuilder<int>.GetInstance(out var collisionIndices);
+            using var usedNamesPool = (isCaseSensitive ? SharedPools.StringHashSet : SharedPools.StringIgnoreCaseHashSet).GetPooledObject();
+            var usedNames = usedNamesPool.Object;
 
-            // Don't enumerate as we will be modifying the collection in place.
+            using var collisionMapPool = (isCaseSensitive ? SharedPools.Default<Dictionary<string, bool>>() : SharedPools.StringIgnoreCaseDictionary<bool>()).GetPooledObject();
+            var collisionMap = collisionMapPool.Object;
+
+            // Initial pass through names to determine which names are in collision
+            foreach (var name in names)
+            {
+                var isCollision = collisionMap.ContainsKey(name);
+
+                collisionMap[name] = isCollision;
+
+                if (isCollision)
+                    usedNames.Remove(name);
+                else
+                    usedNames.Add(name);
+            }
+
+            // Update any name that is in collision (and not fixed) to have
+            //   a new name that hasn't yet been placed in usedNames.
             for (var i = 0; i < names.Count; i++)
             {
+                if (isFixed[i])
+                    continue;
+
                 var name = names[i];
-                FillCollisionIndices(names, name, isCaseSensitive, collisionIndices);
-
-                if (canUse(name) && collisionIndices.Count < 2)
-                {
-                    // no problems with this parameter name, move onto the next one.
+                if (!collisionMap[name] && canUse(name))
                     continue;
-                }
 
-                HandleCollisions(names, isFixed, name, canUse, isCaseSensitive, collisionIndices);
-            }
-        }
-
-        private static void HandleCollisions(
-            ArrayBuilder<string> names,
-            ArrayBuilder<bool> isFixed,
-            string name,
-            Func<string, bool> canUse,
-            bool isCaseSensitive,
-            ArrayBuilder<int> collisionIndices)
-        {
-            var suffix = 1;
-            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            for (var i = 0; i < collisionIndices.Count; i++)
-            {
-                var collisionIndex = collisionIndices[i];
-                if (isFixed[collisionIndex])
+                var index = 1;
+                var updatedName = name + index;
+                while (usedNames.Contains(updatedName) || !canUse(updatedName))
                 {
-                    // can't do anything about this name.
-                    continue;
+                    index++;
+                    updatedName = name + index;
                 }
 
-                while (true)
-                {
-                    var newName = name + suffix++;
-                    if (!names.Contains(newName, comparer) && canUse(newName))
-                    {
-                        // Found a name that doesn't conflict with anything else.
-                        names[collisionIndex] = newName;
-                        break;
-                    }
-                }
-            }
-        }
-
-        private static void FillCollisionIndices(
-            ArrayBuilder<string> names,
-            string name,
-            bool isCaseSensitive,
-            ArrayBuilder<int> collisionIndices)
-        {
-            collisionIndices.Clear();
-
-            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            for (int i = 0, n = names.Count; i < n; i++)
-            {
-                if (comparer.Equals(names[i], name))
-                {
-                    collisionIndices.Add(i);
-                }
+                usedNames.Add(updatedName);
+                names[i] = updatedName;
             }
         }
 
@@ -183,6 +155,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return name;
+        }
+
+        public static string GenerateUniqueName(IEnumerable<string> baseNames, Func<string, bool> canUse)
+        {
+            int? index = null;
+
+            while (true)
+            {
+                foreach (var name in baseNames)
+                {
+                    var modifiedName = name + index;
+
+                    if (canUse(modifiedName))
+                        return modifiedName;
+                }
+
+                index = index is null ? 1 : index + 1;
+            }
         }
     }
 }

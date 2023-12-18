@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     coordinator = new UnitTestingWorkCoordinator(
                         _listener,
                         GetAnalyzerProviders(workspaceKind),
-#if false // Not used in unit testing crawling
-                        initializeLazily: true,
-#endif
                         new UnitTestingRegistration(this, correlationId, workspaceKind, solutionServices, _progressReporter));
 
                     _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
@@ -82,27 +79,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             UnitTestingSolutionCrawlerLogger.LogRegistration(correlationId, workspaceKind);
             return coordinator;
         }
-
-#if false // Not used in unit testing crawling
-        public void Unregister(Workspace workspace, bool blockingShutdown = false)
-        {
-            UnitTestingWorkCoordinator? coordinator;
-
-            lock (_gate)
-            {
-                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
-                {
-                    // already unregistered
-                    return;
-                }
-
-                _documentWorkCoordinatorMap.Remove(workspace);
-                coordinator.Shutdown(blockingShutdown);
-            }
-
-            UnitTestingSolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
-        }
-#endif
 
         public bool HasRegisteredAnalyzerProviders
         {
@@ -143,17 +119,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer();
                     if (analyzer != null)
                     {
-                        coordinator.AddAnalyzer(analyzer
-#if false // Not used in unit testing crawling
-                            , metadata.HighPriorityForActiveFile
-#endif
-                            );
+                        coordinator.AddAnalyzer(analyzer);
                     }
                 }
             }
         }
 
-        public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds)
         {
             Contract.ThrowIfNull(workspaceKind);
 
@@ -171,19 +143,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 if (projectIds == null && documentIds == null)
                 {
                     var solution = coordinator.Registration.GetSolutionToAnalyze();
-                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(solution.Id)
-#if false // Not used in unit testing crawling
-                        , highPriority
-#endif
-                        );
+                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(solution.Id));
                     return;
                 }
 
-                coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(projectIds, documentIds)
-#if false // Not used in unit testing crawling
-                    , highPriority
-#endif
-                    );
+                coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(projectIds, documentIds));
             }
         }
 
@@ -291,56 +255,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             internal ref ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> AnalyzerProviders
                 => ref _solutionCrawlerRegistrationService._analyzerProviders;
-
-#if false // Not used in unit testing crawling
-            internal bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out UnitTestingWorkCoordinator? coordinator)
-            {
-                lock (_solutionCrawlerRegistrationService._gate)
-                {
-                    return _solutionCrawlerRegistrationService._documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator);
-                }
-            }
-
-            internal void WaitUntilCompletion(Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
-            {
-                if (TryGetWorkCoordinator(workspace, out var coordinator))
-                {
-                    coordinator.GetTestAccessor().WaitUntilCompletion(workers);
-                }
-            }
-
-            internal void WaitUntilCompletion(Workspace workspace)
-            {
-                if (TryGetWorkCoordinator(workspace, out var coordinator))
-                {
-                    coordinator.GetTestAccessor().WaitUntilCompletion();
-                }
-            }
-#endif
         }
 
-        internal sealed class UnitTestingRegistration
+        internal sealed class UnitTestingRegistration(
+            UnitTestingSolutionCrawlerRegistrationService owner,
+            int correlationId,
+            string workspaceKind,
+            SolutionServices solutionServices,
+            UnitTestingSolutionCrawlerProgressReporter progressReporter)
         {
-            private readonly UnitTestingSolutionCrawlerRegistrationService _owner;
+            private readonly UnitTestingSolutionCrawlerRegistrationService _owner = owner;
 
-            public readonly int CorrelationId;
-            public readonly string WorkspaceKind;
-            public readonly SolutionServices Services;
-            public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
-
-            public UnitTestingRegistration(
-                UnitTestingSolutionCrawlerRegistrationService owner,
-                int correlationId,
-                string workspaceKind,
-                SolutionServices solutionServices,
-                UnitTestingSolutionCrawlerProgressReporter progressReporter)
-            {
-                _owner = owner;
-                CorrelationId = correlationId;
-                WorkspaceKind = workspaceKind;
-                Services = solutionServices;
-                ProgressReporter = progressReporter;
-            }
+            public readonly int CorrelationId = correlationId;
+            public readonly string WorkspaceKind = workspaceKind;
+            public readonly SolutionServices Services = solutionServices;
+            public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter = progressReporter;
 
             public Solution GetSolutionToAnalyze()
             {

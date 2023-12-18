@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("version", toolAssemblyVersion.ToString());
             _writer.Write("fileVersion", toolFileVersion);
             _writer.Write("semanticVersion", toolAssemblyVersion.ToString(fieldCount: 3));
-            _writer.Write("language", culture.Name);
+
+            // Emit the 'language' property only if it is a non-empty string to match the SARIF spec.
+            if (culture.Name.Length > 0)
+                _writer.Write("language", culture.Name);
+
             _writer.WriteObjectEnd(); // tool
 
             _writer.WriteArrayStart("results");
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
+        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
         {
             // We log all analyzer descriptors only in SARIF v2+ format.
         }

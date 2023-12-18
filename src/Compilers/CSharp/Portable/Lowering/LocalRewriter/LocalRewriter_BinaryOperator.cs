@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // T.false(temp)
             var falseOperatorCall = BoundCall.Synthesized(syntax, receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+                                                          initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                           operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
 
             // T.&(temp, y)
@@ -754,7 +755,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(leftTruthOperator != null);
-            return BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), leftTruthOperator, loweredLeft);
+            return BoundCall.Synthesized(
+                syntax,
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                leftTruthOperator,
+                loweredLeft);
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(
@@ -776,7 +782,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, nothing special here.
             Debug.Assert(method is { });
             Debug.Assert(TypeSymbol.Equals(method.ReturnType, type, TypeCompareKind.ConsiderEverything2));
-            return BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(
+                syntax,
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                method,
+                loweredLeft,
+                loweredRight);
         }
 
         private BoundExpression? TrivialLiftedComparisonOperatorOptimizations(
@@ -880,7 +892,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.Type.IsNullableType())
             {
-                return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                return BoundCall.Synthesized(
+                    syntax,
+                    expression,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));
             }
 
             return expression;
@@ -908,7 +924,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             Debug.Assert(expression.Type is { });
-            return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
+            return BoundCall.Synthesized(
+                syntax,
+                expression,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
         }
 
         private BoundExpression LowerLiftedBuiltInComparisonOperator(
@@ -1173,15 +1193,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence;
             if (operatorKind == BinaryOperatorKind.Equal || operatorKind == BinaryOperatorKind.NotEqual)
             {
-                // tempx.HasValue ? tempX.GetValueOrDefault() == tempY.GetValueOrDefault() : true
-                consequence = RewriteConditionalOperator(
-                    syntax: syntax,
-                    rewrittenCondition: callX_HasValue,
-                    rewrittenConsequence: unliftedOp,
-                    rewrittenAlternative: MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType),
-                    constantValueOpt: null,
-                    rewrittenType: boolType,
-                    isRef: false);
+                // If one operand is known to be non-null, we would get `x.HasValue ? (x.HasValue ? x.GVOD() OP y.GVOD() : true) : false`.
+                // Hence, we don't need the nested conditional, only its consequence.
+                if (xNonNull != null || yNonNull != null)
+                {
+                    consequence = unliftedOp;
+                }
+                else
+                {
+                    // tempx.HasValue ? tempX.GetValueOrDefault() == tempY.GetValueOrDefault() : true
+                    consequence = RewriteConditionalOperator(
+                        syntax: syntax,
+                        rewrittenCondition: callX_HasValue,
+                        rewrittenConsequence: unliftedOp,
+                        rewrittenAlternative: MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType),
+                        constantValueOpt: null,
+                        rewrittenType: boolType,
+                        isRef: false);
+                }
             }
             else
             {
@@ -1558,9 +1587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeNewNullableBoolean(SyntaxNode syntax, bool? value)
         {
-            NamedTypeSymbol nullableType = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-            NamedTypeSymbol nullableBoolType = nullableType.Construct(boolType);
+            NamedTypeSymbol nullableBoolType = _compilation.GetOrCreateNullableType(boolType);
             if (value == null)
             {
                 return new BoundDefaultExpression(syntax, nullableBoolType);
@@ -1757,9 +1785,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getValueOrDefaultY = UnsafeGetNullableMethod(syntax, boundTempY.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // tempx.GetValueOrDefault()
-            BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, getValueOrDefaultX);
+            BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultX);
             // tempy.GetValueOrDefault()
-            BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY);
+            BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultY);
             // tempx.HasValue
             BoundExpression callX_HasValue = _factory.MakeNullableHasValue(syntax, boundTempX);
 
@@ -1828,10 +1856,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
-        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)
+        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result, bool isOptional = false)
         {
             var nullableType2 = (NamedTypeSymbol)nullableType;
-            if (TryGetSpecialTypeMethod(syntax, member, out result))
+            if (TryGetSpecialTypeMethod(syntax, member, out result, isOptional))
             {
                 result = result.AsMember(nullableType2);
                 return true;
@@ -1922,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteDelegateOperation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
@@ -1948,7 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
                 ? new BoundBinaryOperator(syntax, operatorKind, null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
-                : (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
+                : (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
                 call;
@@ -1983,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)

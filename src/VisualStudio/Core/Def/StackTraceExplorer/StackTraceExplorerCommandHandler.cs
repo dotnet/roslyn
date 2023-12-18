@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
             _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
 
-            _globalOptions.OptionChanged += GlobalOptionChanged;
+            _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
 
-            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
+            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsStorage.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             UnadviseBroadcastMessages();
 
-            _globalOptions.OptionChanged -= GlobalOptionChanged;
+            _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
         }
 
         private void AdviseBroadcastMessages()
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
+            if (e.Option == StackTraceExplorerOptionsStorage.OpenOnFocus && e.Value is not null)
             {
                 var enabled = (bool)e.Value;
                 if (enabled)

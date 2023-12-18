@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ParseOptions? _options;
 
         // null if the document doesn't support syntax trees:
-        private readonly ValueSource<TreeAndVersion>? _treeSource;
+        private readonly AsyncLazy<TreeAndVersion>? _treeSource;
 
         protected DocumentState(
             LanguageServices languageServices,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             ParseOptions? options,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
-            ValueSource<TreeAndVersion>? treeSource)
+            AsyncLazy<TreeAndVersion>? treeSource)
             : base(languageServices.SolutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
         {
             Contract.ThrowIfFalse(_options is null == _treeSource is null);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public ValueSource<TreeAndVersion>? TreeSource => _treeSource;
+        public AsyncLazy<TreeAndVersion>? TreeSource => _treeSource;
 
         [MemberNotNullWhen(true, nameof(_treeSource))]
         [MemberNotNullWhen(true, nameof(TreeSource))]
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated
             => Attributes.IsGenerated;
 
-        protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
+        protected static AsyncLazy<TreeAndVersion> CreateLazyFullyParsedTree(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
             string? filePath,
@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new AsyncLazy<TreeAndVersion>(
                 c => FullyParseTreeAsync(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
-                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
-                cacheResult: true);
+                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c));
         }
 
         private static async Task<TreeAndVersion> FullyParseTreeAsync(
@@ -163,19 +162,18 @@ namespace Microsoft.CodeAnalysis
             return new TreeAndVersion(tree, textAndVersion.Version);
         }
 
-        private static ValueSource<TreeAndVersion> CreateLazyIncrementallyParsedTree(
-            ValueSource<TreeAndVersion> oldTreeSource,
+        private static AsyncLazy<TreeAndVersion> CreateLazyIncrementallyParsedTree(
+            AsyncLazy<TreeAndVersion> oldTreeSource,
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions)
         {
             return new AsyncLazy<TreeAndVersion>(
                 c => IncrementallyParseTreeAsync(oldTreeSource, newTextSource, loadTextOptions, c),
-                c => IncrementallyParseTree(oldTreeSource, newTextSource, loadTextOptions, c),
-                cacheResult: true);
+                c => IncrementallyParseTree(oldTreeSource, newTextSource, loadTextOptions, c));
         }
 
         private static async Task<TreeAndVersion> IncrementallyParseTreeAsync(
-            ValueSource<TreeAndVersion> oldTreeSource,
+            AsyncLazy<TreeAndVersion> oldTreeSource,
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
             CancellationToken cancellationToken)
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion IncrementallyParseTree(
-            ValueSource<TreeAndVersion> oldTreeSource,
+            AsyncLazy<TreeAndVersion> oldTreeSource,
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
             CancellationToken cancellationToken)
@@ -346,7 +344,7 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException();
             }
 
-            ValueSource<TreeAndVersion>? newTreeSource = null;
+            AsyncLazy<TreeAndVersion>? newTreeSource = null;
 
             // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree
             // and it didn't have any, we can avoid a reparse since the tree will be parsed the same.
@@ -368,7 +366,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 if (newTree is not null)
-                    newTreeSource = ValueSource.Constant(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                    newTreeSource = AsyncLazy.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
             }
 
             // If we weren't able to reuse in a smart way, just reparse
@@ -457,7 +455,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
-            ValueSource<TreeAndVersion>? newTreeSource;
+            AsyncLazy<TreeAndVersion>? newTreeSource;
 
             if (!SupportsSyntaxTree)
             {
@@ -528,7 +526,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 textSource: text,
                 LoadTextOptions,
-                treeSource: ValueSource.Constant(treeAndVersion));
+                treeSource: AsyncLazy.Create(treeAndVersion));
 
             // use static method so we don't capture references to this
             static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(
@@ -545,10 +543,7 @@ namespace Microsoft.CodeAnalysis
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 var lazyTextAndVersion = new TreeTextSource(
-                    new AsyncLazy<SourceText>(
-                        tree.GetTextAsync,
-                        tree.GetText,
-                        cacheResult: true),
+                    new AsyncLazy<SourceText>(tree.GetTextAsync, tree.GetText),
                     textVersion);
 
                 return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
@@ -649,7 +644,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+        public override async ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
             if (_treeSource == null)
             {

@@ -17,8 +17,9 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
@@ -65,7 +66,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         var options = new InitializationOptions()
         {
-            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.LspPull)
+            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.LspPull)
         };
 
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, options);
@@ -80,11 +81,27 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Empty(response);
     }
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1901118")]
+    public async Task TestGetSimplifierOptionsOnTypeScriptDocument()
+    {
+        var workspaceXml =
+@$"<Workspace>
+    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
+        <Document FilePath=""C:\T.ts""></Document>
+    </Project>
+</Workspace>";
+
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+        var simplifierOptions = testLspServer.TestWorkspace.GlobalOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions: null);
+        Assert.Same(SimplifierOptions.CommonDefaults, simplifierOptions);
+    }
+
     private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        var testWorkspace = CreateWorkspace(options, workspaceKind: null);
+        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.

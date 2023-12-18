@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 {
     public static class ToolTipAssert
     {
-        public static void EqualContent(object expected, object actual)
+        public static void EqualContent(object expected, object? actual)
         {
             try
             {
@@ -26,25 +26,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 
                 if (expected is ContainerElement containerElement)
                 {
-                    EqualContainerElement(containerElement, (ContainerElement)actual);
+                    EqualContainerElement(containerElement, (ContainerElement)actual!);
                     return;
                 }
 
                 if (expected is ImageElement imageElement)
                 {
-                    EqualImageElement(imageElement, (ImageElement)actual);
+                    EqualImageElement(imageElement, (ImageElement)actual!);
                     return;
                 }
 
                 if (expected is ClassifiedTextElement classifiedTextElement)
                 {
-                    EqualClassifiedTextElement(classifiedTextElement, (ClassifiedTextElement)actual);
+                    EqualClassifiedTextElement(classifiedTextElement, (ClassifiedTextElement)actual!);
                     return;
                 }
 
                 if (expected is ClassifiedTextRun classifiedTextRun)
                 {
-                    EqualClassifiedTextRun(classifiedTextRun, (ClassifiedTextRun)actual);
+                    EqualClassifiedTextRun(classifiedTextRun, (ClassifiedTextRun)actual!);
                     return;
                 }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
             catch (Exception)
             {
                 var renderedExpected = ContainerToString(expected);
-                var renderedActual = ContainerToString(actual);
+                var renderedActual = ContainerToString(actual!);
                 AssertEx.EqualOrDiff(renderedExpected, renderedActual);
 
                 // This is not expected to be hit, but it will be hit if the difference cannot be detected within the diff

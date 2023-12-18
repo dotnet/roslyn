@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                    globalOptions,
                    workspace,
                    listenerProvider,
-                   SymbolSearchGlobalOptions.Enabled,
+                   SymbolSearchGlobalOptionsStorage.Enabled,
                    ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _serviceProvider = serviceProvider;

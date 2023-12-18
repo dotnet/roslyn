@@ -34,7 +34,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestSuggestAliasedInterfaces() As Task
             Dim text = <text>Imports IAliasToI = I
 Imports IAliasToJ = J
@@ -57,7 +57,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <Fact, WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         Public Async Function TestSuggestAliasedNamespace() As Task
             Dim text = <text>Imports AliasedNS = NS
 Namespace NS
@@ -214,7 +214,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "I")
         End Function
 
-        <Fact, WorkItem(546391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546391")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546391")>
         Public Async Function TestAfterProperty() As Task
             Dim text = <text>Imports System
 Imports System.Runtime.InteropServices
@@ -237,7 +237,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <Fact, WorkItem(546410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546410")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546410")>
         Public Async Function TestSuggestionInImplementsList() As Task
             Dim text = <text>Imports System
 Interface I
@@ -257,7 +257,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I", Nothing, Nothing, True)
         End Function
 
-        <Fact, WorkItem(546413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
         Public Async Function TestNestedInterface() As Task
             Dim text = <text>Namespace Outer
     Namespace Inner
@@ -280,7 +280,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "J")
         End Function
 
-        <Fact, WorkItem(546413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
         Public Async Function TestNoNestedInterface() As Task
             Dim text = <text>Public Class B
     Public Interface I
@@ -298,7 +298,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I")
         End Function
 
-        <Fact, WorkItem(546405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546405")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546405")>
         Public Async Function TestDotIntoGlobal() As Task
             Dim text = <text>Imports System
 Class C
@@ -311,7 +311,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I")
         End Function
 
-        <Fact, WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
         Public Async Function TestInheritedInterfaceMembers() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -331,8 +331,8 @@ End Class
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <Fact, WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
-        <WorkItem(546488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546488")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546488")>
         Public Async Function TestInheritedInterfaceMembers2() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -351,7 +351,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "Equals")
         End Function
 
-        <Fact, WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
         Public Async Function TestInheritedInterface() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -369,7 +369,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "I1")
         End Function
 
-        <Fact, WorkItem(530353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530353")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530353")>
         Public Async Function TestNothingToImplement() As Task
             Dim text = <text>Interface I
     Sub Goo()
@@ -392,7 +392,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <Fact, WorkItem(546431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
         Public Async Function TestNextToImplicitLineContinuation() As Task
             Dim text = <text>Public Interface I2
     Function Goo() As Boolean
@@ -407,7 +407,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
-        <Fact, WorkItem(546431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
         Public Async Function TestNextToImplicitLineContinuation2() As Task
             Dim text = <text>Public Interface I2
     Function Goo() As Boolean
@@ -423,7 +423,7 @@ End Class
             Await VerifyItemExistsAsync(text, "I2")
         End Function
 
-        <Fact, WorkItem(546406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
         Public Async Function TestDisplayTypeArguments() As Task
             Dim text = <text>Imports System
 Class A
@@ -436,7 +436,7 @@ End Class
             Await VerifyItemExistsAsync(text, "IEquatable(Of Integer)")
         End Function
 
-        <Fact, WorkItem(546406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
         Public Async Function TestCommitTypeArgumentsOnParen() As Task
             Dim text = <text>Imports System
 Class A
@@ -453,7 +453,7 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c)
         End Function
 
-        <Fact, WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         Public Async Function TestKeywordIdentifierShowUnescaped() As Task
             Dim text = <text>Interface [Interface]
     Sub Goo()
@@ -493,7 +493,7 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "Interface", expected, "."c)
         End Function
 
-        <Fact, WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
         Public Async Function TestEventsAfterDotInImplementsClause() As Task
             Dim markup = <Text>
 Interface i
@@ -587,7 +587,7 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "Bar", "Sub IGoo.Bar()" & vbCrLf & "Some Summary")
         End Function
 
-        <Fact, WorkItem(530507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
         Public Async Function TestRootNamespaceInDefaultListing() As Task
 
             Dim element =
@@ -703,7 +703,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Quux")
         End Function
 
-        <Fact, WorkItem(402811, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402811")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=402811")>
         Public Async Function DoNotCrashWithOnlyDotTyped() As Task
             Dim text = <text>Interface I
     Sub Goo()
@@ -720,7 +720,7 @@ Class B
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()
@@ -736,7 +736,7 @@ Class B
             Await VerifyItemExistsAsync(text, "I(Of Integer)")
         End Function
 
-        <Fact, WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes2() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()
@@ -754,7 +754,7 @@ End Class
             Await VerifyItemExistsAsync(text, "I(Of T)")
         End Function
 
-        <Fact, WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18006")>
         Public Async Function ShowGenericTypes3() As Task
             Dim text = <text>Interface I(Of T)
     Sub Goo()

@@ -1000,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                overridingMember As Symbol,
                                                overriddenMember As Symbol,
                                                diagnostics As BindingDiagnosticBag)
-            diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(id, overridingMember, overriddenMember),
+            diagnostics.Add(New VBDiagnostic(New BadSymbolDiagnostic(overriddenMember, id, overridingMember, overriddenMember),
                                             overridingMember.Locations(0)))
         End Sub
 

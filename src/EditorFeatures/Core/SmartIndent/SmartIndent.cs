@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -13,20 +12,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal partial class SmartIndent : ISmartIndent
+    internal partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
     {
-        private readonly ITextView _textView;
-        private readonly EditorOptionsService _editorOptionsService;
-
-        public SmartIndent(ITextView textView, EditorOptionsService editorOptionsService)
-        {
-            _textView = textView;
-            _editorOptionsService = editorOptionsService;
-        }
+        private readonly ITextView _textView = textView;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
             => GetDesiredIndentation(line, CancellationToken.None);

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,6 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
+
+#if DEBUG
+        /// <summary>
+        /// This map is used by <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, BindingDiagnosticBag, bool, BoundNode?, bool, out ImportChain?, out bool, out bool, out MethodBodySemanticModel.InitialState)"/>
+        /// and <see cref="Binder.BindIdentifier"/> to validate some assumptions around identifiers.
+        /// 
+        /// Values in the dictionary are bit flags.
+        /// MethodCompiler.BindMethodBody adds keys with flag == 1 before binding a method body.
+        /// Binder.BindIdentifier adds or updates keys with flag == 2.
+        /// </summary>
+        public ConcurrentDictionary<IdentifierNameSyntax, int> IdentifierMap;
+#endif
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -194,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
+                    if ((this.Flags & BinderFlags.InEEMethodBinder) != 0 && parameter.Type.IsDisplayClassType())
+                    {
+                        // Display class parameters shouldn't be accessible in EE
+                        continue;
+                    }
+
                     parameterMap.Add(parameter.Name, parameter);
                 }
 
@@ -225,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             var locations = parameter.Locations;
             Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
-            var oldLocation = locations.FirstOrNone();
+            var oldLocation = parameter.GetFirstLocationOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
 #endif 

@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
-        <target state="new">Make {0} an Async Function.</target>
+        <target state="translated">Převeď {0} na asynchronní funkci Async.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
@@ -34,17 +34,17 @@
       </trans-unit>
       <trans-unit id="Make_Async_Function">
         <source>Make Async Function</source>
-        <target state="new">Make Async Function</target>
+        <target state="translated">Převést na asynchronní funkci</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
-        <target state="new">Make Async Sub</target>
+        <target state="translated">Převést na asynchronní proceduru Sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Odebrat nepotřebné importy</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

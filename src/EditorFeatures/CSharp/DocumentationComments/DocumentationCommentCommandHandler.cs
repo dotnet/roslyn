@@ -22,20 +22,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [Name(PredefinedCommandHandlerNames.DocumentationComments)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class DocumentationCommentCommandHandler
-        : AbstractDocumentationCommentCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class DocumentationCommentCommandHandler(
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService)
+                : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationCommentCommandHandler(
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
-            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
-        {
-        }
-
         protected override string ExteriorTriviaText => "///";
     }
 }

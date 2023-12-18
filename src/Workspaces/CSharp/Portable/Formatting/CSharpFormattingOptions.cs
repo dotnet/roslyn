@@ -5,6 +5,7 @@
 #pragma warning disable RS0030 // Do not used banned APIs
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => new(
                 feature: PublicFeatureName,
                 name: publicName,
-                group: CSharpFormattingOptionGroups.NewLine,
+                group: FormattingOptionGroups.NewLine,
                 defaultValue: CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.HasFlag(flag),
                 storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
                 storageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),

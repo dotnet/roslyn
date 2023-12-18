@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetDeclaratorSyntax();
         }
 
+        internal override bool HasSourceLocation
+            => _originalVariable.HasSourceLocation;
+
         public override ImmutableArray<Location> Locations
         {
             get { return _originalVariable.Locations; }
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }

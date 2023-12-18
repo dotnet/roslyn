@@ -9,13 +9,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.ColorSchemes;
-using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
@@ -34,6 +32,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -173,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Misc workspace has to be up and running by the time our package is usable so that it can track running
             // doc events and appropriately map files to/from it and other relevant workspaces (like the
             // metadata-as-source workspace).
-            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
 
             // Proffer in-process service broker services
             var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
@@ -196,7 +195,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             foreach (var provider in persisterProviders)
             {
-                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+                var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+
+                // Initialize the PackageSettingsPersister to allow it to listen to analysis scope changed
+                // events from this package.
+                if (persister is PackageSettingsPersister packageSettingsPersister)
+                    packageSettingsPersister.Initialize(this);
             }
         }
 
@@ -220,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
-            await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync().ConfigureAwait(false);
             await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
             await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
             await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
@@ -322,11 +326,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void ReportSessionWideTelemetry()
         {
-            SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
-            CompletionProvidersLogger.ReportTelemetry();
-            ChangeSignatureLogger.ReportTelemetry();
             InheritanceMarginLogger.ReportTelemetry();
+            FeaturesSessionTelemetry.Report();
             ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
         }
 

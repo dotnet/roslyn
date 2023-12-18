@@ -2806,5 +2806,125 @@ public class C
             Assert.Single(diagnostic.AdditionalLocations);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_01()
+        {
+            var source = """
+                #nullable enable
+                var r = new Rec(); // to show that implicit parameterless ctor still exists, hence diagnostic 1
+
+                record Rec
+                {
+                    public string Prop { get; init; } // 1
+                    public Rec(Rec other) // 2
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string Prop { get; init; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19),
+                // 0.cs(7,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(7, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_02()
+        {
+            var source = """
+                #nullable enable
+                record Rec(string Prop)
+                {
+                    public Rec(Rec other) // 1
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(4,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(4, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_03()
+        {
+            // copy constructor implicitly declared
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_04()
+        {
+            // copy constructor explicitly declared, lacks SetsRequiredMembersAttribute
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+                    public Rec(Rec other) { }
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,23): error CS9035: Required member 'Rec.Prop' must be set in the object initializer or attribute constructor.
+                //         var rec = new Rec(this);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Rec").WithArguments("Rec.Prop").WithLocation(9, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_05()
+        {
+            // copy constructor explicitly declared, has SetsRequiredMembersAttribute
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    [SetsRequiredMembers]
+                    public Rec(Rec other) { } // 1
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public Rec(Rec other) { } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(9, 12));
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,25 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
-    private const string RequiredMemberAttributeVB = @"
-Namespace System.Runtime.CompilerServices
-    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Field Or AttributeTargets.Property, Inherited := false, AllowMultiple := false)>
-    Public Class RequiredMemberAttribute
-        Inherits Attribute
-    End Class
-End Namespace
-Namespace System.Diagnostics.CodeAnalysis
-    <AttributeUsage(AttributeTargets.Constructor, Inherited := false, AllowMultiple := false)>
-    Public Class SetsRequiredMembersAttribute
-        Inherits Attribute
-    End Class
-End Namespace";
-
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
         => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
-
-    private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
-        => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -1759,26 +1743,59 @@ public class C
     [Fact]
     public void EnforcedRequiredMembers_NoInheritance_Unsettable_FromMetadata()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
+        // Equivalent to:
+        // public class C
+        // {
+        //     public required readonly int Field1;
+        //     public required int Prop1 { get; }
+        // }
+        var il = @"
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _Prop1
+    .field public initonly int32 Field1
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
 
-<RequiredMember>
-Public Class C
-    <RequiredMember>
-    Public Readonly Property Prop1 As Integer
-    <RequiredMember>
-    Public Readonly Field1 As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        vbComp.VerifyEmitDiagnostics();
+    .method public specialname 
+        instance int32 get_Prop1 () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 C::_Prop1
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .property instance int32 Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 C::get_Prop1()
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 var c = new C();
 c = new C() { Prop1 = 1, Field1 = 1 };
 ";
-        var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(new[] { c }, references: new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (2,13): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
@@ -2443,6 +2460,88 @@ public class Derived : Base
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_Override_DiffersByModreq_NoneSet()
+    {
+        // Equivalent to 
+        // class Base
+        // {
+        //     public virtual required modopt(object) int Prop1 { get; set; }
+        // }
+        var @base = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 '<Prop1>k__BackingField'
+
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop1 () cil managed 
+    {
+        ldarg.0
+        ldfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop1 (
+            int32 'value'
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::'<Prop1>k__BackingField'
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+            01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+            6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+            71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+            72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+            20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+            20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+            72 2e 01 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+            72 73 00 00
+        )
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .property instance int32 modopt([mscorlib]System.Object) Prop1()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_Prop1()
+        .set instance void Base::set_Prop1(int32)
+    }
+}";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1 };
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+}
+";
+
+        var baseRef = CompileIL(@base);
+
+        var comp = CreateCompilation(code, new[] { baseRef }, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_OverrideRetargeted_AllSet()
     {
         var retargetedCode = @"public class C {}";
@@ -2508,28 +2607,118 @@ public class Derived : Base
         Assert.IsType<RetargetingNamedTypeSymbol>(comp.GetTypeByMetadataName("Base"));
     }
 
+    /// <summary>
+    /// Equivalent to
+    /// <code>
+    /// public class Base
+    /// {
+    ///     public required int P { get; set; }
+    /// }
+    /// public class Derived : Base
+    /// {
+    ///     public new required int P { get; set; }
+    /// }
+    /// </code>
+    /// </summary>
+    private const string ShadowingBaseAndDerivedIL = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
-
         var c = @"
 _ = new Derived2();
 _ = new Derived3();
@@ -2541,7 +2730,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2558,24 +2749,7 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_01_HasSetsRequiredMembers()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
-
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
-End Class
-";
-
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+        var ilRef = CompileIL(ShadowingBaseAndDerivedIL);
 
         var c = @"
 using System.Diagnostics.CodeAnalysis;
@@ -2589,30 +2763,117 @@ class Derived2 : Derived
     public Derived2(int x) {}
 }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
     }
 
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_02()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember]public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = @"
 _ = new Derived2();
@@ -2624,7 +2885,7 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -2638,22 +2899,105 @@ class Derived3 : Derived { }";
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_03()
     {
-        var vb = @"
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        // }
+        // </code>
+        string il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
-End Class
-";
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
 
         var c = @"
 _ = new Derived2();
@@ -2665,7 +3009,9 @@ class Derived2 : Derived
 }
 class Derived3 : Derived { }";
 
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var ilRef = CompileIL(il);
+
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
@@ -3071,38 +3417,133 @@ record DerivedDerived1 : Derived
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_01()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new required int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    <RequiredMember>
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3113,37 +3554,130 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_02()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // [RequiredMember] public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-<RequiredMember>
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -3154,36 +3688,127 @@ End Class
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_03()
     {
-        var vb = @"
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Runtime.CompilerServices
-<RequiredMember>
-Public Class Base
-    <RequiredMember>
-    Public Property P As Integer
-End Class
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new int P { get; set; }
+        //     public Derived() {}
+        //     [SetsRequiredMembers] public Derived(int unused) {}
+        // }
+        var il = @"
+.class public auto ansi Base
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field private int32 _P
 
-Public Class Derived
-    Inherits Base
-    Public Shadows Property P As Integer
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
 
-    Public Sub New()
-    End Sub
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::_P
+        IL_0006: br.s IL_0008
 
-    <SetsRequiredMembers>
-    Public Sub New(unused As Integer)
-    End Sub
-End Class
-";
+        IL_0008: ret
+    }
 
-        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
-        CompileAndVerify(vbComp).VerifyDiagnostics();
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Base::_P
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Base::get_P()
+        .set instance void Base::set_P(int32)
+    }
+}
+
+.class public auto ansi Derived
+    extends Base
+{
+    .field private int32 _P
+
+    .method public specialname 
+        instance int32 get_P () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::_P
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname 
+        instance void set_P (
+            int32 AutoPropertyValue
+        ) cil managed 
+    {
+        ldarg.0
+        ldarg.1
+        stfld int32 Derived::_P
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        nop
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .method public specialname rtspecialname 
+        instance void .ctor (
+            int32 'unused'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldarg.0
+        call instance void Base::.ctor()
+        ret
+    }
+
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void Derived::set_P(int32)
+    }
+}";
+
+        var ilRef = CompileIL(il);
 
         var c = """
             _ = new Derived();
             _ = new Derived(1);
             """;
-        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        var comp = CreateCompilation(c, new[] { ilRef }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
@@ -5351,6 +5976,132 @@ public class Derived : Base
         );
     }
 
+    [Fact]
+    public void ForbidRequiredAsNew_MalformedMembersList()
+    {
+        // Equivalent to
+        // public class Base
+        // {
+        //     public required int P { get; set; }
+        // }
+        // public class Derived : Base
+        // {
+        //     public new required int P { get; set; }
+        //     public Derived() {}
+        // }
+        var badIl = """
+            .class public auto ansi Base
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public specialname 
+                    instance int32 get_P () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld int32 Base::_P
+                    IL_0006: br.s IL_0008
+            
+                    IL_0008: ret
+                }
+            
+                .method public specialname 
+                    instance void set_P (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 Base::_P
+                    ret
+                }
+            
+                .property instance int32 P()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 Base::get_P()
+                    .set instance void Base::set_P(int32)
+                }
+            }
+            
+            .class public auto ansi Derived
+                extends Base
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P
+            
+                .method public specialname 
+                    instance int32 get_P () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld int32 Derived::_P
+                    IL_0006: br.s IL_0008
+            
+                    IL_0008: ret
+                }
+            
+                .method public specialname 
+                    instance void set_P (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 Derived::_P
+                    ret
+                }
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    nop
+                    ldarg.0
+                    call instance void Base::.ctor()
+                    ret
+                }
+            
+                .property instance int32 P()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 Derived::get_P()
+                    .set instance void Derived::set_P(int32)
+                }
+            }
+            """;
+
+        var code = """
+            M<Derived>();
+
+            void M<T>() where T : new()
+            {
+            }
+            """;
+
+        var comp = CreateCompilationWithIL(code, badIl, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS9040: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
+            // M<Derived>();
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+        );
+    }
+
     [Theory]
     [InlineData("class")]
     [InlineData("struct")]
@@ -5589,6 +6340,9 @@ public class Derived : Base
             // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
             //     public required int Test;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,19): error CS9035: Required member 'C.Test' must be set in the object initializer or attribute constructor.
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Test").WithLocation(12, 19),
             // (12,23): error CS0117: 'C' does not contain a definition for 'T'
             //         C c = new C { T = 42 };
             Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
@@ -5617,20 +6371,23 @@ public class Derived : Base
 
         comp.VerifyDiagnostics(
             // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
             // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
             // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
             // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
             // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
-            //     public required int Test;
+            //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,19): error CS9035: Required member 'C.Test' must be set in the object initializer or attribute constructor.
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Test").WithLocation(12, 19),
             // (12,23): error CS0117: 'C' does not contain a definition for 'T'
             //         C c = new C { T = 42 };
             Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
@@ -5739,5 +6496,678 @@ public class Derived : Base
                 Assert.Empty(property2.GetAttributes());
             }
         });
+    }
+
+    [Fact]
+    public void GenericSubstitution_NoneSet()
+    {
+        var code = """
+            _ = new C<int>();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C<int>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new C<int>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<int>").WithArguments("C<int>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<int>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new C<int>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<int>").WithArguments("C<int>.Field").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void GenericSubstitution_AllSet()
+    {
+        var code = """
+            _ = new C<int>() { Prop = 1, Field = 2 };
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericSubstitution_Unbound()
+    {
+        var code = """
+            _ = new C<>();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS7003: Unexpected use of an unbound generic name
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<T>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<>").WithArguments("C<T>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<T>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new C<>();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C<>").WithArguments("C<T>.Field").WithLocation(1, 9)
+        );
+
+        var c = comp.GetTypeByMetadataName("C`1");
+        var u_c = c!.ConstructUnboundGenericType();
+        Assert.False(u_c.HasDeclaredRequiredMembers);
+        AssertEx.Empty(u_c.AllRequiredMembers);
+    }
+
+    [Fact]
+    public void GenericSubstitution_Inheritance_NoneSet()
+    {
+        var code = """
+            _ = new D();
+            
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+
+            class D : C<int> { }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C<int>.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("C<int>.Prop").WithLocation(1, 9),
+            // (1,9): error CS9035: Required member 'C<int>.Field' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("C<int>.Field").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void GenericSubstitution_Inheritance_AllSet()
+    {
+        var code = """
+            _ = new D() { Prop = 1, Field = 2 };
+
+            public class C<T>
+            {
+                public required T Prop { get; set; }
+                public required T Field;
+            }
+
+            class D : C<int> { }
+           """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericSubstitution_InheritanceAndOverride_NoneSet()
+    {
+        var code = """
+            _ = new D();
+            
+            public class C<T>
+            {
+                public virtual required T Prop { get; set; }
+            }
+
+            class D : C<int>
+            {
+                public override required int Prop { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'D.Prop' must be set in the object initializer or attribute constructor.
+            // _ = new D();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("D.Prop").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void ProtectedParameterlessConstructorInStruct()
+    {
+
+        // Equivalent to
+        // public struct S
+        // {
+        //     protected S() {}
+        //     public required int Prop { get; set; }
+        // }
+        var il = """
+            .class public sequential ansi sealed beforefieldinit S
+                extends[mscorlib] System.ValueType
+                {
+                .custom instance void [mscorlib] System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 f
+            
+                .method family hidebysig specialname rtspecialname
+                    instance void .ctor () cil managed
+                {
+                    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
+                        01 00 5f 43 6f 6e 73 74 72 75 63 74 6f 72 73 20
+                        6f 66 20 74 79 70 65 73 20 77 69 74 68 20 72 65
+                        71 75 69 72 65 64 20 6d 65 6d 62 65 72 73 20 61
+                        72 65 20 6e 6f 74 20 73 75 70 70 6f 72 74 65 64
+                        20 69 6e 20 74 68 69 73 20 76 65 72 73 69 6f 6e
+                        20 6f 66 20 79 6f 75 72 20 63 6f 6d 70 69 6c 65
+                        72 2e 01 00 00
+                    )
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                        01 00 0f 52 65 71 75 69 72 65 64 4d 65 6d 62 65
+                        72 73 00 00
+                    )
+                    ret
+                }
+            
+                .method public hidebysig specialname
+                    instance int32 get_Prop() cil managed
+                {
+                    ldarg.0
+                    ldfld int32 S::f
+                    ret
+                }
+            
+                .method public hidebysig specialname
+                    instance void set_Prop(
+                        int32 'value'
+                    ) cil managed
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 S::f
+                    ret
+                }
+            
+                .property instance int32 Prop()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 S::get_Prop()
+                    .set instance void S::set_Prop(int32)
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIL("_ = new S();", il, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0122: 'S.S()' is inaccessible due to its protection level
+            // _ = new S();
+            Diagnostic(ErrorCode.ERR_BadAccess, "S").WithArguments("S.S()").WithLocation(1, 9)
+        );
+    }
+
+    private static string TupleWithRequiredMemberDefinition(bool setsRequiredMembers) => $$"""
+        namespace System
+        {
+            public struct ValueTuple<T1, T2>
+            {
+                public required T1 Item1;
+                public required T2 Item2;
+                public required int AnotherField;
+                public required int Property { get; set; }
+        
+                {{(setsRequiredMembers ? "[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]" : "")}}
+                public ValueTuple(T1 item1, T2 item2)
+                {
+                    this.Item1 = item1;
+                    this.Item2 = item2;
+                }
+        
+                public static bool operator ==(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+                    => throw null;
+                public static bool operator !=(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+                    => throw null;
+        
+                public override bool Equals(object o)
+                    => throw null;
+                public override int GetHashCode()
+                    => throw null;
+            }
+        
+            public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> where TRest : struct
+            {
+                public T1 Item1;
+                public T2 Item2;
+                public T3 Item3;
+                public T4 Item4;
+                public T5 Item5;
+                public T6 Item6;
+                public T7 Item7;
+                public required TRest Rest;
+        
+                {{(setsRequiredMembers ? "[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]" : "")}}
+                public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+                {
+                    this.Item1 = item1;
+                    this.Item2 = item2;
+                    this.Item3 = item3;
+                    this.Item4 = item4;
+                    this.Item5 = item5;
+                    this.Item6 = item6;
+                    this.Item7 = item7;
+                    this.Rest = rest;
+                }
+        
+                public static bool operator ==(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+                    => throw null;
+                public static bool operator !=(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t1, ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> t2)
+                    => throw null;
+        
+                public override bool Equals(object o)
+                    => throw null;
+                public override int GetHashCode()
+                    => throw null;
+            }
+        
+            namespace Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiredMemberAttribute : Attribute
+                {
+                    public RequiredMemberAttribute()
+                    {
+                    }
+                }
+        
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                        FeatureName = featureName;
+                    }
+                    public string FeatureName { get; }
+                    public bool IsOptional { get; set; }
+                }
+            }
+            namespace Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+                public sealed class SetsRequiredMembersAttribute : Attribute
+                {
+                    public SetsRequiredMembersAttribute()
+                    {
+                    }
+                }
+            }
+        }
+        """;
+
+    [Theory]
+    [CombinatorialData]
+    public void TupleWithRequiredFields(bool setsRequiredMembers)
+    {
+        var comp = CreateCompilation(new[] { """
+            #pragma warning disable CS0219 // Unused local
+            var t1 = new (int, int)(1, 2);
+            var t2 = new System.ValueTuple<int, int>(3, 4);
+            var t3 = new System.ValueTuple<int, int>();
+            (int, int) t4 = default;
+            System.ValueTuple<int, int> t5 = default;
+            var t6 = new System.ValueTuple<int, int>() {
+                Item1 = 1,
+                Item2 = 2,
+                Property = 3,
+                AnotherField = 4
+            };
+            """, TupleWithRequiredMemberDefinition(setsRequiredMembers) }, targetFramework: TargetFramework.Mscorlib461 /* Using 461 to get a framework without ValueTuple */);
+
+        if (setsRequiredMembers)
+        {
+            comp.VerifyDiagnostics(
+                // 0.cs(2,14): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // var t1 = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(2, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(4, 14)
+            );
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // 0.cs(2,14): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                // var t1 = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(2, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(3, 14),
+                // 0.cs(3,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t2 = new System.ValueTuple<int, int>(3, 4);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(3, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item2").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Item1").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).AnotherField").WithLocation(4, 14),
+                // 0.cs(4,14): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = new System.ValueTuple<int, int>();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "System.ValueTuple<int, int>").WithArguments("(int, int).Property").WithLocation(4, 14)
+            );
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void TupleWithRequiredFields_TupleExpressonSyntax(bool setsRequiredMembers)
+    {
+        var comp = CreateCompilation(new[] { """
+            #pragma warning disable CS0219 // Unused local
+            var t1 = (1, 2);
+            (int, int) t2 = (1, default);
+            var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+            """, TupleWithRequiredMemberDefinition(setsRequiredMembers) }, targetFramework: TargetFramework.Mscorlib461 /* Using 461 to get a framework without ValueTuple */);
+
+        if (setsRequiredMembers)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Item2").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Item1").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).AnotherField").WithLocation(2, 10),
+                // 0.cs(2,10): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t1 = (1, 2);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2)").WithArguments("(int, int).Property").WithLocation(2, 10),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Item2").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Item1").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).AnotherField").WithLocation(3, 17),
+                // 0.cs(3,17): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // (int, int) t2 = (1, default);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, default)").WithArguments("(int, int).Property").WithLocation(3, 17),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Item2' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Item2").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Item1' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Item1").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).AnotherField' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).AnotherField").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member '(int, int).Property' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int).Property").WithLocation(4, 10),
+                // 0.cs(4,10): error CS9035: Required member 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest' must be set in the object initializer or attribute constructor.
+                // var t3 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest").WithLocation(4, 10)
+            );
+        }
+
+        var tree = comp.SyntaxTrees[0];
+        var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+        var model = comp.GetSemanticModel(tree);
+        var tupleType = model.GetTypeInfo(tuple).Type.GetSymbol<NamedTypeSymbol>()!;
+
+        Assert.True(tupleType.HasDeclaredRequiredMembers);
+        AssertEx.Equal(new[] { "AnotherField", "Item1", "Item2", "Property" }, tupleType.AllRequiredMembers
+                                                                                        .OrderBy(m => m.Key, StringComparer.InvariantCulture)
+                                                                                        .Select(m => m.Key));
+        Assert.All(tupleType.TupleElements, field => Assert.True(field.IsRequired));
+        Assert.True(tupleType.GetMember<PropertySymbol>("Property").IsRequired);
+    }
+
+    [Fact]
+    public void IndexedPropertyCannotBeRequired()
+    {
+
+        // Equivalent to
+        // <RequiredMember>
+        // Public Class C
+        //     <RequiredMember>
+        //     Public Property P1(x As Integer) As Integer
+        //         Get
+        //             Return 0
+        //         End Get
+        //         Set
+        //         End Set
+        //     End Property
+        // End Class
+        var il = """
+            .class public auto ansi C
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public specialname 
+                    instance int32 get_P1 (
+                        int32 x
+                    ) cil managed 
+                {
+                    ldc.i4.0
+                    ret
+                }
+            
+                .method public specialname 
+                    instance void set_P1 (
+                        int32 x,
+                        int32 Value
+                    ) cil managed 
+                {
+                    ret
+                }
+            
+                .property instance int32 P1(
+                    int32 x
+                )
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 C::get_P1(int32)
+                    .set instance void C::set_P1(int32, int32)
+                }
+            
+            }
+            """;
+
+        var comp = CreateCompilationWithIL("_ = new C();", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9037: The required members list for 'C' is malformed and cannot be interpreted.
+            // _ = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "C").WithArguments("C").WithLocation(1, 9)
+        );
+    }
+
+    /// <summary>
+    /// Equivalent to
+    /// {RequiredMember}
+    /// Public Class C
+    ///     {RequiredMember}
+    ///     Public Property P1(x As Integer) As Integer
+    ///         Get
+    ///             Return 0
+    ///         End Get
+    ///         Set
+    ///         End Set
+    ///     End Property
+    /// End Class
+    /// </summary>
+    private const string IndexedPropertyOverloadWithRequiredMemberIL = """
+            .class public auto ansi C
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field private int32 _P1
+            
+                .method public specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance int32 get_P1 (
+                        int32 x
+                    ) cil managed 
+                {
+                    ldc.i4.0
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance void set_P1 (
+                        int32 x,
+                        int32 Value
+                    ) cil managed 
+                {
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance int32 get_P1 () cil managed 
+                {
+                    ldarg.0
+                    ldfld int32 C::_P1
+                    ret
+                }
+            
+                .method public hidebysig specialname 
+                    instance void set_P1 (
+                        int32 AutoPropertyValue
+                    ) cil managed 
+                {
+                    ldarg.0
+                    ldarg.1
+                    stfld int32 C::_P1
+                    ret
+                }
+            
+                .property instance int32 P1(
+                    int32 x
+                )
+                {
+                    .get instance int32 C::get_P1(int32)
+                    .set instance void C::set_P1(int32, int32)
+                }
+                .property instance int32 P1()
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    .get instance int32 C::get_P1()
+                    .set instance void C::set_P1(int32)
+                }
+            }
+            """;
+
+    [Fact]
+    public void IndexedPropertyOverload_NoneSet()
+    {
+
+        var il = IndexedPropertyOverloadWithRequiredMemberIL;
+
+        var comp = CreateCompilationWithIL("_ = new C();", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
+            // _ = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void IndexedPropertyOverload_AllSet()
+    {
+
+        var il = IndexedPropertyOverloadWithRequiredMemberIL;
+
+        var comp = CreateCompilationWithIL("_ = new C() { P1 = 1 };", il, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+        );
+    }
+
+    [Fact]
+    public void IndexedPropertyOverload_InDerivedType()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            _ = new C2() { };
+            _ = new C2() { P1 = 1 };
+
+            public class C1
+            {
+                public required int P1 {get;set;}
+            }
+            
+            public class C2 : C1
+            {
+                [System.Runtime.CompilerServices.IndexerNameAttribute(nameof(P1))]
+                public int this[int x] => x;
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9035: Required member 'C1.P1' must be set in the object initializer or attribute constructor.
+            // _ = new C2() { };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C2").WithArguments("C1.P1").WithLocation(1, 9)
+        );
     }
 }

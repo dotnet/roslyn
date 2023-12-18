@@ -9,13 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -25,29 +23,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    internal class LiveShareInProcLanguageClient(
+        CSharpVisualBasicLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
     {
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public LiveShareInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
-        {
-            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
-        }
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
             // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
@@ -68,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
             // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and
             // remote scenarios.
-            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokenEnabled)
             {
                 defaultCapabilities.SemanticTokensOptions = null;

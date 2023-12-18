@@ -20,6 +20,7 @@ internal sealed record class BlockStructureOptions
     [DataMember] public bool CollapseMetadataImplementationsWhenFirstOpened { get; init; } = false;
     [DataMember] public bool CollapseEmptyMetadataImplementationsWhenFirstOpened { get; init; } = true;
     [DataMember] public bool CollapseRegionsWhenCollapsingToDefinitions { get; init; } = false;
+    [DataMember] public bool CollapseLocalFunctionsWhenCollapsingToDefinitions { get; init; } = false;
     [DataMember] public int MaximumBannerLength { get; init; } = 80;
     [DataMember] public bool IsMetadataAsSource { get; init; } = false;
 

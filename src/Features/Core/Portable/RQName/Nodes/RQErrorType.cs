@@ -6,12 +6,9 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQErrorType : RQType
+    internal class RQErrorType(string name) : RQType
     {
-        public readonly string Name;
-
-        public RQErrorType(string name)
-            => Name = name;
+        public readonly string Name = name;
 
         public override SimpleTreeNode ToSimpleTree()
             => new SimpleGroupNode(RQNameStrings.Error, Name);

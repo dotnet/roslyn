@@ -18,44 +18,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceParameter
 {
-    internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax>
+    internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax>
     {
-        private class IntroduceParameterDocumentRewriter
+        private class IntroduceParameterDocumentRewriter(
+            AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> service,
+            Document originalDocument,
+            TExpressionSyntax expression,
+            IMethodSymbol methodSymbol,
+            SyntaxNode containingMethod,
+            IntroduceParameterCodeActionKind selectedCodeAction,
+            CodeGenerationOptionsProvider fallbackOptions,
+            bool allOccurrences)
         {
-            private readonly AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> _service;
-            private readonly Document _originalDocument;
-            private readonly SyntaxGenerator _generator;
-            private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly ISemanticFactsService _semanticFacts;
-            private readonly TExpressionSyntax _expression;
-            private readonly IMethodSymbol _methodSymbol;
-            private readonly SyntaxNode _containerMethod;
-            private readonly IntroduceParameterCodeActionKind _actionKind;
-            private readonly CodeGenerationOptionsProvider _fallbackOptions;
-            private readonly bool _allOccurrences;
-
-            public IntroduceParameterDocumentRewriter(
-                AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
-                Document originalDocument,
-                TExpressionSyntax expression,
-                IMethodSymbol methodSymbol,
-                SyntaxNode containingMethod,
-                IntroduceParameterCodeActionKind selectedCodeAction,
-                CodeGenerationOptionsProvider fallbackOptions,
-                bool allOccurrences)
-            {
-                _service = service;
-                _originalDocument = originalDocument;
-                _generator = SyntaxGenerator.GetGenerator(originalDocument);
-                _syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-                _semanticFacts = originalDocument.GetRequiredLanguageService<ISemanticFactsService>();
-                _expression = expression;
-                _methodSymbol = methodSymbol;
-                _containerMethod = containingMethod;
-                _actionKind = selectedCodeAction;
-                _allOccurrences = allOccurrences;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> _service = service;
+            private readonly Document _originalDocument = originalDocument;
+            private readonly SyntaxGenerator _generator = SyntaxGenerator.GetGenerator(originalDocument);
+            private readonly ISyntaxFactsService _syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            private readonly ISemanticFactsService _semanticFacts = originalDocument.GetRequiredLanguageService<ISemanticFactsService>();
+            private readonly TExpressionSyntax _expression = expression;
+            private readonly IMethodSymbol _methodSymbol = methodSymbol;
+            private readonly SyntaxNode _containerMethod = containingMethod;
+            private readonly IntroduceParameterCodeActionKind _actionKind = selectedCodeAction;
+            private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly bool _allOccurrences = allOccurrences;
 
             public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<SyntaxNode> invocations, CancellationToken cancellationToken)
             {
@@ -320,7 +305,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
                     parameterToArgumentMap.Clear();
                     MapParameterToArgumentsAtInvocation(parameterToArgumentMap, invocationArguments, invocationSemanticModel, cancellationToken);
-                    var currentInvocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
+                    var currentInvocationArguments = (SeparatedSyntaxList<TArgumentSyntax>)_syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                     var requiredArguments = new List<SyntaxNode>();
 
                     foreach (var parameterSymbol in validParameters)
@@ -335,7 +320,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var named = ShouldArgumentBeNamed(compilation, invocationSemanticModel, invocationArguments, insertionIndex, cancellationToken);
                     var newMethodInvocation = GenerateNewMethodInvocation(invocation, requiredArguments, newMethodIdentifier);
 
-                    SeparatedSyntaxList<SyntaxNode> allArguments;
+                    SeparatedSyntaxList<TArgumentSyntax> allArguments;
                     if (conditionalRoot is null)
                     {
                         allArguments = AddArgumentToArgumentList(currentInvocationArguments, newMethodInvocation, parameterName, insertionIndex, named);
@@ -503,7 +488,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var expressionEditor = new SyntaxEditor(_expression, _generator);
 
                     var argumentListSyntax = invocation is TObjectCreationExpressionSyntax
-                        ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
+                        ? _syntaxFacts.GetArgumentListOfBaseObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
 
                     if (argumentListSyntax == null)
@@ -521,7 +506,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     {
                         editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                         {
-                            var updatedInvocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
+                            var updatedInvocationArguments = (SeparatedSyntaxList<TArgumentSyntax>)_syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                             var updatedExpression = CreateNewArgumentExpression(expressionEditor, expressionToParameterMap, parameterToArgumentMap, updatedInvocationArguments);
                             var named = ShouldArgumentBeNamed(compilation, invocationSemanticModel, invocationArguments, insertionIndex, cancellationToken);
                             var allArguments = AddArgumentToArgumentList(updatedInvocationArguments,
@@ -579,13 +564,13 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             /// If the parameter is optional and the invocation does not specify the parameter, then
             /// a named argument needs to be introduced.
             /// </summary>
-            private SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(
-                SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxNode newArgumentExpression,
+            private SeparatedSyntaxList<TArgumentSyntax> AddArgumentToArgumentList(
+                SeparatedSyntaxList<TArgumentSyntax> invocationArguments, SyntaxNode newArgumentExpression,
                 string parameterName, int insertionIndex, bool named)
             {
                 var argument = named
-                    ? _generator.Argument(parameterName, RefKind.None, newArgumentExpression)
-                    : _generator.Argument(newArgumentExpression);
+                    ? (TArgumentSyntax)_generator.Argument(parameterName, RefKind.None, newArgumentExpression)
+                    : (TArgumentSyntax)_generator.Argument(newArgumentExpression);
                 return invocationArguments.Insert(insertionIndex, argument);
             }
 

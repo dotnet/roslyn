@@ -62,5 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetOrCreateSlot(parameter);
             }
         }
+
+        protected override void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+        }
+
+        protected override void AfterVisitConversion(BoundConversion node)
+        {
+        }
     }
 }

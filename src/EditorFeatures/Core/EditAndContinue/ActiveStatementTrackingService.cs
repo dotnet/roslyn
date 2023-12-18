@@ -33,37 +33,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// An active statement is a source statement that occurs in a stack trace of a thread.
     /// Active statements are visualized via a gray marker in the text editor.
     /// </remarks>
-    internal sealed class ActiveStatementTrackingService : IActiveStatementTrackingService
+    internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsynchronousOperationListener listener) : IActiveStatementTrackingService
     {
         [ExportWorkspaceServiceFactory(typeof(IActiveStatementTrackingService), ServiceLayer.Editor), Shared]
-        internal sealed class Factory : IWorkspaceServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
         {
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
-                => _listenerProvider = listenerProvider;
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                 => new ActiveStatementTrackingService(workspaceServices.Workspace, _listenerProvider.GetListener(FeatureAttribute.EditAndContinue));
         }
 
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _listener = listener;
 
         private TrackingSession? _session;
-        private readonly Workspace _workspace;
+        private readonly Workspace _workspace = workspace;
 
         /// <summary>
         /// Raised whenever span tracking starts or ends.
         /// </summary>
         public event Action? TrackingChanged;
-
-        public ActiveStatementTrackingService(Workspace workspace, IAsynchronousOperationListener listener)
-        {
-            _workspace = workspace;
-            _listener = listener;
-        }
 
         public void StartTracking(Solution solution, IActiveStatementSpanProvider spanProvider)
         {
@@ -316,7 +307,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 lock (_trackingSpans)
                 {

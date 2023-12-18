@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             foreach (var helper in _helpers)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 if (declaration == null)
                     continue;
 
-                var succeeded = TryComputeRefactoring(context, root, declaration, options, helper);
+                var succeeded = TryComputeRefactoring(context, root, declaration, options, helper, cancellationToken);
                 if (succeeded)
                     return;
             }
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private static bool TryComputeRefactoring(
             CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
-            CSharpCodeGenerationOptions options, UseExpressionBodyHelper helper)
+            CSharpCodeGenerationOptions options, UseExpressionBodyHelper helper, CancellationToken cancellationToken)
         {
             var document = context.Document;
             var preference = helper.GetExpressionBodyPreference(options);
 
             var succeeded = false;
-            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: false))
+            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: false, cancellationToken))
             {
                 context.RegisterRefactoring(
                     CodeAction.Create(
@@ -168,15 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = GetUpdatedRoot(semanticModel, root, declaration, helper, useExpressionBody);
+            var newRoot = GetUpdatedRoot(semanticModel, root, declaration, helper, useExpressionBody, cancellationToken);
             return document.WithSyntaxRoot(newRoot);
         }
 
         private static SyntaxNode GetUpdatedRoot(
             SemanticModel semanticModel, SyntaxNode root, SyntaxNode declaration,
-            UseExpressionBodyHelper helper, bool useExpressionBody)
+            UseExpressionBodyHelper helper, bool useExpressionBody, CancellationToken cancellationToken)
         {
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody, cancellationToken);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options);
+            var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options, cancellationToken);
             await FixDeclarationsAsync(document, editor, root, declarationsToFix.ToImmutableArray(), helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
             return;
 
@@ -211,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 SyntaxNode root,
                 UseExpressionBodyHelper helper,
                 bool useExpressionBody,
-                CSharpCodeGenerationOptions options)
+                CSharpCodeGenerationOptions options,
+                CancellationToken cancellationToken)
             {
                 var preference = helper.GetExpressionBodyPreference(options);
                 foreach (var span in fixAllSpans)
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         if (!helper.IsRelevantDeclarationNode(node) || !helper.SyntaxKinds.Contains(node.Kind()))
                             continue;
 
-                        if (useExpressionBody && helper.CanOfferUseExpressionBody(preference, node, forAnalyzer: false))
+                        if (useExpressionBody && helper.CanOfferUseExpressionBody(preference, node, forAnalyzer: false, cancellationToken))
                         {
                             yield return node;
                         }
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     var currentDeclaration = currentRoot.GetCurrentNodes(declaration).Single();
 
                     // Fix the current declaration and get updated current root
-                    currentRoot = GetUpdatedRoot(semanticModel, currentRoot, currentDeclaration, helper, useExpressionBody);
+                    currentRoot = GetUpdatedRoot(semanticModel, currentRoot, currentDeclaration, helper, useExpressionBody, cancellationToken);
                 }
 
                 // Finally apply the latest current root to the editor.

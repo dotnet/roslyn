@@ -8,16 +8,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles
 {
-    internal sealed class NamingStyleSettingsProviderFactory : IWorkspaceSettingsProviderFactory<NamingStyleSetting>
+    internal sealed class NamingStyleSettingsProviderFactory(Workspace workspace, IGlobalOptionService globalOptions) : IWorkspaceSettingsProviderFactory<NamingStyleSetting>
     {
-        private readonly Workspace _workspace;
-        private readonly IGlobalOptionService _globalOptions;
-
-        public NamingStyleSettingsProviderFactory(Workspace workspace, IGlobalOptionService globalOptions)
-        {
-            _workspace = workspace;
-            _globalOptions = globalOptions;
-        }
+        private readonly Workspace _workspace = workspace;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public ISettingsProvider<NamingStyleSetting> GetForFile(string filePath)
         {

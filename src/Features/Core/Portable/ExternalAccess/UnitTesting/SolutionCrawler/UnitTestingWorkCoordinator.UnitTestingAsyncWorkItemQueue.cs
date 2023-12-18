@@ -17,24 +17,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private abstract class UnitTestingAsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class UnitTestingAsyncWorkItemQueue<TKey>(UnitTestingSolutionCrawlerProgressReporter progressReporter) : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
-                private readonly SemaphoreSlim _semaphore;
+                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
                 private bool _disposed;
 
-                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter;
+                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
-
-                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                {
-                    _semaphore = new SemaphoreSlim(initialCount: 0);
-
-                    _progressReporter = progressReporter;
-                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -46,10 +39,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected abstract bool TryTakeAnyWork_NoLock(
                     ProjectId? preferableProjectId,
-#if false // Not used in unit testing crawling
-                    ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? service,
-#endif
                     out UnitTestingWorkItem workItem);
 
                 public int WorkItemCount
@@ -218,10 +207,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 public bool TryTakeAnyWork(
                     ProjectId? preferableProjectId,
-#if false // Not used in unit testing crawling
-                    ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? analyzerService,
-#endif
                     out UnitTestingWorkItem workItem,
                     out CancellationToken cancellationToken)
                 {
@@ -229,10 +214,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId,
-#if false // Not used in unit testing crawling
-                                dependencyGraph,
-                                analyzerService,
-#endif
                                 out workItem))
                         {
                             cancellationToken = GetNewCancellationToken_NoLock(workItem.Key);
@@ -259,12 +240,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected static ProjectId GetBestProjectId_NoLock<T>(
                     Dictionary<ProjectId, T> workQueue,
-                    ProjectId? projectId
-#if false // Not used in unit testing crawling
-                    , ProjectDependencyGraph dependencyGraph
-                    , IDiagnosticAnalyzerService? analyzerService
-#endif
-                    )
+                    ProjectId? projectId)
                 {
                     if (projectId != null)
                     {
@@ -272,30 +248,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             return projectId;
                         }
-
-#if false // Not used in unit testing crawling
-                        // prefer project that directly depends on the given project and has diagnostics as next project to
-                        // process
-                        foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
-                        {
-                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService?.ContainsDiagnostics(Workspace, dependingProjectId) == true)
-                            {
-                                return dependingProjectId;
-                            }
-                        }
-#endif
                     }
-
-#if false // Not used in unit testing crawling
-                    // prefer a project that has diagnostics as next project to process.
-                    foreach (var pendingProjectId in workQueue.Keys)
-                    {
-                        if (analyzerService?.ContainsDiagnostics(Workspace, pendingProjectId) == true)
-                        {
-                            return pendingProjectId;
-                        }
-                    }
-#endif
 
                     // explicitly iterate so that we can use struct enumerator
                     foreach (var pair in workQueue)

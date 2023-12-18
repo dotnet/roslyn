@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
 using Microsoft.VisualStudio.LiveShare;
@@ -31,7 +29,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Workspace.VSIntegration.Contracts;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
@@ -309,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The protocol converter would have synced the file to disk but we the document snapshot that was in the workspace before the sync would have empty text.
             // So we need to read from disk in order to map from line\column to a textspan.
@@ -494,12 +492,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 if (_openedDocs.Values.Contains(documentId) || IsDocumentOpen(documentId))
                 {
-                    var textBuffer = _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-                        var textContainer = sourceText.Container;
-                        return textContainer.TryGetTextBuffer();
-                    });
+                    var sourceText = document.GetTextSynchronously(CancellationToken.None);
+                    var textContainer = sourceText.Container;
+                    var textBuffer = textContainer.TryGetTextBuffer();
 
                     if (textBuffer == null)
                     {

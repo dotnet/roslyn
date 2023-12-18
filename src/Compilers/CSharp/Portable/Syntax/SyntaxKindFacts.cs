@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.AssemblyKeyword:
                 case SyntaxKind.ModuleKeyword:
+                case SyntaxKind.EventKeyword:
+                case SyntaxKind.FieldKeyword:
+                case SyntaxKind.MethodKeyword:
+                case SyntaxKind.ParamKeyword:
+                case SyntaxKind.PropertyKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.TypeKeyword:
+                case SyntaxKind.TypeVarKeyword:
                     return true;
                 default:
                     return false;

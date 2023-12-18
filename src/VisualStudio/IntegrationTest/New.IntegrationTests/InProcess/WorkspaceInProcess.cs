@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
@@ -65,6 +66,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, languageName, value);
         }
 
+        public async Task SetTriggerCompletionInArgumentListsAsync(string languageName, bool value, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, languageName, value);
+        }
+
         public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -73,16 +82,21 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion));
         }
 
-        public async Task SetFullSolutionAnalysisAsync(bool value, CancellationToken cancellationToken)
+        public Task SetFullSolutionAnalysisAsync(bool value, CancellationToken cancellationToken)
+        {
+            var analyzerScope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
+            return SetBackgroundAnalysisOptionsAsync(analyzerScope, compilerScope, cancellationToken);
+        }
+
+        public async Task SetBackgroundAnalysisOptionsAsync(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
 
-            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analyzerScope);
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, analyzerScope);
 
-            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
             globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
             globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
         }
@@ -142,6 +156,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
         }
 
+        public async Task WaitForRenameAsync(CancellationToken cancellationToken)
+        {
+            await WaitForAllAsyncOperationsAsync(
+                [
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.InlineRenameFlyout,
+                ],
+                cancellationToken);
+        }
+
         /// <summary>
         /// This event listener is an adapter to expose asynchronous file save operations to Roslyn via its standard
         /// workspace event waiters.
@@ -175,9 +200,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
                 => VSConstants.S_OK;
 
-#pragma warning disable CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes). (Signature was corrected in https://devdiv.visualstudio.com/DevDiv/_git/VS/pullrequest/390178)
             IVsTask? IVsRunningDocTableEvents7.OnBeforeSaveAsync(uint cookie, uint flags, IVsTask? saveTask)
-#pragma warning restore CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).
             {
                 if (saveTask is not null)
                 {
@@ -193,9 +216,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return null;
             }
 
-#pragma warning disable CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes). (Signature was corrected in https://devdiv.visualstudio.com/DevDiv/_git/VS/pullrequest/390178)
             IVsTask? IVsRunningDocTableEvents7.OnAfterSaveAsync(uint cookie, uint flags)
-#pragma warning restore CS8768 // Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).
             {
                 // No additional work for the caller to handle
                 return null;

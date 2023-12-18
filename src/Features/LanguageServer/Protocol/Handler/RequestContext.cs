@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -40,26 +42,120 @@ internal readonly struct RequestContext
     /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
     /// which are ordered after this one in the queue are not reflected here.
     /// </remarks>
-    private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
+    private readonly ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments;
 
     private readonly ILspServices _lspServices;
+
+    /// <summary>
+    /// Provides backing storage for the LSP workspace used by this RequestContext instance, allowing it to be cleared
+    /// on demand from all copies that may exist of this value type.
+    /// </summary>
+    /// <remarks>
+    /// This field is only initialized for handlers that request solution context.
+    /// </remarks>
+    private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
     /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
     /// </summary>
-    public readonly Workspace? Workspace;
+    public Workspace? Workspace
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a workspace instance
+                return null;
+            }
+
+            // The workspace is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared.
+            return _lspSolution.Value.Workspace ?? throw new InvalidOperationException();
+        }
+    }
 
     /// <summary>
     /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
     /// </summary>
-    public readonly Solution? Solution;
+    public Solution? Solution
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared.
+            return _lspSolution.Value.Solution ?? throw new InvalidOperationException();
+        }
+    }
 
     /// <summary>
     /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
     /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    public readonly Document? Document;
+    public Document? Document
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
+            // Document being null for this check, because it is not always provided as part of the solution context.
+            if (_lspSolution.Value.Workspace is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_lspSolution.Value.Document is null)
+            {
+                return null;
+            }
+
+            if (_lspSolution.Value.Document is Document document)
+            {
+                return document;
+            }
+
+            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
+            throw new InvalidOperationException($"Attempted to retrieve a Document but a TextDocument was found instead.");
+        }
+    }
+
+    /// <summary>
+    /// The text document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
+    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// </summary>
+    public TextDocument? TextDocument
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
+            // Document being null for this check, because it is not always provided as part of the solution context.
+            if (_lspSolution.Value.Workspace is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _lspSolution.Value.Document;
+        }
+    }
 
     /// <summary>
     /// The LSP server handling the request.
@@ -90,16 +186,25 @@ internal readonly struct RequestContext
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        Document? document,
+        TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
-        ImmutableDictionary<Uri, SourceText> trackedDocuments,
+        ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
-        Workspace = workspace;
-        Document = document;
-        Solution = solution;
+        if (workspace is not null)
+        {
+            RoslynDebug.Assert(solution is not null);
+            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>((workspace, solution, document));
+        }
+        else
+        {
+            RoslynDebug.Assert(solution is null);
+            RoslynDebug.Assert(document is null);
+            _lspSolution = null;
+        }
+
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
         SupportedLanguages = supportedLanguages;
@@ -160,7 +265,7 @@ internal readonly struct RequestContext
         {
             Workspace? workspace = null;
             Solution? solution = null;
-            Document? document = null;
+            TextDocument? document = null;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this.
@@ -202,8 +307,8 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void StartTracking(Uri uri, SourceText initialText)
-        => _documentChangeTracker.StartTracking(uri, initialText);
+    public ValueTask StartTrackingAsync(Uri uri, SourceText initialText, string languageId, CancellationToken cancellationToken)
+        => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, cancellationToken);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
@@ -215,18 +320,26 @@ internal readonly struct RequestContext
     public SourceText GetTrackedDocumentSourceText(Uri documentUri)
     {
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
-        return _trackedDocuments[documentUri];
+        return _trackedDocuments[documentUri].Text;
     }
 
     /// <summary>
     /// Allows a mutating request to close a document and stop it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void StopTracking(Uri uri)
-        => _documentChangeTracker.StopTracking(uri);
+    public ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
+        => _documentChangeTracker.StopTrackingAsync(uri, cancellationToken);
 
     public bool IsTracking(Uri documentUri)
         => _trackedDocuments.ContainsKey(documentUri);
+
+    public void ClearSolutionContext()
+    {
+        if (_lspSolution is null)
+            return;
+
+        _lspSolution.Value = default;
+    }
 
     /// <summary>
     /// Logs an informational message.

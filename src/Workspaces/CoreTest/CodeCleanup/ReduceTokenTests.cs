@@ -1718,7 +1718,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact, WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
         public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
             var savedCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
@@ -1753,7 +1753,7 @@ End Module";
             }
         }
 
-        [Fact, WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
         public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;
@@ -1983,8 +1983,8 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact, WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
-        [WorkItem(48492, "https://github.com/dotnet/roslyn/issues/48492")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14034")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48492")]
         public async Task DoNotReduceDigitSeparators()
         {
             var source = @"
@@ -2002,8 +2002,7 @@ End Module
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.ReduceTokens or PredefinedCodeCleanupProviderNames.CaseCorrection or PredefinedCodeCleanupProviderNames.Format);

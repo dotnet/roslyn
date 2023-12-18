@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public static void Report<T>(this BufferedProgress<T[]> progress, T item)
         {
-            progress.Report(new[] { item });
+            progress.Report([item]);
         }
 
         public static T[]? GetFlattenedValues<T>(this BufferedProgress<T[]> progress)

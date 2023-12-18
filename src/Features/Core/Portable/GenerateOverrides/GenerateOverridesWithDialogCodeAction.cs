@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -19,30 +20,20 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 {
     internal partial class GenerateOverridesCodeRefactoringProvider
     {
-        private sealed class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
+        private sealed class GenerateOverridesWithDialogCodeAction(
+            GenerateOverridesCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> viableMembers,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly GenerateOverridesCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly TextSpan _textSpan;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateOverridesWithDialogCodeAction(
-                GenerateOverridesCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-                _textSpan = textSpan;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly GenerateOverridesCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Generate_overrides;
 
@@ -58,7 +49,8 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     selectAll: globalOptionService?.GenerateOverrides ?? true);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)
@@ -106,12 +98,9 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     cancellationToken: cancellationToken);
             }
 
-            private sealed class ChangeOptionValueOperation : CodeActionOperation
+            private sealed class ChangeOptionValueOperation(bool selectedAll) : CodeActionOperation
             {
-                private readonly bool _selectedAll;
-
-                public ChangeOptionValueOperation(bool selectedAll)
-                    => _selectedAll = selectedAll;
+                private readonly bool _selectedAll = selectedAll;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {

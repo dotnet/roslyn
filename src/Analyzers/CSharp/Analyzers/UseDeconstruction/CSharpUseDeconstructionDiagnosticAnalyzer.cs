@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
@@ -42,22 +42,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             switch (context.Node)
             {
                 case VariableDeclarationSyntax variableDeclaration:
-                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Severity);
+                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification);
                     return;
                 case ForEachStatementSyntax forEachStatement:
-                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Severity);
+                    AnalyzeForEachStatement(context, forEachStatement, option.Notification);
                     return;
             }
         }
 
         private void AnalyzeVariableDeclaration(
-            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, ReportDiagnostic severity)
+            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, NotificationOption2 notificationOption)
         {
             if (!TryAnalyzeVariableDeclaration(context.SemanticModel, variableDeclaration, out _, out _, context.CancellationToken))
                 return;
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 variableDeclaration.Variables[0].Identifier.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }
 
         private void AnalyzeForEachStatement(
-            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, ReportDiagnostic severity)
+            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, NotificationOption2 notificationOption)
         {
             if (!TryAnalyzeForEachStatement(context.SemanticModel, forEachStatement, out _, out _, context.CancellationToken))
                 return;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 forEachStatement.Identifier.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }

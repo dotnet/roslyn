@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -20,13 +22,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
-        private readonly RecentItemsManager _recentItemsManager;
-        private readonly IGlobalOptionService _globalOptions;
+        private static readonly ObjectPool<List<VSCompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
-        internal ItemManager(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
+        /// <summary>
+        /// The threshold for us to consider exclude (potentially large amount of) expanded items from completion list.
+        /// Showing a large amount of expanded items to user would introduce noise and render the list too long to browse.
+        /// Not processing those expanded items also has perf benefit (e.g. matching and highlighting could be expensive.)
+        /// We set it to 2 because it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuilder`.
+        /// </summary>
+        public const int FilterTextLengthToExcludeExpandedItemsExclusive = 2;
+
+        private readonly RecentItemsManager _recentItemsManager;
+        private readonly EditorOptionsService _editorOptionsService;
+
+        internal ItemManager(RecentItemsManager recentItemsManager, EditorOptionsService editorOptionsService)
         {
             _recentItemsManager = recentItemsManager;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
@@ -34,11 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            var stopwatch = SharedStopwatch.StartNew();
-            var items = SortCompletionItems(data, cancellationToken).ToImmutableArray();
-
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
-            return Task.FromResult(items);
+            // Platform prefers IAsyncCompletionItemManager2.SortCompletionItemListAsync when available
+            throw new NotImplementedException();
         }
 
         public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
@@ -47,24 +56,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var itemList = session.CreateCompletionList(SortCompletionItems(data, cancellationToken));
+
+            var list = s_sortListPool.Allocate();
+            CompletionList<VSCompletionItem> itemList;
+
+            try
+            {
+                SortCompletionItems(list, data, cancellationToken);
+
+                itemList = session.CreateCompletionList(list);
+            }
+            finally
+            {
+                list.Clear();
+                s_sortListPool.Free(list);
+            }
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(itemList);
         }
 
-        private static SegmentedList<VSCompletionItem> SortCompletionItems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        private static void SortCompletionItems(List<VSCompletionItem> list, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+
             foreach (var item in data.InitialItemList)
             {
                 CompletionItemData.GetOrAddDummyRoslynItem(item);
-                items.Add(item);
+                list.Add(item);
             }
 
-            items.Sort(VSItemComparer.Instance);
-            return items;
+            list.Sort(VSItemComparer.Instance);
         }
 
         public async Task<FilteredCompletionModel?> UpdateCompletionListAsync(
@@ -93,9 +115,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
-                else if (sessionData.ExpandedItemsTask != null)
+                else if (ShouldShowExpandedItems() && sessionData.ExpandedItemsTask is not null)
                 {
                     var task = sessionData.ExpandedItemsTask;
+
+                    // we don't want to delay showing completion list on waiting for
+                    // expanded items, unless responsive typing is disabled by user.
+                    if (!sessionData.NonBlockingCompletionEnabled)
+                        await task.ConfigureAwait(false);
+
                     if (task.Status == TaskStatus.RanToCompletion)
                     {
                         // Make sure the task is removed when Adding expanded items,
@@ -120,13 +148,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _globalOptions);
+                var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _editorOptionsService.GlobalOptions);
                 return await updater.UpdateCompletionListAsync(session, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
             }
+
+            // Show expanded items if any of these conditions is true:
+            // 1. filter text length >= 2 (it's common to use filter of length 2 for camel case match, e.g. `AB` for `ArrayBuilder`)
+            // 2. the completion is triggered in the context of listing members (it usually has much fewer items and more often used for browsing purpose)
+            // 3. defaults is not empty, since they might suggest expanded items (Defaults are the mechanism whole-line-completion uses to communicate with
+            //    completion and make our selection consistent with their suggestion)
+            bool ShouldShowExpandedItems()
+                => session.ApplicableToSpan.GetText(data.Snapshot).Length >= FilterTextLengthToExcludeExpandedItemsExclusive
+                    || IsAfterDot(data.Snapshot, session.ApplicableToSpan)
+                    || !data.Defaults.IsEmpty;
+        }
+
+        private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
+        {
+            var position = applicableToSpan.GetStartPoint(snapshot).Position;
+            return position > 0 && snapshot[position - 1] == '.';
         }
 
         private sealed class VSItemComparer : IComparer<VSCompletionItem>

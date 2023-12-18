@@ -33,6 +33,7 @@ param (
   # Options
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
+  [string]$bootstrapToolset = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
@@ -67,6 +68,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -245,8 +247,8 @@ function BuildSolution() {
   # that MSBuild output as well as ones that custom tasks output.
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
-  # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
-  $ibcDir = Join-Path $RepoRoot ".o%5c"
+  # Workaround for some machines in the AzDO pool not allowing long paths
+  $ibcDir = $RepoRoot
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
@@ -254,38 +256,40 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-  # in our CI builds
-  # https://github.com/NuGet/Home/issues/12373
-  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
-
-  MSBuild $toolsetBuildProj `
-    $bl `
-    /p:Configuration=$configuration `
-    /p:Projects=$projects `
-    /p:RepoRoot=$RepoRoot `
-    /p:Restore=$restore `
-    /p:Build=$build `
-    /p:Rebuild=$rebuild `
-    /p:Pack=$pack `
-    /p:Sign=$sign `
-    /p:Publish=$publish `
-    /p:ContinuousIntegrationBuild=$ci `
-    /p:OfficialBuildId=$officialBuildId `
-    /p:RunAnalyzersDuringBuild=$runAnalyzers `
-    /p:BootstrapBuildPath=$bootstrapDir `
-    /p:TreatWarningsAsErrors=$warnAsError `
-    /p:EnableNgenOptimization=$applyOptimizationData `
-    /p:IbcOptimizationDataDir=$ibcDir `
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
-    /p:VisualStudioIbcDrop=$ibcDropName `
-    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-    $suppressExtensionDeployment `
-    $msbuildWarnAsError `
-    $buildFromSource `
-    $generateDocumentationFile `
-    $roslynUseHardLinks `
-    @properties
+  $restoreUseStaticGraphEvaluation = $true
+  
+  try {
+    MSBuild $toolsetBuildProj `
+      $bl `
+      /p:Configuration=$configuration `
+      /p:Projects=$projects `
+      /p:RepoRoot=$RepoRoot `
+      /p:Restore=$restore `
+      /p:Build=$build `
+      /p:Rebuild=$rebuild `
+      /p:Pack=$pack `
+      /p:Sign=$sign `
+      /p:Publish=$publish `
+      /p:ContinuousIntegrationBuild=$ci `
+      /p:OfficialBuildId=$officialBuildId `
+      /p:RunAnalyzersDuringBuild=$runAnalyzers `
+      /p:BootstrapBuildPath=$bootstrapDir `
+      /p:TreatWarningsAsErrors=$warnAsError `
+      /p:EnableNgenOptimization=$applyOptimizationData `
+      /p:IbcOptimizationDataDir=$ibcDir `
+      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+      /p:VisualStudioIbcDrop=$ibcDropName `
+      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
+      @properties
+  }
+  finally {
+    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+  }
 }
 
 # Get the branch that produced the IBC data this build is going to consume.
@@ -323,7 +327,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
@@ -395,7 +399,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0 --tfm net7.0"
+    $args += " --tfm net6.0 --tfm net7.0 --tfm net8.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -421,7 +425,7 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
-    $args += " --retry"
+    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -453,6 +457,10 @@ function TestUsingRunTests() {
 
   if ($helixQueueName) {
     $args += " --helixQueueName $helixQueueName"
+  }
+
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {
@@ -531,8 +539,13 @@ function EnablePreviewSdks() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
-  $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-  $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
+
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  Write-Host "VSIX EXE path: " $vsixExe
+  if (-not (Test-Path $vsixExe)) {
+    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
+    ExitWithExitCode 1
+  }
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
@@ -567,6 +580,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -594,6 +608,9 @@ function Deploy-VsixViaTool() {
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
@@ -607,9 +624,9 @@ function Deploy-VsixViaTool() {
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
-  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
+  # Configure RemoteHostOptions.OOPCoreClr for testing
+  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -704,11 +721,6 @@ try {
     exit 1
   }
 
-  $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
-  if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with `"reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1`""
-  }
-
   Process-Arguments
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
@@ -740,8 +752,7 @@ try {
   try
   {
     if ($bootstrap) {
-      $force32 = $testArch -eq "x86"
-      $bootstrapDir = Make-BootstrapBuild -force32:$force32
+      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
     }
   }
   catch
@@ -792,6 +803,8 @@ finally {
     Stop-Processes
   }
 
-  Unsubst-TempDir
+  if (Test-Path Function:\Unsubst-TempDir) {
+    Unsubst-TempDir
+  }
   Pop-Location
 }

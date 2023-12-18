@@ -3393,7 +3393,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (18,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.P.get' because it returns by reference
+                // (18,28): error CS8178: A reference returned by a call to 'C.P.get' cannot be preserved across 'await' or 'yield' boundary.
                 //         Assign(second: ref P, first: await t);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
                 );

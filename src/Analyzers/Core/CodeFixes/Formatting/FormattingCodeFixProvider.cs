@@ -18,21 +18,43 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        protected AbstractFormattingCodeFixProvider()
+        {
+#if !CODE_STYLE
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+        /// <summary>
+        /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
+        /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
+        /// It's also the 8th most common fix that people use, and is picked almost all the times it is shown.
+        /// </summary>
+        protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        AnalyzersResources.Fix_formatting,
-                        c => FixOneAsync(context, diagnostic, c),
-                        nameof(AbstractFormattingCodeFixProvider)),
-                    diagnostic);
+                var codeAction = CodeAction.Create(
+                    AnalyzersResources.Fix_formatting,
+                    c => FixOneAsync(context, diagnostic, c),
+                    nameof(AbstractFormattingCodeFixProvider),
+                    CodeActionPriority.High);
+
+#if !CODE_STYLE
+                // Backdoor that allows this provider to use the high-priority bucket.
+                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
+
+                context.RegisterCodeFix(codeAction, diagnostic);
             }
 
             return Task.CompletedTask;

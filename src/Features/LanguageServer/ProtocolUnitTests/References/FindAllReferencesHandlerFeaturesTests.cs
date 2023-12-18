@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
 public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProtocolTests
@@ -26,8 +26,8 @@ public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProto
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 
-    [Fact]
-    public async Task TestFindAllReferencesAsync_DoesNotUseVSTypes()
+    [Theory, CombinatorialData]
+    public async Task TestFindAllReferencesAsync_DoesNotUseVSTypes(bool mutatingLspWorkspace)
     {
         var markup =
 @"class A
@@ -46,7 +46,7 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.ClientCapabilities());
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.ClientCapabilities());
 
         var results = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync<LSP.Location>(testLspServer, testLspServer.GetLocations("caret").First());
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result));

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(this.Green.FullWidth);
             this.WriteTo(new StringWriter(builder));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
@@ -612,6 +613,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
             int offset = 0;
             var green = this.Green;
             while (index > 0)
@@ -630,6 +636,36 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.Position + offset;
+        }
+
+        // Similar to GetChildPosition() but calculating based on the positions of
+        // following siblings rather than previous siblings.
+        internal int GetChildPositionFromEnd(int index)
+        {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
+            var green = this.Green;
+            int offset = green.GetSlot(index)?.FullWidth ?? 0;
+            int slotCount = green.SlotCount;
+            while (index < slotCount - 1)
+            {
+                index++;
+                var nextSibling = this.GetCachedSlot(index);
+                if (nextSibling != null)
+                {
+                    return nextSibling.Position - offset;
+                }
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
+                {
+                    offset += greenChild.FullWidth;
+                }
+            }
+
+            return this.EndPosition - offset;
         }
 
         public Location GetLocation()
@@ -1356,20 +1392,22 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: true)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
+            => throw new SerializationDeprecationException();
+
+        /// <summary>
+        /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
+        /// </summary>
+        private protected sealed class SerializationDeprecationException : Exception
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            public const string Text = "Syntax serialization support is no longer supported";
 
-            if (!stream.CanWrite)
+            public SerializationDeprecationException()
+                : base(Text)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
-            }
 
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
-            writer.WriteValue(Green);
+            }
         }
 
         #region Core Methods

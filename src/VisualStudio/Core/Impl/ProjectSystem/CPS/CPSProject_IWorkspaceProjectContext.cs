@@ -235,6 +235,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
             => _projectSystemProject.AddAdditionalFile(filePath);
 
+        public void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true)
+            => _projectSystemProject.AddAdditionalFile(filePath, folders: folderNames.ToImmutableArray());
+
         public void Dispose()
         {
             _projectCodeModel?.OnProjectClosed();

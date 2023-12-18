@@ -104,7 +104,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <Theory, WorkItem(527603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
         <CombinatorialData>
         Public Sub DoNotStickTokensTogetherForRefParameter_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -123,7 +123,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <Theory, WorkItem(527603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
         <CombinatorialData>
         Public Sub DoNotStickTokensTogetherForRefParameter_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

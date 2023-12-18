@@ -14,14 +14,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private class UnitTestingAsyncDocumentWorkItemQueue : UnitTestingAsyncWorkItemQueue<DocumentId>
+            private class UnitTestingAsyncDocumentWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter) : UnitTestingAsyncWorkItemQueue<DocumentId>(progressReporter)
             {
                 private readonly Dictionary<ProjectId, Dictionary<DocumentId, UnitTestingWorkItem>> _documentWorkQueue = new();
-
-                public UnitTestingAsyncDocumentWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                    : base(progressReporter)
-                {
-                }
 
                 protected override int WorkItemCount_NoLock => _documentWorkQueue.Count;
 
@@ -47,10 +42,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected override bool TryTakeAnyWork_NoLock(
                     ProjectId? preferableProjectId,
-#if false // Not used in unit testing crawling
-                    ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? service,
-#endif
                     out UnitTestingWorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -60,12 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId
-#if false // Not used in unit testing crawling
-                        , dependencyGraph
-                        , service
-#endif
-                        );
+                    var documentId = GetBestDocumentId_NoLock(preferableProjectId);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
@@ -75,21 +61,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId? preferableProjectId
-#if false // Not used in unit testing crawling
-                    , ProjectDependencyGraph dependencyGraph
-                    , IDiagnosticAnalyzerService? analyzerService
-#endif
-                    )
+                    ProjectId? preferableProjectId)
                 {
                     var projectId = GetBestProjectId_NoLock(
                         _documentWorkQueue,
-                        preferableProjectId
-#if false // Not used in unit testing crawling
-                        , dependencyGraph
-                        , analyzerService
-#endif
-                        );
+                        preferableProjectId);
 
                     var documentMap = _documentWorkQueue[projectId];
 

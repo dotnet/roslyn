@@ -18,7 +18,7 @@ namespace Roslyn.Test.Utilities
     internal static class SigningTestHelpers
     {
         public static readonly StrongNameProvider DefaultDesktopStrongNameProvider =
-            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
+            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem(Path.GetTempPath()));
 
         // these are virtual paths that don't exist on disk
         internal static readonly string KeyFileDirectory = ExecutionConditionUtil.IsWindows

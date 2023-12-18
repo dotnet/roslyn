@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         public override TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
-        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 

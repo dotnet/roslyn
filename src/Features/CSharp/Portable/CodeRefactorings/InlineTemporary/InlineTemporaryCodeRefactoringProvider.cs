@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // Annotate the variable declarator so that we can get back to it later.
             document = await document.ReplaceNodeAsync(declarator, declarator.WithAdditionalAnnotations(DefinitionAnnotation), cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             declarator = await FindDeclaratorAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -155,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 (o, n) => n.WithAdditionalAnnotations(ReferenceAnnotation),
                 cancellationToken).ConfigureAwait(false);
 
-            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             declarator = await FindDeclaratorAsync(document, cancellationToken).ConfigureAwait(false);
 
             allReferences = await FindReferenceAnnotatedNodesAsync(document, cancellationToken).ConfigureAwait(false);
@@ -172,7 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var newScope = ReferenceRewriter.Visit(scope, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
 
             document = await document.ReplaceNodeAsync(scope, newScope, cancellationToken).ConfigureAwait(false);
-            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             declarator = await FindDeclaratorAsync(document, cancellationToken).ConfigureAwait(false);
             newScope = GetScope(declarator);
@@ -183,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 // No semantic conflicts, we can remove the definition.
                 document = await document.ReplaceNodeAsync(
                     newScope, RemoveDeclaratorFromScope(declarator, newScope), cancellationToken).ConfigureAwait(false);
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // Finally, check all the places we inlined an expression and add some final warnings there if appropriate.
@@ -191,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var topmostParentingExpressions = root.GetAnnotatedNodes(ExpressionAnnotation)
                 .OfType<ExpressionSyntax>()
                 .Select(e => GetTopMostParentingExpression(e));
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             document = await document.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
@@ -369,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
 

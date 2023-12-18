@@ -2132,5 +2132,76 @@ struct S
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
                 );
         }
+
+        [Fact]
+        public void TestIsNullable1()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        if (o is int? i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,23): error CS0103: The name 'i' does not exist in the current context
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 23),
+                // (6,24): error CS1003: Syntax error, ':' expected
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(6, 24),
+                // (6,24): error CS1525: Invalid expression term ')'
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24));
+        }
+
+        [Fact]
+        public void TestIsNullable2()
+        {
+            var source = @"
+using A = System.Nullable<int>;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void TestIsNullable3()
+        {
+            var source = @"
+using A = int?;
+class C
+{
+    void M(object o)
+    {
+        if (o is A i)
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
     }
 }

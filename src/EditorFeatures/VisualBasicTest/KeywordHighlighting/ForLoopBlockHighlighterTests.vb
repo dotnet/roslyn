@@ -189,7 +189,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop1() As Task
             Await TestAsync(<Text>
 Class C
@@ -201,7 +201,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop2() As Task
             Await TestAsync(<Text>
 Class C
@@ -213,7 +213,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop3() As Task
             Await TestAsync(<Text>
 Class C
@@ -225,7 +225,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesNextWithSingleElementIdentifierList() As Task
             Await TestAsync(<Text>
 Class C
@@ -236,7 +236,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesCorrectNextWithSingleElementIdentifierList() As Task
             Await TestAsync(<Text>
 Class C
@@ -247,7 +247,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesNextOfCorrectSinglyNestedFor() As Task
             ' Outer for blocks closed by a Next <identifier list> must go through their children for
             ' blocks to find the one that closes it (always the last such nested for block if found
@@ -264,7 +264,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesNextAtCorrectNestingLevel() As Task
             Await TestAsync(<Text>
 Class C
@@ -281,7 +281,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesNextOfCorrectDoublyNestedFor() As Task
             ' Outer for blocks closed by a Next <identifier list> must go through their children,
             ' grandchildren, etc. for blocks to find the one that closes it (always the last nested
@@ -302,7 +302,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForNotMatchesNextOfIncorrectNestedFor() As Task
             ' Outer for blocks without a Next should not match the Next of a nested for block unless
             ' the next block actually closes the outer for.
@@ -318,7 +318,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_NextMatchesCorrectForIgnoringLoopIdentifierNames() As Task
             ' The choice of For loop to highlight based on a Next <identifier list> statement should
             ' be based on structure, not identifier name matches.
@@ -332,7 +332,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_ForMatchesCorrectNextIgnoringLoopIdentifierNames() As Task
             ' The choice of Next <identifier list> to highlight statement should be based on
             ' structure, not identifier name matches.
@@ -346,7 +346,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961")>
         Public Async Function TestForNestedLoop_NextMatchesOutermostForIfNextClosesMoreForsThanExist() As Task
             Await TestAsync(<Text>
 Class C

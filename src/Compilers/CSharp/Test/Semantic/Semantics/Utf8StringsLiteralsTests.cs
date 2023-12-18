@@ -2944,9 +2944,9 @@ class C
                 // (7,18): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
                 //         _ = s is "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(7, 18),
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'ReadOnlySpan<byte>' is expected
                 //         _ = s is "2"u8;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""2""u8").WithArguments("System.ReadOnlySpan<byte>").WithLocation(8, 18)
                 );
         }
 

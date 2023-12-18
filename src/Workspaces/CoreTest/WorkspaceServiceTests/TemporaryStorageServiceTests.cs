@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestTemporaryStorage(service, text);
         }
 
-        [Fact, WorkItem(531188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // write a normal stream
             var stream = new MemoryStream();
-            stream.Write(new byte[] { 42 }, 0, 1);
+            stream.Write([42], 0, 1);
             stream.Position = 0;
             storage.WriteStreamAsync(stream).Wait();
 

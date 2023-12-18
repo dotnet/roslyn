@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Class")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub ClassFollowsClassTest()
             Dim code =
 <File>
@@ -24,7 +24,7 @@ End Class
             VerifyRecommendationsContain(code, "Class")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub ClassPrecedesClassTest()
             Dim code =
 <File>
@@ -224,12 +224,12 @@ End Namespace</File>, "Class")
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Class")
         End Sub
 
-        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterAsyncTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Class")
         End Sub
 
-        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterAttribute()
             VerifyRecommendationsContain(<File>&lt;AttributeApplication&gt; |</File>, "Class")
         End Sub

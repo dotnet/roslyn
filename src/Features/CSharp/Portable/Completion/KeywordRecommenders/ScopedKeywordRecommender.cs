@@ -4,20 +4,12 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class ScopedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal sealed class ScopedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ScopedKeyword)
     {
-        public ScopedKeywordRecommender()
-            : base(SyntaxKind.ScopedKeyword)
-        {
-        }
-
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;

@@ -312,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-
-                        Dim expected = If(doc.AnnotatedSpans.ContainsKey(DefinitionKey), doc.AnnotatedSpans(DefinitionKey), ImmutableArray(Of TextSpan).Empty).Order()
+                        Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                        Dim expected = If(doc.AnnotatedSpans.TryGetValue(DefinitionKey, spans), spans, ImmutableArray(Of TextSpan).Empty).Order()
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
@@ -585,6 +585,36 @@ partial class C
 
             Dim linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
             Assert.Equal(expectedLinkedSymbolCount, linkedSymbols.Length)
+        End Function
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
+        Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
+            Using workspace = TestWorkspace.Create("
+<Workspace>
+    <Project Language=""NoCompilation"" AssemblyName=""NoCompilationAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+            var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+class C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+", composition:=s_composition)
+                Dim solution = workspace.CurrentSolution
+                Dim csProject = solution.Projects.Single(Function(p) p.SupportsCompilation)
+                Dim compilation = Await csProject.GetCompilationAsync()
+                Dim symbol = compilation.GetTypeByMetadataName("C")
+
+                Dim progress = New StreamingFindReferencesProgressAdapter(NoOpFindReferencesProgress.Instance)
+                Await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
+                    symbol, solution, progress, solution.Projects.SelectMany(Function(p) p.Documents).ToImmutableHashSet(),
+                    FindReferencesSearchOptions.Default, cancellationToken:=Nothing)
+            End Using
         End Function
     End Class
 End Namespace

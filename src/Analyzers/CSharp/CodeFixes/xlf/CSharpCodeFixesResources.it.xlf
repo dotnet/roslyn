@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">Aggiungi parentesi</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_this">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">Consenti codice unsafe in questo progetto</target>
         <note />
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="new">Assign 'out' parameters</target>
+        <target state="translated">Assegnare parametri 'out'</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="new">Assign 'out' parameters (at start)</target>
+        <target state="translated">Assegnare parametri 'out' (all'inizio)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_to_0">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
-        <target state="new">Convert to positional record</target>
+        <target state="translated">Convertire in record posizionale</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
@@ -94,22 +94,32 @@
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="new">Make {0} return Task instead of void.</target>
+        <target state="translated">Fa in modo che {0} restituisca Task invece di void.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="translated">Imposta il campo come 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="new">Make method async</target>
+        <target state="translated">Rendi asincrono il metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="new">Make method async (stay void)</target>
+        <target state="translated">Rendi asincrono il metodo (lascia nullo)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="translated">Imposta la proprietà come 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">Imposta come 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
@@ -127,11 +137,6 @@
         <target state="translated">Inserisci il token nella riga seguente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Rimuovi istruzioni using non necessarie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Rimuovi la riga vuota tra parentesi graffe</target>
@@ -139,12 +144,17 @@
       </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
-        <target state="new">Remove 'in' keyword</target>
+        <target state="translated">Rimuovi la parola chiave 'in'</target>
         <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
-        <target state="new">Remove 'new' modifier</target>
+        <target state="translated">Rimuovi il modificatore 'new'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -154,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
-        <target state="new">Remove unused function</target>
+        <target state="translated">Rimuovi funzione non usata</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
@@ -169,22 +179,42 @@
       </trans-unit>
       <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
         <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="new">Upgrade all C# projects to language version '{0}'</target>
+        <target state="translated">Aggiorna tutti i progetti alla versione '{0}' del linguaggio C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
         <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="new">Upgrade this project to C# language version '{0}'</target>
+        <target state="translated">Aggiorna questo progetto alla versione '{0}' del linguaggio C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="new">Use '{0}'</target>
+        <target state="translated">Usa '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">Usa espressione di raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Usa stringa verbatim interpolata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">Usa costruttore primario (e rimuovi campi)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">Usa costruttore primario (e rimuovi membri)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">Usa costruttore primario (e rimuovi proprietà)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

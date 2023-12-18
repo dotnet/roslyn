@@ -292,6 +292,7 @@ namespace BuildBoss
                     case "net6.0":
                     case "net6.0-windows":
                     case "net7.0":
+                    case "net8.0":
                         continue;
                 }
 

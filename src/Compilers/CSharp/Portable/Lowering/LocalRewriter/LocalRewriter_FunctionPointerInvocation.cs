@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
             var rewrittenExpression = VisitExpression(node.InvokedExpression);
+            Debug.Assert(rewrittenExpression != null);
 
             // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
             // be involved.
@@ -34,8 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(discardedReceiver is null);
 
+            if (node.InterceptableNameSyntax is { } nameSyntax && this._compilation.TryGetInterceptor(nameSyntax.Location) is var (attributeLocation, _))
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
+            }
+
             rewrittenArgs = MakeArguments(
-                node.Syntax,
                 rewrittenArgs,
                 functionPointer,
                 expanded: false,
@@ -44,16 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod: false);
 
-            Debug.Assert(rewrittenExpression != null);
-            node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
+            BoundExpression rewrittenInvocation = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
 
             if (temps.Count == 0)
             {
                 temps.Free();
-                return node;
+            }
+            else
+            {
+                rewrittenInvocation = new BoundSequence(rewrittenInvocation.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, rewrittenInvocation, node.Type);
             }
 
-            return new BoundSequence(node.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, node, node.Type);
+            if (Instrument)
+            {
+                rewrittenInvocation = Instrumenter.InstrumentFunctionPointerInvocation(node, rewrittenInvocation);
+            }
+
+            return rewrittenInvocation;
         }
     }
 }

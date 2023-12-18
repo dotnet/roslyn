@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_member_readonly">
         <source>Make member 'readonly'</source>
-        <target state="new">Make member 'readonly'</target>
+        <target state="translated">Définir comme membre 'readonly'</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_struct_readonly">
@@ -102,9 +102,9 @@
         <target state="translated">Rendre le struct 'readonly'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Member can be made readonly">
+      <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
-        <target state="new">Member can be made 'readonly'</target>
+        <target state="translated">Le membre peut être défini en 'readonly'</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -385,6 +385,11 @@
       <trans-unit id="Use_pattern_matching_may_change_code_meaning">
         <source>Use pattern matching (may change code meaning)</source>
         <target state="translated">Utiliser la correspondance de modèle (peut modifier la signification du code)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">Utiliser le constructeur principal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

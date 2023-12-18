@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 context.RegisterSymbolStartAction(context =>
                 {
+                    if (!ShouldAnalyze(context, (INamedTypeSymbol)context.Symbol))
+                        return;
+
                     context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
 
                     // Can't allow changing the fields to readonly if the struct overwrites itself.  e.g. `this = default;`
@@ -86,7 +89,11 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Local functions.
                 void AnalyzeFieldSymbol(SymbolAnalysisContext symbolContext)
                 {
-                    _ = TryGetOrInitializeFieldState((IFieldSymbol)symbolContext.Symbol, symbolContext.Options, symbolContext.CancellationToken);
+                    var field = (IFieldSymbol)symbolContext.Symbol;
+                    if (!symbolContext.ShouldAnalyzeLocation(GetDiagnosticLocation(field)))
+                        return;
+
+                    _ = TryGetOrInitializeFieldState(field, symbolContext.Options, symbolContext.CancellationToken);
                 }
 
                 void AnalyzeOperation(OperationAnalysisContext operationContext)
@@ -96,15 +103,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                     // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
                     if (!isCandidate || written)
-                    {
                         return;
-                    }
 
                     // Check if this is a field write outside constructor and field initializer, and update field state accordingly.
-                    if (IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
-                    {
-                        UpdateFieldStateOnWrite(fieldReference.Field);
-                    }
+                    if (!IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
+                        return;
+
+                    UpdateFieldStateOnWrite(fieldReference.Field);
                 }
 
                 void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
@@ -113,22 +118,43 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var members = ((INamedTypeSymbol)symbolEndContext.Symbol).GetMembers();
                     foreach (var member in members)
                     {
-                        if (member is IFieldSymbol field && fieldStateMap.TryRemove(field, out var value))
+                        if (member is IFieldSymbol field && fieldStateMap.TryRemove(field.OriginalDefinition, out var value))
                         {
                             var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
-                                var option = GetCodeStyleOption(field, symbolEndContext.Options);
+                                var option = GetCodeStyleOption(field, symbolEndContext.Options, out var location);
                                 var diagnostic = DiagnosticHelper.Create(
                                     Descriptor,
-                                    field.Locations[0],
-                                    option.Notification.Severity,
+                                    location,
+                                    option.Notification,
                                     additionalLocations: null,
                                     properties: null);
                                 symbolEndContext.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
+                }
+
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+                {
+                    // Check if we have at least one candidate field in analysis scope.
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        if (member is IFieldSymbol field
+                            && IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute)
+                            && GetDiagnosticLocation(field) is { } location
+                            && context.ShouldAnalyzeLocation(location))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                    if (namedType.ContainingType is { } containingType)
+                        return ShouldAnalyze(context, containingType);
+
+                    return false;
                 }
 
                 static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
@@ -160,9 +186,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
-                    Debug.Assert(fieldStateMap.ContainsKey(field));
+                    Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
 
-                    fieldStateMap[field] = (isCandidate: true, written: true);
+                    fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
                 }
 
                 // Method to get or initialize the field state.
@@ -173,17 +199,17 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         return default;
                     }
 
-                    if (fieldStateMap.TryGetValue(fieldSymbol, out var result))
+                    if (fieldStateMap.TryGetValue(fieldSymbol.OriginalDefinition, out var result))
                     {
                         return result;
                     }
 
                     result = ComputeInitialFieldState(fieldSymbol, options, threadStaticAttribute, dataContractAttribute, dataMemberAttribute, cancellationToken);
-                    return fieldStateMap.GetOrAdd(fieldSymbol, result);
+                    return fieldStateMap.GetOrAdd(fieldSymbol.OriginalDefinition, result);
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(
+                (bool isCandidate, bool written) ComputeInitialFieldState(
                     IFieldSymbol field,
                     AnalyzerOptions options,
                     INamedTypeSymbol? threadStaticAttribute,
@@ -193,8 +219,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
-                    var option = GetCodeStyleOption(field, options);
-                    if (option == null || !option.Value)
+                    var option = GetCodeStyleOption(field, options, out var location);
+                    if (option == null
+                        || !option.Value
+                        || ShouldSkipAnalysis(location.SourceTree!, options, context.Compilation.Options, option.Notification, cancellationToken))
                     {
                         return default;
                     }
@@ -204,49 +232,69 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             });
         }
 
+        private static Location GetDiagnosticLocation(IFieldSymbol field)
+            => field.Locations[0];
+
         private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
             // Check if the underlying member is being written or a writable reference to the member is taken.
             var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
             if (!valueUsageInfo.IsWrittenTo())
-            {
                 return false;
-            }
 
             // Writes to fields inside constructor are ignored, except for the below cases:
             //  1. Instance reference of an instance field being written is not the instance being initialized by the constructor.
             //  2. Field is being written inside a lambda or local function.
 
             // Check if we are in the constructor of the containing type of the written field.
-            var isInConstructor = owningSymbol.IsConstructor();
+            var isInInstanceConstructor = owningSymbol.IsConstructor();
             var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+
+            // If we're not in a constructor, this is definitely a write to the field that would prevent it from
+            // becoming readonly.
+            if (!isInInstanceConstructor && !isInStaticConstructor)
+                return true;
+
             var field = fieldReference.Field;
-            if ((isInConstructor || isInStaticConstructor) &&
-                field.ContainingType == owningSymbol.ContainingType)
+
+            // Follow 'strict' C#/VB behavior. Has to be opted into by user with feature-flag "strict", but is
+            // actually what the languages specify as correct.  Specifically the actual types of the containing
+            // type and field-reference-containing type must be the same (not just their OriginalDefinition
+            // types).
+            //
+            // https://github.com/dotnet/roslyn/blob/8770fb62a36157ed4ca38a16a0283d27321a01a7/src/Compilers/CSharp/Portable/Binder/Binder.ValueChecks.cs#L1201-L1203
+            // https//github.com/dotnet/roslyn/blob/93d3aa1a2cf1790b1a0fe2d120f00987d50445c0/src/Compilers/VisualBasic/Portable/Binding/Binder_Expressions.vb#L1868-L1871
+            if (!field.ContainingType.Equals(owningSymbol.ContainingType))
+                return true;
+
+            if (isInStaticConstructor)
+            {
+                // For static fields, ensure that we are in the static constructor.
+                if (!field.IsStatic)
+                    return true;
+            }
+            else
             {
                 // For instance fields, ensure that the instance reference is being initialized by the constructor.
-                var instanceFieldWrittenInCtor = isInConstructor &&
-                    fieldReference.Instance?.Kind == OperationKind.InstanceReference &&
-                    !fieldReference.IsTargetOfObjectMemberInitializer();
-
-                // For static fields, ensure that we are in the static constructor.
-                var staticFieldWrittenInStaticCtor = isInStaticConstructor && field.IsStatic;
-
-                if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
+                Debug.Assert(isInInstanceConstructor);
+                if (fieldReference.Instance?.Kind != OperationKind.InstanceReference ||
+                    fieldReference.IsTargetOfObjectMemberInitializer())
                 {
-                    // Finally, ensure that the write is not inside a lambda or local function.
-                    if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is null)
-                    {
-                        // It is safe to ignore this write.
-                        return false;
-                    }
+                    return true;
                 }
             }
 
-            return true;
+            // Finally, ensure that the write is not inside a lambda or local function.
+            if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
+                return true;
+
+            return false;
         }
 
-        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
-            => options.GetAnalyzerOptions(field.Locations[0].SourceTree!).PreferReadonly;
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
+        {
+            diagnosticLocation = GetDiagnosticLocation(field);
+            return options.GetAnalyzerOptions(diagnosticLocation.SourceTree!).PreferReadonly;
+        }
     }
 }

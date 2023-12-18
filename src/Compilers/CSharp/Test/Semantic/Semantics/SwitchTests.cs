@@ -148,15 +148,15 @@ public class Test
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
         }
 
         [Fact]
@@ -1047,7 +1047,7 @@ class C
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
@@ -1058,7 +1058,7 @@ class C
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
         }
 
         [Fact]
@@ -3557,7 +3557,7 @@ namespace System.Runtime.CompilerServices
     IL_008a:  br.s       IL_0097
     IL_008c:  ldloc.1
     IL_008d:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>""
-    IL_0092:  call       ""ThrowSwitchExpressionException""
+    IL_0092:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_0097:  ldloc.0
     IL_0098:  call       ""void System.Console.WriteLine(int)""
     IL_009d:  leave.s    IL_00ac
@@ -3687,7 +3687,7 @@ namespace System.Runtime.CompilerServices
     IL_009f:  br.s       IL_00ac
     IL_00a1:  ldloc.1
     IL_00a2:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>""
-    IL_00a7:  call       ""ThrowSwitchExpressionException""
+    IL_00a7:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_00ac:  ldloc.0
     IL_00ad:  call       ""void System.Console.WriteLine(int)""
     IL_00b2:  leave.s    IL_00c1

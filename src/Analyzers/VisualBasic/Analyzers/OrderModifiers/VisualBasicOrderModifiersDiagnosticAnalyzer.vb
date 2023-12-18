@@ -27,18 +27,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,
             preferredOrder As Dictionary(Of Integer, Integer),
-            severity As ReportDiagnostic,
+            notificationOption As NotificationOption2,
             root As SyntaxNode)
 
             For Each child In root.ChildNodesAndTokens()
-                If child.IsNode Then
+                If child.IsNode And context.ShouldAnalyzeSpan(child.Span) Then
                     Dim declarationStatement = TryCast(child.AsNode(), DeclarationStatementSyntax)
                     If declarationStatement IsNot Nothing Then
                         If ShouldCheck(declarationStatement) Then
-                            CheckModifiers(context, preferredOrder, severity, declarationStatement)
+                            CheckModifiers(context, preferredOrder, notificationOption, declarationStatement)
                         End If
 
-                        Recurse(context, preferredOrder, severity, declarationStatement)
+                        Recurse(context, preferredOrder, notificationOption, declarationStatement)
                     End If
                 End If
             Next

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans
         /// list.
         /// </summary>
-        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
+        private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
             bool highlightBreaks, bool highlightGotos)
         {
             Debug.Assert(highlightBreaks || highlightGotos);

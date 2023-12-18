@@ -7,18 +7,12 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQMemberParameterIndex : RQNode
+    internal class RQMemberParameterIndex(
+        RQMember containingMember,
+        int parameterIndex) : RQNode
     {
-        public readonly RQMember ContainingMember;
-        public readonly int ParameterIndex;
-
-        public RQMemberParameterIndex(
-            RQMember containingMember,
-            int parameterIndex)
-        {
-            ContainingMember = containingMember;
-            ParameterIndex = parameterIndex;
-        }
+        public readonly RQMember ContainingMember = containingMember;
+        public readonly int ParameterIndex = parameterIndex;
 
         protected override string RQKeyword
         {

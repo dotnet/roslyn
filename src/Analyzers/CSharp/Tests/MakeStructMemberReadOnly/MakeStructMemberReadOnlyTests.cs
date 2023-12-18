@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructMemberReadOnly;
@@ -481,7 +482,7 @@ public sealed class MakeStructMemberReadOnlyTests
             TestCode = """
             struct S
             {
-                int [|P|] => 0;
+                int P [|=>|] 0;
             }
             """,
             FixedCode = """
@@ -1380,6 +1381,868 @@ public sealed class MakeStructMemberReadOnlyTests
                 }
             }
             """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67531")]
+    public async Task TestWithFixedSizeBufferField1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct Repro
+            {
+                private unsafe fixed byte bytes[16];
+
+                public unsafe void AsSpan()
+                {
+                    M(ref bytes[0]);
+                }
+
+                private readonly void M(ref byte b) { }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+            		SHA1.HashData(Data, Hash);
+            	}
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+                    TakesSpan(Data);
+            	}
+
+                readonly void TakesSpan(Span<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void RecalculateHash()
+            	{
+                    TakesSpan(this.Data);
+            	}
+
+                readonly void TakesSpan(Span<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesReadOnlySpan(Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesReadOnlySpan(Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan3_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesReadOnlySpan(this.Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesReadOnlySpan(this.Data);
+            	}
+
+                readonly void TakesReadOnlySpan(ReadOnlySpan<byte> bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesByteArray(Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesByteArray(Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70116")]
+    public async Task TestInlineArraySpan4_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public void [|RecalculateHash|]()
+            	{
+                    TakesByteArray(this.Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Security.Cryptography;
+
+            public struct Repro
+            {
+            	public ByteArray20 Data;
+            	public ByteArray20 Hash;
+
+                public readonly void RecalculateHash()
+            	{
+                    TakesByteArray(this.Data);
+            	}
+
+                readonly void TakesByteArray(ByteArray20 bytes) { }
+
+                [InlineArray(20)]
+            	public struct ByteArray20
+            	{
+            		private byte _byte;
+            	}
+            }
+            """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference0()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value = 0;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value = (short)(value & ~(1 << candidate));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value++;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.X++;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.X = 1;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.MutatingMethod();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public readonly void NonMutatingMethod() { }
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        value.NonMutatingMethod();
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public readonly void NonMutatingMethod() { }
+                }
+                
+                struct Cell(Point value)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        value.NonMutatingMethod();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(int value)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        var x = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Cell(int value)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        var x = value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(string value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value = "";
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+
+                struct Cell(Point point)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        point.X = 1;
+                    }
+                }
+                """,
+            FixedCode = """
+                class Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+
+                struct Cell(Point point)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        point.X = 1;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            class Point
+            {
+                public int X;
+
+                public void MutatingMethod() => X++;
+            }
+
+            struct Cell(Point point)
+            {
+                public void [|RemoveBit|](int candidate)
+                {
+                    point.MutatingMethod();
+                }
+            }
+            """,
+            FixedCode = """
+            class Point
+            {
+                public int X;
+
+                public void MutatingMethod() => X++;
+            }
+
+            struct Cell(Point point)
+            {
+                public readonly void RemoveBit(int candidate)
+                {
+                    point.MutatingMethod();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference11()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : class, IDisposable
+            {
+                public void [|RemoveBit|](int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            
+            struct Cell<T>(T t) where T : class, IDisposable
+            {
+                public readonly void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : struct, IDisposable
+            {
+                public void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : IDisposable
+            {
+                public void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        get => _MaxSize;
+
+                        // missing, since the property is already readonly
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        readonly get => _MaxSize;
+
+                        [|init|]
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        get => _MaxSize;
+
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        get => _MaxSize++;
+
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        [|init|]
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
 }

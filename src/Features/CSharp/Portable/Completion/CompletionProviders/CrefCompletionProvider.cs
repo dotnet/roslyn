@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(CrefCompletionProvider), LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = nameof(EnumAndCompletionListTagCompletionProvider))]
-    internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
     {
         private static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -44,12 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
         private Action<SyntaxNode?>? _testSpeculativeNodeCallback;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CrefCompletionProvider()
-        {
-        }
 
         internal override string Language => LanguageNames.CSharp;
 
@@ -76,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.IsExclusive = true;
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = GetCompletionItemSpan(text, position);
-                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, options.HideAdvancedMembers.ToString());
+                var serializedOptions = ImmutableArray.Create(new KeyValuePair<string, string>(HideAdvancedMembers, options.HideAdvancedMembers.ToString()));
 
                 var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
@@ -237,34 +235,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static IEnumerable<CompletionItem> CreateCompletionItems(
-            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
+            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableArray<KeyValuePair<string, string>> options)
         {
-            var builder = SharedPools.Default<StringBuilder>().Allocate();
-            try
+            using var _ = SharedPools.Default<StringBuilder>().GetPooledObject(out var builder);
+
+            foreach (var group in symbols.GroupBy(s => s.Name))
             {
-                foreach (var symbol in symbols)
+                var groupCount = group.Count();
+                foreach (var symbol in group.OrderBy(s => s.GetArity()))
                 {
-                    yield return CreateItem(semanticModel, symbol, token, position, builder, options);
+                    // Include the arity in the sort text so that we show types/methods from least arity to most arity.
+                    var sortText = $"{symbol.Name}`{symbol.GetArity():000}";
+
+                    // For every symbol, we create an item that uses the regular CrefFormat,
+                    // which uses intrinsic type keywords
+                    yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, sortText, options, CrefFormat);
                     if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
                         yield return item;
                 }
-            }
-            finally
-            {
-                SharedPools.Default<StringBuilder>().ClearAndFree(builder);
             }
         }
 
         private static bool TryCreateSpecialTypeItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-            ImmutableDictionary<string, string> options, [NotNullWhen(true)] out CompletionItem? item)
+            ImmutableArray<KeyValuePair<string, string>> options, [NotNullWhen(true)] out CompletionItem? item)
         {
             // If the type is a SpecialType, create an additional item using 
             // its actual name (as opposed to intrinsic type keyword)
             var typeSymbol = symbol as ITypeSymbol;
             if (typeSymbol.IsSpecialType())
             {
-                item = CreateItem(semanticModel, symbol, token, position, builder, options, QualifiedCrefFormat);
+                item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, builder.ToString(), options, QualifiedCrefFormat);
                 return true;
             }
 
@@ -273,15 +274,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static CompletionItem CreateItem(
-            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
-        {
-            // For every symbol, we create an item that uses the regular CrefFormat,
-            // which uses intrinsic type keywords
-            return CreateItem(semanticModel, symbol, token, position, builder, options, CrefFormat);
-        }
-
-        private static CompletionItem CreateItem(
-            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
+            SemanticModel semanticModel,
+            ISymbol symbol,
+            int groupCount,
+            SyntaxToken token,
+            int position,
+            StringBuilder builder,
+            string sortText,
+            ImmutableArray<KeyValuePair<string, string>> options,
             SymbolDisplayFormat unqualifiedCrefFormat)
         {
             builder.Clear();
@@ -297,46 +297,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 builder.Append(symbol.ToMinimalDisplayString(semanticModel, token.SpanStart, unqualifiedCrefFormat));
 
                 var parameters = symbol.GetParameters();
-                if (!parameters.IsDefaultOrEmpty)
+
+                // if this has parameters, then add them here.  Otherwise, if this is a method without parameters, but
+                // there are overloads of it, then also add the parameters to disambiguate.
+                if (parameters.Length > 0 ||
+                    (symbol is IMethodSymbol && groupCount >= 2))
                 {
                     // Note: we intentionally don't add the "params" modifier for any parameters.
 
                     builder.Append(symbol.IsIndexer() ? '[' : '(');
-
-                    for (var i = 0; i < parameters.Length; i++)
-                    {
-                        if (i > 0)
-                            builder.Append(", ");
-
-                        var parameter = parameters[i];
-
-                        switch (parameter.RefKind)
+                    builder.AppendJoinedValues(", ", parameters,
+                        (p, builder) =>
                         {
-                            case RefKind.Ref:
-                                builder.Append("ref ");
-                                break;
-                            case RefKind.Out:
-                                builder.Append("out ");
-                                break;
-                            case RefKind.In:
-                                builder.Append("in ");
-                                break;
-                        }
-
-                        builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));
-                    }
-
+                            builder.Append(p.RefKind switch
+                            {
+                                RefKind.Ref => "ref ",
+                                RefKind.Out => "out ",
+                                RefKind.In => "in ",
+                                RefKind.RefReadOnlyParameter => "ref readonly ",
+                                _ => "",
+                            });
+                            builder.Append(p.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));
+                        });
                     builder.Append(symbol.IsIndexer() ? ']' : ')');
                 }
             }
 
-            return CreateItemFromBuilder(symbol, position, builder, options);
+            return CreateItemFromBuilder(symbol, position, builder, sortText, options);
         }
 
-        private static CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        private static CompletionItem CreateItemFromBuilder(
+            ISymbol symbol, int position, StringBuilder builder, string sortText, ImmutableArray<KeyValuePair<string, string>> options)
         {
-            var symbolText = builder.ToString();
-
             var insertionText = builder
                 .Replace('<', '{')
                 .Replace('>', '}')
@@ -348,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
-                sortText: symbolText,
+                sortText: sortText,
                 filterText: insertionText,
                 properties: options,
                 rules: GetRules(insertionText));
@@ -394,12 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(CrefCompletionProvider crefCompletionProvider)
         {
-            private readonly CrefCompletionProvider _crefCompletionProvider;
-
-            public TestAccessor(CrefCompletionProvider crefCompletionProvider)
-                => _crefCompletionProvider = crefCompletionProvider;
+            private readonly CrefCompletionProvider _crefCompletionProvider = crefCompletionProvider;
 
             public void SetSpeculativeNodeCallback(Action<SyntaxNode?> value)
                 => _crefCompletionProvider._testSpeculativeNodeCallback = value;

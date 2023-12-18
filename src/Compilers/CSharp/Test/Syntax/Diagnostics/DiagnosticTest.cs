@@ -275,7 +275,7 @@ class X
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
-                        case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_WindowsExperimental:
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -302,6 +302,26 @@ class X
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                         case ErrorCode.WRN_OptionalParamValueMismatch:
                         case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                        case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                        case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                        case ErrorCode.WRN_InterceptorSignatureMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                        case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                        case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                        case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                        case ErrorCode.WRN_InlineArraySliceNotUsed:
+                        case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                        case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                        case ErrorCode.WRN_BadArgRef:
+                        case ErrorCode.WRN_ArgExpectedRefOrIn:
+                        case ErrorCode.WRN_RefReadonlyNotVariable:
+                        case ErrorCode.WRN_ArgExpectedIn:
+                        case ErrorCode.WRN_OverridingDifferentRefness:
+                        case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_TargetDifferentRefness:
+                        case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                        case ErrorCode.WRN_Experimental:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -406,6 +426,9 @@ class X
                         case ErrorCode.WRN_RefReturnOnlyParameter:
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
                         case ErrorCode.WRN_RefAssignValEscapeWider:
+                        case ErrorCode.WRN_UseDefViolationRefField:
+                        case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                        case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -437,6 +460,11 @@ class X
                         case ErrorCode.WRN_LowerCaseTypeName:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_AddressOfInAsync:
+                        case ErrorCode.WRN_ByValArraySizeConstRequired:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
+                            Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -2928,9 +2956,24 @@ class Program
                     case ErrorCode.ERR_RefReturningCallAndAwait:
                     case ErrorCode.ERR_SpecialByRefInLambda:
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                    case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
+                    case ErrorCode.ERR_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                    case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                    case ErrorCode.ERR_DuplicateInterceptor:
+                    case ErrorCode.WRN_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorNotAccessible:
+                    case ErrorCode.ERR_InterceptorScopedMismatch:
+                    case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                    case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                    case ErrorCode.ERR_InterceptorCannotInterceptNameof:
+                    case ErrorCode.ERR_SymbolDefinedInAssembly:
+                    case ErrorCode.ERR_InterceptorArityNotCompatible:
+                    case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                    case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

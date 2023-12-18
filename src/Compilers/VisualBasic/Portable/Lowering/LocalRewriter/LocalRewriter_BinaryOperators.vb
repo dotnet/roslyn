@@ -3,13 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1029,7 +1024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' For AndAlso, this optimization is valid only when we know that left has value
                 Debug.Assert(leftHasValue OrElse (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse)
 
-                booleanResult = ApplyUnliftedBinaryOp(node, NullableValueOrDefault(left, leftHasValue), NullableValueOrDefault(right, rightHasValue))
+                booleanResult = ApplyUnliftedBinaryOp(node, NullableValueOrDefaultWithOperandHasValue(left, leftHasValue), NullableValueOrDefaultWithOperandHasValue(right, rightHasValue))
             End If
 
             ' return new R?(booleanResult), the consumer will take care of optimizing out the creation of this Nullable(Of Boolean) instance, if possible.
@@ -1046,7 +1041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      result, result.Type)
         End Function
 
-        Private Function NullableValueOrDefault(operand As BoundExpression, operandHasValue As Boolean) As BoundExpression
+        Private Function NullableValueOrDefaultWithOperandHasValue(operand As BoundExpression, operandHasValue As Boolean) As BoundExpression
             Debug.Assert(operand.Type.IsNullableOfBoolean())
 
             If Not Me._inExpressionLambda OrElse operandHasValue Then

@@ -140,7 +140,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn1XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -164,7 +164,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, WorkItem(827031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827031")>
         Public Async Function TestDeclaringGenericTypeWith2ParametersOn2XmlDocReferencingTypeParams() As Task
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -543,9 +543,9 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <Fact, WorkItem(544124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544124")>
-        <WorkItem(544123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544123")>
-        <WorkItem(684631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684631")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544124")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544123")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684631")>
         Public Async Function TestCallingGenericExtensionMethod() As Task
             Dim markup = <a><![CDATA[
 Imports System

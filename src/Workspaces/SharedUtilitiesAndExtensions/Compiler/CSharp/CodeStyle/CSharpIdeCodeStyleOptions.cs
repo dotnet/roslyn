@@ -37,9 +37,6 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     private static readonly CodeStyleOption2<string> s_defaultModifierOrder =
         new(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption2.Silent);
 
-    public static readonly CodeStyleOption2<AddImportPlacement> s_outsideNamespacePlacementWithSilentEnforcement =
-        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
-
     private static readonly CodeStyleOption2<ExpressionBodyPreference> s_whenPossibleWithSilentEnforcement =
         new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
 
@@ -76,6 +73,8 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStructMember { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
+
+    [DataMember] public CodeStyleOption2<bool> PreferPrimaryConstructors { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
     public CSharpIdeCodeStyleOptions()
         : base()
@@ -114,5 +113,6 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
         PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
         PreferReadOnlyStructMember = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, fallbackOptions.PreferReadOnlyStructMember);
         PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
+        PreferPrimaryConstructors = options.GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, fallbackOptions.PreferPrimaryConstructors);
     }
 }

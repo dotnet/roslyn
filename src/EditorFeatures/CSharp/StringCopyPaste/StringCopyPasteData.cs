@@ -24,15 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// Data about a string that a user has copied a subsection of. This will itself be placed on the clipboard so that
     /// it can be retrieved later on if the user pastes.
     /// </summary>
-    internal class StringCopyPasteData
+    [method: JsonConstructor]
+    internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
     {
-        public ImmutableArray<StringCopyPasteContent> Contents { get; }
-
-        [JsonConstructor]
-        public StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
-        {
-            Contents = contents;
-        }
+        public ImmutableArray<StringCopyPasteContent> Contents { get; } = contents;
 
         public string? ToJson()
         {

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     Public Class DocumentHighlightsServiceTests
 
         <Theory, CombinatorialData>
-        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         Public Async Function TestMultipleLanguagesPassedToAPI(testHost As TestHost) As Task
             Dim workspaceElement =
                 <Workspace>

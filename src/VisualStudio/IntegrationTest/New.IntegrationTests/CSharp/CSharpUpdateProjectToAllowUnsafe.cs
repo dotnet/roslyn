@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -61,7 +62,7 @@ unsafe class C
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
-        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23342")]
         public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {
             var project = ProjectName;

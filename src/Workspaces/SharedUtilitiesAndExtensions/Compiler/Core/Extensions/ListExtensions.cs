@@ -39,6 +39,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             list.RemoveRange(targetIndex, list.Count - targetIndex);
         }
 
+        public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+            where T : struct
+        {
+            RoslynDebug.AssertNotNull(list);
+            RoslynDebug.AssertNotNull(transform);
+
+            var targetIndex = 0;
+            for (var sourceIndex = 0; sourceIndex < list.Count; sourceIndex++)
+            {
+                var newValue = transform(list[sourceIndex], arg);
+                if (newValue is null)
+                    continue;
+
+                list[targetIndex++] = newValue.Value;
+            }
+
+            list.RemoveRange(targetIndex, list.Count - targetIndex);
+        }
+
         /// <summary>
         /// Attempts to remove the first item selected by <paramref name="selector"/>.
         /// </summary>
@@ -65,9 +84,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int IndexOf<T>(this IList<T> list, Func<T, bool> predicate)
         {
-            Contract.ThrowIfNull(list);
-            Contract.ThrowIfNull(predicate);
-
             for (var i = 0; i < list.Count; i++)
             {
                 if (predicate(list[i]))
@@ -77,6 +93,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return -1;
+        }
+
+        public static int IndexOf<T, TArg>(this IList<T> list, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i], arg))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static void AddRangeWhere<T>(this List<T> list, List<T> collection, Func<T, bool> predicate)
+        {
+            foreach (var element in collection)
+            {
+                if (predicate(element))
+                    list.Add(element);
+            }
         }
     }
 }

@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
@@ -312,9 +311,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 'attached' to this workspace.
                 (_, newSolution) = this.SetCurrentSolution(
                     _ => newSolution,
-                    changeKind: static (oldSolution, newSolution) => IsAddingSolution(oldSolution, newSolution)
-                        ? WorkspaceChangeKind.SolutionAdded
-                        : WorkspaceChangeKind.SolutionChanged,
+                    changeKind: static (oldSolution, newSolution) =>
+                        (IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                     onBeforeUpdate: (oldSolution, newSolution) =>
                     {
                         if (IsAddingSolution(oldSolution, newSolution))

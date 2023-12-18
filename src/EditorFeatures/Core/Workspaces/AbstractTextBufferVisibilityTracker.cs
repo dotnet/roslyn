@@ -119,14 +119,9 @@ namespace Microsoft.CodeAnalysis.Workspaces
         public TestAccessor GetTestAccessor()
             => new(this);
 
-        public readonly struct TestAccessor
+        public readonly struct TestAccessor(AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> visibilityTracker)
         {
-            private readonly AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> _visibilityTracker;
-
-            public TestAccessor(AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> visibilityTracker)
-            {
-                _visibilityTracker = visibilityTracker;
-            }
+            private readonly AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> _visibilityTracker = visibilityTracker;
 
             public void TriggerCallbacks(ITextBuffer subjectBuffer)
             {

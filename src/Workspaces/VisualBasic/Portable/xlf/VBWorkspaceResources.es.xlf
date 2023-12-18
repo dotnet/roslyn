@@ -22,6 +22,11 @@
         <target state="translated">Orde&amp;nar instrucciones Import</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Convenciones de código de VB</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;evento&gt;</target>

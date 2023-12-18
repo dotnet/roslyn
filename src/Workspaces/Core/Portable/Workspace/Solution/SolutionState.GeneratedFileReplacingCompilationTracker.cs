@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis
         /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
         /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
         /// </summary>
-        private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
+        private class GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState) : ICompilationTracker
         {
-            private readonly SourceGeneratedDocumentState _replacedGeneratedDocumentState;
-
             private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             /// <summary>
@@ -32,16 +30,9 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
-            public ICompilationTracker UnderlyingTracker { get; }
-            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
+            public SkeletonReferenceCache SkeletonReferenceCache { get; } = underlyingTracker.SkeletonReferenceCache.Clone();
             public ProjectState ProjectState => UnderlyingTracker.ProjectState;
-
-            public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
-            {
-                UnderlyingTracker = underlyingTracker;
-                _replacedGeneratedDocumentState = replacementDocumentState;
-                SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
-            }
 
             public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
 
@@ -83,11 +74,11 @@ namespace Microsoft.CodeAnalysis
                 var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
                 var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                underlyingSourceGeneratedDocuments.TryGetState(_replacedGeneratedDocumentState.Id, out var existingState);
+                underlyingSourceGeneratedDocuments.TryGetState(replacementDocumentState.Id, out var existingState);
 
                 Compilation newCompilation;
 
-                var newSyntaxTree = await _replacedGeneratedDocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var newSyntaxTree = await replacementDocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (existingState != null)
                 {
@@ -122,7 +113,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);
@@ -131,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
                 => Checksum.Create(
                     await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
-                    await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
+                    await replacementDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
             public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
@@ -149,11 +140,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                if (underlyingGeneratedDocumentStates.Contains(_replacedGeneratedDocumentState.Id))
+                if (underlyingGeneratedDocumentStates.Contains(replacementDocumentState.Id))
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    return underlyingGeneratedDocumentStates.SetState(_replacedGeneratedDocumentState.Id, _replacedGeneratedDocumentState);
+                    return underlyingGeneratedDocumentStates.SetState(replacementDocumentState.Id, replacementDocumentState);
                 }
                 else
                 {
@@ -161,7 +152,7 @@ namespace Microsoft.CodeAnalysis
                     // an edit which would cause this file to no longer exist, but they're still operating on an open representation
                     // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
                     // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    return underlyingGeneratedDocumentStates.AddRange(ImmutableArray.Create(_replacedGeneratedDocumentState));
+                    return underlyingGeneratedDocumentStates.AddRange(ImmutableArray.Create(replacementDocumentState));
                 }
             }
 
@@ -178,9 +169,9 @@ namespace Microsoft.CodeAnalysis
 
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
             {
-                if (documentId == _replacedGeneratedDocumentState.Id)
+                if (documentId == replacementDocumentState.Id)
                 {
-                    return _replacedGeneratedDocumentState;
+                    return replacementDocumentState;
                 }
                 else
                 {
