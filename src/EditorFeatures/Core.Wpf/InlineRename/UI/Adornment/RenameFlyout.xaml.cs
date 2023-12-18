@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -32,6 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IThreadingContext _threadingContext;
+        private readonly Lazy<RenameUserInputTextBox> _identifierTextBox;
+        private readonly Lazy<SmartRenameUserInputComboBox> _smartRenameUserInputComboBox;
+
+        private IRenameUserInput RenameUserInput => _viewModel.SmartRenameViewModel is null ? _identifierTextBox.Value : _smartRenameUserInputComboBox.Value;
 
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
@@ -51,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
             _threadingContext = threadingContext;
             _wpfThemeService = themeService;
+            _identifierTextBox = new(() => new RenameUserInputTextBox(_viewModel));
+            _smartRenameUserInputComboBox = new(() => new SmartRenameUserInputComboBox(_viewModel));
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -58,12 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Wait until load to position adornment for space negotiation
                 PositionAdornment();
 
-                IdentifierTextBox.Focus();
-                IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
-                IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
+                RenameUserInput.Focus();
+                RenameUserInput.SelectText(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+                RenameUserInput.TextSelectionChanged += RenameUserInput_TextSelectionChanged;
             };
 
             InitializeComponent();
+
+            RenameUserInputPresenter.Content = RenameUserInput;
+            RenameUserInput.PreviewKeyDown += RenameUserInput_PreviewKeyDown;
 
             // If smart rename is available, insert the control after the identifier text box.
             if (viewModel.SmartRenameViewModel is not null)
@@ -197,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // loop focus back to the first item that is focusable.
                     FrameworkElement lastItem = _viewModel.IsExpanded
                         ? FileRenameCheckbox
-                        : IdentifierTextBox;
+                        : (FrameworkElement)RenameUserInput;
 
                     if (lastItem.IsFocused)
                     {
@@ -209,11 +219,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void IdentifierTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            IdentifierTextBox.SelectAll();
-        }
-
         private void Adornment_ConsumeMouseEvent(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -221,12 +226,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void Adornment_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            if (e.OldFocus == this)
+            if (e.OldFocus == this || e.OldFocus == RenameUserInput)
             {
                 return;
             }
 
-            IdentifierTextBox.Focus();
+            RenameUserInput.Focus();
             e.Handled = true;
         }
 
@@ -239,30 +244,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// Respond to selection/cursor changes in the textbox the user is editing by
         /// applying the same selection to the textview that initiated the command
         /// </summary>
-        private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
+        private void RenameUserInput_TextSelectionChanged(object sender, RoutedEventArgs e)
         {
             // When user is editing the text or make selection change in the text box, sync the selection with text view
-            if (!this.IdentifierTextBox.IsFocused)
+            if (!this.RenameUserInput.IsFocused)
             {
                 return;
             }
 
-            var start = IdentifierTextBox.SelectionStart;
-            var length = IdentifierTextBox.SelectionLength;
+            var start = RenameUserInput.TextSelectionStart;
+            var length = RenameUserInput.TextSelectionLength;
 
             var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
             var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
             _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
         }
 
-        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        private void RenameUserInput_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // When smart rename is available, allow the user choose the suggestions using the up/down keys.
             _threadingContext.ThrowIfNotOnUIThread();
             var smartRenameViewModel = _viewModel.SmartRenameViewModel;
             if (smartRenameViewModel is not null)
             {
-                var currentIdentifier = IdentifierTextBox.Text;
+                var currentIdentifier = RenameUserInput.Text;
                 if (e.Key is Key.Down or Key.Up)
                 {
                     var newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: e.Key == Key.Down);
@@ -270,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         _viewModel.IdentifierText = newIdentifier;
                         // Place the cursor at the end of the input text box.
-                        IdentifierTextBox.Select(newIdentifier.Length, 0);
+                        RenameUserInput.SelectText(newIdentifier.Length, 0);
                         e.Handled = true;
                     }
                 }

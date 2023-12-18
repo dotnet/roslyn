@@ -1,1 +1,19 @@
-
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputPresenter
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputPresenter.RenameUserInputPresenter() -> void
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.InitializeComponent() -> void
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.SelectText(int start, int length) -> void
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.TextSelectionChanged -> System.Windows.RoutedEventHandler
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.TextSelectionLength.get -> int
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.TextSelectionLength.set -> void
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.TextSelectionStart.get -> int
+Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameUserInputTextBox.TextSelectionStart.set -> void
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.InitializeComponent() -> void
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.SelectText(int start, int length) -> void
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.TextSelectionChanged -> System.Windows.RoutedEventHandler
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.TextSelectionLength.get -> int
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.TextSelectionLength.set -> void
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.TextSelectionStart.get -> int
+Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.TextSelectionStart.set -> void
+override Microsoft.CodeAnalysis.InlineRename.UI.SmartRename.SmartRenameUserInputComboBox.OnApplyTemplate() -> void

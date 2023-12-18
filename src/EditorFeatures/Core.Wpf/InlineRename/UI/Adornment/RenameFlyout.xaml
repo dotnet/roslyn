@@ -38,13 +38,10 @@
                     <ColumnDefinition Width="22" />
                 </Grid.ColumnDefinitions>
 
-                <TextBox 
+                <rename:RenameUserInputPresenter
                     Grid.Column="0"
-                    x:Name="IdentifierTextBox" 
-                    Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
-                    GotFocus="IdentifierTextBox_GotFocus"
-                    HorizontalAlignment="Stretch" 
-                    PreviewKeyDown="IdentifierTextBox_KeyDown"/>
+                    x:Name="RenameUserInputPresenter"
+                    HorizontalAlignment="Stretch"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button 

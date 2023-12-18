@@ -60,11 +60,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value);
+                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
                 SmartRenameViewModel.OnSelectedSuggestedNameChanged += OnSuggestedNameSelected;
+                SmartRenameViewModel.PropertyChanged += SmartRenameViewModel_PropertyChanged;
             }
 
             RegisterOleComponent();
+        }
+
+        private void SmartRenameViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SmartRenameViewModel.CurrentIdentifierText) && SmartRenameViewModel != null)
+            {
+                this.IdentifierText = SmartRenameViewModel.CurrentIdentifierText;
+            }
         }
 
         private void OnSuggestedNameSelected(object sender, string? selectedName)
