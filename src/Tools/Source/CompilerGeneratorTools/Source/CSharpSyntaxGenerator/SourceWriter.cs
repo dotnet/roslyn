@@ -268,7 +268,7 @@ namespace CSharpSyntaxGenerator
                         using (builder.EnterIndentedRegion())
                         {
                             builder.WriteLine("=> index switch");
-                            using (builder.EnterBlock())
+                            using (builder.EnterIndentedRegion("{", "};"))
                             {
                                 for (int i = 0, n = nodeFields.Count; i < n; i++)
                                 {
@@ -943,24 +943,25 @@ namespace CSharpSyntaxGenerator
                         else
                         {
                             builder.WriteLine();
-                            Indent();
-                            builder.WriteLine("=> index switch");
-                            OpenBlock();
-                            foreach (var (field, index) in relevantNodes)
+                            using (builder.EnterIndentedRegion())
                             {
-                                var suffix = IsOptional(field) ? "" : "!";
-                                if (index == 0)
+                                builder.WriteLine("=> index switch");
+                                OpenBlock();
+                                foreach (var (field, index) in relevantNodes)
                                 {
-                                    builder.WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
+                                    var suffix = IsOptional(field) ? "" : "!";
+                                    if (index == 0)
+                                    {
+                                        builder.WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
+                                    }
+                                    else
+                                    {
+                                        builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
+                                    }
                                 }
-                                else
-                                {
-                                    builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
-                                }
+                                builder.WriteLine("_ => null,");
+                                CloseBlock(";");
                             }
-                            builder.WriteLine("_ => null,");
-                            CloseBlock(";");
-                            Unindent();
                         }
                     }
 
@@ -1331,6 +1332,7 @@ namespace CSharpSyntaxGenerator
                         this.WriteRedMinimalFactory(builder, node);
                         this.WriteRedMinimalFactory(builder, node, withStringNames: true);
                     }
+
                     this.WriteKindConverters(builder, node);
                 }
             }
@@ -1555,7 +1557,7 @@ namespace CSharpSyntaxGenerator
                     using (builder.EnterIndentedRegion())
                     {
                         builder.WriteLine("=> kind switch");
-                        using (builder.EnterBlock())
+                        using (builder.EnterIndentedRegion("{", "};"))
                         {
                             for (int k = 0; k < field.Kinds.Count; k++)
                                 builder.WriteLine($"SyntaxKind.{nd.Kinds[k].Name} => SyntaxKind.{field.Kinds[k].Name},");

@@ -307,10 +307,7 @@ internal struct IndentingStringBuilder : IDisposable
     public Region EnterBlock()
         => EnterIndentedRegion("{", "}");
 
-    public Region EnterIndentedRegion()
-        => EnterIndentedRegion("", "");
-
-    private Region EnterIndentedRegion(string open, string close)
+    public Region EnterIndentedRegion(string open = "", string close = "")
     {
         this.WriteLine(open);
         this.IncreaseIndent();
