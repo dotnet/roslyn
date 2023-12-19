@@ -85,9 +85,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
                             assetHint: AssetHint.None, newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity, cancellationToken).ConfigureAwait(false);
-                        var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
+                        var sourceText = await _assetProvider.GetAssetAsync<SourceText>(
                             assetHint: AssetHint.None, newSolutionChecksums.FrozenSourceGeneratedDocumentText, cancellationToken).ConfigureAwait(false);
-                        var sourceText = serializableSourceText.Text;
                         solution = solution.WithFrozenSourceGeneratedDocument(identity, sourceText).Project.Solution;
                     }
 
@@ -490,9 +489,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed text
                 if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
                 {
-                    var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
+                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(
                         assetHint: document.Id, newDocumentChecksums.Text, cancellationToken).ConfigureAwait(false);
-                    var sourceText = serializableSourceText.Text;
 
                     document = document.Kind switch
                     {

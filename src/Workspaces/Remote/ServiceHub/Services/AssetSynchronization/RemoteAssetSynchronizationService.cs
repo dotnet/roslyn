@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
                     // the entire document.
-                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
+                    var newText = text.WithChanges(textChanges);
                     var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
                     WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newText);
@@ -82,18 +82,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (workspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
-                    {
-                        return serializableSourceText.Text;
-                    }
+                    if (workspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(baseTextChecksum, out var serializableSourceText))
+                        return serializableSourceText;
 
                     // do slower one
                     // check whether existing solution has it
                     var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document == null)
-                    {
                         return null;
-                    }
 
                     // check checksum whether it is there.
                     // since we lazily synchronize whole solution (SynchronizePrimaryWorkspaceAsync) when things are idle,
