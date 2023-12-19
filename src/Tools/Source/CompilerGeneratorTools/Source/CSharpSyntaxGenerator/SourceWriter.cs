@@ -1562,20 +1562,17 @@ namespace CSharpSyntaxGenerator
                 {
                     builder.WriteLine();
                     builder.WriteLine($"private static SyntaxKind Get{StripPost(nd.Name, "Syntax")}{StripPost(field.Name, "Opt")}Kind(SyntaxKind kind)");
-                    Indent();
-                    builder.WriteLine("=> kind switch");
-                    OpenBlock();
-
-                    for (int k = 0; k < field.Kinds.Count; k++)
+                    using (builder.EnterIndentedRegion())
                     {
-                        var nKind = nd.Kinds[k];
-                        var pKind = field.Kinds[k];
-                        builder.WriteLine($"SyntaxKind.{nKind.Name} => SyntaxKind.{pKind.Name},");
-                    }
+                        builder.WriteLine("=> kind switch");
+                        using (builder.EnterBlock())
+                        {
+                            for (int k = 0; k < field.Kinds.Count; k++)
+                                builder.WriteLine($"SyntaxKind.{nd.Kinds[k].Name} => SyntaxKind.{field.Kinds[k].Name},");
 
-                    builder.WriteLine("_ => throw new ArgumentOutOfRangeException(),");
-                    CloseBlock(";");
-                    Unindent();
+                            builder.WriteLine("_ => throw new ArgumentOutOfRangeException(),");
+                        }
+                    }
                 }
             }
         }
