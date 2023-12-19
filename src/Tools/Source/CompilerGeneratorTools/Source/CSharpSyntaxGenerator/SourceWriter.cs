@@ -987,7 +987,6 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            builder.WriteLine();
                             using (builder.EnterIndentedRegion())
                             {
                                 builder.WriteLine("=> index switch");
