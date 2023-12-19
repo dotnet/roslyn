@@ -429,15 +429,16 @@ internal struct IndentingStringBuilder : IDisposable
 
     private readonly IndentingStringBuilder WriteSeparated<T, TArg>(
         IEnumerable<T> content,
-        Action<IndentingStringBuilder, TArg> writeSpearator,
+        Action<IndentingStringBuilder, TArg> writeSeparator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
         TArg arg)
     {
+        this.CheckDisposed();
         var first = true;
         foreach (var item in content)
         {
             if (!first)
-                writeSpearator(this, arg);
+                writeSeparator(this, arg);
 
             writeElement(this, item, arg);
             first = false;
