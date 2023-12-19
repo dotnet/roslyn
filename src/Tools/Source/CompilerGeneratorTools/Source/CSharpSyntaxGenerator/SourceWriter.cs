@@ -1170,41 +1170,29 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedListHelperMethods(IndentingStringBuilder builder, Node node)
         {
-            var wroteNewLine = false;
-            foreach (var field in node.Fields)
-            {
-                if (IsAnyList(field.Type))
+            builder.WriteBlankLineSeparated(
+                node.Fields,
+                static (builder, field, tuple) =>
                 {
-                    if (!wroteNewLine)
+                    var (@this, node) = tuple;
+                    if (IsAnyList(field.Type))
                     {
-                        builder.WriteLine();
-                        wroteNewLine = true;
+                        @this.WriteRedListHelperMethods(builder, node, field);
                     }
-                    // write list helper methods for list properties
-                    WriteRedListHelperMethods(builder, node, field);
-                }
-                else
-                {
-                    var referencedNode = TryGetNodeForNestedList(field);
-                    if (referencedNode != null)
+                    else
                     {
-                        // look for list members...
-                        foreach (var referencedNodeField in referencedNode.Fields)
+                        var referencedNode = @this.TryGetNodeForNestedList(field);
+                        if (referencedNode != null)
                         {
-                            if (IsAnyList(referencedNodeField.Type))
+                            // look for list members...
+                            foreach (var referencedNodeField in referencedNode.Fields)
                             {
-                                if (!wroteNewLine)
-                                {
-                                    builder.WriteLine();
-                                    wroteNewLine = true;
-                                }
-
-                                WriteRedNestedListHelperMethods(builder, node, field, referencedNode, referencedNodeField);
+                                if (IsAnyList(referencedNodeField.Type))
+                                    @this.WriteRedNestedListHelperMethods(builder, node, field, referencedNode, referencedNodeField);
                             }
                         }
                     }
-                }
-            }
+                }, (this, node));
         }
 
         private Node TryGetNodeForNestedList(Field field)
