@@ -177,37 +177,37 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
 
                     builder.WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                     builder.WriteLine("  : base(kind, diagnostics, annotations)");
                     using (builder.EnterBlock())
-                        WriteCtorBody(valueFields, nodeFields);
+                        WriteCtorBody(builder, valueFields, nodeFields);
 
                     // write constructor with async
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
 
                     builder.WriteLine(", SyntaxFactoryContext context)");
                     builder.WriteLine("  : base(kind)");
                     using (builder.EnterBlock())
                     {
                         builder.WriteLine("this.SetFactoryContext(context);");
-                        WriteCtorBody(valueFields, nodeFields);
+                        WriteCtorBody(builder, valueFields, nodeFields);
                     }
 
                     // write constructor without diagnostics and annotations
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
 
                     builder.WriteLine(")");
                     builder.WriteLine("  : base(kind)");
                     using (builder.EnterBlock())
-                        WriteCtorBody(valueFields, nodeFields);
+                        WriteCtorBody(builder, valueFields, nodeFields);
 
                     builder.WriteLine();
 
@@ -281,7 +281,7 @@ namespace CSharpSyntaxGenerator
                     this.WriteGreenAcceptMethods(concreteNode);
                     this.WriteGreenUpdateMethod(concreteNode);
                     this.WriteSetDiagnostics(concreteNode);
-                    this.WriteSetAnnotations(concreteNode);
+                    WriteSetAnnotations(builder, concreteNode);
                 }
             }
         }
