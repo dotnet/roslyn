@@ -26,24 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Manages metadata references for VS projects. 
     /// </summary>
     /// <remarks>
-    /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see cref="PortableExecutableReference"/>) 
-    /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
-    /// from <see cref="ITemporaryStorageServiceInternal"/>.
+    /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see
+    /// cref="PortableExecutableReference"/>) that can be passed to the compiler. These snapshot references serve the
+    /// underlying metadata blobs from a VS-wide storage.
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
     {
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
-
-        /// <summary>
-        /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the memory mapped files (mmf) corresponding to
-        /// the assembly and all the modules within it.  This is kept around to make OOP syncing more efficient.
-        /// Specifically, since we know we read the assembly into an mmf, we can just send the mmf name/offset/length to
-        /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
-        /// entire contents of the assembly over the channel to the OOP process.
-        /// </summary>
-        // private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_metadataToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
@@ -130,48 +121,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (VsSmartScopeCandidate(key.FullPath))
                 {
-                    var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                    return newMetadata;
+                    return CreateAssemblyMetadataFromMetadataImporter(key);
                 }
                 else
                 {
-                    // use temporary storage
-                    // using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
-                    var newMetadata = CreateAssemblyMetadata(key, key =>
-                    {
-                        // <exception cref="IOException"/>
-                        // <exception cref="BadImageFormatException" />
-                        var metadata = GetMetadataFromTemporaryStorage(key);
-                        // storages.Add(storage);
-                        return metadata;
-                    });
-
-                    // var storagesArray = storages.ToImmutable();
-
-                    // s_metadataToStorages.Add(newMetadata, storagesArray);
-
-                    return newMetadata;
+                    // Catches
+                    // <exception cref="IOException"/>
+                    // <exception cref="BadImageFormatException" />
+                    return CreateAssemblyMetadata(key, GetMetadataFromTemporaryStorage);
                 }
             }
         }
 
-        private ModuleMetadata GetMetadataFromTemporaryStorage(
-            FileKey moduleFileKey/*, out TemporaryStorageService.TemporaryStreamStorage storage, out ModuleMetadata metadata*/)
+        private ModuleMetadata GetMetadataFromTemporaryStorage(FileKey moduleFileKey)
         {
             var stream = GetStorageInfoFromTemporaryStorage(moduleFileKey/*, out storage,out var stream*/ );
 
             return ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
 
-            //unsafe
-            //{
-            //    // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            //    metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
-            //}
-
-            // return;
-
-            static SerializableBytes.PooledStream GetStorageInfoFromTemporaryStorage(
-                FileKey moduleFileKey/*, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream*/)
+            static SerializableBytes.PooledStream GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey)
             {
                 var copyStream = SerializableBytes.CreateWritableStream();
 
@@ -186,44 +154,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // given metadata contains no metadata info.
                     // throw bad image format exception so that we can show right diagnostic to user.
                     if (size <= 0)
-                    {
                         throw new BadImageFormatException();
-                    }
 
                     fileStream.CopyTo(copyStream);
-
-                    // StreamCopy(fileStream, copyStream, offset, size);
                 }
-
-                // copy over the data to temp storage and let pooled stream go
-                // storage = _temporaryStorageService.CreateTemporaryStreamStorage();
 
                 copyStream.Position = 0;
                 return copyStream;
-                // storage.WriteStream(copyStream);
-
-                //// get stream that owns the underlying unmanaged memory.
-                //stream = storage.ReadStream(CancellationToken.None);
-
-                //// stream size must be same as what metadata reader said the size should be.
-                //Contract.ThrowIfFalse(stream.Length == size);
-            }
-
-            static void StreamCopy(Stream source, Stream destination, int start, int length)
-            {
-                source.Position = start;
-
-                var buffer = SharedPools.ByteArray.Allocate();
-
-                int read;
-                var left = length;
-                while ((read = source.Read(buffer, 0, Math.Min(left, buffer.Length))) != 0)
-                {
-                    destination.Write(buffer, 0, read);
-                    left -= read;
-                }
-
-                SharedPools.ByteArray.Free(buffer);
             }
         }
 
@@ -233,13 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return CreateAssemblyMetadata(fileKey, fileKey =>
             {
-                // getting metadata didn't work out through importer. fallback to shadow copy one
-                var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey) ?? GetMetadataFromTemporaryStorage(fileKey);
-
-                //if (metadata == null)
-                //     GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
-
-                return metadata;
+                // if getting metadata didn't work out through importer, fallback to shadow copy one
+                return TryCreateModuleMetadataFromMetadataImporter(fileKey) ?? GetMetadataFromTemporaryStorage(fileKey);
             });
 
             ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
