@@ -1092,15 +1092,16 @@ namespace CSharpSyntaxGenerator
                     static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
 
                 builder.WriteLine(")");
-                OpenBlock();
-                builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                builder.Write(CommaJoin(
-                    node.Kinds.Count > 1 ? "this.Kind()" : "",
-                    node.Fields.Select(f => CamelCase(f.Name))));
-                builder.WriteLine(");");
-                builder.WriteLine("var annotations = GetAnnotations();");
-                builder.WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
-                CloseBlock();
+                using (builder.EnterBlock())
+                {
+                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
+                    builder.WriteCommaSeparated([
+                        .. node.Kinds.Count > 1 ? ["this.Kind()"] : Array.Empty<string>(),
+                        .. node.Fields.Select(f => CamelCase(f.Name))]);
+                    builder.WriteLine(");");
+                    builder.WriteLine("var annotations = GetAnnotations();");
+                    builder.WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
+                }
 
                 builder.WriteLine();
                 builder.WriteLine("return this;");
