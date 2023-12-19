@@ -373,7 +373,7 @@ internal sealed class IndentingStringBuilder : IDisposable
         Action<IndentingStringBuilder, T, TArg> writeElement,
         TArg arg)
     {
-        return WriteSeparated<T, TArg>(
+        return WriteSeparated(
             content,
             static (@this, _) => @this.EnsureBlankLine(),
             writeElement,
@@ -448,8 +448,12 @@ internal sealed class IndentingStringBuilder : IDisposable
             if (!first)
                 writeSeparator(this, arg);
 
+            var builderPosition = _builder.Length;
             writeElement(this, item, arg);
-            first = false;
+
+            // Only update us if writeElement actually wrote something.
+            if (_builder.Length != builderPosition)
+                first = false;
         }
 
         return this;
