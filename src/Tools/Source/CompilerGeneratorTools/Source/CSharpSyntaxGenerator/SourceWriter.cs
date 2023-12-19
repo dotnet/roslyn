@@ -350,34 +350,33 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine(");");
         }
 
-        private void WriteGreenAcceptMethods(Node node)
+        private void WriteGreenAcceptMethods(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
-        private void WriteGreenVisitors()
+        private void WriteGreenVisitors(IndentingStringBuilder builder)
         {
-            WriteGreenVisitor(withResult: true);
-            WriteGreenVisitor(withResult: false);
+            WriteGreenVisitor(builder, withResult: true);
+            WriteGreenVisitor(builder, withResult: false);
         }
 
-        private void WriteGreenVisitor(bool withResult)
+        private void WriteGreenVisitor(IndentingStringBuilder builder, bool withResult)
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             builder.WriteLine();
             builder.WriteLine("internal partial class CSharpSyntaxVisitor" + (withResult ? "<TResult>" : ""));
-            OpenBlock();
-            foreach (var node in nodes.OfType<Node>())
+            using (builder.EnterBlock())
             {
-                builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
+                foreach (var node in nodes.OfType<Node>())
+                    builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
-            CloseBlock();
         }
 
-        private void WriteGreenUpdateMethod(Node node)
+        private void WriteGreenUpdateMethod(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.Write($"public {node.Name} Update(");
@@ -393,47 +392,48 @@ namespace CSharpSyntaxGenerator
                 return $"{type} {CamelCase(f.Name)}";
             })));
             builder.WriteLine(")");
-            OpenBlock();
 
-            builder.Write("if (");
-            int nCompared = 0;
-            foreach (var field in node.Fields)
+            using (builder.EnterBlock())
             {
-                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
+                builder.Write("if (");
+                int nCompared = 0;
+                foreach (var field in node.Fields)
                 {
-                    if (nCompared > 0)
-                        builder.Write(" || ");
-                    builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
-                    nCompared++;
+                    if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
+                    {
+                        if (nCompared > 0)
+                            builder.Write(" || ");
+                        builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
+                        nCompared++;
+                    }
                 }
-            }
-            if (nCompared > 0)
-            {
-                builder.WriteLine(")");
-                OpenBlock();
-                builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                builder.Write(CommaJoin(
-                    node.Kinds.Count > 1 ? "this.Kind" : "",
-                    node.Fields.Select(f => CamelCase(f.Name))));
-                builder.WriteLine(");");
-                builder.WriteLine("var diags = GetDiagnostics();");
-                builder.WriteLine("if (diags?.Length > 0)");
-                builder.WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
-                builder.WriteLine("var annotations = GetAnnotations();");
-                builder.WriteLine("if (annotations?.Length > 0)");
-                builder.WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
-                builder.WriteLine("return newNode;");
-                CloseBlock();
-            }
+                if (nCompared > 0)
+                {
+                    builder.WriteLine(")");
+                    OpenBlock();
+                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
+                    builder.Write(CommaJoin(
+                        node.Kinds.Count > 1 ? "this.Kind" : "",
+                        node.Fields.Select(f => CamelCase(f.Name))));
+                    builder.WriteLine(");");
+                    builder.WriteLine("var diags = GetDiagnostics();");
+                    builder.WriteLine("if (diags?.Length > 0)");
+                    builder.WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
+                    builder.WriteLine("var annotations = GetAnnotations();");
+                    builder.WriteLine("if (annotations?.Length > 0)");
+                    builder.WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
+                    builder.WriteLine("return newNode;");
+                    CloseBlock();
+                }
 
-            builder.WriteLine();
-            builder.WriteLine("return this;");
-            CloseBlock();
+                builder.WriteLine();
+                builder.WriteLine("return this;");
+            }
         }
 
-        private void WriteGreenRewriter()
+        private void WriteGreenRewriter(IndentingStringBuilder builder)
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             builder.WriteLine();
             builder.WriteLine("internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
@@ -476,7 +476,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteContextualGreenFactories()
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal partial class ContextAwareSyntax");
             OpenBlock();
@@ -493,7 +493,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteStaticGreenFactories()
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal static partial class SyntaxFactory");
             OpenBlock();
@@ -681,7 +681,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedTypes()
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
             foreach (var node in nodes)
             {
                 builder.WriteLine();
@@ -1059,7 +1059,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedVisitor(bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             builder.WriteLine();
             builder.WriteLine("public partial class CSharpSyntaxVisitor" + genericArgs);
@@ -1284,7 +1284,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedRewriter()
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             builder.WriteLine();
             builder.WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
@@ -1330,7 +1330,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedFactories()
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
+            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
             builder.WriteLine();
             builder.WriteLine("public static partial class SyntaxFactory");
             OpenBlock();
