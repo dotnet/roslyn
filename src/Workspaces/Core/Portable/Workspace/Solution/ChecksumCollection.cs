@@ -44,7 +44,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     }
 
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
-    internal static async Task FindAsync<TState>(
+    internal static async ValueTask FindAsync<TState>(
         TextDocumentStates<TState> documentStates,
         DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,

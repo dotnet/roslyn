@@ -43,7 +43,7 @@ internal partial class SolutionAssetStorage
         /// Retrieve assets of specified <paramref name="checksums"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async Task AddAssetsAsync(
+        public async ValueTask AddAssetsAsync(
             AssetHint assetHint,
             ImmutableArray<Checksum> checksums,
             Dictionary<Checksum, object> assetMap,
@@ -63,7 +63,7 @@ internal partial class SolutionAssetStorage
             Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
         }
 
-        private async Task FindAssetsAsync(
+        private async ValueTask FindAssetsAsync(
             AssetHint assetHint, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.Solution;
