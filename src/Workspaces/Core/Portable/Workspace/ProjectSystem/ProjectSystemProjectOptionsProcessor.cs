@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         private readonly ProjectSystemProject _project;
         private readonly SolutionServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
-        // private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            // _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.
