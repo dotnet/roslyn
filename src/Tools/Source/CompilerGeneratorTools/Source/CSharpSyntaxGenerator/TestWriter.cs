@@ -12,18 +12,23 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace CSharpSyntaxGenerator
 {
-    internal class TestWriter : AbstractFileWriter
+    using static FileWriter;
+
+    internal class TestWriter
     {
-        private TestWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) : base(writer, tree, cancellationToken)
+        private readonly FileWriter _fileWriter;
+
+        private TestWriter(Tree tree, CancellationToken cancellationToken = default)
         {
+            _fileWriter = new FileWriter(tree, cancellationToken);
         }
 
         public static void Write(TextWriter writer, Tree tree)
         {
-            new TestWriter(writer, tree).WriteFile();
+            new TestWriter(tree).WriteFile(writer);
         }
 
-        private void WriteFile()
+        private void WriteFile(TextWriter writer)
         {
             using var builder = IndentingStringBuilder.Create();
 
@@ -38,7 +43,7 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.UnitTests");
             using (builder.EnterBlock())
             {
-                WriteLine("public partial class GreenNodeTests");
+                builder.WriteLine("public partial class GreenNodeTests");
                 using (builder.EnterBlock())
                 {
                     builder.WriteLine("#region Green Generators");
@@ -56,7 +61,7 @@ namespace CSharpSyntaxGenerator
 
                 builder.WriteLine();
 
-                WriteLine("public partial class RedNodeTests");
+                builder.WriteLine("public partial class RedNodeTests");
                 using (builder.EnterBlock())
                 {
                     builder.WriteLine("#region Red Generators");
@@ -73,21 +78,21 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            this.Write(builder.ToString());
+            writer.Write(builder.ToString());
         }
 
         private void WriteNodeGenerators(IndentingStringBuilder builder, bool isGreen)
         {
             builder.WriteBlankLineSeparated(
-                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
                 static (builder, node, tuple) => tuple.@this.WriteNodeGenerator(builder, (Node)node, tuple.isGreen),
                 (@this: this, isGreen));
         }
 
         private void WriteNodeGenerator(IndentingStringBuilder builder, Node node, bool isGreen)
         {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
+            var valueFields = node.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type));
+            var nodeFields = node.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type));
 
             var internalNamespace = isGreen ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." : "";
             var csharpNamespace = isGreen ? "Syntax.InternalSyntax." : "";
@@ -160,13 +165,15 @@ namespace CSharpSyntaxGenerator
                     var type = field.Type;
                     while (true)
                     {
-                        var subTypes = ChildMap[type];
+                        var subTypes = _fileWriter.ChildMap[type];
                         if (!subTypes.Any())
                         {
                             break;
                         }
+
                         type = subTypes.First();
                     }
+
                     arguments.Add($"Generate{StripPost(type, "Syntax")}()");
                 }
             }
@@ -185,15 +192,15 @@ namespace CSharpSyntaxGenerator
         private void WriteFactoryPropertyTests(IndentingStringBuilder builder, bool isGreen)
         {
             builder.WriteBlankLineSeparated(
-                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
                 static (builder, node, tuple) => tuple.@this.WriteFactoryPropertyTest(builder, (Node)node, tuple.isGreen),
                 (@this: this, isGreen));
         }
 
         private void WriteFactoryPropertyTest(IndentingStringBuilder builder, Node node, bool isGreen)
         {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
+            var valueFields = node.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type));
+            var nodeFields = node.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type));
 
             var strippedName = StripPost(node.Name, "Syntax");
 
@@ -284,7 +291,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRewriterTests(IndentingStringBuilder builder)
         {
             builder.WriteBlankLineSeparated(
-                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
                 static (builder, node, @this) =>
                 {
                     @this.WriteTokenDeleteRewriterTest(builder, (Node)node);
@@ -337,7 +344,7 @@ namespace CSharpSyntaxGenerator
         //guess a reasonable kind if there are no constraints
         private string ChooseValidKind(Field field, Node nd)
         {
-            var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+            var fieldKinds = _fileWriter.GetKindsOfFieldOrNearestParent(nd, field);
             return fieldKinds?.Any() == true ? fieldKinds[0].Name : "IdentifierToken";
         }
     }
