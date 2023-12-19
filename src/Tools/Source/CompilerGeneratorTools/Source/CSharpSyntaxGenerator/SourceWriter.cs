@@ -1283,41 +1283,44 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
             using (builder.EnterBlock())
             {
-                int nWritten = 0;
-                foreach (var node in nodes.OfType<Node>())
-                {
-                    if (nWritten > 0)
-                        builder.WriteLine();
-                    nWritten++;
-                    builder.WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
+                builder.WriteBlankLineSeparated(
+                    nodes.OfType<Node>(),
+                    static (builder, node, @this) =>
+                    {
+                        builder.WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
-                    if (node.Fields.Count == 0)
-                    {
-                        builder.WriteLine("    => node;");
-                    }
-                    else
-                    {
-                        builder.Write("    => node.Update(");
-                        builder.Write(CommaJoin(node.Fields.Select(f =>
+                        if (node.Fields.Count == 0)
                         {
-                            if (_fileWriter.IsNodeOrNodeList(f.Type))
-                            {
-                                if (IsAnyList(f.Type))
-                                    return $"VisitList(node.{f.Name})";
-                                else if (f.Type == "SyntaxToken")
-                                    return $"VisitToken(node.{f.Name})";
-                                else if (IsOptional(f))
-                                    return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name})";
-                                else
-                                    return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name}) ?? throw new ArgumentNullException(\"{CamelCase(f.Name)}\")";
-                            }
+                            builder.WriteLine("    => node;");
+                        }
+                        else
+                        {
+                            builder.Write("    => node.Update(");
+                            builder.WriteCommaSeparated(
+                                node.Fields,
+                                static (builder, f, @this) =>
+                                {
+                                    if (@this._fileWriter.IsNodeOrNodeList(f.Type))
+                                    {
+                                        if (IsAnyList(f.Type))
+                                            builder.Write($"VisitList(node.{f.Name})");
+                                        else if (f.Type == "SyntaxToken")
+                                            builder.Write($"VisitToken(node.{f.Name})");
+                                        else if (IsOptional(f))
+                                            builder.Write($"({(GetFieldType(f, green: false))})Visit(node.{f.Name})");
+                                        else
+                                            builder.Write($@"({(GetFieldType(f, green: false))})Visit(node.{f.Name}) ?? throw new ArgumentNullException(""{CamelCase(f.Name)}"")");
+                                    }
+                                    else
+                                    {
+                                        builder.Write($"node.{f.Name}");
+                                    }
+                                }, @this);
 
-                            return $"node.{f.Name}";
-                        })));
-
-                        builder.WriteLine(");");
-                    }
-                }
+                            builder.WriteLine(");");
+                        }
+                    },
+                    this);
             }
         }
 
