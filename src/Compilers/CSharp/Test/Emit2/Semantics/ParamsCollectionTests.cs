@@ -610,7 +610,7 @@ class Program
         }
 
         [Fact]
-        public void LanguageVersion_02_CallSite() // PROTOTYPE(ParamsCollections): Add similar test for Delegate Natural Type, it looks like 'params' is carried over
+        public void LanguageVersion_02_CallSite()
         {
             var src1 = @"
 public class Params
@@ -658,6 +658,191 @@ class Program
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1()").WithArguments("params collections").WithLocation(9, 9)
                     );
             }
+        }
+
+        [Fact]
+        public void LanguageVersion_03_CallSite_DelegateNaturalType()
+        {
+            var src1 = @"
+public class Params
+{
+    static public void Test1(params System.ReadOnlySpan<long> a) {}
+    static public void Test2(params long[] a) {}
+}
+";
+            var src2 = @"
+class Program
+{
+    void Test()
+    {
+        var x1 = Params.Test1;
+        var x2 = Params.Test2;
+
+        x1(1);
+        x2(2);
+
+        x1();
+        x2();
+
+        x1([1]);
+        x2([2]);
+    }
+}
+";
+            var comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x1(1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1(1)").WithArguments("params collections").WithLocation(9, 9),
+                // (12,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x1();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1()").WithArguments("params collections").WithLocation(12, 9),
+                // (22,30): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static public void Test1(params System.ReadOnlySpan<long> a) {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(22, 30)
+                );
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference comp1Ref)
+            {
+                var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2.VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+                comp2.VerifyDiagnostics(
+                    // (9,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x1(1);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1(1)").WithArguments("params collections").WithLocation(9, 9),
+                    // (12,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1()").WithArguments("params collections").WithLocation(12, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void LanguageVersion_04_CallSite_DelegateNaturalType()
+        {
+            var src = @"
+class Program
+{
+    void Test()
+    {
+        var x1 = (params System.ReadOnlySpan<long> a) => {};
+        var x2 = (params long[] a) => {};
+
+        x1(1);
+        x2(2);
+
+        x1();
+        x2();
+
+        x1([1]);
+        x2([2]);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (6,19): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x1 = (params System.ReadOnlySpan<long> a) => {};
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(6, 19),
+                // (9,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x1(1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1(1)").WithArguments("params collections").WithLocation(9, 9),
+                // (12,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x1();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x1()").WithArguments("params collections").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void DelegateNaturalType_01()
+        {
+            var src = @"
+public class Params
+{
+    static public void Test1(params System.ReadOnlySpan<long> a) { System.Console.WriteLine(a.Length); }
+    static public void Test2(params long[] a) { System.Console.WriteLine(a.Length); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = Params.Test1;
+        var x2 = Params.Test2;
+
+        x1(1);
+        x2(2);
+
+        x1();
+        x2();
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+1
+1
+0
+0
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DelegateNaturalType_02()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var x1 = (params System.ReadOnlySpan<long> a) => System.Console.WriteLine(a.Length);
+        var x2 = (params long[] a) => System.Console.WriteLine(a.Length);
+
+        x1(1);
+        x2(2);
+
+        x1();
+        x2();
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+1
+1
+0
+0
+")).VerifyDiagnostics();
         }
 
         [Fact]

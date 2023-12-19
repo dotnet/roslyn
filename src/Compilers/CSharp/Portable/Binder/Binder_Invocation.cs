@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (Compilation.SourceModule != parameters[paramsIndex].ContainingModule)
+                    if (Compilation.SourceModule != parameters[paramsIndex].ContainingModule || parameters[paramsIndex].ContainingType.IsAnonymousType)
                     {
                         MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, node);
                     }
