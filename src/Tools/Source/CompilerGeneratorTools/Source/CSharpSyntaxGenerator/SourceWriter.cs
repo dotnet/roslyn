@@ -643,10 +643,10 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteGreenFactoryParameters(IndentingStringBuilder builder, Node nd)
+        private static void WriteGreenFactoryParameters(IndentingStringBuilder builder, Node nd)
         {
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
+            builder.WriteCommaSeparated(
+                (nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>()).Concat(
                 nd.Fields.Select(f =>
                 {
                     var type = f.Type switch
