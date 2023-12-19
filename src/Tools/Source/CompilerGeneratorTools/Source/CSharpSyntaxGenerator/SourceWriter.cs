@@ -990,6 +990,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
+                            builder.WriteLine();
                             using (builder.EnterIndentedRegion())
                             {
                                 builder.WriteLine("=> index switch");
@@ -1023,10 +1024,10 @@ namespace CSharpSyntaxGenerator
             return field.Type;
         }
 
-        private string GetChildPosition(int i)
+        private static string GetChildPosition(int i)
             => i == 0 ? "Position" : "GetChildPosition(" + i + ")";
 
-        private string GetChildIndex(int i)
+        private static string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
 
         private void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)

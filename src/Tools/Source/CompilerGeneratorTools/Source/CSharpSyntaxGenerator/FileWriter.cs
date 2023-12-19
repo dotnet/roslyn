@@ -128,10 +128,10 @@ namespace CSharpSyntaxGenerator
         {
             if (typeName == derivedTypeName)
                 return true;
+
             if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out var baseType))
-            {
                 return IsDerivedType(typeName, baseType);
-            }
+
             return false;
         }
 
@@ -171,20 +171,13 @@ namespace CSharpSyntaxGenerator
         public static string CamelCase(string name)
         {
             if (char.IsUpper(name[0]))
-            {
-                name = char.ToLowerInvariant(name[0]) + name.Substring(1);
-            }
+                name = char.ToLowerInvariant(name[0]) + name[1..];
+
             return FixKeyword(name);
         }
 
         public static string FixKeyword(string name)
-        {
-            if (IsKeyword(name))
-            {
-                return "@" + name;
-            }
-            return name;
-        }
+            => IsKeyword(name) ? "@" + name : name;
 
         public static string StripPost(string name, string post)
         {
