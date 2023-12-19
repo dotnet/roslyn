@@ -94,10 +94,11 @@ namespace CSharpSyntaxGenerator
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
-            builder.WriteBlankLineSeparated(
-                nodes,
-                static (builder, node, @this) => @this.WriteGreenType(builder, node),
-                this);
+            foreach (var node in nodes)
+            {
+                builder.WriteLine();
+                WriteGreenType(builder, node);
+            }
         }
 
         private void WriteGreenType(IndentingStringBuilder builder, TreeType node)
@@ -259,11 +260,13 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (nodeFields.Count == 1)
                     {
+                        builder.WriteLine();
                         using (builder.EnterIndentedRegion())
                             builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                     }
                     else
                     {
+                        builder.WriteLine();
                         using (builder.EnterIndentedRegion())
                         {
                             builder.WriteLine("=> index switch");
