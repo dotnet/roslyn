@@ -25,16 +25,5 @@ namespace Microsoft.CodeAnalysis.Serialization
         MetadataReference,
         AnalyzerReference,
         SourceText,
-
-        ProjectReferenceChecksumCollection,
-        MetadataReferenceChecksumCollection,
-        AnalyzerReferenceChecksumCollection,
-        TextDocumentChecksumCollection,
-        DocumentChecksumCollection,
-        AnalyzerConfigDocumentChecksumCollection,
-        ProjectChecksumCollection,
-        SolutionStateChecksums,
-        ProjectStateChecksums,
-        DocumentStateChecksums,
     }
 }
