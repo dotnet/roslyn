@@ -1442,7 +1442,7 @@ namespace CSharpSyntaxGenerator
 
                     if (field.Type == "SyntaxToken")
                     {
-                        var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+                        var fieldKinds = _fileWriter.GetKindsOfFieldOrNearestParent(nd, field);
                         if (fieldKinds != null && fieldKinds.Count > 0)
                         {
                             var kinds = fieldKinds.ToList();
@@ -1458,13 +1458,13 @@ namespace CSharpSyntaxGenerator
                             else
                             {
                                 builder.WriteLine($"switch ({pname}.Kind())");
-                                OpenBlock();
-                                foreach (var kind in kinds)
+                                using (builder.EnterBlock())
                                 {
-                                    builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                                    foreach (var kind in kinds)
+                                        builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+
+                                    builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
                                 }
-                                builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
-                                CloseBlock();
                             }
                         }
                     }
@@ -1760,7 +1760,7 @@ namespace CSharpSyntaxGenerator
             return field.Type == "IdentifierNameSyntax";
         }
 
-        private string GetStringConverterMethod(Field field)
+        private static string GetStringConverterMethod(Field field)
         {
             if (IsIdentifierToken(field))
             {
