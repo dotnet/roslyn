@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 for (var i = builder.Count - 1; i >= 0; i--)
                 {
                     var action = builder[i];
-                    var nestedActions = action.NestedCodeActions();
+                    var nestedActions = action.NestedActions();
                     if (!nestedActions.IsEmpty)
                     {
                         builder.RemoveAt(i);
