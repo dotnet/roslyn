@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
         {
-            var newCompilationState = _compilationState.WithCachedSourceGeneratorStateWorker(projectToUpdate, projectWithCachedGeneratorState);
+            var newCompilationState = _compilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

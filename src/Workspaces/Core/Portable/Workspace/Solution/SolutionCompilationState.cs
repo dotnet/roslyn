@@ -1256,7 +1256,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
-    public SolutionCompilationState WithCachedSourceGeneratorStateWorker(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+    public SolutionCompilationState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
     {
         this.Solution.CheckContainsProject(projectToUpdate);
 
