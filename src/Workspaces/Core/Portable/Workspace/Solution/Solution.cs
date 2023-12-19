@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        // TODO(cyrusn): Remove and update references to access this.State.
         private SolutionState _state => this.State;
         internal SolutionState State => CompilationState.Solution;
 
