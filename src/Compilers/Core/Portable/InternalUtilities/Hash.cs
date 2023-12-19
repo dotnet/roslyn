@@ -294,7 +294,9 @@ namespace Roslyn.Utilities
 
             for (int i = 0; i < data.Length; i++)
             {
+#pragma warning disable CS0436 // Type conflicts with imported type
                 hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(data[i])) * Hash.FnvPrime);
+#pragma warning restore CS0436 // Type conflicts with imported type
             }
 
             return hashCode;
