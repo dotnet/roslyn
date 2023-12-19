@@ -100,8 +100,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
 
             // check that text already exist in remote side
-            Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(newState.Text, out var serializableRemoteText));
-            Assert.Equal(newText.ToString(), serializableRemoteText.Text.ToString());
+            Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(newState.Text, out var serializableRemoteText));
+            Assert.Equal(newText.ToString(), serializableRemoteText.ToString());
         }
 
         private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
