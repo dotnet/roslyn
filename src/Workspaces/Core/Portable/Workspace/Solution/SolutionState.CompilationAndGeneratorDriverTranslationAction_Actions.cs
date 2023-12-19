@@ -20,20 +20,11 @@ namespace Microsoft.CodeAnalysis
                 private readonly DocumentState _oldState = oldState;
                 private readonly DocumentState _newState = newState;
 
-                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
-                }
-
-                private static async Task<Compilation> UpdateDocumentInCompilationAsync(
-                    Compilation compilation,
-                    DocumentState oldDocument,
-                    DocumentState newDocument,
-                    CancellationToken cancellationToken)
-                {
-                    return compilation.ReplaceSyntaxTree(
-                        await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                        await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    return oldCompilation.ReplaceSyntaxTree(
+                        await _oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await _newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                 }
 
                 public DocumentId DocumentId => _newState.Attributes.Id;
