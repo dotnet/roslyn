@@ -341,7 +341,12 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     public readonly IndentingStringBuilder WriteLine([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
-        => this;
+    {
+        Write(handler);
+        AppendEndOfLine();
+        return this;
+    }
+
 #pragma warning restore IDE0060 // Remove unused parameter
 
     public override readonly string ToString()
