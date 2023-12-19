@@ -1670,14 +1670,14 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLineWithoutIndent("#pragma warning disable RS0027");
+                builder.WriteLine("#pragma warning disable RS0027", skipIndent: true);
             }
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
-                nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
+                .. nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
                 {
                     var type = GetRedPropertyType(f);
 
@@ -1690,19 +1690,19 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        if (IsNode(f.Type) && !IsOptional(f) && f.Type != "SyntaxToken")
+                        if (_fileWriter.IsNode(f.Type) && !IsOptional(f) && f.Type != "SyntaxToken")
                             type += "?";
 
                         return $"{type} {CamelCase(f.Name)} = default";
                     }
-                })));
+                })]);
             builder.WriteLine(")");
 
             builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
 
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "kind" : "",
-                nd.Fields.Select(f =>
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
+                .. nd.Fields.Select(f =>
                 {
                     if (minimalFactoryfields.Contains(f))
                     {
@@ -1723,13 +1723,13 @@ namespace CSharpSyntaxGenerator
                     }
 
                     return GetDefaultValue(nd, f);
-                })));
+                })]);
 
             builder.WriteLine(");");
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLineWithoutIndent("#pragma warning restore RS0027");
+                builder.WriteLine("#pragma warning restore RS0027", skipIndent: true);
             }
         }
 
