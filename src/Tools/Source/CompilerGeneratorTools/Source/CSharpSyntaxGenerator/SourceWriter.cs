@@ -256,7 +256,6 @@ namespace CSharpSyntaxGenerator
                     if (nodeFields.Count == 0)
                     {
                         builder.WriteLine(" => null;");
-                        builder.WriteLine();
                     }
                     else if (nodeFields.Count == 1)
                     {
@@ -283,6 +282,7 @@ namespace CSharpSyntaxGenerator
                         }
                     }
 
+                    builder.WriteLine();
                     builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
                     this.WriteGreenAcceptMethods(builder, concreteNode);
