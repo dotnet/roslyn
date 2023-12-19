@@ -31,7 +31,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteFile(TextWriter writer)
         {
-            using var builder = IndentingStringBuilder.Create();
+            using var builder = new IndentingStringBuilder();
 
             builder.WriteLine("using System;");
             builder.WriteLine("using System.Collections;");

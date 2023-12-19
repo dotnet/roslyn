@@ -51,7 +51,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteInternal(TextWriter writer)
         {
-            using var builder = IndentingStringBuilder.Create();
+            using var builder = new IndentingStringBuilder();
 
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
@@ -66,7 +66,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteSyntax(TextWriter writer)
         {
-            using var builder = IndentingStringBuilder.Create();
+            using var builder = new IndentingStringBuilder();
 
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
@@ -77,7 +77,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteMain(TextWriter writer)
         {
-            using var builder = IndentingStringBuilder.Create();
+            using var builder = new IndentingStringBuilder();
 
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");

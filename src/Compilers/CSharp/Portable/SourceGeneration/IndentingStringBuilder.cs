@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <remarks>
 /// Not thread-safe.
 /// </remarks>
-internal struct IndentingStringBuilder : IDisposable
+internal sealed class IndentingStringBuilder : IDisposable
 {
     private const string DefaultIndentation = "    ";
     private const string DefaultEndOfLine = "\r\n";
@@ -62,7 +62,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// </summary>
     private string _currentIndentation = "";
 
-    public IndentingStringBuilder(string indentationString, string endOfLine)
+    public IndentingStringBuilder(string indentationString = DefaultIndentation, string endOfLine = DefaultEndOfLine)
     {
         _indentationString = indentationString;
         _endOfLine = endOfLine;
@@ -80,9 +80,6 @@ internal struct IndentingStringBuilder : IDisposable
         CheckDisposed();
     }
 
-    public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string endOfLine = DefaultEndOfLine)
-        => new(indentation, endOfLine);
-
     private static void PopulateIndentationStrings(ArrayBuilder<string> builder, string indentation)
     {
         builder.Add("");
@@ -91,13 +88,13 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     [MemberNotNull(nameof(_builder))]
-    private readonly void CheckDisposed()
+    private void CheckDisposed()
     {
         if (_builder is null)
             throw new ObjectDisposedException(nameof(IndentingStringBuilder));
     }
 
-    private readonly StringBuilder Builder
+    private StringBuilder Builder
     {
         get
         {
@@ -143,7 +140,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// Appends a single end of line sequence to the underlying buffer.  No indentation is written prior to the end of line.
     /// </summary>
-    private readonly IndentingStringBuilder AppendEndOfLine()
+    private IndentingStringBuilder AppendEndOfLine()
     {
         this.Builder.Append(_endOfLine);
         return this;
@@ -153,7 +150,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// Appends a single line to the underlying buffer.  Indentation is written out if the underlying buffer
     /// is at the start of a line.
     /// </summary>
-    private readonly void AppendSingleLine(ReadOnlySpan<char> line, string? originalLine, bool skipIndent)
+    private void AppendSingleLine(ReadOnlySpan<char> line, string? originalLine, bool skipIndent)
     {
         if (line.Length == 0)
             return;
@@ -192,15 +189,15 @@ internal struct IndentingStringBuilder : IDisposable
     /// constituent lines, with each line being appended one at a time.
     /// </summary>
     /// <param name="skipIndent">If true, will not indent content, even if starting a new line.</param>
-    public readonly IndentingStringBuilder Write(string content, bool splitContent = false, bool skipIndent = false)
+    public IndentingStringBuilder Write(string content, bool splitContent = false, bool skipIndent = false)
         => Write(content.AsSpan(), content, splitContent, skipIndent);
 
     /// <inheritdoc cref="Write(string, bool, bool)"/>
-    public readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
+    public IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
         => Write(content, originalString: null, splitContent, skipIndent);
 
     /// <inheritdoc cref="Write(string, bool, bool)"/>
-    private readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, string? originalString, bool splitContent, bool skipIndent = false)
+    private IndentingStringBuilder Write(ReadOnlySpan<char> content, string? originalString, bool splitContent, bool skipIndent = false)
     {
         if (splitContent)
         {
@@ -234,15 +231,15 @@ internal struct IndentingStringBuilder : IDisposable
     /// Equivalent to <see cref="Write(string, bool, bool)"/> except that a final end of line sequence will be written after
     /// the content is written.
     /// </summary>
-    public readonly IndentingStringBuilder WriteLine(string content = "", bool splitContent = false, bool skipIndent = false)
+    public IndentingStringBuilder WriteLine(string content = "", bool splitContent = false, bool skipIndent = false)
         => WriteLine(content.AsSpan(), content, splitContent, skipIndent);
 
     /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
-    public readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
+    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
         => WriteLine(content, originalContent: null, splitContent, skipIndent);
 
     /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
-    private readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false, bool skipIndent = false)
+    private IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false, bool skipIndent = false)
     {
         Write(content, originalContent, splitContent, skipIndent);
         AppendEndOfLine();
@@ -255,7 +252,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// a line with no content on it counts.
     /// </summary>
     /// <returns></returns>
-    public readonly IndentingStringBuilder EnsureBlankLine()
+    public IndentingStringBuilder EnsureBlankLine()
     {
         if (GetLineCount() < 2)
             AppendEndOfLine();
@@ -263,7 +260,7 @@ internal struct IndentingStringBuilder : IDisposable
         return this;
     }
 
-    private readonly int GetLineCount()
+    private int GetLineCount()
     {
         var builder = this.Builder;
         var position = builder.Length - 1;
@@ -317,9 +314,9 @@ internal struct IndentingStringBuilder : IDisposable
         return new Region(this, close);
     }
 
-    public readonly struct Region(IndentingStringBuilder builder, string close) : IDisposable
+    public struct Region(IndentingStringBuilder builder, string close) : IDisposable
     {
-        public readonly void Dispose()
+        public void Dispose()
         {
             builder.DecreaseIndent();
             builder.WriteLine(close);
@@ -327,20 +324,20 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-    public readonly IndentingStringBuilder Write(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder Write(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
         => this;
 
-    public readonly IndentingStringBuilder Write([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder Write([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
         => this;
 
-    public readonly IndentingStringBuilder WriteLine(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder WriteLine(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
     {
         Write(splitContent, handler);
         AppendEndOfLine();
         return this;
     }
 
-    public readonly IndentingStringBuilder WriteLine([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder WriteLine([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
     {
         Write(handler);
         AppendEndOfLine();
@@ -349,14 +346,14 @@ internal struct IndentingStringBuilder : IDisposable
 
 #pragma warning restore IDE0060 // Remove unused parameter
 
-    public override readonly string ToString()
+    public override string ToString()
         => this.Builder.ToString();
 
     /// <summary>
     /// Writes out the individual elements of <paramref name="content"/> ensuring that there is a blank line written
     /// between each element.
     /// </summary>
-    public readonly IndentingStringBuilder WriteBlankLineSeparated<T>(
+    public IndentingStringBuilder WriteBlankLineSeparated<T>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T> writeElement)
     {
@@ -367,7 +364,7 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     /// <inheritdoc cref="WriteBlankLineSeparated{T}(IEnumerable{T}, Action{IndentingStringBuilder, T})"/>
-    public readonly IndentingStringBuilder WriteBlankLineSeparated<T, TArg>(
+    public IndentingStringBuilder WriteBlankLineSeparated<T, TArg>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T, TArg> writeElement,
         TArg arg)
@@ -379,7 +376,7 @@ internal struct IndentingStringBuilder : IDisposable
             arg);
     }
 
-    public readonly IndentingStringBuilder WriteCommaSeparated(
+    public IndentingStringBuilder WriteCommaSeparated(
         IEnumerable<string> content)
     {
         return WriteCommaSeparated(
@@ -387,7 +384,7 @@ internal struct IndentingStringBuilder : IDisposable
             static (builder, element) => builder.Write(element));
     }
 
-    public readonly IndentingStringBuilder WriteCommaSeparated<T>(
+    public IndentingStringBuilder WriteCommaSeparated<T>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T> writeElement)
     {
@@ -397,7 +394,7 @@ internal struct IndentingStringBuilder : IDisposable
             writeElement);
     }
 
-    public readonly IndentingStringBuilder WriteCommaSeparated<T, TArg>(
+    public IndentingStringBuilder WriteCommaSeparated<T, TArg>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T, TArg> writeElement,
         TArg arg)
@@ -409,7 +406,7 @@ internal struct IndentingStringBuilder : IDisposable
             (writeElement, arg));
     }
 
-    public readonly IndentingStringBuilder WriteSeparated<T>(
+    public IndentingStringBuilder WriteSeparated<T>(
         IEnumerable<T> content,
         string separator,
         Action<IndentingStringBuilder, T> writeElement)
@@ -421,7 +418,7 @@ internal struct IndentingStringBuilder : IDisposable
             writeElement);
     }
 
-    public readonly IndentingStringBuilder WriteSeparated<T, TArg>(
+    public IndentingStringBuilder WriteSeparated<T, TArg>(
         IEnumerable<T> content,
         string separator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
@@ -434,7 +431,7 @@ internal struct IndentingStringBuilder : IDisposable
             (this, separator, writeElement, arg));
     }
 
-    private readonly IndentingStringBuilder WriteSeparated<T, TArg>(
+    private IndentingStringBuilder WriteSeparated<T, TArg>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, TArg> writeSeparator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
@@ -459,7 +456,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     [InterpolatedStringHandler]
-    public readonly ref struct WriteInterpolatedStringHandler
+    public ref struct WriteInterpolatedStringHandler
     {
         private readonly IndentingStringBuilder _builder;
         private readonly bool _splitContent;
