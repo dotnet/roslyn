@@ -1509,18 +1509,18 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRedFactoryParameters(Node nd)
+        private void WriteRedFactoryParameters(IndentingStringBuilder builder, Node nd)
         {
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
-                nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
+                .. nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")]);
         }
 
         private string GetRedPropertyType(Field field)
         {
             if (field.Type == "SyntaxList<SyntaxToken>")
                 return "SyntaxTokenList";
-            if (IsOptional(field) && IsNode(field.Type) && field.Type != "SyntaxToken")
+            if (IsOptional(field) && _fileWriter.IsNode(field.Type) && field.Type != "SyntaxToken")
                 return field.Type + "?";
             return field.Type;
         }
@@ -1548,7 +1548,7 @@ namespace CSharpSyntaxGenerator
             }
             else
             {
-                var referencedNode = GetNode(field.Type);
+                var referencedNode = _fileWriter.GetNode(field.Type);
                 return $"SyntaxFactory.{StripPost(referencedNode.Name, "Syntax")}()";
             }
         }
@@ -1596,22 +1596,22 @@ namespace CSharpSyntaxGenerator
                 return; // will be handled in minimal factory case
             }
 
-            this.WriteLine();
+            builder.WriteLine();
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
-                nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains).Select(
-                    f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
+                .. nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains).Select(
+                    f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")]);
             builder.WriteLine(")");
 
             builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "kind" : "",
-                nd.Fields.Select(f => factoryWithNoAutoCreatableTokenFields.Contains(f)
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
+                .. nd.Fields.Select(f => factoryWithNoAutoCreatableTokenFields.Contains(f)
                     ? CamelCase(f.Name)
-                    : GetDefaultValue(nd, f))));
+                    : GetDefaultValue(nd, f))]);
 
             builder.WriteLine(");");
         }
