@@ -950,21 +950,22 @@ namespace CSharpSyntaxGenerator
                             using (builder.EnterIndentedRegion())
                             {
                                 builder.WriteLine("=> index switch");
-                                OpenBlock();
-                                foreach (var (field, index) in relevantNodes)
+                                using (builder.EnterIndentedRegion("{", "};"))
                                 {
-                                    var suffix = IsOptional(field) ? "" : "!";
-                                    if (index == 0)
+                                    foreach (var (field, index) in relevantNodes)
                                     {
-                                        builder.WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
+                                        var suffix = IsOptional(field) ? "" : "!";
+                                        if (index == 0)
+                                        {
+                                            builder.WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
+                                        }
+                                        else
+                                        {
+                                            builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
+                                        }
                                     }
-                                    else
-                                    {
-                                        builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
-                                    }
+                                    builder.WriteLine("_ => null,");
                                 }
-                                builder.WriteLine("_ => null,");
-                                CloseBlock(";");
                             }
                         }
                     }
@@ -979,7 +980,7 @@ namespace CSharpSyntaxGenerator
                                                       .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
                         if (!relevantNodes.Any())
                         {
-                            builder.WriteLine(" => null;");
+                            builder.WriteLine("=> null;");
                         }
                         else if (relevantNodes.Count() == 1)
                         {
@@ -989,16 +990,17 @@ namespace CSharpSyntaxGenerator
                         else
                         {
                             builder.WriteLine();
-                            Indent();
-                            builder.WriteLine("=> index switch");
-                            OpenBlock();
-                            foreach (var (field, index) in relevantNodes)
+                            using (builder.EnterIndentedRegion())
                             {
-                                builder.WriteLine($"{index} => this.{CamelCase(field.Name)},");
+                                builder.WriteLine("=> index switch");
+                                using (builder.EnterIndentedRegion("{", "};"))
+                                {
+                                    foreach (var (field, index) in relevantNodes)
+                                        builder.WriteLine($"{index} => this.{CamelCase(field.Name)},");
+
+                                    builder.WriteLine("_ => null,");
+                                }
                             }
-                            builder.WriteLine("_ => null,");
-                            CloseBlock(";");
-                            Unindent();
                         }
                     }
 
