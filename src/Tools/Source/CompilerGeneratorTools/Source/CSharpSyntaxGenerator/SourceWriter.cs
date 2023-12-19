@@ -526,23 +526,21 @@ namespace CSharpSyntaxGenerator
                     {
                         var kinds = nd.Kinds.Distinct().ToList();
                         foreach (var kind in kinds)
-                        {
                             builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                        }
+
                         builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
                     }
                 }
 
                 // validate parameters
-                WriteLineWithoutIndent("#if DEBUG");
+                builder.WriteLine("#if DEBUG", skipIndent: true);
                 foreach (var field in nodeFields)
                 {
                     var pname = CamelCase(field.Name);
 
                     if (!IsAnyList(field.Type) && !IsOptional(field))
-                    {
                         builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
-                    }
+
                     if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                     {
                         if (IsOptional(field))
@@ -586,7 +584,7 @@ namespace CSharpSyntaxGenerator
                     }
                 }
 
-                WriteLineWithoutIndent("#endif");
+                builder.WriteLine("#endif", skipIndent: true);
 
                 if (nd.Name != "SkippedTokensTriviaSyntax" &&
                     nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -914,6 +912,7 @@ namespace CSharpSyntaxGenerator
                                 }
                             }
                         }
+
                         builder.WriteLine();
                     }
 
@@ -964,6 +963,7 @@ namespace CSharpSyntaxGenerator
                                             builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
                                         }
                                     }
+
                                     builder.WriteLine("_ => null,");
                                 }
                             }
@@ -1124,9 +1124,8 @@ namespace CSharpSyntaxGenerator
                     {
                         builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
                         if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
-                        {
                             builder.Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
-                        }
+
                         builder.WriteLine(");");
 
                         isNew = true;
@@ -1199,6 +1198,7 @@ namespace CSharpSyntaxGenerator
                                     builder.WriteLine();
                                     wroteNewLine = true;
                                 }
+
                                 WriteRedNestedListHelperMethods(builder, node, field, referencedNode, referencedNodeField);
                             }
                         }

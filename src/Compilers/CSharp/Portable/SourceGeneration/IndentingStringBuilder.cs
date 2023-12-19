@@ -151,14 +151,14 @@ internal struct IndentingStringBuilder : IDisposable
     /// Appends a single line to the underlying buffer.  Indentation is written out if the underlying buffer
     /// is at the start of a line.
     /// </summary>
-    private readonly void AppendSingleLine(ReadOnlySpan<char> line, string? originalLine)
+    private readonly void AppendSingleLine(ReadOnlySpan<char> line, string? originalLine, bool skipIndent)
     {
         if (line.Length == 0)
             return;
 
         var builder = this.Builder;
 
-        if (!IsEndOfLineCharacter(line[0]))
+        if (!skipIndent && !IsEndOfLineCharacter(line[0]))
         {
             if (builder.Length == 0 || IsEndOfLineCharacter(builder[^1]))
                 builder.Append(_currentIndentation);
@@ -189,15 +189,16 @@ internal struct IndentingStringBuilder : IDisposable
     /// should be passed in for <paramref name="splitContent"/>.  This will cause the provided content to be split into
     /// constituent lines, with each line being appended one at a time.
     /// </summary>
-    public readonly IndentingStringBuilder Write(string content, bool splitContent = false)
-        => Write(content.AsSpan(), content, splitContent);
+    /// <param name="skipIndent">If true, will not indent content, even if starting a new line.</param>
+    public readonly IndentingStringBuilder Write(string content, bool splitContent = false, bool skipIndent = false)
+        => Write(content.AsSpan(), content, splitContent, skipIndent);
 
-    /// <inheritdoc cref="Write(string, bool)"/>
-    public readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
-        => Write(content, originalString: null, splitContent);
+    /// <inheritdoc cref="Write(string, bool, bool)"/>
+    public readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
+        => Write(content, originalString: null, splitContent, skipIndent);
 
-    /// <inheritdoc cref="Write(string, bool)"/>
-    private readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, string? originalString, bool splitContent)
+    /// <inheritdoc cref="Write(string, bool, bool)"/>
+    private readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, string? originalString, bool splitContent, bool skipIndent = false)
     {
         if (splitContent)
         {
@@ -207,41 +208,41 @@ internal struct IndentingStringBuilder : IDisposable
                 if (endOfLineIndex < 0)
                 {
                     // no new line, append the rest of the content to the buffer.
-                    AppendSingleLine(content, originalLine: null);
+                    AppendSingleLine(content, originalLine: null, skipIndent);
                 }
                 else
                 {
                     while (endOfLineIndex < content.Length & IsEndOfLineCharacter(content[endOfLineIndex + 1]))
                         endOfLineIndex++;
 
-                    AppendSingleLine(content[0..endOfLineIndex], originalLine: null);
+                    AppendSingleLine(content[0..endOfLineIndex], originalLine: null, skipIndent);
                     content = content[endOfLineIndex..];
                 }
             }
         }
         else
         {
-            AppendSingleLine(content, originalString);
+            AppendSingleLine(content, originalString, skipIndent);
         }
 
         return this;
     }
 
     /// <summary>
-    /// Equivalent to <see cref="Write(string, bool)"/> except that a final end of line sequence will be written after
+    /// Equivalent to <see cref="Write(string, bool, bool)"/> except that a final end of line sequence will be written after
     /// the content is written.
     /// </summary>
-    public readonly IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
-        => WriteLine(content.AsSpan(), content, splitContent);
+    public readonly IndentingStringBuilder WriteLine(string content = "", bool splitContent = false, bool skipIndent = false)
+        => WriteLine(content.AsSpan(), content, splitContent, skipIndent);
 
-    /// <inheritdoc cref="WriteLine(string, bool)"/>
-    public readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
-        => WriteLine(content, originalContent: null, splitContent);
+    /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
+    public readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
+        => WriteLine(content, originalContent: null, splitContent, skipIndent);
 
-    /// <inheritdoc cref="WriteLine(string, bool)"/>
-    private readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false)
+    /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
+    private readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false, bool skipIndent = false)
     {
-        Write(content, originalContent, splitContent);
+        Write(content, originalContent, splitContent, skipIndent);
         AppendEndOfLine();
         return this;
     }
