@@ -645,9 +645,9 @@ namespace CSharpSyntaxGenerator
 
         private static void WriteGreenFactoryParameters(IndentingStringBuilder builder, Node nd)
         {
-            builder.WriteCommaSeparated(
-                (nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>()).Concat(
-                nd.Fields.Select(f =>
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
+                .. nd.Fields.Select(f =>
                 {
                     var type = f.Type switch
                     {
@@ -657,20 +657,20 @@ namespace CSharpSyntaxGenerator
                     };
 
                     return $"{type} {CamelCase(f.Name)}";
-                })));
+                })]);
         }
 
         private void WriteCtorArgList(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
         {
-            builder.Write(CommaJoin(
+            builder.WriteCommaSeparated([
                 nd.Kinds.Count == 1 ? $"SyntaxKind.{nd.Kinds[0].Name}" : "kind",
-                nodeFields.Select(f =>
+                .. nodeFields.Select(f =>
                     f.Type == "SyntaxList<SyntaxToken>" || IsAnyList(f.Type)
                         ? $"{CamelCase(f.Name)}.Node"
                         : CamelCase(f.Name)),
                 // values are at end
-                valueFields.Select(f => CamelCase(f.Name)),
-                withSyntaxFactoryContext ? "this.context" : ""));
+                .. valueFields.Select(f => CamelCase(f.Name)),
+                .. withSyntaxFactoryContext ? ["this.context"] : Array.Empty<string>()));
         }
 
         private void WriteRedTypes(IndentingStringBuilder builder)
