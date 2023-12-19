@@ -337,16 +337,16 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine(");");
         }
 
-        private void WriteSetDiagnostics(Node node)
+        private static void WriteSetDiagnostics(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
             builder.Write($"    => new {node.Name}(");
-            builder.Write(CommaJoin(
+            builder.WriteCommaSeparated([
                 "this.Kind",
-                node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
                 "diagnostics",
-                "GetAnnotations()"));
+                "GetAnnotations()"]);
             builder.WriteLine(");");
         }
 
