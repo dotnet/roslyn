@@ -513,137 +513,136 @@ namespace CSharpSyntaxGenerator
             var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
             builder.Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}(");
-            WriteGreenFactoryParameters(nd);
+            WriteGreenFactoryParameters(builder, nd);
             builder.WriteLine(")");
-            OpenBlock();
-
-            // validate kind
-            if (nd.Kinds.Count >= 2)
+            using (builder.EnterBlock())
             {
-                builder.WriteLine("switch (kind)");
-                OpenBlock();
-                var kinds = nd.Kinds.Distinct().ToList();
-                foreach (var kind in kinds)
+                // validate kind
+                if (nd.Kinds.Count >= 2)
                 {
-                    builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                }
-                builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
-                CloseBlock();
-            }
-
-            // validate parameters
-            WriteLineWithoutIndent("#if DEBUG");
-            foreach (var field in nodeFields)
-            {
-                var pname = CamelCase(field.Name);
-
-                if (!IsAnyList(field.Type) && !IsOptional(field))
-                {
-                    builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
-                }
-                if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
-                {
-                    if (IsOptional(field))
+                    builder.WriteLine("switch (kind)");
+                    OpenBlock();
+                    var kinds = nd.Kinds.Distinct().ToList();
+                    foreach (var kind in kinds)
                     {
-                        builder.WriteLine($"if ({CamelCase(field.Name)} != null)");
-                        OpenBlock();
+                        builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                     }
+                    builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
+                    CloseBlock();
+                }
 
-                    if (field.Kinds.Count == 1 && !IsOptional(field))
+                // validate parameters
+                WriteLineWithoutIndent("#if DEBUG");
+                foreach (var field in nodeFields)
+                {
+                    var pname = CamelCase(field.Name);
+
+                    if (!IsAnyList(field.Type) && !IsOptional(field))
                     {
-                        builder.WriteLine($"if ({pname}.Kind != SyntaxKind.{field.Kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                        builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
+                    }
+                    if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
+                    {
+                        if (IsOptional(field))
+                        {
+                            builder.WriteLine($"if ({CamelCase(field.Name)} != null)");
+                            OpenBlock();
+                        }
+
+                        if (field.Kinds.Count == 1 && !IsOptional(field))
+                        {
+                            builder.WriteLine($"if ({pname}.Kind != SyntaxKind.{field.Kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                        }
+                        else
+                        {
+                            builder.WriteLine($"switch ({pname}.Kind)");
+                            OpenBlock();
+                            var kinds = field.Kinds.Distinct().ToList();
+
+                            //we need to check for Kind=None as well as node == null because that's what the red factory will pass
+                            if (IsOptional(field))
+                            {
+                                kinds.Add(new Kind { Name = "None" });
+                            }
+                            foreach (var kind in kinds)
+                            {
+                                builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                            }
+
+                            builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
+                            CloseBlock();
+                        }
+
+                        if (IsOptional(field))
+                        {
+                            CloseBlock();
+                        }
+                    }
+                }
+
+                WriteLineWithoutIndent("#endif");
+
+                if (nd.Name != "SkippedTokensTriviaSyntax" &&
+                    nd.Name != "DocumentationCommentTriviaSyntax" &&
+                    nd.Name != "IncompleteMemberSyntax" &&
+                    valueFields.Count + nodeFields.Count <= 3)
+                {
+                    //int hash;
+                    //var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IdentifierName, identifier, this.context, out hash);
+                    //if (cached != null) return (IdentifierNameSyntax)cached;
+
+                    //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier, this.context);
+                    //if (hash >= 0)
+                    //{
+                    //    SyntaxNodeCache.AddNode(result, hash);
+                    //}
+
+                    //return result;
+
+                    builder.WriteLine();
+                    //int hash;
+                    builder.WriteLine("int hash;");
+                    //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
+                    if (withSyntaxFactoryContext)
+                    {
+                        builder.Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
                     }
                     else
                     {
-                        builder.WriteLine($"switch ({pname}.Kind)");
-                        OpenBlock();
-                        var kinds = field.Kinds.Distinct().ToList();
-
-                        //we need to check for Kind=None as well as node == null because that's what the red factory will pass
-                        if (IsOptional(field))
-                        {
-                            kinds.Add(new Kind { Name = "None" });
-                        }
-                        foreach (var kind in kinds)
-                        {
-                            builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                        }
-
-                        builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
-                        CloseBlock();
+                        builder.Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                     }
 
-                    if (IsOptional(field))
-                    {
-                        CloseBlock();
-                    }
-                }
-            }
+                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    builder.WriteLine(", out hash);");
+                    //    if (cached != null) return (IdentifierNameSyntax)cached;
+                    builder.WriteLine($"if (cached != null) return ({nd.Name})cached;");
+                    builder.WriteLine();
 
-            WriteLineWithoutIndent("#endif");
+                    //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
+                    builder.Write($"var result = new {nd.Name}(");
+                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    builder.WriteLine(");");
+                    //if (hash >= 0)
+                    builder.WriteLine("if (hash >= 0)");
+                    //{
+                    OpenBlock();
+                    //    SyntaxNodeCache.AddNode(result, hash);
+                    builder.WriteLine("SyntaxNodeCache.AddNode(result, hash);");
+                    //}
+                    CloseBlock();
+                    builder.WriteLine();
 
-            if (nd.Name != "SkippedTokensTriviaSyntax" &&
-                nd.Name != "DocumentationCommentTriviaSyntax" &&
-                nd.Name != "IncompleteMemberSyntax" &&
-                valueFields.Count + nodeFields.Count <= 3)
-            {
-                //int hash;
-                //var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IdentifierName, identifier, this.context, out hash);
-                //if (cached != null) return (IdentifierNameSyntax)cached;
-
-                //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier, this.context);
-                //if (hash >= 0)
-                //{
-                //    SyntaxNodeCache.AddNode(result, hash);
-                //}
-
-                //return result;
-
-                builder.WriteLine();
-                //int hash;
-                builder.WriteLine("int hash;");
-                //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
-                if (withSyntaxFactoryContext)
-                {
-                    builder.Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
+                    //return result;
+                    builder.WriteLine("return result;");
                 }
                 else
                 {
-                    builder.Write("var cached = SyntaxNodeCache.TryGetNode((int)");
+                    builder.WriteLine();
+                    builder.Write($"return new {nd.Name}(");
+                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    builder.WriteLine(");");
                 }
-
-                WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
-                builder.WriteLine(", out hash);");
-                //    if (cached != null) return (IdentifierNameSyntax)cached;
-                builder.WriteLine($"if (cached != null) return ({nd.Name})cached;");
-                builder.WriteLine();
-
-                //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
-                builder.Write($"var result = new {nd.Name}(");
-                WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
-                builder.WriteLine(");");
-                //if (hash >= 0)
-                builder.WriteLine("if (hash >= 0)");
-                //{
-                OpenBlock();
-                //    SyntaxNodeCache.AddNode(result, hash);
-                builder.WriteLine("SyntaxNodeCache.AddNode(result, hash);");
-                //}
-                CloseBlock();
-                builder.WriteLine();
-
-                //return result;
-                builder.WriteLine("return result;");
             }
-            else
-            {
-                builder.WriteLine();
-                builder.Write($"return new {nd.Name}(");
-                WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
-                builder.WriteLine(");");
-            }
-
-            CloseBlock();
         }
 
         private void WriteGreenFactoryParameters(IndentingStringBuilder builder, Node nd)
