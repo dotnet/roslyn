@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         internal static PooledStream CreateWritableStream()
             => new ReadWriteStream();
 
-        public class PooledStream : Stream
+        public abstract class PooledStream : Stream
         {
             protected List<byte[]> chunks;
 

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Host
         ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default);
     }
 
-    internal interface ITemporaryStorageServiceInternal : IWorkspaceService
-    {
-        ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
-    }
+    //internal interface ITemporaryStorageServiceInternal : IWorkspaceService
+    //{
+    //    ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
+    //}
 }

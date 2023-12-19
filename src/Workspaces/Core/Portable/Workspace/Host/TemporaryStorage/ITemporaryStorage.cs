@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Host
         Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
     }
 
-    internal interface ITemporaryStreamStorageInternal : IDisposable
-    {
-        Stream ReadStream(CancellationToken cancellationToken = default);
-        Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);
-        void WriteStream(Stream stream, CancellationToken cancellationToken = default);
-        Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
-    }
+    //internal interface ITemporaryStreamStorageInternal : IDisposable
+    //{
+    //    Stream ReadStream(CancellationToken cancellationToken = default);
+    //    Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);
+    //    void WriteStream(Stream stream, CancellationToken cancellationToken = default);
+    //    Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
+    //}
 }

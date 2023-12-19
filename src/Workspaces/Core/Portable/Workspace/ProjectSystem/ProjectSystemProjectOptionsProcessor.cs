@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         private readonly ProjectSystemProject _project;
         private readonly SolutionServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
-        private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
+        // private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// (especially in cases with many references).
         /// </summary>
         /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-        private ITemporaryStreamStorageInternal? _commandLineStorage;
+        private ImmutableArray<string> _commandLineStorage;
 
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string? _explicitRuleSetFilePath;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
+            // _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.
@@ -71,13 +71,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             // Dispose the existing stored command-line and then persist the new one so we can
             // recover it later.  Only bother persisting things if we have a non-empty string.
 
-            _commandLineStorage?.Dispose();
-            _commandLineStorage = null;
+            _commandLineStorage = default;
             if (!arguments.IsEmpty)
-            {
-                _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
-                _commandLineStorage.WriteAllLines(arguments);
-            }
+                _commandLineStorage = arguments;
 
             ReparseCommandLine_NoLock(arguments);
             return true;
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
-                var commandLine = _commandLineStorage == null ? ImmutableArray<string>.Empty : _commandLineStorage.ReadLines();
+                var commandLine = _commandLineStorage.NullToEmpty();
 
                 DisposeOfRuleSetFile_NoLock();
                 ReparseCommandLine_NoLock(commandLine);
@@ -276,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
-                _commandLineStorage?.Dispose();
+                _commandLineStorage = default;
             }
         }
     }

@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             if (reference is PortableExecutableReference portable)
             {
-                if (portable is ISupportTemporaryStorage supportTemporaryStorage)
-                {
-                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
-                    {
-                        return;
-                    }
-                }
+                //if (portable is ISupportTemporaryStorage supportTemporaryStorage)
+                //{
+                //    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                //    {
+                //        return;
+                //    }
+                //}
 
                 WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
                 return;
@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
+            if (kind is SerializationKinds.Bits)
             {
                 var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
 
                 var filePath = reader.ReadString();
 
-                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-                if (tuple == null)
+                var metadata = TryReadMetadataFrom(reader, kind);
+                if (metadata == null)
                 {
                     // TODO: deal with xml document provider properly
                     //       should we shadow copy xml doc comment?
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
                 return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+                    properties, filePath, metadata, documentProvider);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -314,87 +314,57 @@ namespace Microsoft.CodeAnalysis.Serialization
             WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
-        private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-            ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
-        {
-            var storages = reference.GetStorages();
-            if (storages == null)
-            {
-                return false;
-            }
+        //private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+        //    ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        //{
+        //    var storages = reference.GetStorages();
+        //    if (storages == null)
+        //    {
+        //        return false;
+        //    }
 
-            // Not clear if name should be allowed to be null here (https://github.com/dotnet/roslyn/issues/43037)
-            using var pooled = Creator.CreateList<(string? name, long offset, long size)>();
+        //    // Not clear if name should be allowed to be null here (https://github.com/dotnet/roslyn/issues/43037)
+        //    using var pooled = Creator.CreateList<(string? name, long offset, long size)>();
 
-            foreach (var storage in storages)
-            {
-                if (storage is not ITemporaryStorageWithName storage2)
-                {
-                    return false;
-                }
+        //    foreach (var storage in storages)
+        //    {
+        //        if (storage is not ITemporaryStorageWithName storage2)
+        //        {
+        //            return false;
+        //        }
 
-                context.AddResource(storage);
+        //        context.AddResource(storage);
 
-                pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
-            }
+        //        pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
+        //    }
 
-            WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+        //    WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
-            writer.WriteInt32((int)MetadataImageKind.Assembly);
-            writer.WriteInt32(pooled.Object.Count);
+        //    writer.WriteInt32((int)MetadataImageKind.Assembly);
+        //    writer.WriteInt32(pooled.Object.Count);
 
-            foreach (var (name, offset, size) in pooled.Object)
-            {
-                writer.WriteInt32((int)MetadataImageKind.Module);
-                writer.WriteString(name);
-                writer.WriteInt64(offset);
-                writer.WriteInt64(size);
-            }
+        //    foreach (var (name, offset, size) in pooled.Object)
+        //    {
+        //        writer.WriteInt32((int)MetadataImageKind.Module);
+        //        writer.WriteString(name);
+        //        writer.WriteInt64(offset);
+        //        writer.WriteInt64(size);
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
-            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        private static Metadata? TryReadMetadataFrom(ObjectReader reader, SerializationKinds kind)
         {
             var imageKind = reader.ReadInt32();
+            // error case
             if (imageKind == MetadataFailed)
-            {
-                // error case
                 return null;
-            }
 
             var metadataKind = (MetadataImageKind)imageKind;
-            if (_storageService == null)
-            {
-                if (metadataKind == MetadataImageKind.Assembly)
-                {
-                    using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-
-                    var count = reader.ReadInt32();
-                    for (var i = 0; i < count; i++)
-                    {
-                        metadataKind = (MetadataImageKind)reader.ReadInt32();
-                        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                        pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
-#pragma warning restore CA2016 
-                    }
-
-                    return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
-                }
-
-                Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                return (ReadModuleMetadataFrom(reader, kind), storages: default);
-#pragma warning restore CA2016
-            }
-
             if (metadataKind == MetadataImageKind.Assembly)
             {
                 using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-                using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
 
                 var count = reader.ReadInt32();
                 for (var i = 0; i < count; i++)
@@ -402,40 +372,64 @@ namespace Microsoft.CodeAnalysis.Serialization
                     metadataKind = (MetadataImageKind)reader.ReadInt32();
                     Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                    var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-
-                    pooledMetadata.Object.Add(metadata);
-                    pooledStorage.Object.Add(storage);
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
+                    pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+#pragma warning restore CA2016 
                 }
 
-                return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+                return AssemblyMetadata.Create(pooledMetadata.Object);
             }
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
+            return ReadModuleMetadataFrom(reader, kind);
+#pragma warning restore CA2016
 
-            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-            return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
+            //if (metadataKind == MetadataImageKind.Assembly)
+            //{
+            //    using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
+            //    using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
+
+            //    var count = reader.ReadInt32();
+            //    for (var i = 0; i < count; i++)
+            //    {
+            //        metadataKind = (MetadataImageKind)reader.ReadInt32();
+            //        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+
+            //        var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+
+            //        pooledMetadata.Object.Add(metadata);
+            //        pooledStorage.Object.Add(storage);
+            //    }
+
+            //    return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+            //}
+
+            //Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+
+            //var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            //return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
         }
 
-        private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
-            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        //private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
+        //    ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        //{
+        //    cancellationToken.ThrowIfCancellationRequested();
 
-            GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
+        //    GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
 
-            var storageStream = storage.ReadStream(cancellationToken);
-            Contract.ThrowIfFalse(length == storageStream.Length);
+        //    var storageStream = storage.ReadStream(cancellationToken);
+        //    Contract.ThrowIfFalse(length == storageStream.Length);
 
-            GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
+        //    GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
 
-            // make sure we keep storageStream alive while Metadata is alive
-            // we use conditional weak table since we can't control metadata liftetime
-            if (lifeTimeObject != null)
-                s_lifetimeMap.Add(metadata, lifeTimeObject);
+        //    // make sure we keep storageStream alive while Metadata is alive
+        //    // we use conditional weak table since we can't control metadata liftetime
+        //    if (lifeTimeObject != null)
+        //        s_lifetimeMap.Add(metadata, lifeTimeObject);
 
-            return (metadata, storage);
-        }
+        //    return (metadata, storage);
+        //}
 
         private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
         {
@@ -453,40 +447,40 @@ namespace Microsoft.CodeAnalysis.Serialization
             return metadata;
         }
 
-        private void GetTemporaryStorage(
-            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
-        {
-            if (kind == SerializationKinds.Bits)
-            {
-                storage = _storageService.CreateTemporaryStreamStorage();
-                using var stream = SerializableBytes.CreateWritableStream();
+        //private void GetTemporaryStorage(
+        //    ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
+        //{
+        //    if (kind == SerializationKinds.Bits)
+        //    {
+        //        storage = _storageService.CreateTemporaryStreamStorage();
+        //        using var stream = SerializableBytes.CreateWritableStream();
 
-                CopyByteArrayToStream(reader, stream, cancellationToken);
+        //        CopyByteArrayToStream(reader, stream, cancellationToken);
 
-                length = stream.Length;
+        //        length = stream.Length;
 
-                stream.Position = 0;
-                storage.WriteStream(stream, cancellationToken);
+        //        stream.Position = 0;
+        //        storage.WriteStream(stream, cancellationToken);
 
-                return;
-            }
+        //        return;
+        //    }
 
-            if (kind == SerializationKinds.MemoryMapFile)
-            {
-                var service2 = (ITemporaryStorageService2)_storageService;
+        //    if (kind == SerializationKinds.MemoryMapFile)
+        //    {
+        //        var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
+        //        var name = reader.ReadString();
+        //        var offset = reader.ReadInt64();
+        //        var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, offset, size);
-                length = size;
+        //        storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+        //        length = size;
 
-                return;
-            }
+        //        return;
+        //    }
 
-            throw ExceptionUtilities.UnexpectedValue(kind);
-        }
+        //    throw ExceptionUtilities.UnexpectedValue(kind);
+        //}
 
         private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
         {
@@ -627,20 +621,20 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-        private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+        private sealed class SerializedMetadataReference : PortableExecutableReference // , ISupportTemporaryStorage
         {
             private readonly Metadata _metadata;
-            private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
+            // private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
             private readonly DocumentationProvider _provider;
 
             public SerializedMetadataReference(
-                MetadataReferenceProperties properties, string? fullPath,
-                Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storagesOpt, DocumentationProvider initialDocumentation)
+                MetadataReferenceProperties properties,
+                string? fullPath,
+                Metadata metadata,
+                DocumentationProvider initialDocumentation)
                 : base(properties, fullPath, initialDocumentation)
             {
                 _metadata = metadata;
-                _storagesOpt = storagesOpt;
-
                 _provider = initialDocumentation;
             }
 
@@ -654,10 +648,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 => _metadata;
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-                => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
+                => new SerializedMetadataReference(properties, FilePath, _metadata, _provider);
 
-            public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
-                => _storagesOpt.IsDefault ? null : _storagesOpt;
+            //public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
+            //    => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }
 }

@@ -28,20 +28,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The compiler observes the metadata content a reference refers to by calling <see cref="PortableExecutableReference.GetMetadataImpl()"/>
         /// and the observed metadata is memoized by the compilation. However we drop compilations to decrease memory consumption. 
         /// When the compilation is recreated for a solution the compiler asks for metadata again and we need to provide the original content,
-        /// not read the file again. Therefore we need to save the timestamp on the <see cref="Snapshot"/>.
+        /// not read the file again. Therefore we need to save the timestamp on the <see cref="VisualStudioPortableExecutableReference"/>.
         /// 
         /// When the VS observes a change in a metadata reference file the project version is advanced and a new instance of 
-        /// <see cref="Snapshot"/> is created for the corresponding reference.
+        /// <see cref="VisualStudioPortableExecutableReference"/> is created for the corresponding reference.
         /// </remarks>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal sealed class Snapshot : PortableExecutableReference, ISupportTemporaryStorage
+        internal sealed class VisualStudioPortableExecutableReference : PortableExecutableReference
         {
             private readonly VisualStudioMetadataReferenceManager _provider;
             private readonly Lazy<DateTime> _timestamp;
             private Exception _error;
             private readonly FileChangeTracker _fileChangeTrackerOpt;
 
-            internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
+            internal VisualStudioPortableExecutableReference(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
                 : base(properties, fullPath)
             {
                 Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
@@ -105,13 +105,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 => new VisualStudioDocumentationProvider(this.FilePath, _provider.XmlMemberIndexService);
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-                => new Snapshot(_provider, properties, this.FilePath, _fileChangeTrackerOpt);
+                => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTrackerOpt);
 
             private string GetDebuggerDisplay()
                 => "Metadata File: " + FilePath;
 
-            public IReadOnlyList<ITemporaryStreamStorageInternal> GetStorages()
-                => _provider.GetStorages(this.FilePath, _timestamp.Value);
+            //public IReadOnlyList<ITemporaryStreamStorageInternal> GetStorages()
+            //    => _provider.GetStorages(this.FilePath, _timestamp.Value);
         }
     }
 }
