@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly Lazy<RenameUserInputTextBox> _identifierTextBox;
         private readonly Lazy<SmartRenameUserInputComboBox> _smartRenameUserInputComboBox;
 
-        private IRenameUserInput RenameUserInput => _viewModel.SmartRenameViewModel is null ? _identifierTextBox.Value : _smartRenameUserInputComboBox.Value;
-
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
             IWpfTextView textView,
@@ -96,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
             _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
         }
+
+        internal IRenameUserInput RenameUserInput => _viewModel.SmartRenameViewModel is null ? _identifierTextBox.Value : _smartRenameUserInputComboBox.Value;
 
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
