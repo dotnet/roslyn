@@ -65,7 +65,7 @@ stages:
         displayName: Run Integration Tests
         inputs:
           filePath: eng/build.ps1
-          arguments: -ci -helix -prepareMachine -testVsi -helixQueueName windows.amd64.vs2022.pre.open -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -oopCoreClr:$${{ testParameters.oopCoreClr }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          arguments: -ci -helix -prepareMachine -testVsi -helixQueueName windows.vs2022preview.scout.amd64.open -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -oopCoreClr:$${{ testParameters.oopCoreClr }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
