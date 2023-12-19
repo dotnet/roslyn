@@ -29,10 +29,9 @@
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.8.9-preview</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.8.36711</MicrosoftVisualStudioShellPackagesVersion>
     <!-- The version of MSBuild that we reference for things depending on MSBuildWorkspace -->
-    <RefOnlyMicrosoftBuildPackagesVersion>16.10.0</RefOnlyMicrosoftBuildPackagesVersion>
+    <RefOnlyMicrosoftBuildPackagesVersion>17.3.2</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of MSBuild that matches the version of MSBuild.StructuredLogger for apps using MSBuild as a regular API -->
     <MicrosoftBuildPackagesVersion>17.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
@@ -169,9 +168,6 @@
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolInternalVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolInternalVersion>
     <MicrosoftVisualStudioLanguageServerClientVersion>$(MicrosoftVisualStudioLanguageServerClientPackagesVersion)</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageServerClientImplementationVersion>$(MicrosoftVisualStudioLanguageServerClientPackagesVersion)</MicrosoftVisualStudioLanguageServerClientImplementationVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>

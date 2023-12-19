@@ -16,7 +16,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceImpl.cs" Link="EditAndContinue\ManagedHotReloadServiceImpl.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceBridge.cs" Link="EditAndContinue\ManagedHotReloadServiceBridge.cs" />
   </ItemGroup>
 
   <ItemGroup>

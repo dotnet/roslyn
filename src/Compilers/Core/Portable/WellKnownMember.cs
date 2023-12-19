@@ -632,6 +632,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
         System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
 
+        System_Span_T__ToArray,
+        System_ReadOnlySpan_T__ToArray,
+        System_Span_T__CopyTo_Span_T,
+        System_ReadOnlySpan_T__CopyTo_Span_T,
+        System_Collections_Immutable_ImmutableArray_T__AsSpan,
+        System_Collections_Generic_List_T__AddRange,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

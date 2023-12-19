@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public string[]? FixAllFlavors { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public ImmutableArray<CodeAction>? NestedCodeActions { get; }
+        public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
         public CodeActionResolveData(
             string uniqueIdentifier,
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.TextDocumentIdentifier textDocument,
             string[] codeActionPath,
             string[]? fixAllFlavors,
-            ImmutableArray<CodeAction>? nestedCodeActions)
+            ImmutableArray<LSP.CodeAction>? nestedCodeActions)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
