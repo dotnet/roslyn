@@ -230,9 +230,7 @@ namespace RunTests
                 return null;
             }
 
-            resultFileDirectory ??= helix
-                ? "."
-                : Path.Combine(artifactsPath, "TestResults", configuration);
+            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults", configuration);
 
             logFileDirectory ??= resultFileDirectory;
 
