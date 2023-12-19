@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithoutFrozenSourceGeneratedDocuments()
         {
-            var newCompilationState = _compilationState.WithoutFrozenSourceGeneratedDocuments(_state.GetProjectDependencyGraph());
+            var newCompilationState = _compilationState.WithoutFrozenSourceGeneratedDocuments();
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

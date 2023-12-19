@@ -915,7 +915,7 @@ internal sealed partial class SolutionCompilationState
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
     /// to have it's real output again.
     /// </summary>
-    public SolutionCompilationState WithoutFrozenSourceGeneratedDocuments(ProjectDependencyGraph dependencyGraph)
+    public SolutionCompilationState WithoutFrozenSourceGeneratedDocuments()
     {
         // If there's nothing frozen, there's nothing to do.
         if (_frozenSourceGeneratedDocumentState == null)
@@ -925,7 +925,7 @@ internal sealed partial class SolutionCompilationState
 
         // Since we previously froze this document, we should have a CompilationTracker entry for it, and it should be a
         // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, dependencyGraph);
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, this.Solution.GetProjectDependencyGraph());
         Contract.ThrowIfFalse(newTrackerMap.TryGetValue(projectId, out var existingTracker));
         var replacingItemTracker = existingTracker as GeneratedFileReplacingCompilationTracker;
         Contract.ThrowIfNull(replacingItemTracker);
