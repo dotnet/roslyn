@@ -1076,10 +1076,9 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteLine();
             builder.Write($"public {node.Name} Update(");
-            builder.Write(CommaJoin(
-                node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+            builder.WriteCommaSeparated(
+                node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}"));
             builder.WriteLine(")");
-            OpenBlock();
 
             builder.Write("if (");
             int nCompared = 0;
