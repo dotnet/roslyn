@@ -1080,20 +1080,17 @@ namespace CSharpSyntaxGenerator
                 node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}"));
             builder.WriteLine(")");
 
-            builder.Write("if (");
-            int nCompared = 0;
-            foreach (var field in node.Fields)
+            using (builder.EnterBlock())
             {
-                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
-                {
-                    if (nCompared > 0)
-                        builder.Write(" || ");
-                    builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
-                    nCompared++;
-                }
-            }
-            if (nCompared > 0)
-            {
+                builder.Write("if (");
+                builder.WriteSeparated(
+                    node.Fields.Where(field =>
+                        _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
+                        _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
+                        field.Type == "SyntaxNodeOrTokenList"),
+                    " || ",
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
+
                 builder.WriteLine(")");
                 OpenBlock();
                 builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
@@ -1104,11 +1101,10 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine("var annotations = GetAnnotations();");
                 builder.WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
-            }
 
-            builder.WriteLine();
-            builder.WriteLine("return this;");
-            CloseBlock();
+                builder.WriteLine();
+                builder.WriteLine("return this;");
+            }
         }
 
         private void WriteRedWithMethods(IndentingStringBuilder builder, Node node)
