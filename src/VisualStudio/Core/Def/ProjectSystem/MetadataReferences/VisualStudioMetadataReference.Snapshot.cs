@@ -109,9 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private string GetDebuggerDisplay()
                 => "Metadata File: " + FilePath;
-
-            //public IReadOnlyList<ITemporaryStreamStorageInternal> GetStorages()
-            //    => _provider.GetStorages(this.FilePath, _timestamp.Value);
         }
     }
 }

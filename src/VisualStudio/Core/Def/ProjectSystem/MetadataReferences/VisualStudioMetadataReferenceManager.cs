@@ -47,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
-        // private readonly TemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -70,9 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
             Assumes.Present(SmartOpenScopeServiceOpt);
-
-            //_temporaryStorageService = temporaryStorageService;
-            //Assumes.Present(_temporaryStorageService);
         }
 
         public void Dispose()
@@ -84,19 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 SmartOpenScopeServiceOpt = null;
             }
         }
-
-        //public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
-        //{
-        //    var key = new FileKey(fullPath, snapshotTimestamp);
-        //    // check existing metadata
-        //    if (_metadataCache.TryGetMetadata(key, out var source) &&
-        //        s_metadataToStorages.TryGetValue(source, out var storages))
-        //    {
-        //        return storages;
-        //    }
-
-        //    return null;
-        //}
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
             => new VisualStudioMetadataReference.VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTrackerOpt: null);
