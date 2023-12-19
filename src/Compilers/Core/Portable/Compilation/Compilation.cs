@@ -3657,12 +3657,12 @@ namespace Microsoft.CodeAnalysis
             MakeMemberMissing(-(int)member - 1);
         }
 
-        private protected bool IsMemberMissing(WellKnownMember member)
+        internal bool IsMemberMissing(WellKnownMember member)
         {
             return IsMemberMissing((int)member);
         }
 
-        private protected bool IsMemberMissing(SpecialMember member)
+        internal bool IsMemberMissing(SpecialMember member)
         {
             return IsMemberMissing(-(int)member - 1);
         }
@@ -3702,12 +3702,12 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
-        private protected bool IsTypeMissing(SpecialType type)
+        internal bool IsTypeMissing(SpecialType type)
         {
             return IsTypeMissing((int)type);
         }
 
-        private protected bool IsTypeMissing(WellKnownType type)
+        internal bool IsTypeMissing(WellKnownType type)
         {
             return IsTypeMissing((int)type);
         }
