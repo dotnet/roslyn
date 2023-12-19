@@ -1329,22 +1329,21 @@ namespace CSharpSyntaxGenerator
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
             builder.WriteLine();
             builder.WriteLine("public static partial class SyntaxFactory");
-            OpenBlock();
-
-            foreach (var node in nodes)
+            using (builder.EnterBlock())
             {
-                this.WriteRedFactory(node);
-                bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Compare(node.SkipConvenienceFactories, "true", true) == 0;
-                if (!skipConvenienceFactories)
+                foreach (var node in nodes)
                 {
-                    this.WriteRedFactoryWithNoAutoCreatableTokens(node);
-                    this.WriteRedMinimalFactory(node);
-                    this.WriteRedMinimalFactory(node, withStringNames: true);
+                    this.WriteRedFactory(builder, node);
+                    bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Compare(node.SkipConvenienceFactories, "true", true) == 0;
+                    if (!skipConvenienceFactories)
+                    {
+                        this.WriteRedFactoryWithNoAutoCreatableTokens(builder, node);
+                        this.WriteRedMinimalFactory(builder, node);
+                        this.WriteRedMinimalFactory(builder, node, withStringNames: true);
+                    }
+                    this.WriteKindConverters(builder, node);
                 }
-                this.WriteKindConverters(node);
             }
-
-            CloseBlock();
         }
 
         private bool CanBeAutoCreated(Node node, Field field)
