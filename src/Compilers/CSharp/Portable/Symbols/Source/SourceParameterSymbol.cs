@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, Predicate<ISymbolInternal> filter, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
             Debug.Assert(filter == null);
             state.DefaultForceComplete(this, cancellationToken);

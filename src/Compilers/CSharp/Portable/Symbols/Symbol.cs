@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal virtual void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
+        internal virtual void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             // must be overridden by source symbols, no-op for other symbols
             Debug.Assert(!this.RequiresCompletion);
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
 #nullable enable
-        internal static void ForceCompleteMemberConditionally(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, Symbol member, CancellationToken cancellationToken)
+        internal static void ForceCompleteMemberConditionally(SourceLocation? locationOpt, Predicate<Symbol>? filter, Symbol member, CancellationToken cancellationToken)
         {
             if ((locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
                 && (filter == null || filter(member)))

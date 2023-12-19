@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -534,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
-        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             if (filter?.Invoke(this) == false)
             {

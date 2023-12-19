@@ -14,7 +14,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -268,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             if (filter?.Invoke(this) == false)
             {

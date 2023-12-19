@@ -2826,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Free();
         }
 
-        private void GetDiagnosticsWithoutSeverityFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, Predicate<ISymbolInternal>? symbolFilter, CancellationToken cancellationToken)
+        private void GetDiagnosticsWithoutSeverityFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, Predicate<Symbol>? symbolFilter, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(builder.DiagnosticBag is object);
 
@@ -3106,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, Predicate<ISymbolInternal>? symbolFilter = null, CancellationToken cancellationToken = default)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, Predicate<Symbol>? symbolFilter = null, CancellationToken cancellationToken = default)
         {
             UsingsFromOptions.Complete(this, cancellationToken);
 
@@ -3147,7 +3147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ImmutableBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
         }
 
-        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {

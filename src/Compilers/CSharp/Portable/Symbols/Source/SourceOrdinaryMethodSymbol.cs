@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -432,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<ISymbolInternal> filter, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
             var implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)

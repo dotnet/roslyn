@@ -4,14 +4,13 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class SourceNamespaceSymbol
     {
-        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             if (filter?.Invoke(this) == false)
             {
