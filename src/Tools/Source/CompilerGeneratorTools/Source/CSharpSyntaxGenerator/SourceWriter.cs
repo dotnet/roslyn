@@ -13,11 +13,13 @@ using System.Xml;
 
 namespace CSharpSyntaxGenerator
 {
-    internal class SourceWriter : AbstractFileWriter
+    internal sealed class SourceWriter
     {
+        private readonly FileWriter _fileWriter;
+
         private SourceWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default)
-            : base(writer, tree, cancellationToken)
         {
+            _fileWriter = new FileWriter(tree, cancellationToken);
         }
 
         public static void WriteMain(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteMain();

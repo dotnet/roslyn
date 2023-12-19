@@ -14,7 +14,7 @@ namespace CSharpSyntaxGenerator
 {
     using static FileWriter;
 
-    internal class TestWriter
+    internal sealed class TestWriter
     {
         private readonly FileWriter _fileWriter;
 

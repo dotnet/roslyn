@@ -14,13 +14,11 @@ namespace CSharpSyntaxGenerator
 {
     internal sealed class SignatureWriter
     {
-        private readonly TextWriter _writer;
         private readonly Tree _tree;
         private readonly Dictionary<string, string> _typeMap;
 
-        private SignatureWriter(TextWriter writer, Tree tree)
+        private SignatureWriter(Tree tree)
         {
-            _writer = writer;
             _tree = tree;
             _typeMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
             _typeMap.Add(tree.Root, null);
@@ -28,10 +26,10 @@ namespace CSharpSyntaxGenerator
 
         public static void Write(TextWriter writer, Tree tree)
         {
-            new SignatureWriter(writer, tree).WriteFile();
+            new SignatureWriter(tree).WriteFile(writer);
         }
 
-        private void WriteFile()
+        private void WriteFile(TextWriter writer)
         {
             using var builder = IndentingStringBuilder.Create();
 
@@ -50,7 +48,7 @@ namespace CSharpSyntaxGenerator
                     this);
             }
 
-            _writer.Write(builder.ToString());
+            writer.Write(builder.ToString());
         }
 
         private void WriteType(IndentingStringBuilder builder, TreeType treeType)
