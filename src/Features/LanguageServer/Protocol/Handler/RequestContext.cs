@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -280,9 +281,11 @@ internal readonly struct RequestContext
                 (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            if (workspace is null)
+            if (workspace is null || solution is null)
             {
                 logger.LogError($"Could not find appropriate workspace for operation {workspace} on {method}");
+                FatalError.ReportWithDumpAndCatch(new Exception(
+                    $"Could not find appropriate workspace or solution for operation {workspace}, {solution} on {method}"), ErrorSeverity.General);
             }
 
             context = new RequestContext(
