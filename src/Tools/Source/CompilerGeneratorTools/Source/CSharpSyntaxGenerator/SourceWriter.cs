@@ -414,8 +414,9 @@ namespace CSharpSyntaxGenerator
                 using (builder.EnterBlock())
                 {
                     builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                    builder.WriteCommaSeparated(
-                        (node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>()).Concat(node.Fields.Select(f => CamelCase(f.Name))));
+                    builder.WriteCommaSeparated([
+                        .. node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>(),
+                        .. node.Fields.Select(f => CamelCase(f.Name))]);
                     builder.WriteLine(");");
                     builder.WriteLine("var diags = GetDiagnostics();");
                     builder.WriteLine("if (diags?.Length > 0)");
@@ -670,7 +671,7 @@ namespace CSharpSyntaxGenerator
                         : CamelCase(f.Name)),
                 // values are at end
                 .. valueFields.Select(f => CamelCase(f.Name)),
-                .. withSyntaxFactoryContext ? ["this.context"] : Array.Empty<string>()));
+                .. withSyntaxFactoryContext ? ["this.context"] : Array.Empty<string>()]);
         }
 
         private void WriteRedTypes(IndentingStringBuilder builder)
