@@ -1463,9 +1463,9 @@ namespace CSharpSyntaxGenerator
                 }
 
                 builder.Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
-                builder.Write(CommaJoin(
-                    nd.Kinds.Count > 1 ? "kind" : "",
-                    nodeFields.Select(f =>
+                builder.WriteCommaSeparated([
+                    .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
+                    .. nodeFields.Select(f =>
                     {
                         if (f.Type == "SyntaxToken")
                         {
@@ -1489,7 +1489,7 @@ namespace CSharpSyntaxGenerator
                             return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
                     }),
                     // values are at end
-                    valueFields.Select(f => CamelCase(f.Name))));
+                    .. valueFields.Select(f => CamelCase(f.Name))]);
 
                 builder.WriteLine(").CreateRed();");
             }
