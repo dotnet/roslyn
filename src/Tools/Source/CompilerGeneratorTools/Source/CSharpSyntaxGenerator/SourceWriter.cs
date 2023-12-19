@@ -1185,7 +1185,7 @@ namespace CSharpSyntaxGenerator
                         wroteNewLine = true;
                     }
                     // write list helper methods for list properties
-                    WriteRedListHelperMethods(node, field);
+                    WriteRedListHelperMethods(builder, node, field);
                 }
                 else
                 {
@@ -1202,7 +1202,7 @@ namespace CSharpSyntaxGenerator
                                     builder.WriteLine();
                                     wroteNewLine = true;
                                 }
-                                WriteRedNestedListHelperMethods(node, field, referencedNode, referencedNodeField);
+                                WriteRedNestedListHelperMethods(builder, node, field, referencedNode, referencedNodeField);
                             }
                         }
                     }
@@ -1212,7 +1212,7 @@ namespace CSharpSyntaxGenerator
 
         private Node TryGetNodeForNestedList(Field field)
         {
-            Node referencedNode = _fileWriterGetNode(field.Type);
+            Node referencedNode = _fileWriter.GetNode(field.Type);
             if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
             {
                 return referencedNode;
@@ -1261,12 +1261,13 @@ namespace CSharpSyntaxGenerator
             if (IsOptional(field))
             {
                 builder.WriteLine();
-                OpenBlock();
-                var factoryName = StripPost(referencedNode.Name, "Syntax");
-                var varName = StripPost(CamelCase(field.Name), "Opt");
-                builder.WriteLine($"var {varName} = this.{field.Name} ?? SyntaxFactory.{factoryName}();");
-                builder.WriteLine($"return With{StripPost(field.Name, "Opt")}({varName}.With{StripPost(referencedNodeField.Name, "Opt")}({varName}.{referencedNodeField.Name}.AddRange(items)));");
-                CloseBlock();
+                using (builder.EnterBlock())
+                {
+                    var factoryName = StripPost(referencedNode.Name, "Syntax");
+                    var varName = StripPost(CamelCase(field.Name), "Opt");
+                    builder.WriteLine($"var {varName} = this.{field.Name} ?? SyntaxFactory.{factoryName}();");
+                    builder.WriteLine($"return With{StripPost(field.Name, "Opt")}({varName}.With{StripPost(referencedNodeField.Name, "Opt")}({varName}.{referencedNodeField.Name}.AddRange(items)));");
+                }
             }
             else
             {
@@ -1280,44 +1281,44 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine();
             builder.WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
-            OpenBlock();
-
-            int nWritten = 0;
-            foreach (var node in nodes.OfType<Node>())
+            using (builder.EnterBlock())
             {
-                if (nWritten > 0)
-                    builder.WriteLine();
-                nWritten++;
-                builder.WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
+                int nWritten = 0;
+                foreach (var node in nodes.OfType<Node>())
+                {
+                    if (nWritten > 0)
+                        builder.WriteLine();
+                    nWritten++;
+                    builder.WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
-                if (node.Fields.Count == 0)
-                {
-                    builder.WriteLine("    => node;");
-                }
-                else
-                {
-                    builder.Write("    => node.Update(");
-                    builder.Write(CommaJoin(node.Fields.Select(f =>
+                    if (node.Fields.Count == 0)
                     {
-                        if (_fileWriter.IsNodeOrNodeList(f.Type))
+                        builder.WriteLine("    => node;");
+                    }
+                    else
+                    {
+                        builder.Write("    => node.Update(");
+                        builder.Write(CommaJoin(node.Fields.Select(f =>
                         {
-                            if (IsAnyList(f.Type))
-                                return $"VisitList(node.{f.Name})";
-                            else if (f.Type == "SyntaxToken")
-                                return $"VisitToken(node.{f.Name})";
-                            else if (IsOptional(f))
-                                return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name})";
-                            else
-                                return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name}) ?? throw new ArgumentNullException(\"{CamelCase(f.Name)}\")";
-                        }
+                            if (_fileWriter.IsNodeOrNodeList(f.Type))
+                            {
+                                if (IsAnyList(f.Type))
+                                    return $"VisitList(node.{f.Name})";
+                                else if (f.Type == "SyntaxToken")
+                                    return $"VisitToken(node.{f.Name})";
+                                else if (IsOptional(f))
+                                    return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name})";
+                                else
+                                    return $"({(GetFieldType(f, green: false))})Visit(node.{f.Name}) ?? throw new ArgumentNullException(\"{CamelCase(f.Name)}\")";
+                            }
 
-                        return $"node.{f.Name}";
-                    })));
+                            return $"node.{f.Name}";
+                        })));
 
-                    builder.WriteLine(");");
+                        builder.WriteLine(");");
+                    }
                 }
             }
-            CloseBlock();
         }
 
         private void WriteRedFactories(IndentingStringBuilder builder)
