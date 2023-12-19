@@ -56,10 +56,12 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             this.WriteGreenTypes(builder);
-            this.WriteGreenVisitors();
-            this.WriteGreenRewriter();
-            this.WriteContextualGreenFactories();
-            this.WriteStaticGreenFactories();
+            this.WriteGreenVisitors(builder);
+            this.WriteGreenRewriter(builder);
+            this.WriteContextualGreenFactories(builder);
+            this.WriteStaticGreenFactories(builder);
+
+            writer.Write(builder.ToString());
         }
 
         private void WriteSyntax(TextWriter writer)
@@ -68,7 +70,9 @@ namespace CSharpSyntaxGenerator
 
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
-            this.WriteRedTypes();
+            this.WriteRedTypes(builder);
+
+            writer.Write(builder.ToString());
         }
 
         private void WriteMain(TextWriter writer)
@@ -80,8 +84,10 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine("using System.Diagnostics.CodeAnalysis;");
             builder.WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
-            this.WriteRedRewriter();
-            this.WriteRedFactories();
+            this.WriteRedRewriter(builder);
+            this.WriteRedFactories(builder);
+
+            writer.Write(builder.ToString());
         }
 
         private void WriteGreenTypes(IndentingStringBuilder builder)
@@ -278,9 +284,9 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
-                    this.WriteGreenAcceptMethods(concreteNode);
-                    this.WriteGreenUpdateMethod(concreteNode);
-                    this.WriteSetDiagnostics(concreteNode);
+                    this.WriteGreenAcceptMethods(builder, concreteNode);
+                    this.WriteGreenUpdateMethod(builder, concreteNode);
+                    WriteSetDiagnostics(builder, concreteNode);
                     WriteSetAnnotations(builder, concreteNode);
                 }
             }
