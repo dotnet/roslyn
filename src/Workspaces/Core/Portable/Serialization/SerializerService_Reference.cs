@@ -504,7 +504,6 @@ internal partial class SerializerService
     private sealed class SerializedMetadataReference : PortableExecutableReference // , ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
-        // private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
         private readonly DocumentationProvider _provider;
 
         public SerializedMetadataReference(
@@ -529,8 +528,5 @@ internal partial class SerializerService
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new SerializedMetadataReference(properties, FilePath, _metadata, _provider);
-
-        //public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
-        //    => _storagesOpt.IsDefault ? null : _storagesOpt;
     }
 }
