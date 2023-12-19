@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
+[Method(RazorDiagnosticsName)]
 internal class RazorDocumentPullDiagnosticHandler(
     IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
