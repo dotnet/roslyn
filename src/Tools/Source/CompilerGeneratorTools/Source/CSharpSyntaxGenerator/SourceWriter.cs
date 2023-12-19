@@ -476,16 +476,17 @@ namespace CSharpSyntaxGenerator
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal partial class ContextAwareSyntax");
-            OpenBlock();
-            builder.WriteLine();
-            builder.WriteLine("private SyntaxFactoryContext context;");
+            using (builder.EnterBlock())
+            {
+                builder.WriteLine();
+                builder.WriteLine("private SyntaxFactoryContext context;");
 
-            builder.WriteLine();
-            builder.WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
-            builder.WriteLine("    => this.context = context;");
+                builder.WriteLine();
+                builder.WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
+                builder.WriteLine("    => this.context = context;");
 
-            WriteGreenFactories(nodes, withSyntaxFactoryContext: true);
-            CloseBlock();
+                WriteGreenFactories(builder, nodes, withSyntaxFactoryContext: true);
+            }
         }
 
         private void WriteStaticGreenFactories(IndentingStringBuilder builder)
@@ -493,17 +494,16 @@ namespace CSharpSyntaxGenerator
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal static partial class SyntaxFactory");
-            OpenBlock();
-            WriteGreenFactories(nodes);
-            CloseBlock();
+            using (builder.EnterBlock())
+                WriteGreenFactories(builder, nodes);
         }
 
-        private void WriteGreenFactories(List<TreeType> nodes, bool withSyntaxFactoryContext = false)
+        private void WriteGreenFactories(IndentingStringBuilder builder, List<TreeType> nodes, bool withSyntaxFactoryContext = false)
         {
             foreach (var node in nodes.OfType<Node>())
             {
                 builder.WriteLine();
-                this.WriteGreenFactory(node, withSyntaxFactoryContext);
+                this.WriteGreenFactory(builder, node, withSyntaxFactoryContext);
             }
         }
 
