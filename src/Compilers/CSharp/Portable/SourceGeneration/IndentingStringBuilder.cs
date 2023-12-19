@@ -365,9 +365,17 @@ internal struct IndentingStringBuilder : IDisposable
             => _builder.Write(literal, _splitContent);
 
         public void AppendFormatted<T>(T value)
-            => _builder.Write(value?.ToString());
+        {
+            var str = value?.ToString();
+            if (str is not null)
+                _builder.Write(str);
+        }
 
         public void AppendFormatted<T>(T value, string format) where T : IFormattable
-            => _builder.Write(value?.ToString(format, formatProvider: null));
+        {
+            var str = value?.ToString(format, formatProvider: null);
+            if (str is not null)
+                _builder.Write(str);
+        }
     }
 }
