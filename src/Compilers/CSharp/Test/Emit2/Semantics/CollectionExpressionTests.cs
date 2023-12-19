@@ -9952,7 +9952,7 @@ static class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_02()
         {
             string runtime = @"
