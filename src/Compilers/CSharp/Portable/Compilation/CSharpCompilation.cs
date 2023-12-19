@@ -3121,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Assembly.ForceComplete(location, symbolFilter, cancellationToken);
 
-            if (syntaxTree is null)
+            if (syntaxTree is null && symbolFilter is null)
             {
                 // Don't freeze the compilation if we're getting
                 // diagnostics for a single tree

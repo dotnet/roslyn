@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 foreach (var member in members)
                                 {
-                                    ForceCompleteMemberByLocation(locationOpt, filter, member, cancellationToken);
+                                    ForceCompleteMemberConditionally(locationOpt, filter, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);
                                 }
                             }

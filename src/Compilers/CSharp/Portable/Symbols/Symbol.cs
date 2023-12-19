@@ -955,11 +955,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
 #nullable enable
-        internal static void ForceCompleteMemberByLocation(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, Symbol member, CancellationToken cancellationToken)
+        internal static void ForceCompleteMemberConditionally(SourceLocation? locationOpt, Predicate<ISymbolInternal>? filter, Symbol member, CancellationToken cancellationToken)
         {
-            if ((locationOpt == null && filter == null)
-                || (locationOpt != null && member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
-                || (filter != null && filter(member)))
+            if ((locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
+                && (filter == null || filter(member)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 member.ForceComplete(locationOpt, filter, cancellationToken);
