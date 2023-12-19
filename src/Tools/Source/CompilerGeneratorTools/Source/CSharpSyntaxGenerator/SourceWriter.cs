@@ -521,14 +521,15 @@ namespace CSharpSyntaxGenerator
                 if (nd.Kinds.Count >= 2)
                 {
                     builder.WriteLine("switch (kind)");
-                    OpenBlock();
-                    var kinds = nd.Kinds.Distinct().ToList();
-                    foreach (var kind in kinds)
+                    using (builder.EnterBlock())
                     {
-                        builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                        var kinds = nd.Kinds.Distinct().ToList();
+                        foreach (var kind in kinds)
+                        {
+                            builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                        }
+                        builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
                     }
-                    builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
-                    CloseBlock();
                 }
 
                 // validate parameters
@@ -612,7 +613,7 @@ namespace CSharpSyntaxGenerator
                         builder.Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                     }
 
-                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    WriteCtorArgList(builder, nd, withSyntaxFactoryContext, valueFields, nodeFields);
                     builder.WriteLine(", out hash);");
                     //    if (cached != null) return (IdentifierNameSyntax)cached;
                     builder.WriteLine($"if (cached != null) return ({nd.Name})cached;");
@@ -620,16 +621,13 @@ namespace CSharpSyntaxGenerator
 
                     //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
                     builder.Write($"var result = new {nd.Name}(");
-                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    WriteCtorArgList(builder, nd, withSyntaxFactoryContext, valueFields, nodeFields);
                     builder.WriteLine(");");
-                    //if (hash >= 0)
+
                     builder.WriteLine("if (hash >= 0)");
-                    //{
-                    OpenBlock();
-                    //    SyntaxNodeCache.AddNode(result, hash);
-                    builder.WriteLine("SyntaxNodeCache.AddNode(result, hash);");
-                    //}
-                    CloseBlock();
+                    using (builder.EnterBlock())
+                        builder.WriteLine("SyntaxNodeCache.AddNode(result, hash);");
+
                     builder.WriteLine();
 
                     //return result;
@@ -639,7 +637,7 @@ namespace CSharpSyntaxGenerator
                 {
                     builder.WriteLine();
                     builder.Write($"return new {nd.Name}(");
-                    WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                    WriteCtorArgList(builder, nd, withSyntaxFactoryContext, valueFields, nodeFields);
                     builder.WriteLine(");");
                 }
             }
