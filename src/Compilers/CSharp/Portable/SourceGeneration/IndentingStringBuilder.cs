@@ -368,14 +368,14 @@ internal struct IndentingStringBuilder : IDisposable
         {
             var str = value?.ToString();
             if (str is not null)
-                _builder.Write(str);
+                _builder.Write(str, _splitContent);
         }
 
         public void AppendFormatted<T>(T value, string format) where T : IFormattable
         {
             var str = value?.ToString(format, formatProvider: null);
             if (str is not null)
-                _builder.Write(str);
+                _builder.Write(str, _splitContent);
         }
     }
 }
