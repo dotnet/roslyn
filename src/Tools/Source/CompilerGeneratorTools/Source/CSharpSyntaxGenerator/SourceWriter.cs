@@ -1141,8 +1141,8 @@ namespace CSharpSyntaxGenerator
                     " => Update(");
 
                 // call update inside each setter
-                builder.Write(CommaJoin(node.Fields.Select(f =>
-                    f == field ? CamelCase(f.Name) : $"this.{f.Name}")));
+                builder.WriteCommaSeparated(node.Fields.Select(f =>
+                    f == field ? CamelCase(f.Name) : $"this.{f.Name}"));
                 builder.WriteLine(");");
             }
         }
