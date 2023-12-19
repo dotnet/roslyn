@@ -76,6 +76,8 @@ internal struct IndentingStringBuilder : IDisposable
         {
             PopulateIndentationStrings(_indentationStrings, indentationString);
         }
+
+        CheckDisposed();
     }
 
     public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string endOfLine = DefaultEndOfLine)
