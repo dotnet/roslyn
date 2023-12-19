@@ -324,16 +324,16 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteSetAnnotations(IndentingStringBuilder builder, Node node)
+        private static void WriteSetAnnotations(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
             builder.Write($"    => new {node.Name}(");
-            builder.Write(CommaJoin(
+            builder.WriteCommaSeparated([
                 "this.Kind",
-                node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
                 "GetDiagnostics()",
-                "annotations"));
+                "annotations"]);
             builder.WriteLine(");");
         }
 

@@ -374,6 +374,25 @@ internal struct IndentingStringBuilder : IDisposable
             arg);
     }
 
+    public readonly IndentingStringBuilder WriteCommaSeparated(
+        IEnumerable<string> content)
+    {
+        return WriteCommaSeparated<string>(
+            content,
+            static (builder, element) => builder.Write(element));
+    }
+
+    public readonly IndentingStringBuilder WriteCommaSeparated<T>(
+        IEnumerable<T> content,
+        Action<IndentingStringBuilder, T> writeElement)
+    {
+        return WriteSeparated(
+            content,
+            ", ",
+            static (builder, element, writeElement) => writeElement(builder, element),
+            writeElement);
+    }
+
     public readonly IndentingStringBuilder WriteSeparated<T>(
         IEnumerable<T> content,
         string separator,
