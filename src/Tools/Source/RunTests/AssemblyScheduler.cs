@@ -56,7 +56,7 @@ namespace RunTests
         internal AssemblyScheduler(Options options)
         {
             _options = options;
-            _maxMethodCount = options.TestVsi ? 100 : 500;
+            _maxMethodCount = options.TestVsi ? 50 : 500;
         }
 
         public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
