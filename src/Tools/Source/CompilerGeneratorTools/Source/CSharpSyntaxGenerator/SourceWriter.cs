@@ -978,7 +978,7 @@ namespace CSharpSyntaxGenerator
                                                       .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
                         if (!relevantNodes.Any())
                         {
-                            builder.WriteLine("=> null;");
+                            builder.WriteLine(" => null;");
                         }
                         else if (relevantNodes.Count() == 1)
                         {
