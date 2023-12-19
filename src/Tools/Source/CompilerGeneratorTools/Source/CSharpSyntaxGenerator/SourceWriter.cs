@@ -548,7 +548,8 @@ namespace CSharpSyntaxGenerator
                         if (IsOptional(field))
                         {
                             builder.WriteLine($"if ({CamelCase(field.Name)} != null)");
-                            OpenBlock();
+                            builder.WriteLine("{");
+                            builder.IncreaseIndent();
                         }
 
                         if (field.Kinds.Count == 1 && !IsOptional(field))
@@ -558,26 +559,29 @@ namespace CSharpSyntaxGenerator
                         else
                         {
                             builder.WriteLine($"switch ({pname}.Kind)");
-                            OpenBlock();
-                            var kinds = field.Kinds.Distinct().ToList();
-
-                            //we need to check for Kind=None as well as node == null because that's what the red factory will pass
-                            if (IsOptional(field))
+                            using (builder.EnterBlock())
                             {
-                                kinds.Add(new Kind { Name = "None" });
-                            }
-                            foreach (var kind in kinds)
-                            {
-                                builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                            }
+                                var kinds = field.Kinds.Distinct().ToList();
 
-                            builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
-                            CloseBlock();
+                                //we need to check for Kind=None as well as node == null because that's what the red factory will pass
+                                if (IsOptional(field))
+                                {
+                                    kinds.Add(new Kind { Name = "None" });
+                                }
+
+                                foreach (var kind in kinds)
+                                {
+                                    builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                                }
+
+                                builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
+                            }
                         }
 
                         if (IsOptional(field))
                         {
-                            CloseBlock();
+                            builder.DecreaseIndent();
+                            builder.WriteLine("}");
                         }
                     }
                 }
