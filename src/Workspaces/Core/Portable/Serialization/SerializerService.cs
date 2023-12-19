@@ -36,7 +36,6 @@ internal partial class SerializerService : ISerializerService
 
     private readonly SolutionServices _workspaceServices;
 
-    // private readonly ITemporaryStorageServiceInternal _storageService;
     private readonly ITextFactoryService _textService;
     private readonly IDocumentationProviderService? _documentationService;
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -48,7 +47,6 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
-        // _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
         _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
