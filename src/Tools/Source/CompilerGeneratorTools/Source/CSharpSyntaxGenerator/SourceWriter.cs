@@ -386,7 +386,7 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteLine();
             builder.Write($"public {node.Name} Update(");
-            builder.Write(CommaJoin(node.Fields.Select(f =>
+            builder.WriteCommaSeparated(node.Fields.Select(f =>
             {
                 var type =
                     f.Type == "SyntaxNodeOrTokenList" ? "CoreSyntax.SyntaxList<CSharpSyntaxNode>" :
@@ -396,31 +396,26 @@ namespace CSharpSyntaxGenerator
                     f.Type;
 
                 return $"{type} {CamelCase(f.Name)}";
-            })));
+            }));
             builder.WriteLine(")");
 
             using (builder.EnterBlock())
             {
                 builder.Write("if (");
-                int nCompared = 0;
-                foreach (var field in node.Fields)
+                builder.WriteSeparated(
+                    node.Fields.Where(field =>
+                        _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
+                        _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
+                        field.Type == "SyntaxNodeOrTokenList"),
+                    " || ",
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
+
+                builder.WriteLine(")");
+                using (builder.EnterBlock())
                 {
-                    if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
-                    {
-                        if (nCompared > 0)
-                            builder.Write(" || ");
-                        builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
-                        nCompared++;
-                    }
-                }
-                if (nCompared > 0)
-                {
-                    builder.WriteLine(")");
-                    OpenBlock();
                     builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                    builder.Write(CommaJoin(
-                        node.Kinds.Count > 1 ? "this.Kind" : "",
-                        node.Fields.Select(f => CamelCase(f.Name))));
+                    builder.WriteCommaSeparated(
+                        (node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>()).Concat(node.Fields.Select(f => CamelCase(f.Name))));
                     builder.WriteLine(");");
                     builder.WriteLine("var diags = GetDiagnostics();");
                     builder.WriteLine("if (diags?.Length > 0)");
@@ -429,7 +424,6 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine("if (annotations?.Length > 0)");
                     builder.WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
                     builder.WriteLine("return newNode;");
-                    CloseBlock();
                 }
 
                 builder.WriteLine();
