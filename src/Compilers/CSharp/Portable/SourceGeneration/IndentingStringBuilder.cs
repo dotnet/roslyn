@@ -309,17 +309,21 @@ internal sealed class IndentingStringBuilder : IDisposable
 
     public Region EnterIndentedRegion(string open = "", string close = "")
     {
-        this.WriteLine(open);
+        if (open != "")
+            this.WriteLine(open);
+
         this.IncreaseIndent();
         return new Region(this, close);
     }
 
-    public struct Region(IndentingStringBuilder builder, string close) : IDisposable
+    public readonly struct Region(IndentingStringBuilder builder, string close) : IDisposable
     {
         public void Dispose()
         {
             builder.DecreaseIndent();
-            builder.WriteLine(close);
+
+            if (close != "")
+                builder.WriteLine(close);
         }
     }
 
