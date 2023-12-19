@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,15 +18,21 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal partial class SerializerService
 {
-    public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+    public void SerializeSourceText(SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        text.Serialize(writer, cancellationToken);
+        writer.WriteInt32((int)text.ChecksumAlgorithm);
+        writer.WriteEncoding(text.Encoding);
+        text.WriteTo(writer, cancellationToken);
     }
 
     private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
     {
-        var serializableSourceText = SerializableSourceText.Deserialize(reader, _textService, cancellationToken);
-        return serializableSourceText.Text;
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+        var encoding = (Encoding)reader.ReadValue();
+
+        return SourceTextExtensions.ReadFrom(_textService, reader, encoding, checksumAlgorithm, cancellationToken);
     }
 
     private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

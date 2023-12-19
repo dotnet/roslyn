@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -12,7 +13,7 @@ internal interface ISerializerService : IWorkspaceService
 {
     void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-    void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken);
+    void SerializeSourceText(SourceText text, ObjectWriter writer, CancellationToken cancellationToken);
     void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
     T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);

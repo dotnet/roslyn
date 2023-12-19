@@ -83,9 +83,6 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.AnalyzerReference:
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
-
                 case WellKnownSynchronizationKind.SourceText:
                     return Checksum.Create(((SourceText)value).GetContentHash());
 
@@ -144,12 +141,8 @@ internal partial class SerializerService : ISerializerService
                     SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
                     return;
 
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
-                    return;
-
                 case WellKnownSynchronizationKind.SourceText:
-                    SerializeSourceText(new SerializableSourceText((SourceText)value), writer, cancellationToken);
+                    SerializeSourceText((SourceText)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionState:
@@ -214,8 +207,6 @@ internal partial class SerializerService : ISerializerService
                     return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
                 case WellKnownSynchronizationKind.AnalyzerReference:
                     return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    return (T)(object)SerializableSourceText.Deserialize(reader, _textService, cancellationToken);
                 case WellKnownSynchronizationKind.SourceText:
                     return (T)(object)DeserializeSourceText(reader, cancellationToken);
 

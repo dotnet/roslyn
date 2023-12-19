@@ -26,13 +26,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         AnalyzerReference,
         SourceText,
 
-        SerializableSourceText,
-
-        //
-
-        SyntaxTreeIndex,
-        SymbolTreeInfo,
-
         ProjectReferenceChecksumCollection,
         MetadataReferenceChecksumCollection,
         AnalyzerReferenceChecksumCollection,
