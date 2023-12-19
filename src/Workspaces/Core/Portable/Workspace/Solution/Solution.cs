@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private Solution(SolutionCompilationState state)
+        private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
-            _compilationState = state;
+            _compilationState = compilationState;
         }
 
         internal Solution(
