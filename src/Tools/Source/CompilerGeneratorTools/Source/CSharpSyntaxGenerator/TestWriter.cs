@@ -148,7 +148,7 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (kind == "NumericLiteralToken")
                     {
-                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"1\", 1{trailingTrivia})");
+                        arguments.Add($"{syntaxFactory}.Literal({leadingTrivia}\"1\", 1{trailingTrivia})");
                     }
                     else
                     {
