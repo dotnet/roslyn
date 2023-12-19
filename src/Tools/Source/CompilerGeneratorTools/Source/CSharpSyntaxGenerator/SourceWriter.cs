@@ -680,7 +680,7 @@ namespace CSharpSyntaxGenerator
             foreach (var node in nodes)
             {
                 builder.WriteLine();
-                this.WriteRedType(node);
+                this.WriteRedType(builder, node);
             }
         }
 
@@ -693,20 +693,20 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedType(IndentingStringBuilder builder, TreeType node)
         {
-            WriteComment(node.TypeComment, "");
+            WriteComment(builder, node.TypeComment, "");
 
-            if (node is AbstractNode)
+            if (node is AbstractNode abstractNode)
             {
-                var nd = (AbstractNode)node;
                 builder.WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 builder.WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
                 builder.WriteLine("  : base(green, parent, position)");
-                OpenBlock();
-                CloseBlock();
+                using (builder.EnterBlock())
+                {
+                }
 
-                var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = GetNodeOrNodeListFields(nd);
+                var valueFields = abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                var nodeFields = GetNodeOrNodeListFields(abstractNode);
 
                 foreach (var field in nodeFields)
                 {
@@ -715,7 +715,7 @@ namespace CSharpSyntaxGenerator
                         //red SyntaxLists can't contain tokens, so we switch to SyntaxTokenList
                         var fieldType = GetRedFieldType(field);
                         builder.WriteLine();
-                        WriteComment(field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment, "");
                         builder.WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{fieldType} {field.Name} {{ get; }}");
                         builder.WriteLine($"public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
                         builder.WriteLine($"internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
@@ -751,11 +751,11 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     builder.WriteLine();
-                    WriteComment(field.PropertyComment, "");
+                    WriteComment(builder, field.PropertyComment, "");
                     builder.WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                 }
 
-                var baseType = GetTreeType(node.Base);
+                var baseType = _fileWriter.GetTreeType(node.Base);
                 if (baseType != null)
                 {
                     var baseNodeFields = GetNodeOrNodeListFields(baseType);
@@ -802,23 +802,23 @@ namespace CSharpSyntaxGenerator
             }
             else if (node is Node)
             {
-                var nd = (Node)node;
-                WriteComment($"<remarks>");
-                WriteComment($"<para>This node is associated with the following syntax kinds:</para>");
-                WriteComment($"<list type=\"bullet\">");
+                var concreteNode = (Node)node;
+                WriteComment(builder, $"<remarks>");
+                WriteComment(builder, $"<para>This node is associated with the following syntax kinds:</para>");
+                WriteComment(builder, $"<list type=\"bullet\">");
 
-                foreach (var kind in nd.Kinds)
+                foreach (var kind in concreteNode.Kinds)
                 {
-                    WriteComment($"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
+                    WriteComment(builder, $"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
                 }
 
-                WriteComment($"</list>");
-                WriteComment($"</remarks>");
+                WriteComment(builder, $"</list>");
+                WriteComment(builder, $"</remarks>");
                 builder.WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
-                var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                var valueFields = concreteNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                var nodeFields = concreteNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
                 foreach (var field in nodeFields)
                 {
@@ -851,7 +851,7 @@ namespace CSharpSyntaxGenerator
                     var field = nodeFields[i];
                     if (field.Type == "SyntaxToken")
                     {
-                        WriteComment(field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment, "");
                         builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                         if (IsOptional(field))
                         {
@@ -871,7 +871,7 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
-                        WriteComment(field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment, "");
                         builder.WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
                         OpenBlock();
                         builder.WriteLine("get");
@@ -883,7 +883,7 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        WriteComment(field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment, "");
                         builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
 
                         if (IsNodeList(field.Type))
@@ -924,7 +924,7 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in valueFields)
                 {
-                    WriteComment(field.PropertyComment, "");
+                    WriteComment(builder, field.PropertyComment, "");
                     builder.WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
                     builder.WriteLine();
                 }
@@ -1006,10 +1006,10 @@ namespace CSharpSyntaxGenerator
                     }
                 }
 
-                this.WriteRedAcceptMethods(nd);
-                this.WriteRedUpdateMethod(nd);
-                this.WriteRedWithMethods(nd);
-                this.WriteRedListHelperMethods(nd);
+                this.WriteRedAcceptMethods(concreteNode);
+                this.WriteRedUpdateMethod(concreteNode);
+                this.WriteRedWithMethods(concreteNode);
+                this.WriteRedListHelperMethods(concreteNode);
 
                 CloseBlock();
             }
@@ -1065,7 +1065,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     builder.WriteLine();
                 nWritten++;
-                WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
                 builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -1415,7 +1415,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
-            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
+            WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
 
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
@@ -1601,7 +1601,7 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
+            WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             builder.Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1690,7 +1690,7 @@ namespace CSharpSyntaxGenerator
                 WriteLineWithoutIndent("#pragma warning disable RS0027");
             }
 
-            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
+            WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             builder.Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
