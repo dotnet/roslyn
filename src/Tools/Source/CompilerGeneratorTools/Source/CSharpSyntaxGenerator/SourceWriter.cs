@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace CSharpSyntaxGenerator
 {
+    using static FileWriter;
+
     internal sealed class SourceWriter
     {
         private readonly FileWriter _fileWriter;
@@ -104,32 +106,32 @@ namespace CSharpSyntaxGenerator
                     // ctor with diagnostics and annotations
                     builder.WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                     builder.WriteLine("  : base(kind, diagnostics, annotations)");
-                    OpenBlock();
-                    if (node.Name == "DirectiveTriviaSyntax")
+                    using (builder.EnterBlock())
                     {
-                        builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                        if (node.Name == "DirectiveTriviaSyntax")
+                            builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
                     }
-                    CloseBlock();
+
                     builder.WriteLine();
                     // ctor without diagnostics and annotations
                     builder.WriteLine($"internal {node.Name}(SyntaxKind kind)");
                     builder.WriteLine("  : base(kind)");
-                    OpenBlock();
-                    if (node.Name == "DirectiveTriviaSyntax")
-                    {
-                        builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                    }
-                    CloseBlock();
 
-                    var valueFields = abstractNode.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-                    var nodeFields = abstractNode.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
+                    using (builder.EnterBlock())
+                    {
+                        if (node.Name == "DirectiveTriviaSyntax")
+                            builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    }
+
+                    var valueFields = abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                    var nodeFields = abstractNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
                     foreach (var field in nodeFields)
                     {
-                        if (IsNodeOrNodeList(field.Type))
+                        if (_fileWriter.IsNodeOrNodeList(field.Type))
                         {
                             builder.WriteLine();
-                            WriteComment(field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment, "");
 
                             if (IsSeparatedNodeList(field.Type) ||
                                 IsNodeList(field.Type))
@@ -146,7 +148,7 @@ namespace CSharpSyntaxGenerator
                     foreach (var field in valueFields)
                     {
                         builder.WriteLine();
-                        WriteComment(field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment, "");
 
                         builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                     }
@@ -155,131 +157,132 @@ namespace CSharpSyntaxGenerator
             else if (node is Node concreteNode)
             {
                 builder.WriteLine($"internal sealed partial class {node.Name} : {node.Base}");
-                OpenBlock();
-
-                var valueFields = concreteNode.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = concreteNode.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
-
-                foreach (var field in nodeFields)
+                using (builder.EnterBlock())
                 {
-                    var type = GetFieldType(field, green: true);
-                    builder.WriteLine($"internal readonly {type} {CamelCase(field.Name)};");
-                }
+                    var valueFields = concreteNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                    var nodeFields = concreteNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
-                foreach (var field in valueFields)
-                {
-                    builder.WriteLine($"internal readonly {field.Type} {CamelCase(field.Name)};");
-                }
-
-                // write constructor with diagnostics and annotations
-                builder.WriteLine();
-                Write($"internal {node.Name}(SyntaxKind kind");
-
-                WriteGreenNodeConstructorArgs(nodeFields, valueFields);
-
-                builder.WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
-                builder.WriteLine("  : base(kind, diagnostics, annotations)");
-                OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
-                CloseBlock();
-
-                // write constructor with async
-                builder.WriteLine();
-                Write($"internal {node.Name}(SyntaxKind kind");
-
-                WriteGreenNodeConstructorArgs(nodeFields, valueFields);
-
-                builder.WriteLine(", SyntaxFactoryContext context)");
-                builder.WriteLine("  : base(kind)");
-                OpenBlock();
-                builder.WriteLine("this.SetFactoryContext(context);");
-                WriteCtorBody(valueFields, nodeFields);
-                CloseBlock();
-
-                // write constructor without diagnostics and annotations
-                builder.WriteLine();
-                Write($"internal {node.Name}(SyntaxKind kind");
-
-                WriteGreenNodeConstructorArgs(nodeFields, valueFields);
-
-                builder.WriteLine(")");
-                builder.WriteLine("  : base(kind)");
-                OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
-                CloseBlock();
-                builder.WriteLine();
-
-                // property accessors
-                foreach (var field in nodeFields)
-                {
-                    WriteComment(field.PropertyComment, "");
-                    if (IsNodeList(field.Type))
+                    foreach (var field in nodeFields)
                     {
-                        var type = $"CoreSyntax.{field.Type}";
-                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
+                        var type = GetFieldType(field, green: true);
+                        builder.WriteLine($"internal readonly {type} {CamelCase(field.Name)};");
                     }
-                    else if (IsSeparatedNodeList(field.Type))
+
+                    foreach (var field in valueFields)
                     {
-                        var type = $"CoreSyntax.{field.Type}";
-                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
+                        builder.WriteLine($"internal readonly {field.Type} {CamelCase(field.Name)};");
                     }
-                    else if (field.Type == "SyntaxNodeOrTokenList")
+
+                    // write constructor with diagnostics and annotations
+                    builder.WriteLine();
+                    builder.Write($"internal {node.Name}(SyntaxKind kind");
+
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+
+                    builder.WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
+                    builder.WriteLine("  : base(kind, diagnostics, annotations)");
+                    using (builder.EnterBlock())
+                        WriteCtorBody(valueFields, nodeFields);
+
+                    // write constructor with async
+                    builder.WriteLine();
+                    builder.Write($"internal {node.Name}(SyntaxKind kind");
+
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+
+                    builder.WriteLine(", SyntaxFactoryContext context)");
+                    builder.WriteLine("  : base(kind)");
+                    using (builder.EnterBlock())
                     {
-                        var type = $"CoreSyntax.SyntaxList<CSharpSyntaxNode>";
-                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
+                        builder.WriteLine("this.SetFactoryContext(context);");
+                        WriteCtorBody(valueFields, nodeFields);
+                    }
+
+                    // write constructor without diagnostics and annotations
+                    builder.WriteLine();
+                    builder.Write($"internal {node.Name}(SyntaxKind kind");
+
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+
+                    builder.WriteLine(")");
+                    builder.WriteLine("  : base(kind)");
+                    using (builder.EnterBlock())
+                        WriteCtorBody(valueFields, nodeFields);
+
+                    builder.WriteLine();
+
+                    // property accessors
+                    foreach (var field in nodeFields)
+                    {
+                        WriteComment(builder, field.PropertyComment, "");
+                        if (IsNodeList(field.Type))
+                        {
+                            var type = $"CoreSyntax.{field.Type}";
+                            builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
+                        }
+                        else if (IsSeparatedNodeList(field.Type))
+                        {
+                            var type = $"CoreSyntax.{field.Type}";
+                            builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
+                        }
+                        else if (field.Type == "SyntaxNodeOrTokenList")
+                        {
+                            var type = $"CoreSyntax.SyntaxList<CSharpSyntaxNode>";
+                            builder.WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
+                        }
+                        else
+                        {
+                            builder.WriteLine($"public {OverrideOrNewModifier(field)}{(GetFieldType(field, green: true))} {field.Name} => this.{CamelCase(field.Name)};");
+                        }
+                    }
+
+                    foreach (var field in valueFields)
+                    {
+                        WriteComment(builder, field.PropertyComment, "");
+                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => this.{CamelCase(field.Name)};");
+                    }
+
+                    // GetSlot
+                    builder.WriteLine();
+                    builder.Write("internal override GreenNode? GetSlot(int index)");
+
+                    if (nodeFields.Count == 0)
+                    {
+                        builder.WriteLine(" => null;");
+                    }
+                    else if (nodeFields.Count == 1)
+                    {
+                        builder.WriteLine();
+                        using (builder.EnterIndentedRegion())
+                            builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                     }
                     else
                     {
-                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{(GetFieldType(field, green: true))} {field.Name} => this.{CamelCase(field.Name)};");
+                        builder.WriteLine();
+                        using (builder.EnterIndentedRegion())
+                        {
+                            builder.WriteLine("=> index switch");
+                            using (builder.EnterBlock())
+                            {
+                                for (int i = 0, n = nodeFields.Count; i < n; i++)
+                                {
+                                    var field = nodeFields[i];
+                                    builder.WriteLine($"{i} => this.{CamelCase(field.Name)},");
+                                }
+
+                                builder.WriteLine("_ => null,");
+                            }
+                        }
                     }
-                }
 
-                foreach (var field in valueFields)
-                {
-                    WriteComment(field.PropertyComment, "");
-                    builder.WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => this.{CamelCase(field.Name)};");
-                }
-
-                // GetSlot
-                builder.WriteLine();
-                Write("internal override GreenNode? GetSlot(int index)");
-
-                if (nodeFields.Count == 0)
-                {
-                    builder.WriteLine(" => null;");
-                }
-                else if (nodeFields.Count == 1)
-                {
                     builder.WriteLine();
-                    Indent();
-                    builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
-                    Unindent();
+                    builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
+
+                    this.WriteGreenAcceptMethods(concreteNode);
+                    this.WriteGreenUpdateMethod(concreteNode);
+                    this.WriteSetDiagnostics(concreteNode);
+                    this.WriteSetAnnotations(concreteNode);
                 }
-                else
-                {
-                    builder.WriteLine();
-                    Indent();
-                    builder.WriteLine("=> index switch");
-                    OpenBlock();
-                    for (int i = 0, n = nodeFields.Count; i < n; i++)
-                    {
-                        var field = nodeFields[i];
-                        builder.WriteLine($"{i} => this.{CamelCase(field.Name)},");
-                    }
-                    builder.WriteLine("_ => null,");
-                    CloseBlock(";");
-                    Unindent();
-                }
-
-                builder.WriteLine();
-                builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
-
-                this.WriteGreenAcceptMethods(concreteNode);
-                this.WriteGreenUpdateMethod(concreteNode);
-                this.WriteSetDiagnostics(concreteNode);
-                this.WriteSetAnnotations(concreteNode);
-
-                CloseBlock();
             }
         }
 
@@ -402,8 +405,8 @@ namespace CSharpSyntaxGenerator
                 if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
                 {
                     if (nCompared > 0)
-                        Write(" || ");
-                    Write($"{CamelCase(field.Name)} != this.{field.Name}");
+                        builder.Write(" || ");
+                    builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
                     nCompared++;
                 }
             }
@@ -441,7 +444,7 @@ namespace CSharpSyntaxGenerator
             int nWritten = 0;
             foreach (var node in nodes.OfType<Node>())
             {
-                var nodeFields = node.Fields.Where(nd => IsNodeOrNodeList(nd.Type)).ToList();
+                var nodeFields = node.Fields.Where(nd => _fileWriter.IsNodeOrNodeList(nd.Type)).ToList();
 
                 if (nWritten > 0)
                     builder.WriteLine();
@@ -455,8 +458,8 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    Write("=> node.Update(");
-                    Write(CommaJoin(node.Fields.Select(f =>
+                    builder.Write("=> node.Update(");
+                    builder.Write(CommaJoin(node.Fields.Select(f =>
                     {
                         if (IsAnyList(f.Type))
                             return $"VisitList(node.{f.Name})";
@@ -512,8 +515,8 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenFactory(Node nd, bool withSyntaxFactoryContext = false)
         {
-            var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-            var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
+            var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+            var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
             Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteGreenFactoryParameters(nd);
@@ -608,11 +611,11 @@ namespace CSharpSyntaxGenerator
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
                 if (withSyntaxFactoryContext)
                 {
-                    Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
+                    builder.Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
                 }
                 else
                 {
-                    Write("var cached = SyntaxNodeCache.TryGetNode((int)");
+                    builder.Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                 }
 
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
@@ -691,9 +694,9 @@ namespace CSharpSyntaxGenerator
 
         private List<Field> GetNodeOrNodeListFields(TreeType node)
             => node is AbstractNode an
-                ? an.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList()
+                ? an.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList()
                 : node is Node nd
-                    ? nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList()
+                    ? nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList()
                     : new List<Field>();
 
         private void WriteRedType(TreeType node)
@@ -710,12 +713,12 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 CloseBlock();
 
-                var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
+                var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = GetNodeOrNodeListFields(nd);
 
                 foreach (var field in nodeFields)
                 {
-                    if (IsNodeOrNodeList(field.Type))
+                    if (_fileWriter.IsNodeOrNodeList(field.Type))
                     {
                         //red SyntaxLists can't contain tokens, so we switch to SyntaxTokenList
                         var fieldType = GetRedFieldType(field);
@@ -822,8 +825,8 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
-                var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
+                var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
+                var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
                 foreach (var field in nodeFields)
                 {
@@ -857,7 +860,7 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "");
-                        Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
+                        builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                         if (IsOptional(field))
                         {
                             builder.WriteLine();
@@ -889,7 +892,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "");
-                        Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
+                        builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
 
                         if (IsNodeList(field.Type))
                         {
@@ -936,7 +939,7 @@ namespace CSharpSyntaxGenerator
 
                 {
                     //GetNodeSlot forces creation of a red node.
-                    Write("internal override SyntaxNode? GetNodeSlot(int index)");
+                    builder.Write("internal override SyntaxNode? GetNodeSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
                                                   .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
@@ -982,7 +985,7 @@ namespace CSharpSyntaxGenerator
 
                 {
                     //GetCachedSlot returns a red node if we have it.
-                    Write("internal override SyntaxNode? GetCachedSlot(int index)");
+                    builder.Write("internal override SyntaxNode? GetCachedSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
                                                   .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
@@ -1092,8 +1095,8 @@ namespace CSharpSyntaxGenerator
                 if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
                 {
                     if (nCompared > 0)
-                        Write(" || ");
-                    Write($"{CamelCase(field.Name)} != this.{field.Name}");
+                        builder.Write(" || ");
+                    builder.Write($"{CamelCase(field.Name)} != this.{field.Name}");
                     nCompared++;
                 }
             }
@@ -1133,10 +1136,10 @@ namespace CSharpSyntaxGenerator
                     var (baseType, baseField) = GetHighestBaseTypeWithField(node, field.Name);
                     if (baseType != null)
                     {
-                        Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
+                        builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
                         if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
                         {
-                            Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
+                            builder.Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
                         }
                         builder.WriteLine(");");
 
@@ -1304,10 +1307,10 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    Write("    => node.Update(");
-                    Write(CommaJoin(node.Fields.Select(f =>
+                    builder.Write("    => node.Update(");
+                    builder.Write(CommaJoin(node.Fields.Select(f =>
                     {
-                        if (IsNodeOrNodeList(f.Type))
+                        if (_fileWriter.IsNodeOrNodeList(f.Type))
                         {
                             if (IsAnyList(f.Type))
                                 return $"VisitList(node.{f.Name})";
@@ -1374,7 +1377,7 @@ namespace CSharpSyntaxGenerator
 
         private bool IsValueField(Field field)
         {
-            return !IsNodeOrNodeList(field.Type);
+            return !_fileWriter.IsNodeOrNodeList(field.Type);
         }
 
         private int RequiredFactoryArgumentCount(Node nd, bool includeKind = true)
