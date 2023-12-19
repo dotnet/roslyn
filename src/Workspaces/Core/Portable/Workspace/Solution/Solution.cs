@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(new SolutionCompilationState(
-                new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
-                workspace.PartialSemanticsEnabled))
+                      new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                      workspace.PartialSemanticsEnabled))
         {
         }
 
