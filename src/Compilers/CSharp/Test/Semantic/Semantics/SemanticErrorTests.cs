@@ -24867,7 +24867,7 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
         }
 
         [Fact]
-        public void GetDiagnosticsWithFilter()
+        public void GetDiagnosticsWithFilter_TypeLevelFilter()
         {
             var source = """
                 class A<TA>
@@ -24884,18 +24884,10 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     {
                     }
                 }
-
-                class C<TC>
-                {
-                    public ref void MC<TMC>()
-                    {
-                    }
-                }
                 """;
 
             var comp = CreateCompilation(source);
 
-            // Filtering to just `A` and members of `A` should not bind anything outside the cone
             comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
                 symbolFilter: symbol => symbol switch
                 {
@@ -24904,42 +24896,14 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     ParameterSymbol => throw ExceptionUtilities.Unreachable(),
                     _ => true
                 }, CancellationToken.None)
-                .Verify(
-                    // This is a parse error. The symbol filter only applies to Declare stage diagnostics
-                    // (18,16): error CS1547: Keyword 'void' cannot be used in this context
-                    //     public ref void MC()
-                    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(18, 16));
+                .Verify();
 
             Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
             Assert.True(comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A").HasComplete(CompletionPart.All));
-
-            // Binding B but not it's methods should not bind method. Unknown attribute types are used as the signal
-            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
-                symbolFilter: symbol => symbol switch
-                {
-                    NamedTypeSymbol { Name: not "B" } => false,
-                    MethodSymbol => false,
-                    // Parameters cannot be filtered out. If a method or type is completed, so are its parameters/type parameters
-                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
-                    _ => true
-                }, CancellationToken.None)
-                .Verify(
-                    // (18,16): error CS1547: Keyword 'void' cannot be used in this context
-                    //     public ref void MC()
-                    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(18, 16));
-
             var bSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "B");
-            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
             Assert.False(bSymbol.HasComplete(CompletionPart.MembersCompleted));
 
-            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
-                symbolFilter: symbol => symbol switch
-                {
-                    NamedTypeSymbol { Name: not "B" } => false,
-                    // Parameters cannot be filtered out. If a method or type is completed, so are its parameters/type parameters
-                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
-                    _ => true
-                }, CancellationToken.None)
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
                 .Verify(
                     // (10,6): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
                     //     [Unbound]
@@ -24952,41 +24916,62 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(11, 26),
                     // (11,26): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
                     //     public void MB<TMB>([Unbound] int i)
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(11, 26),
-                    // (18,16): error CS1547: Keyword 'void' cannot be used in this context
-                    //     public ref void MC<TMC>()
-                    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(18, 16));
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(11, 26));
 
-            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
             Assert.True(bSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+        }
 
-            // symbolFilter only prevents _new_ binding. If a symbol is already bound and reported errors, those errors will still be reported. The only
-            // user of symbolFilter at this point is ENC, which does not call this API multiple times on the same compilation, so extra filtering isn't necessary.
+        [Fact]
+        public void GetDiagnosticsWithFilter_MemberLevelFilter()
+        {
+            var source = """
+                class A<TA>
+                {
+                    public void MA<TMA>()
+                    {
+                    }
+
+                    [Unbound]
+                    public void MB<TMB>([Unbound] int i)
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
             comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
                 symbolFilter: symbol => symbol switch
                 {
-                    NamedTypeSymbol { Name: not "C" } => false,
-                    // Parameters cannot be filtered out. If a method or type is completed, so are its parameters/type parameters
-                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
+                    NamedTypeSymbol { Name: not "A" } => false,
+                    MethodSymbol { Name: "MB" } => false,
+                    // Parameters cannot be filtered out. If a method is completed, so are its parameters
+                    ParameterSymbol => throw ExceptionUtilities.Unreachable(),
                     _ => true
                 }, CancellationToken.None)
-                .Verify(
-                    // (10,6): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                    //     [Unbound]
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(10, 6),
-                    // (10,6): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
-                    //     [Unbound]
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(10, 6),
-                    // (11,26): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                    //     public void MB<TMB>([Unbound] int i)
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(11, 26),
-                    // (11,26): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
-                    //     public void MB<TMB>([Unbound] int i)
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(11, 26),
-                    // (18,16): error CS1547: Keyword 'void' cannot be used in this context
-                    //     public ref void MC<TMC>()
-                    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(18, 16));
+                .Verify();
 
+            var aSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A");
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.False(aSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (7,6): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(7, 6),
+                    // (7,6): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(7, 6),
+                    // (8,26): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(8, 26),
+                    // (8,26): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(8, 26));
+
+            Assert.True(aSymbol.HasComplete(CompletionPart.All));
             Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
         }
     }
