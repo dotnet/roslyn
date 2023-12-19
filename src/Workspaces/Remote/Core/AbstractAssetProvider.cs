@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -95,9 +96,8 @@ internal abstract class AbstractAssetProvider
         Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
 
         var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(assetHint: documentId, documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(assetHint: documentId, documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
+        var text = await GetAssetAsync<SourceText>(assetHint: documentId, documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
-        var text = serializableSourceText.Text;
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
 
         // TODO: do we need version?
