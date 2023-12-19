@@ -258,13 +258,11 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (nodeFields.Count == 1)
                     {
-                        builder.WriteLine();
                         using (builder.EnterIndentedRegion())
                             builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                     }
                     else
                     {
-                        builder.WriteLine();
                         using (builder.EnterIndentedRegion())
                         {
                             builder.WriteLine("=> index switch");
