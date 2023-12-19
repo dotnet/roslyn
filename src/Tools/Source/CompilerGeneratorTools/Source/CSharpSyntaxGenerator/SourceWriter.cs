@@ -1410,95 +1410,95 @@ namespace CSharpSyntaxGenerator
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
 
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
-            WriteRedFactoryParameters(nd);
+            WriteRedFactoryParameters(builder, nd);
 
             builder.WriteLine(")");
-            OpenBlock();
-
-            // validate kinds
-            if (nd.Kinds.Count >= 2)
+            using (builder.EnterBlock())
             {
-                builder.WriteLine("switch (kind)");
-                OpenBlock();
-                var kinds = nd.Kinds.Distinct().ToList();
-                foreach (var kind in kinds)
+                // validate kinds
+                if (nd.Kinds.Count >= 2)
                 {
-                    builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                }
-                builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
-                CloseBlock();
-            }
-
-            // validate parameters
-            foreach (var field in nodeFields)
-            {
-                var pname = CamelCase(field.Name);
-
-                if (field.Type == "SyntaxToken")
-                {
-                    var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
-                    if (fieldKinds != null && fieldKinds.Count > 0)
+                    builder.WriteLine("switch (kind)");
+                    using (builder.EnterBlock())
                     {
-                        var kinds = fieldKinds.ToList();
-                        if (IsOptional(field))
-                        {
-                            kinds.Add(new Kind { Name = "None" });
-                        }
+                        var kinds = nd.Kinds.Distinct().ToList();
+                        foreach (var kind in kinds)
+                            builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
 
-                        if (kinds.Count == 1)
+                        builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
+                    }
+                }
+
+                // validate parameters
+                foreach (var field in nodeFields)
+                {
+                    var pname = CamelCase(field.Name);
+
+                    if (field.Type == "SyntaxToken")
+                    {
+                        var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+                        if (fieldKinds != null && fieldKinds.Count > 0)
                         {
-                            builder.WriteLine($"if ({pname}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
-                        }
-                        else
-                        {
-                            builder.WriteLine($"switch ({pname}.Kind())");
-                            OpenBlock();
-                            foreach (var kind in kinds)
+                            var kinds = fieldKinds.ToList();
+                            if (IsOptional(field))
                             {
-                                builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                                kinds.Add(new Kind { Name = "None" });
                             }
-                            builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
-                            CloseBlock();
+
+                            if (kinds.Count == 1)
+                            {
+                                builder.WriteLine($"if ({pname}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                            }
+                            else
+                            {
+                                builder.WriteLine($"switch ({pname}.Kind())");
+                                OpenBlock();
+                                foreach (var kind in kinds)
+                                {
+                                    builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                                }
+                                builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
+                                CloseBlock();
+                            }
                         }
                     }
-                }
-                else if (!IsAnyList(field.Type) && !IsOptional(field))
-                {
-                    builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
-                }
-            }
-
-            builder.Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
-            builder.Write(CommaJoin(
-                nd.Kinds.Count > 1 ? "kind" : "",
-                nodeFields.Select(f =>
-                {
-                    if (f.Type == "SyntaxToken")
+                    else if (!IsAnyList(field.Type) && !IsOptional(field))
                     {
-                        if (IsOptional(f))
-                            return $"(Syntax.InternalSyntax.SyntaxToken?){CamelCase(f.Name)}.Node";
-                        else
-                            // We know the GreenNode is not null because it gets a type check earlier in the generated method
-                            return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(f.Name)}.Node!";
+                        builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
                     }
-                    else if (f.Type == "SyntaxList<SyntaxToken>")
-                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()";
-                    else if (IsNodeList(f.Type))
-                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
-                    else if (IsSeparatedNodeList(f.Type))
-                        return $"{CamelCase(f.Name)}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
-                    else if (f.Type == "SyntaxNodeOrTokenList")
-                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()";
-                    else if (IsOptional(f))
-                        return $"{CamelCase(f.Name)} == null ? null : (Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
-                    else
-                        return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
-                }),
-                // values are at end
-                valueFields.Select(f => CamelCase(f.Name))));
+                }
 
-            builder.WriteLine(").CreateRed();");
-            CloseBlock();
+                builder.Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
+                builder.Write(CommaJoin(
+                    nd.Kinds.Count > 1 ? "kind" : "",
+                    nodeFields.Select(f =>
+                    {
+                        if (f.Type == "SyntaxToken")
+                        {
+                            if (IsOptional(f))
+                                return $"(Syntax.InternalSyntax.SyntaxToken?){CamelCase(f.Name)}.Node";
+                            else
+                                // We know the GreenNode is not null because it gets a type check earlier in the generated method
+                                return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(f.Name)}.Node!";
+                        }
+                        else if (f.Type == "SyntaxList<SyntaxToken>")
+                            return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()";
+                        else if (IsNodeList(f.Type))
+                            return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
+                        else if (IsSeparatedNodeList(f.Type))
+                            return $"{CamelCase(f.Name)}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
+                        else if (f.Type == "SyntaxNodeOrTokenList")
+                            return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()";
+                        else if (IsOptional(f))
+                            return $"{CamelCase(f.Name)} == null ? null : (Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
+                        else
+                            return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
+                    }),
+                    // values are at end
+                    valueFields.Select(f => CamelCase(f.Name))));
+
+                builder.WriteLine(").CreateRed();");
+            }
         }
 
         private void WriteRedFactoryParameters(IndentingStringBuilder builder, Node nd)
