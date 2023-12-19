@@ -461,10 +461,10 @@ internal struct IndentingStringBuilder : IDisposable
 
         public WriteInterpolatedStringHandler(int literalLength, int formattedCount, IndentingStringBuilder builder, bool splitContent = false)
         {
-            // Assume that each formatted section adds at least one character.
-            _builder.Builder.EnsureCapacity(_builder.Builder.Length + literalLength + formattedCount);
             _builder = builder;
             _splitContent = splitContent;
+            // Assume that each formatted section adds at least one character.
+            _builder.Builder.EnsureCapacity(_builder.Builder.Length + literalLength + formattedCount);
         }
 
         public void AppendLiteral(string literal)
