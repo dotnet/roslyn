@@ -1195,6 +1195,7 @@ namespace CSharpSyntaxGenerator
                                 if (first)
                                     builder.EnsureBlankLine();
 
+                                first = false;
                                 WriteRedNestedListHelperMethods(builder, node, field, referencedNode, referencedNodeField);
                             }
                         }
