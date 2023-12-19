@@ -278,6 +278,8 @@ namespace RunTests
                 // precisely to address this problem.
                 var postCommands = new StringBuilder();
 
+                postCommands.AppendLine(isUnix ? $"cp {xmlResultsFilePath} %24{{HELIX_WORKITEM_UPLOAD_ROOT}}" : $"copy {xmlResultsFilePath} %HELIX_WORKITEM_UPLOAD_ROOT%");
+
                 if (options.TestVsi)
                 {
                     var testResultsDirectory = Path.Combine("artifacts", "TestResults", options.Configuration);
