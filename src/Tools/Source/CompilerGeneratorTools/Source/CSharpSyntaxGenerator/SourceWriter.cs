@@ -437,41 +437,38 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine();
             builder.WriteLine("internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
-            OpenBlock();
-            int nWritten = 0;
-            foreach (var node in nodes.OfType<Node>())
+            using (builder.EnterBlock())
             {
-                var nodeFields = node.Fields.Where(nd => _fileWriter.IsNodeOrNodeList(nd.Type)).ToList();
-
-                if (nWritten > 0)
-                    builder.WriteLine();
-                nWritten++;
-                builder.WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
-                Indent();
-
-                if (nodeFields.Count == 0)
-                {
-                    builder.WriteLine("=> node;");
-                }
-                else
-                {
-                    builder.Write("=> node.Update(");
-                    builder.Write(CommaJoin(node.Fields.Select(f =>
+                builder.WriteBlankLineSeparated(
+                    nodes.OfType<Node>(),
+                    static (builder, node, @this) =>
                     {
-                        if (IsAnyList(f.Type))
-                            return $"VisitList(node.{f.Name})";
-                        else if (IsNode(f.Type))
-                            return $"({f.Type})Visit(node.{f.Name})";
-                        else
-                            return $"node.{f.Name}";
-                    })));
-                    builder.WriteLine(");");
-                }
+                        var nodeFields = node.Fields.Where(nd => @this._fileWriter.IsNodeOrNodeList(nd.Type)).ToList();
 
-                Unindent();
+                        builder.WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
+                        using (builder.EnterIndentedRegion())
+                        {
+                            if (nodeFields.Count == 0)
+                            {
+                                builder.WriteLine("=> node;");
+                            }
+                            else
+                            {
+                                builder.Write("=> node.Update(");
+                                builder.WriteCommaSeparated(node.Fields.Select(f =>
+                                {
+                                    if (IsAnyList(f.Type))
+                                        return $"VisitList(node.{f.Name})";
+                                    else if (@this._fileWriter.IsNode(f.Type))
+                                        return $"({f.Type})Visit(node.{f.Name})";
+                                    else
+                                        return $"node.{f.Name}";
+                                }));
+                                builder.WriteLine(");");
+                            }
+                        }
+                    }, this);
             }
-
-            CloseBlock();
         }
 
         private void WriteContextualGreenFactories(IndentingStringBuilder builder)
