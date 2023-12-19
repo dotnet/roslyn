@@ -9,31 +9,24 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+// TODO: Remove this type. This factory is needed just to instantiate a singleton of VisualStudioMetadataReferenceProvider.
+// We should be able to MEF-instantiate a singleton of VisualStudioMetadataReferenceProvider without creating this factory.
+[ExportWorkspaceServiceFactory(typeof(VisualStudioMetadataReferenceManager), ServiceLayer.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VisualStudioMetadataReferenceManagerFactory(SVsServiceProvider serviceProvider) : IWorkspaceServiceFactory
 {
-    // TODO: Remove this type. This factory is needed just to instantiate a singleton of VisualStudioMetadataReferenceProvider.
-    // We should be able to MEF-instantiate a singleton of VisualStudioMetadataReferenceProvider without creating this factory.
-    [ExportWorkspaceServiceFactory(typeof(VisualStudioMetadataReferenceManager), ServiceLayer.Host), Shared]
-    internal class VisualStudioMetadataReferenceManagerFactory : IWorkspaceServiceFactory
+    private VisualStudioMetadataReferenceManager? _singleton;
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        private VisualStudioMetadataReferenceManager? _singleton;
-        private readonly IServiceProvider _serviceProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMetadataReferenceManagerFactory(SVsServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        if (_singleton == null)
         {
-            if (_singleton == null)
-            {
-                // If we're in VS we know we must be able to get a TemporaryStorageService
-                // var temporaryStorage = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
-                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider), null);
-            }
-
-            return _singleton;
+            Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(serviceProvider), null);
         }
+
+        return _singleton;
     }
 }
