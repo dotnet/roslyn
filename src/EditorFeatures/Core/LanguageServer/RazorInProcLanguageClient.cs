@@ -16,8 +16,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {

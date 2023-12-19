@@ -1296,7 +1296,7 @@ class C
                     workspace,
                     workspace.CurrentSolution,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     CodeAnalysisProgress.None,
                     CancellationToken.None)

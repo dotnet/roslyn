@@ -56,7 +56,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.U
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor.GetListener(string! featureName) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider
-Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider.GetCapabilities(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! clientCapabilities) -> Microsoft.VisualStudio.LanguageServer.Protocol.ServerCapabilities!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider.GetCapabilities(Roslyn.LanguageServer.Protocol.ClientCapabilities! clientCapabilities) -> Roslyn.LanguageServer.Protocol.ServerCapabilities!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.CanHandle(string! methodName) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
@@ -474,7 +474,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryGetC
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper(Microsoft.CodeAnalysis.Remote.RemoteServiceCallbackId id) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenModifiers() -> string![]!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(bool clientSupportsVisualStudioExtensions) -> System.Collections.Immutable.ImmutableArray<string!>
-static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! capabilities) -> System.Collections.Immutable.ImmutableArray<string!>
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(Roslyn.LanguageServer.Protocol.ClientCapabilities! capabilities) -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.RoslynTokenTypes.get -> System.Collections.Immutable.ImmutableArray<string!>
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri.CreateAbsoluteUri(string! absolutePath) -> System.Uri!
