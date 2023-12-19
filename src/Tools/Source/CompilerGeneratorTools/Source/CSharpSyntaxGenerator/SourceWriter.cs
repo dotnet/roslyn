@@ -825,8 +825,10 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
                     builder.WriteLine("  : base(green, parent, position)");
-                    OpenBlock();
-                    CloseBlock();
+                    using (builder.EnterBlock())
+                    {
+                    }
+
                     builder.WriteLine();
 
                     // property accessors
@@ -840,13 +842,15 @@ namespace CSharpSyntaxGenerator
                             if (IsOptional(field))
                             {
                                 builder.WriteLine();
-                                OpenBlock();
-                                builder.WriteLine("get");
-                                OpenBlock();
-                                builder.WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
-                                builder.WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
-                                CloseBlock();
-                                CloseBlock();
+                                using (builder.EnterBlock())
+                                {
+                                    builder.WriteLine("get");
+                                    using (builder.EnterBlock())
+                                    {
+                                        builder.WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
+                                        builder.WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                                    }
+                                }
                             }
                             else
                             {
@@ -857,13 +861,15 @@ namespace CSharpSyntaxGenerator
                         {
                             WriteComment(builder, field.PropertyComment, "");
                             builder.WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
-                            OpenBlock();
-                            builder.WriteLine("get");
-                            OpenBlock();
-                            builder.WriteLine($"var slot = this.Green.GetSlot({i});");
-                            builder.WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
-                            CloseBlock();
-                            CloseBlock();
+                            using (builder.EnterBlock())
+                            {
+                                builder.WriteLine("get");
+                                using (builder.EnterBlock())
+                                {
+                                    builder.WriteLine($"var slot = this.Green.GetSlot({i});");
+                                    builder.WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                                }
+                            }
                         }
                         else
                         {
@@ -877,14 +883,15 @@ namespace CSharpSyntaxGenerator
                             else if (IsSeparatedNodeList(field.Type))
                             {
                                 builder.WriteLine();
-                                OpenBlock();
-                                builder.WriteLine("get");
-                                OpenBlock();
-
-                                builder.WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
-                                builder.WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
-                                CloseBlock();
-                                CloseBlock();
+                                using (builder.EnterBlock())
+                                {
+                                    builder.WriteLine("get");
+                                    using (builder.EnterBlock())
+                                    {
+                                        builder.WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
+                                        builder.WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
+                                    }
+                                }
                             }
                             else if (field.Type == "SyntaxNodeOrTokenList")
                             {
