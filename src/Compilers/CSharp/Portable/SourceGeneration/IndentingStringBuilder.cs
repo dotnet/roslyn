@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// with default behavior provided for controlling the current indent level of the code.
 /// </summary>
 /// <remarks>
-/// Not threadsafe.
+/// Not thread-safe.
 /// </remarks>
 internal struct IndentingStringBuilder : IDisposable
 {
@@ -33,7 +32,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// The new line characters accepted by C#.
     /// </summary>
-    private static ReadOnlySpan<char> EndOfLineCharacters => new[] { '\r', '\n', '\f', '\u0085', '\u2028', '\u2029' };
+    private static ReadOnlySpan<char> EndOfLineCharacters => ['\r', '\n', '\f', '\u0085', '\u2028', '\u2029'];
 
     private static readonly ImmutableArray<string> s_defaultIndentationStrings;
 
@@ -152,26 +151,30 @@ internal struct IndentingStringBuilder : IDisposable
     /// Appends a single line to the underlying buffer.  Indentation is written out if the underlying buffer
     /// is at the start of a line.
     /// </summary>
-    private void AppendSingleLine(ReadOnlySpan<char> line, string? backingString)
+    private readonly void AppendSingleLine(ReadOnlySpan<char> line, string? originalLine)
     {
         if (line.Length == 0)
             return;
 
         var builder = this.Builder;
-        if (builder.Length == 0 || IsEndOfLineCharacter(builder[^1]))
-            builder.Append(_currentIndentation);
+
+        if (!IsEndOfLineCharacter(line[0]))
+        {
+            if (builder.Length == 0 || IsEndOfLineCharacter(builder[^1]))
+                builder.Append(_currentIndentation);
+        }
 
 #if NET
         builder.Append(line);
 #else
-        if (backingString is not null)
+        if (originalLine != null)
         {
-            builder.Append(backingString);
+            builder.Append(originalLine);
         }
         else
         {
-            foreach (var c in line)
-                builder.Append(c);
+            foreach (var ch in line)
+                builder.Append(ch);
         }
 #endif
     }
@@ -186,14 +189,15 @@ internal struct IndentingStringBuilder : IDisposable
     /// should be passed in for <paramref name="splitContent"/>.  This will cause the provided content to be split into
     /// constituent lines, with each line being appended one at a time.
     /// </summary>
-    public IndentingStringBuilder Write(string content, bool splitContent = false)
+    public readonly IndentingStringBuilder Write(string content, bool splitContent = false)
         => Write(content.AsSpan(), content, splitContent);
 
     /// <inheritdoc cref="Write(string, bool)"/>
-    public IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
-        => Write(content, backingString: null, splitContent: splitContent);
+    public readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
+        => Write(content, originalString: null, splitContent);
 
-    private IndentingStringBuilder Write(ReadOnlySpan<char> content, string? backingString, bool splitContent)
+    /// <inheritdoc cref="Write(string, bool)"/>
+    private readonly IndentingStringBuilder Write(ReadOnlySpan<char> content, string? originalString, bool splitContent)
     {
         if (splitContent)
         {
@@ -203,21 +207,21 @@ internal struct IndentingStringBuilder : IDisposable
                 if (endOfLineIndex < 0)
                 {
                     // no new line, append the rest of the content to the buffer.
-                    AppendSingleLine(content, backingString: null);
+                    AppendSingleLine(content, originalLine: null);
                 }
                 else
                 {
                     while (endOfLineIndex < content.Length & IsEndOfLineCharacter(content[endOfLineIndex + 1]))
                         endOfLineIndex++;
 
-                    AppendSingleLine(content[0..endOfLineIndex], backingString);
+                    AppendSingleLine(content[0..endOfLineIndex], originalLine: null);
                     content = content[endOfLineIndex..];
                 }
             }
         }
         else
         {
-            AppendSingleLine(content, backingString);
+            AppendSingleLine(content, originalString);
         }
 
         return this;
@@ -227,13 +231,17 @@ internal struct IndentingStringBuilder : IDisposable
     /// Equivalent to <see cref="Write(string, bool)"/> except that a final end of line sequence will be written after
     /// the content is written.
     /// </summary>
-    public IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
-        => WriteLine(content.AsSpan(), splitContent);
+    public readonly IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
+        => WriteLine(content.AsSpan(), content, splitContent);
 
     /// <inheritdoc cref="WriteLine(string, bool)"/>
-    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
+    public readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
+        => WriteLine(content, originalContent: null, splitContent);
+
+    /// <inheritdoc cref="WriteLine(string, bool)"/>
+    private readonly IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false)
     {
-        Write(content, splitContent);
+        Write(content, originalContent, splitContent);
         AppendEndOfLine();
         return this;
     }
@@ -433,16 +441,16 @@ internal struct IndentingStringBuilder : IDisposable
 
         public void AppendFormatted<T>(T value)
         {
-            var content = value?.ToString();
-            if (content != null)
-                _builder.Write(content, _splitContent);
+            var str = value?.ToString();
+            if (str is not null)
+                _builder.Write(str, _splitContent);
         }
 
         public void AppendFormatted<T>(T value, string format) where T : IFormattable
         {
-            var content = value?.ToString(format, formatProvider: null);
-            if (content != null)
-                _builder.Write(content, _splitContent);
+            var str = value?.ToString(format, formatProvider: null);
+            if (str is not null)
+                _builder.Write(str, _splitContent);
         }
     }
 }

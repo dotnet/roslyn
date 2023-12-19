@@ -2698,4 +2698,34 @@ public class UseCollectionExpressionForFluentTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
+    public async Task TestNotInParallelEnumerable()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = shouldParallelize
+                            ? sequence.AsParallel().ToArray()
+                            : sequence.ToArray();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

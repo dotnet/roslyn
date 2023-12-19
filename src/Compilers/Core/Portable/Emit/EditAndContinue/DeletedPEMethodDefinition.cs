@@ -13,16 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedPEMethodDefinition : Cci.IMethodDefinition, IDeletedMethodDefinition
+    internal sealed class DeletedPEMethodDefinition : IDeletedMethodDefinition
     {
         private readonly IMethodSymbolInternal _oldMethod;
-        private DeletedMethodBody? _lazyBody;
+        private readonly DeletedMethodBody _body;
 
-        public DeletedPEMethodDefinition(IMethodSymbolInternal oldMethod)
+        public DeletedPEMethodDefinition(IMethodSymbolInternal oldMethod, ImmutableArray<byte> bodyIL)
         {
             Debug.Assert(oldMethod.MetadataToken != 0);
 
             _oldMethod = oldMethod;
+            _body = new DeletedMethodBody(this, bodyIL);
         }
 
         public bool IsEncDeleted
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => true;
 
         public Cci.IMethodBody GetBody(EmitContext context)
-            => _lazyBody ??= new DeletedMethodBody(this, context);
+            => _body;
 
         public void Dispatch(Cci.MetadataVisitor visitor)
             => visitor.Visit(this);

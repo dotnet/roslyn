@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     isExtensionMethod: false,
                                     isVarArg: syntax.ParameterList.IsVarArg(),
                                     isNullableAnalysisEnabled: false, // IsNullableAnalysisEnabled uses containing type instead.
-                                    isExplicitInterfaceImplementation: false);
+                                    isExplicitInterfaceImplementation: false,
+                                    hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
