@@ -1020,7 +1020,7 @@ namespace CSharpSyntaxGenerator
             if (field.Type == "SyntaxList<SyntaxToken>")
                 return "SyntaxTokenList";
 
-            if (IsOptional(field) && IsNode(field.Type) && field.Type != "SyntaxToken")
+            if (IsOptional(field) && _fileWriter.IsNode(field.Type) && field.Type != "SyntaxToken")
                 return field.Type + "?";
 
             return field.Type;
@@ -1035,8 +1035,8 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
-            WriteRedAcceptMethod(node, false);
-            WriteRedAcceptMethod(node, true);
+            WriteRedAcceptMethod(builder, node, false);
+            WriteRedAcceptMethod(builder, node, true);
         }
 
         private void WriteRedAcceptMethod(IndentingStringBuilder builder, Node node, bool genericResult)
@@ -1045,10 +1045,10 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
-        private void WriteRedVisitors()
+        private void WriteRedVisitors(IndentingStringBuilder builder)
         {
-            WriteRedVisitor(genericResult: true);
-            WriteRedVisitor(genericResult: false);
+            WriteRedVisitor(builder, genericResult: true);
+            WriteRedVisitor(builder, genericResult: false);
         }
 
         private void WriteRedVisitor(IndentingStringBuilder builder, bool genericResult)
@@ -1058,17 +1058,18 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine();
             builder.WriteLine("public partial class CSharpSyntaxVisitor" + genericArgs);
-            OpenBlock();
-            int nWritten = 0;
-            foreach (var node in nodes.OfType<Node>())
+            using (builder.EnterBlock())
             {
-                if (nWritten > 0)
-                    builder.WriteLine();
-                nWritten++;
-                WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
+                builder.WriteBlankLineSeparated(
+                    nodes.OfType<Node>(),
+                    static (builder, node, tuple) =>
+                    {
+                        var (@this, genericResult) = tuple;
+                        @this.WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                        builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
+                    },
+                    (this, genericResult));
             }
-            CloseBlock();
         }
 
         private void WriteRedUpdateMethod(IndentingStringBuilder builder, Node node)
