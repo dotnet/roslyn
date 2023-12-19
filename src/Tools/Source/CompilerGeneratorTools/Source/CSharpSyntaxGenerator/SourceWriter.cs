@@ -474,7 +474,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteContextualGreenFactories()
+        private void WriteContextualGreenFactories(IndentingStringBuilder builder)
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
@@ -491,7 +491,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteStaticGreenFactories()
+        private void WriteStaticGreenFactories(IndentingStringBuilder builder)
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
@@ -510,7 +510,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteGreenFactory(Node nd, bool withSyntaxFactoryContext = false)
+        private void WriteGreenFactory(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext = false)
         {
             var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
@@ -649,7 +649,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteGreenFactoryParameters(Node nd)
+        private void WriteGreenFactoryParameters(IndentingStringBuilder builder, Node nd)
         {
             builder.Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -666,7 +666,7 @@ namespace CSharpSyntaxGenerator
                 })));
         }
 
-        private void WriteCtorArgList(Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
+        private void WriteCtorArgList(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
         {
             builder.Write(CommaJoin(
                 nd.Kinds.Count == 1 ? $"SyntaxKind.{nd.Kinds[0].Name}" : "kind",
@@ -679,7 +679,7 @@ namespace CSharpSyntaxGenerator
                 withSyntaxFactoryContext ? "this.context" : ""));
         }
 
-        private void WriteRedTypes()
+        private void WriteRedTypes(IndentingStringBuilder builder)
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
             foreach (var node in nodes)
@@ -696,7 +696,7 @@ namespace CSharpSyntaxGenerator
                     ? nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList()
                     : new List<Field>();
 
-        private void WriteRedType(TreeType node)
+        private void WriteRedType(IndentingStringBuilder builder, TreeType node)
         {
             WriteComment(node.TypeComment, "");
 
@@ -1037,14 +1037,14 @@ namespace CSharpSyntaxGenerator
         private string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
 
-        private void WriteRedAcceptMethods(Node node)
+        private void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             WriteRedAcceptMethod(node, false);
             WriteRedAcceptMethod(node, true);
         }
 
-        private void WriteRedAcceptMethod(Node node, bool genericResult)
+        private void WriteRedAcceptMethod(IndentingStringBuilder builder, Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
             builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
@@ -1056,7 +1056,7 @@ namespace CSharpSyntaxGenerator
             WriteRedVisitor(genericResult: false);
         }
 
-        private void WriteRedVisitor(bool genericResult)
+        private void WriteRedVisitor(IndentingStringBuilder builder, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
@@ -1076,7 +1076,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRedUpdateMethod(Node node)
+        private void WriteRedUpdateMethod(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.Write($"public {node.Name} Update(");
@@ -1116,7 +1116,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRedWithMethods(Node node)
+        private void WriteRedWithMethods(IndentingStringBuilder builder, Node node)
         {
             foreach (var field in node.Fields)
             {
@@ -1175,12 +1175,12 @@ namespace CSharpSyntaxGenerator
 
         private TreeType TryGetBaseType(TreeType node)
             => node is AbstractNode an
-                ? GetTreeType(an.Base)
+                ? _fileWriter.GetTreeType(an.Base)
                 : node is Node n
-                    ? GetTreeType(n.Base)
+                    ? _fileWriter.GetTreeType(n.Base)
                     : null;
 
-        private void WriteRedListHelperMethods(Node node)
+        private void WriteRedListHelperMethods(IndentingStringBuilder builder, Node node)
         {
             var wroteNewLine = false;
             foreach (var field in node.Fields)
@@ -1220,7 +1220,7 @@ namespace CSharpSyntaxGenerator
 
         private Node TryGetNodeForNestedList(Field field)
         {
-            Node referencedNode = GetNode(field.Type);
+            Node referencedNode = _fileWriterGetNode(field.Type);
             if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
             {
                 return referencedNode;
@@ -1229,7 +1229,7 @@ namespace CSharpSyntaxGenerator
             return null;
         }
 
-        private void WriteRedListHelperMethods(Node node, Field field)
+        private void WriteRedListHelperMethods(IndentingStringBuilder builder, Node node, Field field)
         {
             var argType = GetElementType(field.Type);
 
@@ -1248,7 +1248,7 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine($"public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items) => With{StripPost(field.Name, "Opt")}(this.{field.Name}.AddRange(items));");
         }
 
-        private void WriteRedNestedListHelperMethods(Node node, Field field, Node referencedNode, Field referencedNodeField)
+        private void WriteRedNestedListHelperMethods(IndentingStringBuilder builder, Node node, Field field, Node referencedNode, Field referencedNodeField)
         {
             var argType = GetElementType(referencedNodeField.Type);
 
@@ -1282,7 +1282,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteRedRewriter()
+        private void WriteRedRewriter(IndentingStringBuilder builder)
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
@@ -1328,7 +1328,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRedFactories()
+        private void WriteRedFactories(IndentingStringBuilder builder)
         {
             var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
             builder.WriteLine();
@@ -1351,7 +1351,7 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        protected bool CanBeAutoCreated(Node node, Field field)
+        private bool CanBeAutoCreated(Node node, Field field)
             => IsAutoCreatableToken(node, field) || IsAutoCreatableNode(field);
 
         private bool IsAutoCreatableToken(Node node, Field field)
@@ -1363,7 +1363,7 @@ namespace CSharpSyntaxGenerator
 
         private bool IsAutoCreatableNode(Field field)
         {
-            var referencedNode = GetNode(field.Type);
+            var referencedNode = _fileWriter.GetNode(field.Type);
             return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
         }
 
@@ -1413,9 +1413,9 @@ namespace CSharpSyntaxGenerator
         }
 
         // full factory signature with nothing optional
-        private void WriteRedFactory(Node nd)
+        private void WriteRedFactory(IndentingStringBuilder builder, Node nd)
         {
-            this.WriteLine();
+            builder.WriteLine();
 
             var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
@@ -1559,7 +1559,7 @@ namespace CSharpSyntaxGenerator
         }
 
         // Writes Get<Property>Kind() methods for converting between node kind and member token kinds...
-        private void WriteKindConverters(Node nd)
+        private void WriteKindConverters(IndentingStringBuilder builder, Node nd)
         {
             foreach (var field in nd.Fields)
             {
@@ -1591,7 +1591,7 @@ namespace CSharpSyntaxGenerator
         }
 
         // creates a factory without auto-creatable token arguments
-        private void WriteRedFactoryWithNoAutoCreatableTokens(Node nd)
+        private void WriteRedFactoryWithNoAutoCreatableTokens(IndentingStringBuilder builder, Node nd)
         {
             var nAutoCreatableTokens = nd.Fields.Count(f => IsAutoCreatableToken(nd, f));
             if (nAutoCreatableTokens == 0)
@@ -1635,10 +1635,10 @@ namespace CSharpSyntaxGenerator
             else
             {
                 // otherwise, if there is a single optional node, use that..
-                int nodeCount = nd.Fields.Count(f => IsNode(f.Type) && f.Type != "SyntaxToken");
+                int nodeCount = nd.Fields.Count(f => _fileWriter.IsNode(f.Type) && f.Type != "SyntaxToken");
                 if (nodeCount == 1)
                 {
-                    return nd.Fields.First(f => IsNode(f.Type) && f.Type != "SyntaxToken");
+                    return nd.Fields.First(f => _fileWriter.IsNode(f.Type) && f.Type != "SyntaxToken");
                 }
                 else
                 {
@@ -1674,7 +1674,7 @@ namespace CSharpSyntaxGenerator
         }
 
         // creates a factory with only the required arguments (everything else is defaulted)
-        private void WriteRedMinimalFactory(Node nd, bool withStringNames = false)
+        private void WriteRedMinimalFactory(IndentingStringBuilder builder, Node nd, bool withStringNames = false)
         {
             var optionalCount = OptionalFactoryArgumentCount(nd);
             if (optionalCount == 0)
@@ -1685,7 +1685,7 @@ namespace CSharpSyntaxGenerator
             if (withStringNames && minimalFactoryfields.Count(f => IsRequiredFactoryField(nd, f) && CanAutoConvertFromString(f)) == 0)
                 return; // no string-name overload necessary
 
-            this.WriteLine();
+            builder.WriteLine();
 
             var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
