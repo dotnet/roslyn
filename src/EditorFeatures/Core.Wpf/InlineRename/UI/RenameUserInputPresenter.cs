@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-public sealed class RenameUserInputPresenter : ContentPresenter
+internal sealed class RenameUserInputPresenter : ContentPresenter
 {
     internal IRenameUserInput? RenameUserInput => Content as IRenameUserInput;
 }

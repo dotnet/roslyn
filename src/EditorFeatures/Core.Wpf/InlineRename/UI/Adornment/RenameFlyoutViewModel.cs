@@ -337,6 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     if (SmartRenameViewModel is not null)
                     {
                         SmartRenameViewModel.OnSelectedSuggestedNameChanged -= OnSuggestedNameSelected;
+                        SmartRenameViewModel.PropertyChanged -= SmartRenameViewModel_PropertyChanged;
                         SmartRenameViewModel.Dispose();
                     }
 

@@ -10,17 +10,13 @@
           Unloaded="ComboBox_Unloaded"
           PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"
-          Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-          ItemsSource="{Binding SmartRenameViewModel.SuggestedNames}"
+          Text="{Binding BaseViewModel.IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+          ItemsSource="{Binding SuggestedNames}"
           StaysOpenOnEdit="True"
           IsEditable="True"
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}">
     <ComboBox.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../InlineRenameColors.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
 
@@ -102,19 +98,19 @@
                                  PreviewKeyDown="InnerTextBox_PreviewKeyDown"/>
                         <Button x:Name="GetSuggestionsButton"
                                 Grid.Column="1"
-                                Style="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}"
                                 MinWidth="0"
                                 Background="Transparent"
                                 BorderBrush="Transparent"
+                                Style="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}"
                                 TextElement.Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxGlyphBrushKey}}"
                                 Content="✨"
-                                Command="{Binding SmartRenameViewModel.GetSuggestionsCommand}"/>
+                                Command="{Binding GetSuggestionsCommand}"/>
                     </Grid>
                 </Border>
                 <ProgressBar x:Name="ProgressBar"
                              Grid.Row="1"
-                             IsIndeterminate="{Binding Path=SmartRenameViewModel.IsInProgress}"
-                             Visibility="{Binding Path=SmartRenameViewModel.IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                             IsIndeterminate="{Binding IsInProgress}"
+                             Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                              Foreground="{StaticResource copilotBranding}"
                              Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
             </Grid>

@@ -11,11 +11,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 /// </summary>
 internal sealed partial class SmartRenameControl : UserControl
 {
-    private readonly SmartRenameViewModel _smartRenameViewModel;
-
     public SmartRenameControl(SmartRenameViewModel viewModel)
     {
-        this.DataContext = _smartRenameViewModel = viewModel;
+        this.DataContext = viewModel;
         InitializeComponent();
     }
 }

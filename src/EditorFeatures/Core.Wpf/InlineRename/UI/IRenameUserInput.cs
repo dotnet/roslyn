@@ -26,4 +26,6 @@ internal interface IRenameUserInput
     void Focus();
 
     void SelectText(int start, int length);
+
+    void SelectAllText();
 }

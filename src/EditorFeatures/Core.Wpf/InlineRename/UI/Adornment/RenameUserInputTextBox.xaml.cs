@@ -60,6 +60,11 @@ public partial class RenameUserInputTextBox : TextBox, IRenameUserInput
         Select(start, length);
     }
 
+    public void SelectAllText()
+    {
+        SelectAll();
+    }
+
     void IRenameUserInput.Focus()
     {
         this.Focus();

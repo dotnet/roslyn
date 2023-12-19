@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 RenameUserInput.Focus();
                 RenameUserInput.SelectText(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
                 RenameUserInput.TextSelectionChanged += RenameUserInput_TextSelectionChanged;
+                RenameUserInput.GotFocus += RenameUserInput_GotFocus;
             };
 
             InitializeComponent();
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 case Key.Tab:
                     // We don't want tab to lose focus for the adornment, so manually 
                     // loop focus back to the first item that is focusable.
-                    FrameworkElement lastItem = _viewModel.IsExpanded
+                    var lastItem = _viewModel.IsExpanded
                         ? FileRenameCheckbox
                         : (FrameworkElement)RenameUserInput;
 
@@ -215,6 +216,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
                     }
 
+                    break;
+
+                case Key.Space:
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        e.Handled = true;
+                        // If smart rename is available, trigger it.
+                        if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
+                        {
+                            _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                        }
+                    }
                     break;
             }
         }
@@ -238,6 +251,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ToggleExpand(object sender, RoutedEventArgs e)
         {
             _viewModel.IsExpanded = !_viewModel.IsExpanded;
+        }
+
+        private void RenameUserInput_GotFocus(object sender, RoutedEventArgs e)
+        {
+            this.RenameUserInput.SelectAllText();
         }
 
         /// <summary>

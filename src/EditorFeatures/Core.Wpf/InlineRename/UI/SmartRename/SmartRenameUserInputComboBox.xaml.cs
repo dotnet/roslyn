@@ -31,7 +31,7 @@ public partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
         Requires.NotNull(viewModel.SmartRenameViewModel!, nameof(viewModel.SmartRenameViewModel));
 
         InitializeComponent();
-        DataContext = viewModel;
+        DataContext = viewModel.SmartRenameViewModel;
 
         _smartRenameViewModel = viewModel.SmartRenameViewModel;
         _innerTextBox = new Lazy<TextBox>(() =>
@@ -82,6 +82,11 @@ public partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
     public void SelectText(int start, int length)
     {
         _innerTextBox.Value.Select(start, length);
+    }
+
+    public void SelectAllText()
+    {
+        _innerTextBox.Value.SelectAll();
     }
 
     void IRenameUserInput.Focus()
@@ -148,9 +153,10 @@ public partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
     private void InnerTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         Assumes.NotNull(_dropDownPopup);
-        if (e.Key == Key.Escape && _dropDownPopup.IsOpen)
+        if ((e.Key == Key.Escape || e.Key == Key.Space || e.Key == Key.Enter) && _dropDownPopup.IsOpen)
         {
             _dropDownPopup.IsOpen = false;
+            SelectAllText();
             e.Handled = true;
         }
     }
