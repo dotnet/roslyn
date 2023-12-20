@@ -1369,7 +1369,7 @@ namespace CSharpSyntaxGenerator
                 // validate parameters
                 foreach (var field in nodeFields)
                 {
-                    var pname = CamelCase(field.Name);
+                    var fieldName = CamelCase(field.Name);
 
                     if (field.Type == "SyntaxToken")
                     {
@@ -1384,17 +1384,17 @@ namespace CSharpSyntaxGenerator
 
                             if (kinds.Count == 1)
                             {
-                                builder.WriteLine($"if ({pname}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                                builder.WriteLine($"if ({fieldName}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({fieldName}));");
                             }
                             else
                             {
-                                builder.WriteLine($"switch ({pname}.Kind())");
+                                builder.WriteLine($"switch ({fieldName}.Kind())");
                                 using (builder.EnterBlock())
                                 {
                                     foreach (var kind in kinds)
                                         builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
 
-                                    builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
+                                    builder.WriteLine($"default: throw new ArgumentException(nameof({fieldName}));");
                                 }
                             }
                         }
@@ -1731,7 +1731,7 @@ namespace CSharpSyntaxGenerator
             {
                 foreach (XmlElement element in comment.Body)
                 {
-                    string[] lines = element.OuterXml.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    var lines = element.OuterXml.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
                         builder.WriteLine($"/// {line.TrimStart()}");
                 }
