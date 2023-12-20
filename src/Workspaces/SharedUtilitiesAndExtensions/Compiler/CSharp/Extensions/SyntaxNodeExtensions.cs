@@ -142,23 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             };
 
         public static BaseParameterListSyntax? GetParameterList(this SyntaxNode? declaration)
-            => declaration?.Kind() switch
+            => declaration switch
             {
-                SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
-                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.RecordDeclaration or
-                SyntaxKind.RecordStructDeclaration or
-                SyntaxKind.ClassDeclaration or
-                SyntaxKind.StructDeclaration or
-                SyntaxKind.InterfaceDeclaration => ((TypeDeclarationSyntax)declaration).ParameterList,
+                DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.ParameterList,
+                BaseMethodDeclarationSyntax methodDeclaration => methodDeclaration.ParameterList,
+                IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ParameterList,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList,
+                LocalFunctionStatementSyntax localFunction => localFunction.ParameterList,
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList,
+                TypeDeclarationSyntax typeDeclaration => typeDeclaration.ParameterList,
                 _ => null,
             };
 
