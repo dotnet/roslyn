@@ -316,9 +316,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestInArgument2()
+    public async Task TestInArgument2_InterfacesOn()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -326,12 +326,52 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    X(new List<int>());
+                    X([|new|] List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([]);
                 }
 
                 void X(IEnumerable<int> list) { }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2_InterfacesOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        X(new List<int>());
+                    }
+
+                    void X(IEnumerable<int> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression_for_interfaces=false
+                """
+        }.RunAsync();
     }
 
     [Fact]

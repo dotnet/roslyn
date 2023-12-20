@@ -134,7 +134,40 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact]
-    public async Task ArrayEmpty5()
+    public async Task ArrayEmpty5_InterfacesOn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<string> v = Array.[|Empty|]<string>();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<string> v = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArrayEmpty5_InterfacesOff()
     {
         await new VerifyCS.Test
         {
@@ -151,6 +184,10 @@ public class UseCollectionExpressionForEmptyTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression_for_interfaces=false
+                """
         }.RunAsync();
     }
 
