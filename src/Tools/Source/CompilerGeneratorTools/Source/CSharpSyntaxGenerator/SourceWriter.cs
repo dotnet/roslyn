@@ -117,10 +117,7 @@ namespace CSharpSyntaxGenerator
                     using (builder.EnterBlock())
                         builder.WriteLineIf(node.Name == "DirectiveTriviaSyntax", "this.flags |= NodeFlags.ContainsDirectives;");
 
-                    var valueFields = abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
-                    var nodeFields = abstractNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
-
-                    foreach (var field in nodeFields)
+                    foreach (var field in abstractNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)))
                     {
                         if (_fileWriter.IsNodeOrNodeList(field.Type))
                         {
@@ -139,11 +136,10 @@ namespace CSharpSyntaxGenerator
                         }
                     }
 
-                    foreach (var field in valueFields)
+                    foreach (var field in abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)))
                     {
                         builder.WriteLine();
                         WriteComment(builder, field.PropertyComment);
-
                         builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                     }
                 }
