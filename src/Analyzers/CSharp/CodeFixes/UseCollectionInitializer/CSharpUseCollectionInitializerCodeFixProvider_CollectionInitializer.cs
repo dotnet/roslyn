@@ -116,12 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 if (arguments.Count == 1)
                 {
-                    // Assignment expressions in a collection initializer will cause the compiler to 
-                    // report an error.  This is because { a = b } is the form for an object initializer,
-                    // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
-                    // avoid the ambiguity.
+                    // Assignment expressions in a collection initializer will cause the compiler to report an error.
+                    // This is because { a = b } is the form for an object initializer, and the two forms are not
+                    // allowed to mix/match.  Parenthesize the assignment to avoid the ambiguity.
+                    //
+                    // Similarly, we cannot have `{ [...] }` in an object initializer (because it will be viewed as a
+                    // dictionary assignment).
                     var expression = arguments[0].Expression;
-                    return SyntaxFacts.IsAssignmentExpression(expression.Kind())
+                    return expression is AssignmentExpressionSyntax or CollectionExpressionSyntax
                         ? ParenthesizedExpression(expression)
                         : expression;
                 }
