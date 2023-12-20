@@ -51,7 +51,8 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader(builder);
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             WriteGreenTypes(builder);
-            WriteGreenVisitors(builder);
+            WriteGreenVisitor(builder, withResult: true);
+            WriteGreenVisitor(builder, withResult: false);
             WriteGreenRewriter(builder);
             WriteContextualGreenFactories(builder);
             WriteStaticGreenFactories(builder);
@@ -157,7 +158,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                     builder.WriteLine("  : base(kind, diagnostics, annotations)");
@@ -168,7 +169,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(", SyntaxFactoryContext context)");
                     builder.WriteLine("  : base(kind)");
@@ -182,7 +183,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(builder, nodeFields, valueFields);
+                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(")");
                     builder.WriteLine("  : base(kind)");
@@ -261,15 +262,17 @@ namespace CSharpSyntaxGenerator
                     WriteSetAnnotations(builder, concreteNode);
                 }
             }
-        }
 
-        private static void WriteGreenNodeConstructorArgs(IndentingStringBuilder builder, List<Field> nodeFields, List<Field> valueFields)
-        {
-            foreach (var field in nodeFields)
-                builder.Write($", {(GetFieldType(field, green: true))} {CamelCase(field.Name)}");
+            return;
 
-            foreach (var field in valueFields)
-                builder.Write($", {field.Type} {CamelCase(field.Name)}");
+            void WriteGreenNodeConstructorArgs(List<Field> nodeFields, List<Field> valueFields)
+            {
+                foreach (var field in nodeFields)
+                    builder.Write($", {(GetFieldType(field, green: true))} {CamelCase(field.Name)}");
+
+                foreach (var field in valueFields)
+                    builder.Write($", {field.Type} {CamelCase(field.Name)}");
+            }
         }
 
         private static void WriteCtorBody(IndentingStringBuilder builder, List<Field> valueFields, List<Field> nodeFields)
@@ -332,12 +335,6 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine();
             builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
-        }
-
-        private void WriteGreenVisitors(IndentingStringBuilder builder)
-        {
-            WriteGreenVisitor(builder, withResult: true);
-            WriteGreenVisitor(builder, withResult: false);
         }
 
         private void WriteGreenVisitor(IndentingStringBuilder builder, bool withResult)
