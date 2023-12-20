@@ -328,7 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
-                    !type.IsRestrictedType();
+                    !type.IsRestrictedType() &&
+                    (!field.IsParams || field.Type.IsSZArray()); // [params T collection] is not recognized as a valid params parameter definition
             }
 
             static SynthesizedDelegateKey getTemplateKey(AnonymousTypeDescriptor typeDescr, ImmutableArray<TypeParameterSymbol> typeParameters)

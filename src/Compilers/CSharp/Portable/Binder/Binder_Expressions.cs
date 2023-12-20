@@ -10122,7 +10122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, ScopedKind.None));
 
             var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
-            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);
+            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr,
+                checkParamsCollectionsFeatureAvailability: hasParams && !parameters[^1].Type.IsSZArray() && Compilation.SourceModule != methodSymbol.ContainingModule);
 
             static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
             {

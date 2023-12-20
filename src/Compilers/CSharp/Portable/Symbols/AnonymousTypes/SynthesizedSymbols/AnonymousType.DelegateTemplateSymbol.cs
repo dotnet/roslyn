@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Replace `T` with `T[]` for params array.
                         if (field.IsParams)
                         {
+                            Debug.Assert(field.Type.IsSZArray());
                             type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
                         }
 
