@@ -283,7 +283,7 @@ internal readonly struct RequestContext
 
             if (workspace is null || solution is null)
             {
-                logger.LogError($"Could not find appropriate workspace solution on {method}");
+                logger.LogError($"Could not find appropriate workspace or solution on {method}");
                 FatalError.ReportWithDumpAndCatch(new Exception(
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
