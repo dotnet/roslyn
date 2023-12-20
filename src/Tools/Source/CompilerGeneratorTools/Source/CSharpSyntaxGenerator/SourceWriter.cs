@@ -1093,11 +1093,12 @@ namespace CSharpSyntaxGenerator
         }
 
         private TreeType TryGetBaseType(TreeType node)
-            => node is AbstractNode an
-                ? _fileWriter.GetTreeType(an.Base)
-                : node is Node n
-                    ? _fileWriter.GetTreeType(n.Base)
-                    : null;
+            => node switch
+            {
+                AbstractNode an => _fileWriter.GetTreeType(an.Base),
+                Node n => _fileWriter.GetTreeType(n.Base),
+                _ => null,
+            };
 
         private void WriteRedListHelperMethods(IndentingStringBuilder builder, Node node)
         {
@@ -1285,9 +1286,7 @@ namespace CSharpSyntaxGenerator
         }
 
         private bool IsValueField(Field field)
-        {
-            return !_fileWriter.IsNodeOrNodeList(field.Type);
-        }
+            => !_fileWriter.IsNodeOrNodeList(field.Type);
 
         private int RequiredFactoryArgumentCount(Node nd, bool includeKind = true)
         {
