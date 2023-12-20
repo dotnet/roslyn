@@ -96,7 +96,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenType(IndentingStringBuilder builder, TreeType node)
         {
-            WriteComment(builder, node.TypeComment, "");
+            WriteComment(builder, node.TypeComment);
 
             if (node is AbstractNode abstractNode)
             {
@@ -131,7 +131,7 @@ namespace CSharpSyntaxGenerator
                         if (_fileWriter.IsNodeOrNodeList(field.Type))
                         {
                             builder.WriteLine();
-                            WriteComment(builder, field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment);
 
                             if (IsSeparatedNodeList(field.Type) ||
                                 IsNodeList(field.Type))
@@ -148,7 +148,7 @@ namespace CSharpSyntaxGenerator
                     foreach (var field in valueFields)
                     {
                         builder.WriteLine();
-                        WriteComment(builder, field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment);
 
                         builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                     }
@@ -214,7 +214,7 @@ namespace CSharpSyntaxGenerator
                     // property accessors
                     foreach (var field in nodeFields)
                     {
-                        WriteComment(builder, field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment);
                         if (IsNodeList(field.Type))
                         {
                             var type = $"CoreSyntax.{field.Type}";
@@ -238,7 +238,7 @@ namespace CSharpSyntaxGenerator
 
                     foreach (var field in valueFields)
                     {
-                        WriteComment(builder, field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment);
                         builder.WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => {CamelCase(field.Name)};");
                     }
 
@@ -673,7 +673,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedType(IndentingStringBuilder builder, TreeType node)
         {
-            WriteComment(builder, node.TypeComment, "");
+            WriteComment(builder, node.TypeComment);
 
             if (node is AbstractNode abstractNode)
             {
@@ -696,7 +696,7 @@ namespace CSharpSyntaxGenerator
                             //red SyntaxLists can't contain tokens, so we switch to SyntaxTokenList
                             var fieldType = GetRedFieldType(field);
                             builder.WriteLine();
-                            WriteComment(builder, field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment);
                             builder.WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{fieldType} {field.Name} {{ get; }}");
                             builder.WriteLine($"public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
                             builder.WriteLine($"internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
@@ -732,7 +732,7 @@ namespace CSharpSyntaxGenerator
                     foreach (var field in valueFields)
                     {
                         builder.WriteLine();
-                        WriteComment(builder, field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment);
                         builder.WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                     }
 
@@ -832,7 +832,7 @@ namespace CSharpSyntaxGenerator
                         var field = nodeFields[i];
                         if (field.Type == "SyntaxToken")
                         {
-                            WriteComment(builder, field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment);
                             builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                             if (IsOptional(field))
                             {
@@ -854,7 +854,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else if (field.Type == "SyntaxList<SyntaxToken>")
                         {
-                            WriteComment(builder, field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment);
                             builder.WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
                             using (builder.EnterBlock())
                             {
@@ -868,7 +868,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteComment(builder, field.PropertyComment, "");
+                            WriteComment(builder, field.PropertyComment);
                             builder.Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
 
                             if (IsNodeList(field.Type))
@@ -911,7 +911,7 @@ namespace CSharpSyntaxGenerator
 
                     foreach (var field in valueFields)
                     {
-                        WriteComment(builder, field.PropertyComment, "");
+                        WriteComment(builder, field.PropertyComment);
                         builder.WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
                         builder.WriteLine();
                     }
@@ -1784,7 +1784,7 @@ namespace CSharpSyntaxGenerator
         /// Anything inside a &lt;Comment&gt; tag gets written out (escaping untouched) as the
         /// XML doc comment.  Line breaks will be preserved.
         /// </summary>
-        private static void WriteComment(IndentingStringBuilder builder, Comment comment, string indent)
+        private static void WriteComment(IndentingStringBuilder builder, Comment comment)
         {
             if (comment != null)
             {
@@ -1793,7 +1793,7 @@ namespace CSharpSyntaxGenerator
                     string[] lines = element.OuterXml.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
                     {
-                        builder.WriteLine($"{indent}/// {line.TrimStart()}");
+                        builder.WriteLine($"/// {line.TrimStart()}");
                     }
                 }
             }
