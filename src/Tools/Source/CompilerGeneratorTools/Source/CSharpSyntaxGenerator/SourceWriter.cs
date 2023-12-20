@@ -474,10 +474,7 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenFactories(IndentingStringBuilder builder, bool withSyntaxFactoryContext)
         {
             foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>())
-            {
-                builder.WriteLine();
                 WriteGreenFactory(builder, node, withSyntaxFactoryContext);
-            }
         }
 
         private void WriteGreenFactory(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext = false)
@@ -485,6 +482,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
+            builder.WriteLine();
             builder.Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}");
             WriteGreenFactoryParameters(builder, nd);
             builder.WriteLine();
