@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             switch (node)
             {
                 case BlockSyntax block:
-                    return block.ContainsInBlockBody(span);
+                    return ContainsInBlockBody(block, span);
                 case ArrowExpressionClauseSyntax expressionBodiedMember:
-                    return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
+                    return ContainsInExpressionBodiedMemberBody(expressionBodiedMember, span);
                 case FieldDeclarationSyntax field:
                     {
                         foreach (var variable in field.Declaration.Variables)
@@ -297,6 +297,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             return false;
+        }
+
+        private static bool ContainsInBlockBody(BlockSyntax block, TextSpan textSpan)
+        {
+            if (block == null)
+            {
+                return false;
+            }
+
+            var blockSpan = TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart);
+            return blockSpan.Contains(textSpan);
+        }
+
+        private static bool ContainsInExpressionBodiedMemberBody(ArrowExpressionClauseSyntax expressionBodiedMember, TextSpan textSpan)
+        {
+            if (expressionBodiedMember == null)
+            {
+                return false;
+            }
+
+            var expressionBodiedMemberBody = TextSpan.FromBounds(expressionBodiedMember.Expression.SpanStart, expressionBodiedMember.Expression.Span.End);
+            return expressionBodiedMemberBody.Contains(textSpan);
         }
 
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(

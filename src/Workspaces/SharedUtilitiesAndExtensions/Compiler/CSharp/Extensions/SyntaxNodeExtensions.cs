@@ -769,28 +769,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
         }
 
-        public static bool ContainsInBlockBody(this BlockSyntax block, TextSpan textSpan)
-        {
-            if (block == null)
-            {
-                return false;
-            }
-
-            var blockSpan = TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart);
-            return blockSpan.Contains(textSpan);
-        }
-
-        public static bool ContainsInExpressionBodiedMemberBody(this ArrowExpressionClauseSyntax expressionBodiedMember, TextSpan textSpan)
-        {
-            if (expressionBodiedMember == null)
-            {
-                return false;
-            }
-
-            var expressionBodiedMemberBody = TextSpan.FromBounds(expressionBodiedMember.Expression.SpanStart, expressionBodiedMember.Expression.Span.End);
-            return expressionBodiedMemberBody.Contains(textSpan);
-        }
-
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
             => node switch
             {
