@@ -749,18 +749,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             };
 
         public static SyntaxNode? WithModifiers(this SyntaxNode? member, SyntaxTokenList modifiers)
-        {
-            switch (member)
+            => member switch
             {
-                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
-                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
-                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.WithModifiers(modifiers);
-                case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
-                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
-            }
-
-            return null;
-        }
+                MemberDeclarationSyntax memberDecl => memberDecl.WithModifiers(modifiers),
+                AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                AnonymousFunctionExpressionSyntax anonymous => anonymous.WithModifiers(modifiers),
+                LocalFunctionStatementSyntax localFunction => localFunction.WithModifiers(modifiers),
+                LocalDeclarationStatementSyntax localDeclaration => localDeclaration.WithModifiers(modifiers),
+                _ => null,
+            };
 
         public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
         {
