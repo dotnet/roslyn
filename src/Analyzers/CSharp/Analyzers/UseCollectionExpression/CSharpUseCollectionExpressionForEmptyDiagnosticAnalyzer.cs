@@ -15,15 +15,11 @@ using static UseCollectionExpressionHelpers;
 /// replace with <c>[]</c> if legal to do so.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForEmpty)
 {
-    public CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForEmpty)
-    {
-    }
-
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
 
@@ -49,7 +45,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             return;
 
         var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
-        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -57,8 +53,6 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
-            properties: null));
-
-        return;
+            properties: changesSemantics ? ChangesSemantics : null));
     }
 }

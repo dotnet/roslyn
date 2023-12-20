@@ -106,7 +106,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
-            properties: null));
+            properties: analysisResult.Value.ChangesSemantics ? ChangesSemantics : null));
 
         return;
     }
@@ -130,11 +130,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (!AnalyzeInvocation(text, state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
             return null;
 
-        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return null;
 
         matchesInReverse.ReverseContents();
-        return new AnalysisResult(existingInitializer, invocation, matchesInReverse.ToImmutable());
+        return new AnalysisResult(existingInitializer, invocation, matchesInReverse.ToImmutable(), changesSemantics);
     }
 
     private static bool AnalyzeInvocation(
@@ -466,5 +466,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Location DiagnosticLocation,
         InitializerExpressionSyntax? ExistingInitializer,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> Matches);
+        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> Matches,
+        bool ChangesSemantics);
 }

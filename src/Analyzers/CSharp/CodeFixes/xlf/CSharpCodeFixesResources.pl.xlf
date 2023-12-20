@@ -222,6 +222,11 @@
         <target state="translated">Ostrzeżenie: Dodanie parametrów do deklaracji funkcji lokalnej może prowadzić do powstania nieprawidłowego kodu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="new">{0} (may change semantics)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

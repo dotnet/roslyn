@@ -8,25 +8,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static UseCollectionExpressionHelpers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForCreate)
 {
     public const string UnwrapArgument = nameof(UnwrapArgument);
 
     private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
-
-    public CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForCreate)
-    {
-    }
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
@@ -48,11 +45,13 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
         // Make sure we can actually use a collection expression in place of the full invocation.
         var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
-        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : null;
+        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
+        if (changesSemantics)
+            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,

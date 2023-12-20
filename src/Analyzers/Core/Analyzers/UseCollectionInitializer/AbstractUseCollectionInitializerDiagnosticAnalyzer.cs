@@ -93,7 +93,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
     protected abstract bool CanUseCollectionExpression(
-        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken);
+        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken, out bool changesSemantics);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -173,7 +173,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return;
 
         // if one fails, prefer the other.  If both succeed, prefer the one with more matches.
-        var (matches, shouldUseCollectionExpression) =
+        var (matches, shouldUseCollectionExpression, changesSemantics) =
             collectionExpressionMatches is null ? collectionInitializerMatches!.Value :
             collectionInitializerMatches is null ? collectionExpressionMatches!.Value :
             collectionExpressionMatches.Value.matches.Length >= collectionInitializerMatches.Value.matches.Length
@@ -190,7 +190,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
         var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
-        var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
+        var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : ImmutableDictionary<string, string?>.Empty;
+        if (changesSemantics)
+            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
@@ -202,7 +205,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
+        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -216,10 +219,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (matches.IsDefault)
                 return null;
 
-            return (matches, shouldUseCollectionExpression: false);
+            return (matches, shouldUseCollectionExpression: false, changesSemantics: false);
         }
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionExpressionMatches()
+        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
             if (!preferExpressionOption.Value)
                 return null;
@@ -235,10 +238,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, cancellationToken))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, cancellationToken, out var changesSemantics))
                 return null;
 
-            return (matches, shouldUseCollectionExpression: true);
+            return (matches, shouldUseCollectionExpression: true, changesSemantics);
         }
     }
 
