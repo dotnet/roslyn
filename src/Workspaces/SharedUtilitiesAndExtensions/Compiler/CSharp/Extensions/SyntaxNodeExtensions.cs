@@ -672,9 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
             => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
-        public static bool IsVariableDeclaratorValue(this SyntaxNode node)
-            => node?.Parent is EqualsValueClauseSyntax equalsValue &&
-               equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) &&
+        public static bool IsVariableDeclaratorValue([NotNullWhen(true)] this SyntaxNode? node)
+            => node?.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax } equalsValue &&
                equalsValue.Value == node;
 
         public static BlockSyntax? FindInnermostCommonBlock(this IEnumerable<SyntaxNode> nodes)
