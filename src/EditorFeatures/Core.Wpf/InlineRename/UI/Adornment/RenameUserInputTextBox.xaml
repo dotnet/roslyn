@@ -5,5 +5,5 @@
          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
          xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
          mc:Ignorable="d"
-         Style="{StaticResource {x:Static vsfx:VsResourceKeys.TextBoxStyleKey}}"
+         Style="{DynamicResource {x:Static vsfx:VsResourceKeys.TextBoxStyleKey}}"
          Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}"/>
