@@ -88,14 +88,12 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenTypes(IndentingStringBuilder builder)
         {
             foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode))
-            {
-                builder.WriteLine();
                 WriteGreenType(builder, node);
-            }
         }
 
         private void WriteGreenType(IndentingStringBuilder builder, TreeType node)
         {
+            builder.WriteLine();
             WriteComment(builder, node.TypeComment);
 
             if (node is AbstractNode abstractNode)
