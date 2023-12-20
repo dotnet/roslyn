@@ -87,9 +87,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenTypes(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-
-            foreach (var node in nodes)
+            foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode))
             {
                 builder.WriteLine();
                 WriteGreenType(builder, node);
