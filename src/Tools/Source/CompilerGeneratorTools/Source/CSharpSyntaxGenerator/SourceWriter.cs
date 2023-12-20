@@ -259,7 +259,7 @@ namespace CSharpSyntaxGenerator
                     WriteGreenAcceptMethods(builder, concreteNode);
                     WriteGreenUpdateMethod(builder, concreteNode);
                     WriteSetDiagnostics(builder, concreteNode);
-                    WriteSetAnnotations(builder, concreteNode);
+                    WriteSetAnnotations(concreteNode);
                 }
             }
 
@@ -272,6 +272,20 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in valueFields)
                     builder.Write($", {field.Type} {CamelCase(field.Name)}");
+            }
+
+            void WriteSetAnnotations(Node node)
+            {
+                builder.WriteLine();
+                builder.WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
+                builder.Write($"    => new {node.Name}");
+                builder.WriteCommaSeparated([
+                    "this.Kind",
+                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                "GetDiagnostics()",
+                "annotations"],
+                    open: "(", close: ")");
+                builder.WriteLine(";");
             }
         }
 
@@ -300,20 +314,6 @@ namespace CSharpSyntaxGenerator
 
             foreach (var field in valueFields)
                 builder.WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-        }
-
-        private static void WriteSetAnnotations(IndentingStringBuilder builder, Node node)
-        {
-            builder.WriteLine();
-            builder.WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
-            builder.Write($"    => new {node.Name}");
-            builder.WriteCommaSeparated([
-                "this.Kind",
-                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
-                "GetDiagnostics()",
-                "annotations"],
-                open: "(", close: ")");
-            builder.WriteLine(";");
         }
 
         private static void WriteSetDiagnostics(IndentingStringBuilder builder, Node node)
