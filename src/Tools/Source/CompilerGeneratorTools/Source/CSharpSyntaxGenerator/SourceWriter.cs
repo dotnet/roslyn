@@ -319,26 +319,28 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteLine();
             builder.WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
-            builder.Write($"    => new {node.Name}(");
+            builder.Write($"    => new {node.Name}");
             builder.WriteCommaSeparated([
                 "this.Kind",
                 .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
                 "GetDiagnostics()",
-                "annotations"]);
-            builder.WriteLine(");");
+                "annotations"],
+                open: "(", close: ")");
+            builder.WriteLine(";");
         }
 
         private static void WriteSetDiagnostics(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
-            builder.Write($"    => new {node.Name}(");
+            builder.Write($"    => new {node.Name}");
             builder.WriteCommaSeparated([
                 "this.Kind",
                 .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
                 "diagnostics",
-                "GetAnnotations()"]);
-            builder.WriteLine(");");
+                "GetAnnotations()"],
+                "(", ")");
+            builder.WriteLine(";");
         }
 
         private static void WriteGreenAcceptMethods(IndentingStringBuilder builder, Node node)
@@ -368,7 +370,7 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenUpdateMethod(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
-            builder.Write($"public {node.Name} Update(");
+            builder.Write($"public {node.Name} Update");
             builder.WriteCommaSeparated(node.Fields.Select(f =>
             {
                 var type =
@@ -379,27 +381,30 @@ namespace CSharpSyntaxGenerator
                     f.Type;
 
                 return $"{type} {CamelCase(f.Name)}";
-            }));
-            builder.WriteLine(")");
+            }), open: "(", close: ")");
+            builder.WriteLine();
+
             using (builder.EnterBlock())
             {
-                builder.Write("if (");
+                builder.Write("if ");
                 builder.WriteSeparated(
                     node.Fields.Where(field =>
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
                         field.Type == "SyntaxNodeOrTokenList"),
                     " || ",
-                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"),
+                    open: "(", close: ")");
 
-                builder.WriteLine(")");
+                builder.WriteLine();
                 using (builder.EnterBlock())
                 {
-                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
+                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}");
                     builder.WriteCommaSeparated([
                         .. node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>(),
-                        .. node.Fields.Select(f => CamelCase(f.Name))]);
-                    builder.WriteLine(");");
+                        .. node.Fields.Select(f => CamelCase(f.Name))],
+                        open: "(", close: ")");
+                    builder.WriteLine(";");
                     builder.WriteLine("var diags = GetDiagnostics();");
                     builder.WriteLine("if (diags?.Length > 0)");
                     builder.WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
@@ -436,7 +441,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            builder.Write("=> node.Update(");
+                            builder.Write("=> node.Update");
                             builder.WriteCommaSeparated(node.Fields.Select(f =>
                             {
                                 if (IsAnyList(f.Type))
@@ -445,8 +450,8 @@ namespace CSharpSyntaxGenerator
                                     return $"({f.Type})Visit(node.{f.Name})";
                                 else
                                     return $"node.{f.Name}";
-                            }));
-                            builder.WriteLine(");");
+                            }), open: "(", close: ")");
+                            builder.WriteLine(";");
                         }
                     }, this);
             }
@@ -491,9 +496,9 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
-            builder.Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}");
             WriteGreenFactoryParameters(builder, nd);
-            builder.WriteLine(")");
+            builder.WriteLine();
             using (builder.EnterBlock())
             {
                 // validate kind
@@ -621,7 +626,7 @@ namespace CSharpSyntaxGenerator
                     };
 
                     return $"{type} {CamelCase(f.Name)}";
-                })]);
+                })], open: "(", close: ")");
         }
 
         private static void WriteCtorArgList(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
@@ -1047,30 +1052,33 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
-            builder.Write($"public {node.Name} Update(");
+            builder.Write($"public {node.Name} Update");
             builder.WriteCommaSeparated(
-                node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}"));
-            builder.WriteLine(")");
+                node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}"),
+                open: "(", close: ")");
+            builder.WriteLine();
 
             using (builder.EnterBlock())
             {
-                builder.Write("if (");
+                builder.Write("if ");
                 builder.WriteSeparated(
                     node.Fields.Where(field =>
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
                         field.Type == "SyntaxNodeOrTokenList"),
                     " || ",
-                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"),
+                    open: "(", close: ")");
 
-                builder.WriteLine(")");
+                builder.WriteLine();
                 using (builder.EnterBlock())
                 {
-                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
+                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}");
                     builder.WriteCommaSeparated([
                         .. node.Kinds.Count > 1 ? ["this.Kind()"] : Array.Empty<string>(),
-                        .. node.Fields.Select(f => CamelCase(f.Name))]);
-                    builder.WriteLine(");");
+                        .. node.Fields.Select(f => CamelCase(f.Name))],
+                        open: "(", close: ")");
+                    builder.WriteLine(";");
                     builder.WriteLine("var annotations = GetAnnotations();");
                     builder.WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 }
@@ -1109,12 +1117,12 @@ namespace CSharpSyntaxGenerator
 
                 builder.Write(
                     $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})" +
-                    " => Update(");
-
+                    " => Update");
                 // call update inside each setter
                 builder.WriteCommaSeparated(node.Fields.Select(f =>
-                    f == field ? CamelCase(f.Name) : $"this.{f.Name}"));
-                builder.WriteLine(");");
+                    f == field ? CamelCase(f.Name) : $"this.{f.Name}"),
+                    open: "(", close: ")");
+                builder.WriteLine(";");
             }
         }
 
@@ -1263,7 +1271,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            builder.Write("    => node.Update(");
+                            builder.Write("    => node.Update");
                             builder.WriteCommaSeparated(
                                 node.Fields,
                                 static (builder, f, @this) =>
@@ -1283,9 +1291,9 @@ namespace CSharpSyntaxGenerator
                                     {
                                         builder.Write($"node.{f.Name}");
                                     }
-                                }, @this);
+                                }, @this, open: "(", close: ")");
 
-                            builder.WriteLine(");");
+                            builder.WriteLine(";");
                         }
                     },
                     this);
@@ -1386,10 +1394,10 @@ namespace CSharpSyntaxGenerator
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
 
-            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}");
             WriteRedFactoryParameters(builder, nd);
 
-            builder.WriteLine(")");
+            builder.WriteLine();
             using (builder.EnterBlock())
             {
                 // validate kinds
@@ -1445,7 +1453,7 @@ namespace CSharpSyntaxGenerator
                     }
                 }
 
-                builder.Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
+                builder.Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}");
                 builder.WriteCommaSeparated([
                     .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
                     .. nodeFields.Select(f =>
@@ -1472,9 +1480,10 @@ namespace CSharpSyntaxGenerator
                             return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
                     }),
                     // values are at end
-                    .. valueFields.Select(f => CamelCase(f.Name))]);
+                    .. valueFields.Select(f => CamelCase(f.Name))],
+                    open: "(", close: ")");
 
-                builder.WriteLine(").CreateRed();");
+                builder.WriteLine(".CreateRed();");
             }
         }
 
@@ -1482,7 +1491,8 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
-                .. nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")]);
+                .. nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")],
+                open: "(", close: ")");
         }
 
         private string GetRedPropertyType(Field field)
@@ -1568,21 +1578,22 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine();
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
-            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}");
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
                 .. nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains).Select(
-                    f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")]);
-            builder.WriteLine(")");
+                    f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")],
+                    open: "(", close: ")");
+            builder.WriteLine();
 
-            builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}");
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
                 .. nd.Fields.Select(f => factoryWithNoAutoCreatableTokenFields.Contains(f)
                     ? CamelCase(f.Name)
-                    : GetDefaultValue(nd, f))]);
-
-            builder.WriteLine(");");
+                    : GetDefaultValue(nd, f))],
+                    open: "(", close: ")");
+            builder.WriteLine(";");
         }
 
         private Field DetermineMinimalOptionalField(Node nd)
@@ -1657,7 +1668,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
-            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}");
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
                 .. nd.Fields.Where(minimalFactoryFields.Contains).Select(f =>
@@ -1678,10 +1689,10 @@ namespace CSharpSyntaxGenerator
 
                         return $"{type} {CamelCase(f.Name)} = default";
                     }
-                })]);
-            builder.WriteLine(")");
+                })], open: "(", close: ")");
+            builder.WriteLine();
 
-            builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
+            builder.Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}");
 
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
@@ -1706,9 +1717,8 @@ namespace CSharpSyntaxGenerator
                     }
 
                     return GetDefaultValue(nd, f);
-                })]);
-
-            builder.WriteLine(");");
+                })], open: "(", close: ")");
+            builder.WriteLine(";");
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
@@ -1722,9 +1732,7 @@ namespace CSharpSyntaxGenerator
         }
 
         private static bool IsIdentifierToken(Field field)
-        {
-            return field is { Type: "SyntaxToken", Kinds: [{ Name: "IdentifierToken" }] };
-        }
+            => field is { Type: "SyntaxToken", Kinds: [{ Name: "IdentifierToken" }] };
 
         private static bool IsIdentifierNameSyntax(Field field)
         {

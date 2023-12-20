@@ -8,9 +8,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -377,71 +379,76 @@ internal sealed class IndentingStringBuilder : IDisposable
             content,
             static (@this, _) => @this.EnsureBlankLine(),
             writeElement,
-            arg);
+            arg, open: "", close: "");
     }
 
     public IndentingStringBuilder WriteCommaSeparated(
-        IEnumerable<string> content)
+        IEnumerable<string> content, string open = "", string close = "")
     {
         return WriteCommaSeparated(
             content,
-            static (builder, element) => builder.Write(element));
+            static (builder, element) => builder.Write(element), open, close);
     }
 
     public IndentingStringBuilder WriteCommaSeparated<T>(
         IEnumerable<T> content,
-        Action<IndentingStringBuilder, T> writeElement)
+        Action<IndentingStringBuilder, T> writeElement, string open = "", string close = "")
     {
         return WriteCommaSeparated(
             content,
             static (builder, element, writeElement) => writeElement(builder, element),
-            writeElement);
+            writeElement, open, close);
     }
 
     public IndentingStringBuilder WriteCommaSeparated<T, TArg>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T, TArg> writeElement,
-        TArg arg)
+        TArg arg, string open = "", string close = "")
     {
         return WriteSeparated(
             content,
             ", ",
             static (builder, element, tuple) => tuple.writeElement(builder, element, tuple.arg),
-            (writeElement, arg));
+            (writeElement, arg), open, close);
     }
 
     public IndentingStringBuilder WriteSeparated<T>(
         IEnumerable<T> content,
         string separator,
-        Action<IndentingStringBuilder, T> writeElement)
+        Action<IndentingStringBuilder, T> writeElement,
+        string open = "", string close = "")
     {
         return WriteSeparated(
             content,
             separator,
             static (builder, element, writeElement) => writeElement(builder, element),
-            writeElement);
+            writeElement,
+            open, close);
     }
 
     public IndentingStringBuilder WriteSeparated<T, TArg>(
         IEnumerable<T> content,
         string separator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
-        TArg arg)
+        TArg arg, string open = "", string close = "")
     {
         return WriteSeparated(
             content,
             static (@this, tuple) => @this.Write(tuple.separator),
             static (@this, item, tuple) => tuple.writeElement(@this, item, tuple.arg),
-            (this, separator, writeElement, arg));
+            (this, separator, writeElement, arg), open, close);
     }
 
     private IndentingStringBuilder WriteSeparated<T, TArg>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, TArg> writeSeparator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
-        TArg arg)
+        TArg arg, string open, string close)
     {
         this.CheckDisposed();
+
+        this.Write(open);
+
         var first = true;
         foreach (var item in content)
         {
@@ -456,8 +463,13 @@ internal sealed class IndentingStringBuilder : IDisposable
                 first = false;
         }
 
+        this.Write(close);
+
         return this;
     }
+
+    public SourceText ToSourceText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        => SourceText.From(new StringBuilderReader(this.Builder), this.Builder.Length, encoding, checksumAlgorithm);
 
     /// <summary>
     /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.
@@ -492,6 +504,32 @@ internal sealed class IndentingStringBuilder : IDisposable
             var str = value?.ToString(format, formatProvider: null);
             if (str is not null)
                 _builder.Write(str, _splitContent);
+        }
+    }
+
+    private sealed class StringBuilderReader : TextReader
+    {
+        private readonly StringBuilder _stringBuilder;
+        private int _position;
+
+        public StringBuilderReader(StringBuilder stringBuilder)
+        {
+            _stringBuilder = stringBuilder;
+            _position = 0;
+        }
+
+        public override int Peek()
+            => _position == _stringBuilder.Length ? -1 : _stringBuilder[_position];
+
+        public override int Read()
+            => _position == _stringBuilder.Length ? -1 : _stringBuilder[_position++];
+
+        public override int Read(char[] buffer, int index, int count)
+        {
+            var charsToCopy = Math.Min(count, _stringBuilder.Length - _position);
+            _stringBuilder.CopyTo(_position, buffer, index, charsToCopy);
+            _position += charsToCopy;
+            return charsToCopy;
         }
     }
 }
