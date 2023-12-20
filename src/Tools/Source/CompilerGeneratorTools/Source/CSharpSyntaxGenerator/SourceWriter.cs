@@ -79,7 +79,8 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
             builder.WriteLine("using System.Diagnostics.CodeAnalysis;");
             builder.WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
-            WriteRedVisitors(builder);
+            WriteRedVisitor(builder, genericResult: true);
+            WriteRedVisitor(builder, genericResult: false);
             WriteRedRewriter(builder);
             WriteRedFactories(builder);
 
@@ -983,12 +984,6 @@ namespace CSharpSyntaxGenerator
 
         private static string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
-
-        private void WriteRedVisitors(IndentingStringBuilder builder)
-        {
-            WriteRedVisitor(builder, genericResult: true);
-            WriteRedVisitor(builder, genericResult: false);
-        }
 
         private void WriteRedVisitor(IndentingStringBuilder builder, bool genericResult)
         {
