@@ -266,7 +266,6 @@ internal static class UseCollectionExpressionHelpers
 
         bool IsWellKnownInterface(ITypeSymbol type)
         {
-            // Has to be an interface with on
             return type.OriginalDefinition.SpecialType
                 is SpecialType.System_Collections_Generic_IEnumerable_T
                 or SpecialType.System_Collections_Generic_ICollection_T
