@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
+            AddBaseServiceFromFunc<IHandlerProvider>((lspServices) => new HandlerProvider(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
             AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());

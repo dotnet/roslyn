@@ -15,7 +15,7 @@ using StreamJsonRpc;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : IHandlerProvider
+public class HandlerProvider : IHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
@@ -55,6 +55,9 @@ internal class HandlerProvider : IHandlerProvider
 
     public void AddExternalExtensions(ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalHandlers)
     {
+        // TODO: This is not correct. We need to...
+        // 1. Rerun the CreateMethodToHandlerMap (or insert these into the map)
+        // 2. Call SetupRequestDispatcher, which currently lives in the AbstractLanguageServer
         _extensionRequestHandlers = externalHandlers;
     }
 

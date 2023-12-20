@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,24 +19,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionRegistrationHandler)), Shared]
     [Method("extensions/registerExtension")]
-    internal sealed class ExtensionRegistrationHandler : ILspServiceRequestHandler<string, string>
+    internal sealed class ExtensionRegistrationHandler : ILspServiceRequestHandler<ExtensionInfoAndMessage, string>
     {
         public bool MutatesSolutionState => true;
 
         public bool RequiresLSPSolution => true;
 
-        public Task<string> HandleRequestAsync(string request, RequestContext context, CancellationToken cancellationToken)
+        public Task<string> HandleRequestAsync(ExtensionInfoAndMessage request, RequestContext context, CancellationToken cancellationToken)
         {
-            var externalHandlers = LoadExternalDlls(request);
+            var externalHandlers = LoadExternalAssemblies(request.AssemblyPath);
 
-            // TODO: Get the IHandlerProvider & pass it the list of external handlers
+            var handlerProvider = context.GetRequiredService<IHandlerProvider>();
+            handlerProvider.AddExternalExtensions(externalHandlers);
 
             return Task.FromResult("Hello from Roslyn. External handlers loaded: " + externalHandlers.Count);
         }
 
-        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> LoadExternalDlls(string dllPath)
+        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> LoadExternalAssemblies(string assemblyPath)
         {
-            var externalAssembly = Assembly.LoadFrom(dllPath);
+            var externalAssembly = Assembly.LoadFrom(assemblyPath);
 
             var implementingClasses = externalAssembly.GetTypes()
                 .Where(type => typeof(IExtensionMethodHandler).IsAssignableFrom(type) && !type.IsInterface);
@@ -63,5 +65,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return requestHandlerDictionary.ToImmutable();
         }
+    }
+
+    // TODO: This is temporary
+    [DataContract]
+    internal class ExtensionInfoAndMessage
+    {
+        [DataMember(Name = "assemblyPath")]
+        public string AssemblyPath { get; set; }
+        [DataMember(Name = "typeFullName")]
+        public string TypeFullName { get; set; }
     }
 }
