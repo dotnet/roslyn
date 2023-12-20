@@ -107,10 +107,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                     builder.WriteLine("  : base(kind, diagnostics, annotations)");
                     using (builder.EnterBlock())
-                    {
-                        if (node.Name == "DirectiveTriviaSyntax")
-                            builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                    }
+                        builder.WriteLineIf(node.Name == "DirectiveTriviaSyntax", "this.flags |= NodeFlags.ContainsDirectives;");
 
                     builder.WriteLine();
                     // ctor without diagnostics and annotations
@@ -118,10 +115,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine("  : base(kind)");
 
                     using (builder.EnterBlock())
-                    {
-                        if (node.Name == "DirectiveTriviaSyntax")
-                            builder.WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                    }
+                        builder.WriteLineIf(node.Name == "DirectiveTriviaSyntax", "this.flags |= NodeFlags.ContainsDirectives;");
 
                     var valueFields = abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
                     var nodeFields = abstractNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
@@ -520,8 +514,9 @@ namespace CSharpSyntaxGenerator
                 {
                     var fieldName = CamelCase(field.Name);
 
-                    if (!IsAnyList(field.Type) && !IsOptional(field))
-                        builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
+                    builder.WriteLineIf(
+                        !IsAnyList(field.Type) && !IsOptional(field),
+                        $"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
 
                     if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                     {
@@ -728,15 +723,10 @@ namespace CSharpSyntaxGenerator
                     if (baseType != null)
                     {
                         var baseNodeFields = GetNodeOrNodeListFields(baseType);
-                        if (baseNodeFields.Count > 0)
-                        {
-                            builder.WriteLine();
-                        }
+                        builder.WriteLineIf(baseNodeFields.Count > 0);
 
                         foreach (var baseField in baseNodeFields)
-                        {
                             builder.WriteLine($"public new {node.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({node.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
-                        }
 
                         foreach (var baseField in baseNodeFields)
                         {
@@ -775,9 +765,7 @@ namespace CSharpSyntaxGenerator
                 WriteComment(builder, $"<list type=\"bullet\">");
 
                 foreach (var kind in concreteNode.Kinds)
-                {
                     WriteComment(builder, $"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
-                }
 
                 WriteComment(builder, $"</list>");
                 WriteComment(builder, $"</remarks>");
@@ -798,8 +786,7 @@ namespace CSharpSyntaxGenerator
                             }
                             else
                             {
-                                var type = GetFieldType(field, green: false);
-                                builder.WriteLine($"private {type} {CamelCase(field.Name)};");
+                                builder.WriteLine($"private {GetFieldType(field, green: false)} {CamelCase(field.Name)};");
                             }
                         }
                     }
@@ -1092,12 +1079,7 @@ namespace CSharpSyntaxGenerator
         {
             foreach (var field in node.Fields)
             {
-                var type = GetRedPropertyType(field);
-
-                if (field == node.Fields.First())
-                {
-                    builder.WriteLine();
-                }
+                builder.WriteLineIf(field == node.Fields.First());
 
                 var isNew = false;
                 if (IsOverride(field))
@@ -1116,7 +1098,7 @@ namespace CSharpSyntaxGenerator
                 }
 
                 builder.Write(
-                    $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})" +
+                    $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({GetRedPropertyType(field)} {CamelCase(field.Name)})" +
                     " => Update");
                 // call update inside each setter
                 builder.WriteCommaSeparated(node.Fields.Select(f =>
@@ -1189,12 +1171,7 @@ namespace CSharpSyntaxGenerator
         private Node TryGetNodeForNestedList(Field field)
         {
             Node referencedNode = _fileWriter.GetNode(field.Type);
-            if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
-            {
-                return referencedNode;
-            }
-
-            return null;
+            return referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0) ? referencedNode : null;
         }
 
         private void WriteRedListHelperMethods(IndentingStringBuilder builder, Node node, Field field)
@@ -1362,27 +1339,14 @@ namespace CSharpSyntaxGenerator
             foreach (var field in nd.Fields)
             {
                 if (IsRequiredFactoryField(nd, field))
-                {
                     count++;
-                }
             }
 
             return count;
         }
 
         private int OptionalFactoryArgumentCount(Node nd)
-        {
-            int count = 0;
-            foreach (var field in nd.Fields)
-            {
-                if (IsOptional(field) || CanBeAutoCreated(nd, field) || IsAnyList(field.Type))
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
+            => nd.Fields.Where(field => IsOptional(field) || CanBeAutoCreated(nd, field) || IsAnyList(field.Type)).Count();
 
         // full factory signature with nothing optional
         private void WriteRedFactory(IndentingStringBuilder builder, Node nd)
@@ -1447,9 +1411,11 @@ namespace CSharpSyntaxGenerator
                             }
                         }
                     }
-                    else if (!IsAnyList(field.Type) && !IsOptional(field))
+                    else
                     {
-                        builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
+                        builder.WriteLineIf(
+                            !IsAnyList(field.Type) && !IsOptional(field),
+                            $"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
                     }
                 }
 
@@ -1662,10 +1628,9 @@ namespace CSharpSyntaxGenerator
             var hasOptional = minimalFactoryFields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
 
-            if (hasOptional && hasAttributeOrModifiersList)
-            {
-                builder.WriteLine("#pragma warning disable RS0027", skipIndent: true);
-            }
+            builder.WriteLineIf(
+                hasOptional && hasAttributeOrModifiersList,
+                "#pragma warning disable RS0027", skipIndent: true);
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}");
@@ -1720,10 +1685,9 @@ namespace CSharpSyntaxGenerator
                 })], open: "(", close: ")");
             builder.WriteLine(";");
 
-            if (hasOptional && hasAttributeOrModifiersList)
-            {
-                builder.WriteLine("#pragma warning restore RS0027", skipIndent: true);
-            }
+            builder.WriteLineIf(
+                hasOptional && hasAttributeOrModifiersList,
+                "#pragma warning restore RS0027", skipIndent: true);
         }
 
         private static bool CanAutoConvertFromString(Field field)

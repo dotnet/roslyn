@@ -12,7 +12,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -239,17 +238,28 @@ internal sealed class IndentingStringBuilder : IDisposable
     /// the content is written.
     /// </summary>
     public IndentingStringBuilder WriteLine(string content = "", bool splitContent = false, bool skipIndent = false)
-        => WriteLine(content.AsSpan(), content, splitContent, skipIndent);
+        => WriteLine(condition: true, content.AsSpan(), content, splitContent, skipIndent);
 
     /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
     public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
-        => WriteLine(content, originalContent: null, splitContent, skipIndent);
+        => WriteLine(condition: true, content, originalContent: null, splitContent, skipIndent);
+
+    public IndentingStringBuilder WriteLineIf(bool condition, string content = "", bool splitContent = false, bool skipIndent = false)
+        => WriteLine(condition, content.AsSpan(), content, splitContent, skipIndent);
 
     /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
-    private IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, string? originalContent, bool splitContent = false, bool skipIndent = false)
+    public IndentingStringBuilder WriteLineIf(bool condition, ReadOnlySpan<char> content, bool splitContent = false, bool skipIndent = false)
+        => WriteLine(condition, content, originalContent: null, splitContent, skipIndent);
+
+    /// <inheritdoc cref="WriteLine(string, bool, bool)"/>
+    private IndentingStringBuilder WriteLine(bool condition, ReadOnlySpan<char> content, string? originalContent, bool splitContent = false, bool skipIndent = false)
     {
-        Write(content, originalContent, splitContent, skipIndent);
-        AppendEndOfLine();
+        if (condition)
+        {
+            Write(content, originalContent, splitContent, skipIndent);
+            AppendEndOfLine();
+        }
+
         return this;
     }
 
@@ -473,8 +483,8 @@ internal sealed class IndentingStringBuilder : IDisposable
         return this;
     }
 
-    public SourceText ToSourceText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        => SourceText.From(new StringBuilderReader(this.Builder), this.Builder.Length, encoding, checksumAlgorithm);
+    //public SourceText ToSourceText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+    //    => SourceText.From(new StringBuilderReader(this.Builder), this.Builder.Length, encoding, checksumAlgorithm);
 
     /// <summary>
     /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.
