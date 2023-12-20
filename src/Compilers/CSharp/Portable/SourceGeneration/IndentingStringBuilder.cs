@@ -351,6 +351,22 @@ internal sealed class IndentingStringBuilder : IDisposable
     public IndentingStringBuilder Write([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
         => this;
 
+    public IndentingStringBuilder WriteIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    {
+        if (condition)
+            Write(splitContent, handler);
+
+        return this;
+    }
+
+    public IndentingStringBuilder WriteIf(bool condition, [InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+    {
+        if (condition)
+            Write(handler);
+
+        return this;
+    }
+
     public IndentingStringBuilder WriteLine(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
     {
         Write(splitContent, handler);
@@ -362,6 +378,28 @@ internal sealed class IndentingStringBuilder : IDisposable
     {
         Write(handler);
         AppendEndOfLine();
+        return this;
+    }
+
+    public IndentingStringBuilder WriteLineIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    {
+        if (condition)
+        {
+            Write(splitContent, handler);
+            AppendEndOfLine();
+        }
+
+        return this;
+    }
+
+    public IndentingStringBuilder WriteLineIf(bool condition, [InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+    {
+        if (condition)
+        {
+            Write(handler);
+            AppendEndOfLine();
+        }
+
         return this;
     }
 
