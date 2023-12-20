@@ -210,6 +210,7 @@ internal sealed class IndentingStringBuilder : IDisposable
                 {
                     // no new line, append the rest of the content to the buffer.
                     AppendSingleLine(content, originalLine: null, skipIndent);
+                    break;
                 }
                 else
                 {
