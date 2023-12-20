@@ -214,7 +214,7 @@ internal sealed class IndentingStringBuilder : IDisposable
                 }
                 else
                 {
-                    while (endOfLineIndex < content.Length & IsEndOfLineCharacter(content[endOfLineIndex + 1]))
+                    while (endOfLineIndex < content.Length && IsEndOfLineCharacter(content[endOfLineIndex + 1]))
                         endOfLineIndex++;
 
                     AppendSingleLine(content[0..endOfLineIndex], originalLine: null, skipIndent);
