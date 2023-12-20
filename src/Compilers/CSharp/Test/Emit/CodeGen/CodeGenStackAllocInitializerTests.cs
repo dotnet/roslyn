@@ -887,6 +887,43 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestSpan_ZeroElements()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        Span<byte> p = stackalloc byte[0];
+                        Write(p);
+                    }
+
+                    static void Write(Span<byte> span)
+                    {
+                        foreach (byte x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (System.Span<byte> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Span<byte>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "void C.Write(System.Span<byte>)"
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
         public void TestSpanInt()
         {
             var source = """
@@ -929,6 +966,43 @@ namespace System
                   IL_001d:  newobj     "System.Span<int>..ctor(void*, int)"
                   IL_0022:  call       "void C.Write(System.Span<int>)"
                   IL_0027:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestSpanInt_ZeroElements()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        Span<int> p = stackalloc int[0];
+                        Write(p);
+                    }
+
+                    static void Write(Span<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (System.Span<int> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Span<int>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "void C.Write(System.Span<int>)"
+                  IL_000e:  ret
                 }
                 """);
         }
@@ -1229,6 +1303,82 @@ namespace System
                   IL_0012:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
                   IL_0017:  call       "void C.Write(System.ReadOnlySpan<int>)"
                   IL_001c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_ZeroElements_Byte()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> p = stackalloc byte[0];
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<byte> span)
+                    {
+                        foreach (byte x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (System.Span<byte> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Span<byte>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                  IL_000e:  call       "void C.Write(System.ReadOnlySpan<byte>)"
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_ZeroElements_Int()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<int> p = stackalloc int[0];
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<int> span)
+                    {
+                        foreach (int x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "" : null,
+                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (System.Span<int> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Span<int>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_000e:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_0013:  ret
                 }
                 """);
         }
