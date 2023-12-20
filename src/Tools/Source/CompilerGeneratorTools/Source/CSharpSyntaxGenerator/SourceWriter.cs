@@ -1484,11 +1484,6 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private static IEnumerable<Field> DetermineRedFactoryWithNoAutoCreatableTokenFields(Node nd)
-        {
-            return nd.Fields.Where(f => !IsAutoCreatableToken(nd, f));
-        }
-
         // creates a factory without auto-creatable token arguments
         private void WriteRedFactoryWithNoAutoCreatableTokens(IndentingStringBuilder builder, Node nd)
         {
@@ -1496,7 +1491,7 @@ namespace CSharpSyntaxGenerator
             if (nAutoCreatableTokens == 0)
                 return; // already handled by general factory
 
-            var factoryWithNoAutoCreatableTokenFields = new HashSet<Field>(DetermineRedFactoryWithNoAutoCreatableTokenFields(nd));
+            var factoryWithNoAutoCreatableTokenFields = new HashSet<Field>(nd.Fields.Where(f => !IsAutoCreatableToken(nd, f)));
             var minimalFactoryFields = DetermineMinimalFactoryFields(nd);
             if (minimalFactoryFields != null && factoryWithNoAutoCreatableTokenFields.SetEquals(minimalFactoryFields))
             {
@@ -1653,17 +1648,13 @@ namespace CSharpSyntaxGenerator
         }
 
         private static bool CanAutoConvertFromString(Field field)
-        {
-            return IsIdentifierToken(field) || IsIdentifierNameSyntax(field);
-        }
+            => IsIdentifierToken(field) || IsIdentifierNameSyntax(field);
 
         private static bool IsIdentifierToken(Field field)
             => field is { Type: "SyntaxToken", Kinds: [{ Name: "IdentifierToken" }] };
 
         private static bool IsIdentifierNameSyntax(Field field)
-        {
-            return field.Type == "IdentifierNameSyntax";
-        }
+            => field.Type == "IdentifierNameSyntax";
 
         private static string GetStringConverterMethod(Field field)
         {
