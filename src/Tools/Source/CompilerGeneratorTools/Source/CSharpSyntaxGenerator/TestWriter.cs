@@ -292,13 +292,12 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteBlankLineSeparated(
                 _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
-                static (builder, node, @this) =>
+                static (builder, node) =>
                 {
                     WriteTokenDeleteRewriterTest(builder, (Node)node);
                     builder.WriteLine();
-                    @this.WriteIdentityRewriterTest(builder, (Node)node);
-                },
-                this);
+                    WriteIdentityRewriterTest(builder, (Node)node);
+                });
         }
 
         private static void WriteTokenDeleteRewriterTest(IndentingStringBuilder builder, Node node)
@@ -325,7 +324,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteIdentityRewriterTest(IndentingStringBuilder builder, Node node)
+        private static void WriteIdentityRewriterTest(IndentingStringBuilder builder, Node node)
         {
             var strippedName = StripPost(node.Name, "Syntax");
 
@@ -345,7 +344,7 @@ namespace CSharpSyntaxGenerator
         private string ChooseValidKind(Field field, Node nd)
         {
             var fieldKinds = _fileWriter.GetKindsOfFieldOrNearestParent(nd, field);
-            return fieldKinds?.Any() == true ? fieldKinds[0].Name : "IdentifierToken";
+            return fieldKinds.Count > 0 ? fieldKinds[0].Name : "IdentifierToken";
         }
     }
 }

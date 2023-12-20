@@ -1059,13 +1059,12 @@ namespace CSharpSyntaxGenerator
             {
                 builder.WriteBlankLineSeparated(
                     nodes.OfType<Node>(),
-                    static (builder, node, tuple) =>
+                    static (builder, node, genericResult) =>
                     {
-                        var (@this, genericResult) = tuple;
-                        @this.WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                        WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
                         builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
                     },
-                    (this, genericResult));
+                    genericResult);
             }
         }
 
@@ -1741,7 +1740,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private bool CanAutoConvertFromString(Field field)
+        private static bool CanAutoConvertFromString(Field field)
         {
             return IsIdentifierToken(field) || IsIdentifierNameSyntax(field);
         }
@@ -1776,7 +1775,7 @@ namespace CSharpSyntaxGenerator
         /// Anything inside a &lt;Comment&gt; tag gets written out (escaping untouched) as the
         /// XML doc comment.  Line breaks will be preserved.
         /// </summary>
-        private void WriteComment(IndentingStringBuilder builder, string comment)
+        private static void WriteComment(IndentingStringBuilder builder, string comment)
         {
             if (comment != null)
             {
@@ -1792,7 +1791,7 @@ namespace CSharpSyntaxGenerator
         /// Anything inside a &lt;Comment&gt; tag gets written out (escaping untouched) as the
         /// XML doc comment.  Line breaks will be preserved.
         /// </summary>
-        private void WriteComment(IndentingStringBuilder builder, Comment comment, string indent)
+        private static void WriteComment(IndentingStringBuilder builder, Comment comment, string indent)
         {
             if (comment != null)
             {
