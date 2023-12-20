@@ -5,8 +5,9 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
+namespace Microsoft.CodeAnalysis.UseCollectionExpression;
 
 internal abstract class AbstractUseCollectionExpressionCodeFixProvider<TExpressionSyntax>(string title, string equivalenceKey)
     : ForkingSyntaxEditorBasedCodeFixProvider<TExpressionSyntax>
