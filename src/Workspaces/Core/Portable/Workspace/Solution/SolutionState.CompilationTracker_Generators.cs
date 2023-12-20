@@ -80,8 +80,9 @@ internal partial class SolutionCompilationState
                 return result.Value;
 
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
+            var telemetryCollector = solution.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                telemetryCollector, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
@@ -214,7 +215,7 @@ internal partial class SolutionCompilationState
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
-            SolutionCompilationState compilationState,
+            ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -276,7 +277,6 @@ internal partial class SolutionCompilationState
 
             var runResult = generatorInfo.Driver.GetRunResult();
 
-            var telemetryCollector = compilationState.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
 
             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
