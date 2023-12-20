@@ -25,9 +25,10 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.9.145</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.8.222</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
+    <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.8.37</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <!-- The version of MSBuild that we reference for things depending on MSBuildWorkspace -->
     <RefOnlyMicrosoftBuildPackagesVersion>17.3.2</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of MSBuild that matches the version of MSBuild.StructuredLogger for apps using MSBuild as a regular API -->
@@ -68,9 +69,9 @@
     <!--
       Visual Studio
     -->
-    <MicrosoftVisualStudioSdkVersion>17.9.36610</MicrosoftVisualStudioSdkVersion>
+    <MicrosoftVisualStudioSdkVersion>17.8.37291</MicrosoftVisualStudioSdkVersion>
     <MicrosoftInternalVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioSdkVersion)</MicrosoftInternalVisualStudioShellFrameworkVersion>
-    <MicrosoftServiceHubClientVersion>4.4.4165-gfc600a9501</MicrosoftServiceHubClientVersion>
+    <MicrosoftServiceHubClientVersion>4.2.1017</MicrosoftServiceHubClientVersion>
     <MicrosoftVisualStudioExtensibilitySdkVersion>17.9.2072-preview-3</MicrosoftVisualStudioExtensibilitySdkVersion>
     <MicrosoftVisualStudioExtensibilityJsonGeneratorsSdkVersion>17.9.2072-preview-3</MicrosoftVisualStudioExtensibilityJsonGeneratorsSdkVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
@@ -99,28 +100,28 @@
     <!--
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
     -->
-    <MicrosoftServiceHubFrameworkVersion>4.4.22</MicrosoftServiceHubFrameworkVersion>
-    <MicrosoftVisualStudioCompositionVersion>17.7.40</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>17.9.145</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioEditorVersion>17.9.145</MicrosoftVisualStudioEditorVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>17.9.36607</MicrosoftVisualStudioImageCatalogVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>17.9.36587</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
-    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>17.9.145</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageServerClientVersion>17.9.33</MicrosoftVisualStudioLanguageServerClientVersion>
-    <MicrosoftVisualStudioLanguageStandardClassificationVersion>17.9.145</MicrosoftVisualStudioLanguageStandardClassificationVersion>
-    <MicrosoftVisualStudioLanguageVersion>17.9.145</MicrosoftVisualStudioLanguageVersion>
+    <MicrosoftServiceHubFrameworkVersion>4.4.16</MicrosoftServiceHubFrameworkVersion>
+    <MicrosoftVisualStudioCompositionVersion>17.7.26</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>17.8.224</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioEditorVersion>17.8.224</MicrosoftVisualStudioEditorVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>17.8.37291</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>17.8.37276</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>17.8.224</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>17.8.37</MicrosoftVisualStudioLanguageServerClientVersion>
+    <MicrosoftVisualStudioLanguageStandardClassificationVersion>17.8.224</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageVersion>17.8.224</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioRemoteControlVersion>16.3.52</MicrosoftVisualStudioRemoteControlVersion>
-    <MicrosoftVisualStudioRpcContractsVersion>17.9.7</MicrosoftVisualStudioRpcContractsVersion>
-    <MicrosoftVisualStudioShell150Version>17.9.36610</MicrosoftVisualStudioShell150Version>
-    <MicrosoftVisualStudioTelemetryVersion>17.9.13</MicrosoftVisualStudioTelemetryVersion>
-    <MicrosoftVisualStudioTextDataVersion>17.9.145</MicrosoftVisualStudioTextDataVersion>
-    <MicrosoftVisualStudioTextLogicVersion>17.9.145</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>17.9.145</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>17.9.145</MicrosoftVisualStudioTextUIWpfVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>17.9.27</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioRpcContractsVersion>17.8.9</MicrosoftVisualStudioRpcContractsVersion>
+    <MicrosoftVisualStudioShell150Version>17.8.37291</MicrosoftVisualStudioShell150Version>
+    <MicrosoftVisualStudioTelemetryVersion>17.8.143</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTextDataVersion>17.8.224</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextLogicVersion>17.8.224</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>17.8.224</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>17.8.224</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>17.8.14</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioUtilitiesInternalVersion>16.3.56</MicrosoftVisualStudioUtilitiesInternalVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.17.11</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.17.8</StreamJsonRpcVersion>
 
     <!--
       VS Debugger
