@@ -227,7 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Replace `T` with `T[]` for params array.
                     if (fields is [.., { IsParams: true } lastParam, _])
                     {
-                        var index = nTypeArguments - 1;
+                        Debug.Assert(lastParam.Type.IsSZArray());
+
+                        var index = fields.Length - 2;
                         // T minus `NullabilityAnnotation.Ignored`
                         var original = TypeWithAnnotations.Create(genericFieldTypes[index].Type);
                         // T[]

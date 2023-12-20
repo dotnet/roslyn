@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (field.IsParams)
                         {
                             Debug.Assert(field.Type.IsSZArray());
+                            Debug.Assert(i == parameterCount - 1);
                             type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
                         }
 
