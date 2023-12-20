@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
         internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
-            => _compilationState.GetOriginatingProjectId(this, symbol);
+            => _compilationState.GetOriginatingProjectId(symbol);
 
         /// <inheritdoc cref="GetOriginatingProjectId"/>
         internal Project? GetOriginatingProject(ISymbol symbol)
@@ -202,50 +202,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
-        {
-            return GetDocumentState(syntaxTree, projectId)?.Id;
-        }
-
-        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
-        {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    var projectState = GetProjectState(documentId.ProjectId);
-                    if (projectState != null)
-                    {
-                        var document = projectState.DocumentStates.GetState(documentId);
-                        if (document != null)
-                        {
-                            // does this document really have the syntax tree?
-                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                            {
-                                return document;
-                            }
-                        }
-                        else
-                        {
-                            var generatedDocument = _compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-
-                            if (generatedDocument != null)
-                            {
-                                // does this document really have the syntax tree?
-                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                                {
-                                    return generatedDocument;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
+            => _compilationState.GetDocumentState(syntaxTree, projectId)?.Id;
 
         /// <summary>
         /// Gets the document in this solution with the specified document ID.
@@ -333,7 +290,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                var documentState = GetDocumentState(syntaxTree, projectId);
+                var documentState = _compilationState.GetDocumentState(syntaxTree, projectId);
 
                 if (documentState is SourceGeneratedDocumentState)
                 {

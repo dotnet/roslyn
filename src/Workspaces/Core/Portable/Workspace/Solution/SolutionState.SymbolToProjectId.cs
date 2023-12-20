@@ -12,13 +12,54 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
+        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
+        {
+            if (syntaxTree != null)
+            {
+                // is this tree known to be associated with a document?
+                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
+                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
+                {
+                    // does this solution even have the document?
+                    var projectState = this.Solution.GetProjectState(documentId.ProjectId);
+                    if (projectState != null)
+                    {
+                        var document = projectState.DocumentStates.GetState(documentId);
+                        if (document != null)
+                        {
+                            // does this document really have the syntax tree?
+                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                            {
+                                return document;
+                            }
+                        }
+                        else
+                        {
+                            var generatedDocument = this.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+
+                            if (generatedDocument != null)
+                            {
+                                // does this document really have the syntax tree?
+                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                                {
+                                    return generatedDocument;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <inheritdoc cref="Solution.GetOriginatingProjectId"/>
-        public ProjectId? GetOriginatingProjectId(Solution solution, ISymbol? symbol)
+        public ProjectId? GetOriginatingProjectId(ISymbol? symbol)
         {
             if (symbol == null)
                 return null;
 
-            var projectId = GetOriginatingProjectIdWorker(solution, symbol);
+            var projectId = GetOriginatingProjectIdWorker(symbol);
 
             // Validate some invariants we think should hold.  We want to know if this breaks, which indicates some part
             // of our system not working as we might expect.  If they break, create NFWs so we can find out and
@@ -37,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 var syntaxTree = symbol.Locations[0].SourceTree;
                 Contract.ThrowIfNull(syntaxTree);
 
-                var documentId = solution.GetDocumentState(syntaxTree, projectId: null)?.Id;
+                var documentId = this.GetDocumentState(syntaxTree, projectId: null)?.Id;
                 if (documentId == null)
                 {
                     try
@@ -65,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             return projectId;
         }
 
-        private ProjectId? GetOriginatingProjectIdWorker(Solution solution, ISymbol symbol)
+        private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
         {
             InterlockedOperations.Initialize(ref _unrootedSymbolToProjectId, s_createTable);
 
@@ -74,7 +115,7 @@ namespace Microsoft.CodeAnalysis
 
             while (symbol != null)
             {
-                var result = GetProjectIdDirectly(solution, symbol, _unrootedSymbolToProjectId);
+                var result = GetProjectIdDirectly(symbol, _unrootedSymbolToProjectId);
                 if (result != null)
                     return result;
 
@@ -85,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ProjectId? GetProjectIdDirectly(
-            Solution solution, ISymbol symbol, ConditionalWeakTable<ISymbol, ProjectId?> unrootedSymbolToProjectId)
+            ISymbol symbol, ConditionalWeakTable<ISymbol, ProjectId?> unrootedSymbolToProjectId)
         {
             if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
             {
@@ -94,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                     // A namespace that spans a compilation.  These don't belong to an assembly/module directly.
                     // However, as we're looking for the project this corresponds to, we can look for the
                     // source-module component (the first in the constituent namespaces) and then search using that.
-                    return GetOriginatingProjectId(solution, ns.ConstituentNamespaces[0]);
+                    return GetOriginatingProjectId(ns.ConstituentNamespaces[0]);
                 }
             }
             else if (symbol.IsKind(SymbolKind.Assembly) ||
@@ -135,7 +176,7 @@ namespace Microsoft.CodeAnalysis
                 // Cref type parameters don't belong to any containing symbol.  But we can map them to a doc/project
                 // using the declaring syntax of the type parameter itself.
                 var tree = typeParameter.Locations[0].SourceTree;
-                var doc = solution.GetDocumentState(tree, projectId: null);
+                var doc = this.GetDocumentState(tree, projectId: null);
                 return doc?.Id.ProjectId;
             }
 
