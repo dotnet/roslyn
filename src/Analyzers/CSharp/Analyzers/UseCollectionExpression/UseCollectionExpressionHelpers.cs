@@ -39,6 +39,7 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         ExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
@@ -46,7 +47,8 @@ internal static class UseCollectionExpressionHelpers
         // 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
         // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
         // types that could accept the collection expression).
-        return CanReplaceWithCollectionExpression(semanticModel, expression, s_emptyCollectionExpression, expressionType, skipVerificationForReplacedNode, cancellationToken);
+        return CanReplaceWithCollectionExpression(
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode, cancellationToken);
     }
 
     public static bool CanReplaceWithCollectionExpression(
@@ -54,6 +56,7 @@ internal static class UseCollectionExpressionHelpers
         ExpressionSyntax expression,
         CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
@@ -158,6 +161,9 @@ internal static class UseCollectionExpressionHelpers
                 if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
                     return true;
 
+                if (IsWellKnownInterface(namedType))
+                    return true;
+
                 // At this point, all that is left are collection-initializer types.  These need to derive from
                 // System.Collections.IEnumerable, and have an invokable no-arg constructor.
 
@@ -242,8 +248,26 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
+            if (allowInterfaceConversion &&
+                IsWellKnownInterface(convertedType) &&
+                type.AllInterfaces.Contains(convertedType))
+            {
+                return true;
+            }
+
             // Add more cases to support here.
             return false;
+        }
+
+        bool IsWellKnownInterface(ITypeSymbol type)
+        {
+            // Has to be an interface with on
+            return type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_IEnumerable_T
+                or SpecialType.System_Collections_Generic_ICollection_T
+                or SpecialType.System_Collections_Generic_IList_T
+                or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
+                or SpecialType.System_Collections_Generic_IReadOnlyList_T;
         }
     }
 
@@ -710,6 +734,7 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken)
@@ -813,7 +838,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }

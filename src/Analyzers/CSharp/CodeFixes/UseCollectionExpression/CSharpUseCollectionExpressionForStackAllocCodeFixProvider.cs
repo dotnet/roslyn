@@ -83,7 +83,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 // be added to the collection expression.
                 StackAllocArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, cancellationToken),
+                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

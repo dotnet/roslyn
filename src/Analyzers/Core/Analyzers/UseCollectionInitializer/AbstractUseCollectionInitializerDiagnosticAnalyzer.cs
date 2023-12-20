@@ -93,7 +93,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
     protected abstract bool CanUseCollectionExpression(
-        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, CancellationToken cancellationToken);
+        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -141,6 +141,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var preferInitializerOption = context.GetAnalyzerOptions().PreferCollectionInitializer;
         var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
 
         // not point in analyzing if both options are off.
         if (!preferInitializerOption.Value
@@ -234,7 +235,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, cancellationToken))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, cancellationToken))
                 return null;
 
             return (matches, shouldUseCollectionExpression: true);

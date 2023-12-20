@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -46,7 +47,8 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
-        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());

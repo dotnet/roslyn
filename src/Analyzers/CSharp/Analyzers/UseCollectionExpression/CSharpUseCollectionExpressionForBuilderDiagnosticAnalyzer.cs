@@ -47,7 +47,8 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, cancellationToken) is not { } analysisResult)
+        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
@@ -97,6 +98,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         CancellationToken cancellationToken)
     {
         // Looking for `XXX.CreateBuilder(...)`
@@ -191,7 +193,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Make sure we can actually use a collection expression in place of the created collection.
             if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                    semanticModel, creationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                    semanticModel, creationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
             {
                 return null;
             }

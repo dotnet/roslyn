@@ -1562,4 +1562,62 @@ public class UseCollectionExpressionForEmptyTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IEnumerable<int> v = Array.[|Empty|]<int>();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IEnumerable<int> v = [];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<int> v = Array.Empty<int>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression_for_interfaces=false
+                """
+        }.RunAsync();
+    }
 }

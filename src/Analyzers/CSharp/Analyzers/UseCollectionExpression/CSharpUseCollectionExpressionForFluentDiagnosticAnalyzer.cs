@@ -96,7 +96,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
 
         var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
-        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, addMatches: true, cancellationToken);
+        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowInterfaceConversion, addMatches: true, cancellationToken);
         if (analysisResult is null)
             return;
 
@@ -119,6 +120,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         FluentState state,
         InvocationExpressionSyntax invocation,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         bool addMatches,
         CancellationToken cancellationToken)
     {
@@ -128,7 +130,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (!AnalyzeInvocation(text, state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
             return null;
 
-        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken))
             return null;
 
         matchesInReverse.ReverseContents();

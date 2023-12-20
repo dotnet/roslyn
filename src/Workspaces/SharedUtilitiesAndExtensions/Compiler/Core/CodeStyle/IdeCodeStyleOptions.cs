@@ -32,6 +32,7 @@ internal record class IdeCodeStyleOptions
 
     [DataMember] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferCollectionExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferCollectionExpressionForInterfaces { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping { get; init; } = OperatorPlacementWhenWrappingPreference.BeginningOfLine;

@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_prefer_collection_expression",
             IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpression);
 
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpressionForInterfaces = CreatePerLanguageOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences,
+            "dotnet_style_prefer_collection_expression_for_interfaces",
+            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpressionForInterfaces);
+
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             "dotnet_style_prefer_simplified_boolean_expressions",

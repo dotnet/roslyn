@@ -111,11 +111,11 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
             {
                 ImplicitArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, cancellationToken),
+                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken),
 
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, cancellationToken),
+                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

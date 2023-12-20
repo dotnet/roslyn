@@ -46,8 +46,9 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
+        // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }
@@ -85,7 +86,8 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var matches = TryGetMatches(semanticModel, expression, expressionType, cancellationToken);
+        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var matches = TryGetMatches(semanticModel, expression, expressionType, allowInterfaceConversion, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -114,12 +116,14 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
             expressionType,
+            allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,
             cancellationToken);
