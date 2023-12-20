@@ -256,7 +256,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
-                    WriteGreenAcceptMethods(builder, concreteNode);
+                    WriteGreenAcceptMethods(concreteNode);
                     WriteGreenUpdateMethod(builder, concreteNode);
                     WriteSetDiagnostics(builder, concreteNode);
                     WriteSetAnnotations(concreteNode);
@@ -272,6 +272,13 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in valueFields)
                     builder.Write($", {field.Type} {CamelCase(field.Name)}");
+            }
+
+            void WriteGreenAcceptMethods(Node node)
+            {
+                builder.WriteLine();
+                builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
+                builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             }
 
             void WriteSetAnnotations(Node node)
@@ -328,13 +335,6 @@ namespace CSharpSyntaxGenerator
                 "GetAnnotations()"],
                 "(", ")");
             builder.WriteLine(";");
-        }
-
-        private static void WriteGreenAcceptMethods(IndentingStringBuilder builder, Node node)
-        {
-            builder.WriteLine();
-            builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
-            builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
         private void WriteGreenVisitor(IndentingStringBuilder builder, bool withResult)
