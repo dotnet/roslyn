@@ -157,7 +157,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    writeGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                     builder.WriteLine("  : base(kind, diagnostics, annotations)");
@@ -168,7 +168,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    writeGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(", SyntaxFactoryContext context)");
                     builder.WriteLine("  : base(kind)");
@@ -182,7 +182,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.Write($"internal {node.Name}(SyntaxKind kind");
 
-                    WriteGreenNodeConstructorArgs(nodeFields, valueFields);
+                    writeGreenNodeConstructorArgs(nodeFields, valueFields);
 
                     builder.WriteLine(")");
                     builder.WriteLine("  : base(kind)");
@@ -255,16 +255,16 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
-                    WriteGreenAcceptMethods(concreteNode);
+                    writeGreenAcceptMethods(concreteNode);
                     WriteGreenUpdateMethod(builder, concreteNode);
-                    WriteSetDiagnostics(concreteNode);
-                    WriteSetAnnotations(concreteNode);
+                    writeSetDiagnostics(concreteNode);
+                    writeSetAnnotations(concreteNode);
                 }
             }
 
             return;
 
-            void WriteGreenNodeConstructorArgs(List<Field> nodeFields, List<Field> valueFields)
+            void writeGreenNodeConstructorArgs(List<Field> nodeFields, List<Field> valueFields)
             {
                 foreach (var field in nodeFields)
                     builder.Write($", {(GetFieldType(field, green: true))} {CamelCase(field.Name)}");
@@ -273,14 +273,14 @@ namespace CSharpSyntaxGenerator
                     builder.Write($", {field.Type} {CamelCase(field.Name)}");
             }
 
-            void WriteGreenAcceptMethods(Node node)
+            void writeGreenAcceptMethods(Node node)
             {
                 builder.WriteLine();
                 builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
                 builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             }
 
-            void WriteSetDiagnostics(Node node)
+            void writeSetDiagnostics(Node node)
             {
                 builder.WriteLine();
                 builder.WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
@@ -294,7 +294,7 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine(";");
             }
 
-            void WriteSetAnnotations(Node node)
+            void writeSetAnnotations(Node node)
             {
                 builder.WriteLine();
                 builder.WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
@@ -574,13 +574,13 @@ namespace CSharpSyntaxGenerator
                         builder.Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                     }
 
-                    WriteCtorArgList(nd, valueFields, nodeFields);
+                    writeCtorArgList(nd, valueFields, nodeFields);
                     builder.WriteLine(", out hash);");
                     builder.WriteLine($"if (cached != null) return ({nd.Name})cached;");
                     builder.WriteLine();
 
                     builder.Write($"var result = new {nd.Name}(");
-                    WriteCtorArgList(nd, valueFields, nodeFields);
+                    writeCtorArgList(nd, valueFields, nodeFields);
                     builder.WriteLine(");");
 
                     builder.WriteLine("if (hash >= 0)");
@@ -596,12 +596,12 @@ namespace CSharpSyntaxGenerator
                 {
                     builder.WriteLine();
                     builder.Write($"return new {nd.Name}(");
-                    WriteCtorArgList(nd, valueFields, nodeFields);
+                    writeCtorArgList(nd, valueFields, nodeFields);
                     builder.WriteLine(");");
                 }
             }
 
-            void WriteCtorArgList(Node nd, List<Field> valueFields, List<Field> nodeFields)
+            void writeCtorArgList(Node nd, List<Field> valueFields, List<Field> nodeFields)
             {
                 builder.WriteCommaSeparated([
                     nd.Kinds.Count == 1 ? $"SyntaxKind.{nd.Kinds[0].Name}" : "kind",
@@ -947,15 +947,15 @@ namespace CSharpSyntaxGenerator
                     }
 
                     builder.WriteLine();
-                    WriteRedAcceptMethod(concreteNode, false);
-                    WriteRedAcceptMethod(concreteNode, true);
+                    writeRedAcceptMethod(concreteNode, false);
+                    writeRedAcceptMethod(concreteNode, true);
                     WriteRedUpdateMethod(builder, concreteNode);
                     WriteRedWithMethods(builder, concreteNode);
                     WriteRedListHelperMethods(builder, concreteNode);
                 }
             }
 
-            void WriteRedAcceptMethod(Node node, bool genericResult)
+            void writeRedAcceptMethod(Node node, bool genericResult)
             {
                 string genericArgs = genericResult ? "<TResult>" : "";
                 builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
@@ -1042,19 +1042,15 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLineIf(field == node.Fields.First());
 
                 var isNew = false;
-                if (IsOverride(field))
+                if (IsOverride(field) && GetHighestBaseTypeWithField(node, field.Name) is var (baseType, baseField))
                 {
-                    var (baseType, baseField) = GetHighestBaseTypeWithField(node, field.Name);
-                    if (baseType != null)
-                    {
-                        builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField!)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
-                        if (baseField!.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
-                            builder.Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
+                    builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
+                    if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
+                        builder.Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
 
-                        builder.WriteLine(");");
+                    builder.WriteLine(");");
 
-                        isNew = true;
-                    }
+                    isNew = true;
                 }
 
                 builder.Write(
@@ -1067,7 +1063,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private (TreeType? type, Field? field) GetHighestBaseTypeWithField(TreeType node, string name)
+        private (TreeType type, Field field)? GetHighestBaseTypeWithField(TreeType node, string name)
         {
             TreeType? bestType = null;
             Field? bestField = null;
@@ -1082,7 +1078,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            return (bestType, bestField);
+            return bestType != null && bestField != null ? (bestType, bestField) : null;
         }
 
         private TreeType? TryGetBaseType(TreeType node)
@@ -1139,15 +1135,11 @@ namespace CSharpSyntaxGenerator
             var argType = GetElementType(field.Type);
 
             var isNew = false;
-            if (IsOverride(field))
+            if (IsOverride(field) && GetHighestBaseTypeWithField(node, field.Name) is var (baseType, baseField))
             {
-                var (baseType, baseField) = GetHighestBaseTypeWithField(node, field.Name);
-                if (baseType != null)
-                {
-                    var baseArgType = GetElementType(baseField!.Type);
-                    builder.WriteLine($"internal override {baseType.Name} Add{field.Name}Core(params {baseArgType}[] items) => Add{field.Name}(items);");
-                    isNew = true;
-                }
+                var baseArgType = GetElementType(baseField!.Type);
+                builder.WriteLine($"internal override {baseType.Name} Add{field.Name}Core(params {baseArgType}[] items) => Add{field.Name}(items);");
+                isNew = true;
             }
 
             builder.WriteLine($"public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items) => With{StripPost(field.Name, "Opt")}(this.{field.Name}.AddRange(items));");
@@ -1158,14 +1150,10 @@ namespace CSharpSyntaxGenerator
             var argType = GetElementType(referencedNodeField.Type);
 
             var isNew = false;
-            if (IsOverride(field))
+            if (IsOverride(field) && GetHighestBaseTypeWithField(node, field.Name) is var (baseType, _))
             {
-                var (baseType, _) = GetHighestBaseTypeWithField(node, field.Name);
-                if (baseType != null)
-                {
-                    builder.WriteLine($"internal override {baseType.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}Core(params {argType}[] items) => Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(items);");
-                    isNew = true;
-                }
+                builder.WriteLine($"internal override {baseType.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}Core(params {argType}[] items) => Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(items);");
+                isNew = true;
             }
 
             // AddBaseListTypes
