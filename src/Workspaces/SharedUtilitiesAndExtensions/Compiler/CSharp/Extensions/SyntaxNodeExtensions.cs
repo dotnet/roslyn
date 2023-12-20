@@ -759,16 +759,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => null,
             };
 
-        public static bool ContainsInArgument(this ConstructorInitializerSyntax initializer, TextSpan textSpan)
-        {
-            if (initializer == null)
-            {
-                return false;
-            }
-
-            return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
-        }
-
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
             => node switch
             {

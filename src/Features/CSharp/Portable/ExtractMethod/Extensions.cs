@@ -95,6 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
         }
 
+        public static bool ContainsInArgument(this ConstructorInitializerSyntax initializer, TextSpan textSpan)
+        {
+            if (initializer == null)
+            {
+                return false;
+            }
+
+            return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
+        }
+
         public static bool ContainedInValidType(this SyntaxNode node)
         {
             Contract.ThrowIfNull(node);
