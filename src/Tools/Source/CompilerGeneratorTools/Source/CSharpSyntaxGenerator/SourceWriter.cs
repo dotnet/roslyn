@@ -630,11 +630,12 @@ namespace CSharpSyntaxGenerator
         }
 
         private List<Field> GetNodeOrNodeListFields(TreeType node)
-            => node is AbstractNode an
-                ? an.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList()
-                : node is Node nd
-                    ? nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList()
-                    : new List<Field>();
+            => node switch
+            {
+                AbstractNode an => an.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList(),
+                Node nd => nd.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList(),
+                _ => [],
+            };
 
         private void WriteRedType(IndentingStringBuilder builder, TreeType node)
         {
