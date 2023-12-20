@@ -95,35 +95,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode? node)
-        {
-            switch (node)
+            => node switch
             {
-                case NamespaceDeclarationSyntax namespaceNode:
-                    return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
-                case BaseTypeDeclarationSyntax baseTypeNode:
-                    return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
-                case AccessorListSyntax accessorListNode:
-                    return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
-                case BlockSyntax blockNode:
-                    return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
-                case SwitchStatementSyntax switchStatementNode:
-                    return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
-                case AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression:
-                    return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
-                case InitializerExpressionSyntax initializeExpressionNode:
-                    return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-                case SwitchExpressionSyntax switchExpression:
-                    return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
-                case PropertyPatternClauseSyntax property:
-                    return (property.OpenBraceToken, property.CloseBraceToken);
-                case WithExpressionSyntax withExpr:
-                    return (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken);
-                case ImplicitObjectCreationExpressionSyntax { Initializer: { } initializer }:
-                    return (initializer.OpenBraceToken, initializer.CloseBraceToken);
-            }
-
-            return default;
-        }
+                NamespaceDeclarationSyntax namespaceNode => (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken),
+                BaseTypeDeclarationSyntax baseTypeNode => (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken),
+                AccessorListSyntax accessorListNode => (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken),
+                BlockSyntax blockNode => (blockNode.OpenBraceToken, blockNode.CloseBraceToken),
+                SwitchStatementSyntax switchStatementNode => (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken),
+                AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression => (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken),
+                InitializerExpressionSyntax initializeExpressionNode => (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken),
+                SwitchExpressionSyntax switchExpression => (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken),
+                PropertyPatternClauseSyntax property => (property.OpenBraceToken, property.CloseBraceToken),
+                WithExpressionSyntax withExpr => (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken),
+                ImplicitObjectCreationExpressionSyntax { Initializer: { } initializer } => (initializer.OpenBraceToken, initializer.CloseBraceToken),
+                _ => default,
+            };
 
         public static bool IsEmbeddedStatementOwner([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
