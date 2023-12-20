@@ -153,10 +153,7 @@ namespace CSharpSyntaxGenerator
                     var nodeFields = concreteNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
                     foreach (var field in nodeFields)
-                    {
-                        var type = GetFieldType(field, green: true);
-                        builder.WriteLine($"internal readonly {type} {CamelCase(field.Name)};");
-                    }
+                        builder.WriteLine($"internal readonly {GetFieldType(field, green: true)} {CamelCase(field.Name)};");
 
                     foreach (var field in valueFields)
                         builder.WriteLine($"internal readonly {field.Type} {CamelCase(field.Name)};");
