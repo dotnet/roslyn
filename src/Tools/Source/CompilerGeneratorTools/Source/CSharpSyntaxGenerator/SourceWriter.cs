@@ -535,14 +535,10 @@ namespace CSharpSyntaxGenerator
 
                                 //we need to check for Kind=None as well as node == null because that's what the red factory will pass
                                 if (IsOptional(field))
-                                {
                                     kinds.Add(new Kind { Name = "None" });
-                                }
 
                                 foreach (var kind in kinds)
-                                {
                                     builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
-                                }
 
                                 builder.WriteLine($"default: throw new ArgumentException(nameof({fieldName}));");
                             }
@@ -634,12 +630,8 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedTypes(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-            foreach (var node in nodes)
-            {
-                builder.WriteLine();
+            foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode))
                 WriteRedType(builder, node);
-            }
         }
 
         private List<Field> GetNodeOrNodeListFields(TreeType node)
@@ -651,6 +643,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedType(IndentingStringBuilder builder, TreeType node)
         {
+            builder.WriteLine();
             WriteComment(builder, node.TypeComment);
 
             if (node is AbstractNode abstractNode)
