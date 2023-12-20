@@ -792,21 +792,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax compilation:
-                    return compilation.Members;
-                case BaseNamespaceDeclarationSyntax @namespace:
-                    return @namespace.Members;
-                case TypeDeclarationSyntax type:
-                    return type.Members;
-                case EnumDeclarationSyntax @enum:
-                    return @enum.Members;
-            }
-
-            return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
+                CompilationUnitSyntax compilation => compilation.Members,
+                BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
+                TypeDeclarationSyntax type => type.Members,
+                EnumDeclarationSyntax @enum => @enum.Members,
+                _ => SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>(),
+            };
 
         public static bool IsInExpressionTree(
             [NotNullWhen(true)] this SyntaxNode? node,
@@ -824,8 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (expressionType.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                             return true;
                     }
-                    else if (current is SelectOrGroupClauseSyntax or
-                             OrderingSyntax)
+                    else if (current is SelectOrGroupClauseSyntax or OrderingSyntax)
                     {
                         var info = semanticModel.GetSymbolInfo(current, cancellationToken);
                         if (TakesExpressionTree(info, expressionType))
