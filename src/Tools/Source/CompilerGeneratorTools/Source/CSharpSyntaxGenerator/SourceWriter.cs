@@ -653,7 +653,6 @@ namespace CSharpSyntaxGenerator
                     {
                     }
 
-                    var valueFields = abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
                     var nodeFields = GetNodeOrNodeListFields(abstractNode);
 
                     foreach (var field in nodeFields)
@@ -696,7 +695,7 @@ namespace CSharpSyntaxGenerator
                         }
                     }
 
-                    foreach (var field in valueFields)
+                    foreach (var field in abstractNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)))
                     {
                         builder.WriteLine();
                         WriteComment(builder, field.PropertyComment);
@@ -756,7 +755,6 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 using (builder.EnterBlock())
                 {
-                    var valueFields = concreteNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
                     var nodeFields = concreteNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
                     foreach (var field in nodeFields)
@@ -868,7 +866,7 @@ namespace CSharpSyntaxGenerator
                         builder.WriteLine();
                     }
 
-                    foreach (var field in valueFields)
+                    foreach (var field in concreteNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)))
                     {
                         WriteComment(builder, field.PropertyComment);
                         builder.WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
@@ -1002,15 +1000,12 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedVisitor(IndentingStringBuilder builder, bool genericResult)
         {
-            string genericArgs = genericResult ? "<TResult>" : "";
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-
             builder.WriteLine();
-            builder.WriteLine("public partial class CSharpSyntaxVisitor" + genericArgs);
+            builder.WriteLine($"public partial class CSharpSyntaxVisitor{(genericResult ? "<TResult>" : "")}");
             using (builder.EnterBlock())
             {
                 builder.WriteBlankLineSeparated(
-                    nodes.OfType<Node>(),
+                    _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).OfType<Node>(),
                     static (builder, node, genericResult) =>
                     {
                         WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
@@ -1214,14 +1209,12 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedRewriter(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-
             builder.WriteLine();
             builder.WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
             using (builder.EnterBlock())
             {
                 builder.WriteBlankLineSeparated(
-                    nodes.OfType<Node>(),
+                    _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).OfType<Node>(),
                     static (builder, node, @this) =>
                     {
                         builder.WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
@@ -1263,12 +1256,11 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedFactories(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
             builder.WriteLine();
             builder.WriteLine("public static partial class SyntaxFactory");
             using (builder.EnterBlock())
             {
-                foreach (var node in nodes)
+                foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>())
                 {
                     WriteRedFactory(builder, node);
                     bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Compare(node.SkipConvenienceFactories, "true", true) == 0;
@@ -1337,7 +1329,6 @@ namespace CSharpSyntaxGenerator
         {
             builder.WriteLine();
 
-            var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
@@ -1430,7 +1421,7 @@ namespace CSharpSyntaxGenerator
                             return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
                     }),
                     // values are at end
-                    .. valueFields.Select(f => CamelCase(f.Name))],
+                    .. nd.Fields.Where(IsValueField).Select(f => CamelCase(f.Name))],
                     open: "(", close: ")");
 
                 builder.WriteLine(".CreateRed();");
