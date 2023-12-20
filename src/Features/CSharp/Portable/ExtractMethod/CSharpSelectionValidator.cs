@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            if (!firstTokenInSelection.UnderValidContext() || !lastTokenInSelection.UnderValidContext())
+            if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
             {
                 return new SelectionInfo
                 {
@@ -264,6 +264,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 FirstTokenInOriginalSpan = firstTokenInSelection,
                 LastTokenInOriginalSpan = lastTokenInSelection
             };
+        }
+
+        private static bool UnderValidContext(SyntaxToken token)
+            => token.GetAncestors<SyntaxNode>().Any(n => CheckTopLevel(n, token.Span));
+
+        private static bool CheckTopLevel(SyntaxNode node, TextSpan span)
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return block.ContainsInBlockBody(span);
+                case ArrowExpressionClauseSyntax expressionBodiedMember:
+                    return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
+                case FieldDeclarationSyntax field:
+                    {
+                        foreach (var variable in field.Declaration.Variables)
+                        {
+                            if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+                    }
+
+                case GlobalStatementSyntax _:
+                    return true;
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return constructorInitializer.ContainsInArgument(span);
+            }
+
+            return false;
         }
 
         private static SelectionInfo CheckErrorCasesAndAppendDescriptions(

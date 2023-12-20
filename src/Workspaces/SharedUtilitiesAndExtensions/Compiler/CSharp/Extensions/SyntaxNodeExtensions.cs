@@ -759,36 +759,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => null,
             };
 
-        public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
-        {
-            switch (node)
-            {
-                case BlockSyntax block:
-                    return block.ContainsInBlockBody(span);
-                case ArrowExpressionClauseSyntax expressionBodiedMember:
-                    return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
-                case FieldDeclarationSyntax field:
-                    {
-                        foreach (var variable in field.Declaration.Variables)
-                        {
-                            if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
-                            {
-                                return true;
-                            }
-                        }
-
-                        break;
-                    }
-
-                case GlobalStatementSyntax _:
-                    return true;
-                case ConstructorInitializerSyntax constructorInitializer:
-                    return constructorInitializer.ContainsInArgument(span);
-            }
-
-            return false;
-        }
-
         public static bool ContainsInArgument(this ConstructorInitializerSyntax initializer, TextSpan textSpan)
         {
             if (initializer == null)

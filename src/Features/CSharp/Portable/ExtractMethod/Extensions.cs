@@ -114,9 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return true;
         }
 
-        public static bool UnderValidContext(this SyntaxToken token)
-            => token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
-
         public static bool PartOfConstantInitializerExpression(this SyntaxNode node)
         {
             return node.PartOfConstantInitializerExpression<FieldDeclarationSyntax>(n => n.Modifiers) ||
