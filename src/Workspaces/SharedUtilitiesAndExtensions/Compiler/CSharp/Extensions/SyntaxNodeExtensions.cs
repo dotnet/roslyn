@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static void Deconstruct(this SyntaxNode node, out SyntaxKind kind)
             => kind = node.Kind();
 
-        public static bool IsKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
+        public static bool IsKind<TNode>([NotNullWhen(true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(true)] out TNode? result)
             where TNode : SyntaxNode
         {
             if (node.IsKind(kind))
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind)
+        public static bool IsParentKind([NotNullWhen(true)] this SyntaxNode? node, SyntaxKind kind)
             => CodeAnalysis.CSharpExtensions.IsKind(node?.Parent, kind);
 
-        public static bool IsParentKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
+        public static bool IsParentKind<TNode>([NotNullWhen(true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(true)] out TNode? result)
             where TNode : SyntaxNode
         {
             if (node.IsParentKind(kind))
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return prevToken.TrailingTrivia.Concat(token.LeadingTrivia);
         }
 
-        public static bool IsAnyArgumentList([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+        public static bool IsAnyArgumentList([NotNullWhen(true)] this SyntaxNode? node)
         {
             return node?.Kind()
                 is SyntaxKind.ArgumentList
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => default,
             };
 
-        public static bool IsEmbeddedStatementOwner([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+        public static bool IsEmbeddedStatementOwner([NotNullWhen(true)] this SyntaxNode? node)
         {
             return node is DoStatementSyntax or
                    ElseClauseSyntax or
@@ -276,31 +276,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static bool IsAsyncSupportingFunctionSyntax([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+        public static bool IsAsyncSupportingFunctionSyntax([NotNullWhen(true)] this SyntaxNode? node)
             => node is MethodDeclarationSyntax or AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax;
 
-        public static bool IsCompoundAssignExpression(this SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CoalesceAssignmentExpression:
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                    return true;
-            }
+        public static bool IsCompoundAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(kind: not SyntaxKind.SimpleAssignmentExpression);
 
-            return false;
-        }
-
-        public static bool IsLeftSideOfAssignExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+        public static bool IsLeftSideOfAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
             => node?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
                assignment.Left == node;
 
@@ -866,9 +848,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInExpressionTree(
-            [NotNullWhen(returnValue: true)] this SyntaxNode? node,
+            [NotNullWhen(true)] this SyntaxNode? node,
             SemanticModel semanticModel,
-            [NotNullWhen(returnValue: true)] INamedTypeSymbol? expressionType,
+            [NotNullWhen(true)] INamedTypeSymbol? expressionType,
             CancellationToken cancellationToken)
         {
             if (expressionType != null)
@@ -919,8 +901,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInDeconstructionLeft(
-            [NotNullWhen(returnValue: true)] this SyntaxNode? node,
-            [NotNullWhen(returnValue: true)] out SyntaxNode? deconstructionLeft)
+            [NotNullWhen(true)] this SyntaxNode? node,
+            [NotNullWhen(true)] out SyntaxNode? deconstructionLeft)
         {
             SyntaxNode? previous = null;
             for (var current = node; current != null; current = current.Parent)
