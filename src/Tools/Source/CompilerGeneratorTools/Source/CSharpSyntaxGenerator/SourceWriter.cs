@@ -1321,7 +1321,10 @@ namespace CSharpSyntaxGenerator
             WriteComment(builder, $"<summary>Creates a new {nd.Name} instance.</summary>");
 
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}");
-            WriteRedFactoryParameters(builder, nd);
+            builder.WriteCommaSeparated([
+                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
+                .. nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")],
+                open: "(", close: ")");
 
             builder.WriteLine();
             using (builder.EnterBlock())
@@ -1413,14 +1416,6 @@ namespace CSharpSyntaxGenerator
 
                 builder.WriteLine(".CreateRed();");
             }
-        }
-
-        private void WriteRedFactoryParameters(IndentingStringBuilder builder, Node nd)
-        {
-            builder.WriteCommaSeparated([
-                .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
-                .. nd.Fields.Select(f => $"{this.GetRedPropertyType(f)} {CamelCase(f.Name)}")],
-                open: "(", close: ")");
         }
 
         private string GetRedPropertyType(Field field)
