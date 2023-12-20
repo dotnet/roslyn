@@ -351,21 +351,11 @@ internal sealed class IndentingStringBuilder : IDisposable
     public IndentingStringBuilder Write([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
         => this;
 
-    public IndentingStringBuilder WriteIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
-    {
-        if (condition)
-            Write(splitContent, handler);
+    public IndentingStringBuilder WriteIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(condition), nameof(splitContent))] WriteIfInterpolatedStringHandler handler)
+        => this;
 
-        return this;
-    }
-
-    public IndentingStringBuilder WriteIf(bool condition, [InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
-    {
-        if (condition)
-            Write(handler);
-
-        return this;
-    }
+    public IndentingStringBuilder WriteIf(bool condition, [InterpolatedStringHandlerArgument("", nameof(condition))] WriteIfInterpolatedStringHandler handler)
+        => this;
 
     public IndentingStringBuilder WriteLine(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
     {
@@ -381,25 +371,17 @@ internal sealed class IndentingStringBuilder : IDisposable
         return this;
     }
 
-    public IndentingStringBuilder WriteLineIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder WriteLineIf(bool condition, bool splitContent, [InterpolatedStringHandlerArgument("", nameof(condition), nameof(splitContent))] WriteIfInterpolatedStringHandler handler)
     {
         if (condition)
-        {
-            Write(splitContent, handler);
             AppendEndOfLine();
-        }
-
         return this;
     }
 
-    public IndentingStringBuilder WriteLineIf(bool condition, [InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+    public IndentingStringBuilder WriteLineIf(bool condition, [InterpolatedStringHandlerArgument("", nameof(condition))] WriteIfInterpolatedStringHandler handler)
     {
         if (condition)
-        {
-            Write(handler);
             AppendEndOfLine();
-        }
-
         return this;
     }
 
@@ -557,6 +539,54 @@ internal sealed class IndentingStringBuilder : IDisposable
             var str = value?.ToString(format, formatProvider: null);
             if (str is not null)
                 _builder.Write(str, _splitContent);
+        }
+    }
+
+    /// <summary>
+    /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [InterpolatedStringHandler]
+    public readonly ref struct WriteIfInterpolatedStringHandler
+    {
+        private readonly IndentingStringBuilder _builder;
+        private readonly bool _condition;
+        private readonly bool _splitContent;
+
+        public WriteIfInterpolatedStringHandler(int literalLength, int formattedCount, IndentingStringBuilder builder, bool condition = true, bool splitContent = false)
+        {
+            _builder = builder;
+            _condition = condition;
+            _splitContent = splitContent;
+
+            if (_condition)
+                _builder.Builder.EnsureCapacity(_builder.Builder.Length + literalLength + formattedCount);
+        }
+
+        public void AppendLiteral(string literal)
+        {
+            if (_condition)
+                _builder.Write(literal, _splitContent);
+        }
+
+        public void AppendFormatted<T>(T value)
+        {
+            if (_condition)
+            {
+                var str = value?.ToString();
+                if (str is not null)
+                    _builder.Write(str, _splitContent);
+            }
+        }
+
+        public void AppendFormatted<T>(T value, string format) where T : IFormattable
+        {
+            if (_condition)
+            {
+                var str = value?.ToString(format, formatProvider: null);
+                if (str is not null)
+                    _builder.Write(str, _splitContent);
+            }
         }
     }
 
