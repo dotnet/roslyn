@@ -38,7 +38,7 @@ To run all Roslyn tests, execute `b test -p TestAll`.
 - If the project has not been built, or the repo got cleaned, execute `b build`.
 - Execute `b push-nuget-dependencies`.
 
-If authentication fails when pushing, copy one of the failing `nuget push` commands, and execute it wih an `--interactive` flag. Then execute the previous command again.
+If authentication fails when pushing, copy one of the failing `nuget push` commands, and execute it wih an `--interactive` flag. Then execute the NuGet dependencies push again.
 
 This step only works correctly, when all packages have been restored in the working copy of the repo, and the repo has not been cleaned afterwards.
 
