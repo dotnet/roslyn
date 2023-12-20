@@ -951,11 +951,19 @@ namespace CSharpSyntaxGenerator
                         }
                     }
 
-                    WriteRedAcceptMethods(builder, concreteNode);
+                    builder.WriteLine();
+                    WriteRedAcceptMethod(concreteNode, false);
+                    WriteRedAcceptMethod(concreteNode, true);
                     WriteRedUpdateMethod(builder, concreteNode);
                     WriteRedWithMethods(builder, concreteNode);
                     WriteRedListHelperMethods(builder, concreteNode);
                 }
+            }
+
+            void WriteRedAcceptMethod(Node node, bool genericResult)
+            {
+                string genericArgs = genericResult ? "<TResult>" : "";
+                builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
             }
         }
 
@@ -975,19 +983,6 @@ namespace CSharpSyntaxGenerator
 
         private static string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
-
-        private static void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)
-        {
-            builder.WriteLine();
-            WriteRedAcceptMethod(builder, node, false);
-            WriteRedAcceptMethod(builder, node, true);
-        }
-
-        private static void WriteRedAcceptMethod(IndentingStringBuilder builder, Node node, bool genericResult)
-        {
-            string genericArgs = genericResult ? "<TResult>" : "";
-            builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
-        }
 
         private void WriteRedVisitors(IndentingStringBuilder builder)
         {
