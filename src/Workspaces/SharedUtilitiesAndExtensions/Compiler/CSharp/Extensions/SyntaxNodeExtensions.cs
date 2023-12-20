@@ -300,17 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAsyncSupportingFunctionSyntax([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node.IsKind(SyntaxKind.MethodDeclaration)
-                || node.IsAnyLambdaOrAnonymousMethod()
-                || node.IsKind(SyntaxKind.LocalFunctionStatement);
-        }
-
-        public static bool IsAnyLambda([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node?.Kind() is SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression;
-
-        public static bool IsAnyLambdaOrAnonymousMethod([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
+            => node is MethodDeclarationSyntax or AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax;
 
         public static bool IsCompoundAssignExpression(this SyntaxNode node)
         {
@@ -908,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 for (var current = node; current != null; current = current.Parent)
                 {
-                    if (current.IsAnyLambda())
+                    if (current is LambdaExpressionSyntax)
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
                         if (expressionType.Equals(typeInfo.ConvertedType?.OriginalDefinition))
