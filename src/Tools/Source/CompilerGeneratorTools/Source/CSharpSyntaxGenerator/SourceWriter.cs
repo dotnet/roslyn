@@ -285,7 +285,7 @@ namespace CSharpSyntaxGenerator
                     builder.WriteLine();
                     builder.WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
-                    this.WriteGreenAcceptMethods(builder, concreteNode);
+                    WriteGreenAcceptMethods(builder, concreteNode);
                     this.WriteGreenUpdateMethod(builder, concreteNode);
                     WriteSetDiagnostics(builder, concreteNode);
                     WriteSetAnnotations(builder, concreteNode);
@@ -357,7 +357,7 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine(");");
         }
 
-        private void WriteGreenAcceptMethods(IndentingStringBuilder builder, Node node)
+        private static void WriteGreenAcceptMethods(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
@@ -648,7 +648,7 @@ namespace CSharpSyntaxGenerator
                 })]);
         }
 
-        private void WriteCtorArgList(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
+        private static void WriteCtorArgList(IndentingStringBuilder builder, Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
         {
             builder.WriteCommaSeparated([
                 nd.Kinds.Count == 1 ? $"SyntaxKind.{nd.Kinds[0].Name}" : "kind",
@@ -787,9 +787,8 @@ namespace CSharpSyntaxGenerator
                     }
                 }
             }
-            else if (node is Node)
+            else if (node is Node concreteNode)
             {
-                var concreteNode = (Node)node;
                 WriteComment(builder, $"<remarks>");
                 WriteComment(builder, $"<para>This node is associated with the following syntax kinds:</para>");
                 WriteComment(builder, $"<list type=\"bullet\">");
@@ -1005,7 +1004,7 @@ namespace CSharpSyntaxGenerator
                         }
                     }
 
-                    this.WriteRedAcceptMethods(builder, concreteNode);
+                    WriteRedAcceptMethods(builder, concreteNode);
                     this.WriteRedUpdateMethod(builder, concreteNode);
                     this.WriteRedWithMethods(builder, concreteNode);
                     this.WriteRedListHelperMethods(builder, concreteNode);
@@ -1030,14 +1029,14 @@ namespace CSharpSyntaxGenerator
         private static string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
 
-        private void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)
+        private static void WriteRedAcceptMethods(IndentingStringBuilder builder, Node node)
         {
             builder.WriteLine();
             WriteRedAcceptMethod(builder, node, false);
             WriteRedAcceptMethod(builder, node, true);
         }
 
-        private void WriteRedAcceptMethod(IndentingStringBuilder builder, Node node, bool genericResult)
+        private static void WriteRedAcceptMethod(IndentingStringBuilder builder, Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
             builder.WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
@@ -1344,7 +1343,7 @@ namespace CSharpSyntaxGenerator
         private bool CanBeAutoCreated(Node node, Field field)
             => IsAutoCreatableToken(node, field) || IsAutoCreatableNode(field);
 
-        private bool IsAutoCreatableToken(Node node, Field field)
+        private static bool IsAutoCreatableToken(Node node, Field field)
         {
             return field.Type == "SyntaxToken"
                 && field.Kinds != null
@@ -1572,7 +1571,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private IEnumerable<Field> DetermineRedFactoryWithNoAutoCreatableTokenFields(Node nd)
+        private static IEnumerable<Field> DetermineRedFactoryWithNoAutoCreatableTokenFields(Node nd)
         {
             return nd.Fields.Where(f => !IsAutoCreatableToken(nd, f));
         }
@@ -1667,14 +1666,14 @@ namespace CSharpSyntaxGenerator
             if (optionalCount == 0)
                 return; // already handled w/ general factory method
 
-            var minimalFactoryfields = new HashSet<Field>(DetermineMinimalFactoryFields(nd));
+            var minimalFactoryFields = new HashSet<Field>(DetermineMinimalFactoryFields(nd));
 
-            if (withStringNames && minimalFactoryfields.Count(f => IsRequiredFactoryField(nd, f) && CanAutoConvertFromString(f)) == 0)
+            if (withStringNames && !minimalFactoryFields.Any(f => IsRequiredFactoryField(nd, f) && CanAutoConvertFromString(f)))
                 return; // no string-name overload necessary
 
             builder.WriteLine();
 
-            var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
+            var hasOptional = minimalFactoryFields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
 
             if (hasOptional && hasAttributeOrModifiersList)
@@ -1686,7 +1685,7 @@ namespace CSharpSyntaxGenerator
             builder.Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             builder.WriteCommaSeparated([
                 .. nd.Kinds.Count > 1 ? ["SyntaxKind kind"] : Array.Empty<string>(),
-                .. nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
+                .. nd.Fields.Where(minimalFactoryFields.Contains).Select(f =>
                 {
                     var type = GetRedPropertyType(f);
 
@@ -1713,7 +1712,7 @@ namespace CSharpSyntaxGenerator
                 .. nd.Kinds.Count > 1 ? ["kind"] : Array.Empty<string>(),
                 .. nd.Fields.Select(f =>
                 {
-                    if (minimalFactoryfields.Contains(f))
+                    if (minimalFactoryFields.Contains(f))
                     {
                         if (IsRequiredFactoryField(nd, f))
                         {

@@ -183,7 +183,7 @@ namespace CSharpSyntaxGenerator
         public static string StripPost(string name, string post)
         {
             return name.EndsWith(post, StringComparison.Ordinal)
-                ? name.Substring(0, name.Length - post.Length)
+                ? name[..^post.Length]
                 : name;
         }
 
