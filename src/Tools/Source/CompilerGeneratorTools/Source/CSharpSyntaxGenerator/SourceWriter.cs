@@ -1064,8 +1064,7 @@ namespace CSharpSyntaxGenerator
                 }
 
                 builder.Write(
-                    $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({GetRedPropertyType(field)} {CamelCase(field.Name)})" +
-                    " => Update");
+                    $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({GetRedPropertyType(field)} {CamelCase(field.Name)}) => Update");
                 // call update inside each setter
                 builder.WriteCommaSeparated(node.Fields.Select(f =>
                     f == field ? CamelCase(f.Name) : $"this.{f.Name}"),
