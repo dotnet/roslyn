@@ -27,7 +27,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     TAnalyzer>()
     : AbstractUseCollectionExpressionCodeFixProvider<TObjectCreationExpressionSyntax>(
         AnalyzersResources.Collection_initialization_can_be_simplified,
-        AnalyzersResources.Collection_initialization_can_be_simplified)
+        nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
