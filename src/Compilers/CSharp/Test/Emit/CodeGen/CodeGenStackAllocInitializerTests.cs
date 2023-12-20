@@ -918,7 +918,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
@@ -1030,7 +1030,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
@@ -1121,7 +1121,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A469E23C2EF824690D849F86F0B660CC6E91A9E4BE44208A7103F98510BF64F5"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24_Align=8 <PrivateImplementationDetails>.A469E23C2EF824690D849F86F0B660CC6E91A9E4BE44208A7103F98510BF64F58"
                   IL_000b:  call       "System.ReadOnlySpan<double> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<double>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
@@ -1170,7 +1170,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.AB25350E3E65EFEBE24584461683ECDA68725576E825E550038B90E7B1479946"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24_Align=8 <PrivateImplementationDetails>.AB25350E3E65EFEBE24584461683ECDA68725576E825E550038B90E7B14799468"
                   IL_000b:  call       "System.ReadOnlySpan<E> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<E>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
@@ -1268,7 +1268,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
@@ -1401,7 +1401,7 @@ namespace System
                   IL_0002:  conv.u
                   IL_0003:  localloc
                   IL_0005:  dup
-                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.81C1A5A2F482E82CA2C66653482AB24E6D90944BF183C8164E8F8F8D72DB60DB"
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16_Align=4 <PrivateImplementationDetails>.81C1A5A2F482E82CA2C66653482AB24E6D90944BF183C8164E8F8F8D72DB60DB4"
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
