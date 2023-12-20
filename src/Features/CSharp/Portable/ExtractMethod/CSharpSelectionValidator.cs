@@ -128,12 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var expressionNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
-            if (!expressionNode.IsAnyAssignExpression())
-            {
+            if (expressionNode is not AssignmentExpressionSyntax assign)
                 return selectionInfo;
-            }
-
-            var assign = (AssignmentExpressionSyntax)expressionNode;
 
             // make sure there is a visible token at right side expression
             if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)

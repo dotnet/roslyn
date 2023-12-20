@@ -290,16 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ConditionalAccessExpressionSyntax? GetInnerMostConditionalAccessExpression(this SyntaxNode node)
         {
-            if (node is not ConditionalAccessExpressionSyntax)
-            {
+            if (node is not ConditionalAccessExpressionSyntax result)
                 return null;
-            }
 
-            var result = (ConditionalAccessExpressionSyntax)node;
-            while (result.WhenNotNull is ConditionalAccessExpressionSyntax)
-            {
-                result = (ConditionalAccessExpressionSyntax)result.WhenNotNull;
-            }
+            while (result.WhenNotNull is ConditionalAccessExpressionSyntax syntax)
+                result = syntax;
 
             return result;
         }
@@ -316,9 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyLambdaOrAnonymousMethod([NotNullWhen(returnValue: true)] this SyntaxNode? node)
             => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
-
-        public static bool IsAnyAssignExpression(this SyntaxNode node)
-            => SyntaxFacts.IsAssignmentExpression(node.Kind());
 
         public static bool IsCompoundAssignExpression(this SyntaxNode node)
         {
@@ -346,18 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                assignment.Left == node;
 
         public static bool IsLeftSideOfAnyAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
-        {
-            return node?.Parent != null &&
-                node.Parent.IsAnyAssignExpression() &&
-                ((AssignmentExpressionSyntax)node.Parent).Left == node;
-        }
+            => node?.Parent is AssignmentExpressionSyntax assignment && assignment.Left == node;
 
         public static bool IsRightSideOfAnyAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
-        {
-            return node?.Parent != null &&
-                node.Parent.IsAnyAssignExpression() &&
-                ((AssignmentExpressionSyntax)node.Parent).Right == node;
-        }
+            => node?.Parent is AssignmentExpressionSyntax assignment && assignment.Right == node;
 
         public static bool IsLeftSideOfCompoundAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
