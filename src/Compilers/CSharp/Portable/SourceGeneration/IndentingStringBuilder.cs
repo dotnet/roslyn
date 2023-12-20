@@ -464,7 +464,7 @@ internal sealed class IndentingStringBuilder : IDisposable
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     [InterpolatedStringHandler]
-    public ref struct WriteInterpolatedStringHandler
+    public readonly ref struct WriteInterpolatedStringHandler
     {
         private readonly IndentingStringBuilder _builder;
         private readonly bool _splitContent;

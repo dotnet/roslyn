@@ -294,14 +294,14 @@ namespace CSharpSyntaxGenerator
                 _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
                 static (builder, node, @this) =>
                 {
-                    @this.WriteTokenDeleteRewriterTest(builder, (Node)node);
+                    WriteTokenDeleteRewriterTest(builder, (Node)node);
                     builder.WriteLine();
                     @this.WriteIdentityRewriterTest(builder, (Node)node);
                 },
                 this);
         }
 
-        private void WriteTokenDeleteRewriterTest(IndentingStringBuilder builder, Node node)
+        private static void WriteTokenDeleteRewriterTest(IndentingStringBuilder builder, Node node)
         {
             var strippedName = StripPost(node.Name, "Syntax");
 

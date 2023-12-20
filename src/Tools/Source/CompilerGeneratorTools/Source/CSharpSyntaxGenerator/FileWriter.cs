@@ -15,11 +15,11 @@ namespace CSharpSyntaxGenerator
     internal sealed class FileWriter
     {
         private readonly Tree _tree;
-        private readonly IDictionary<string, string> _parentMap;
+        private readonly Dictionary<string, string> _parentMap;
         private readonly ILookup<string, string> _childMap;
 
-        private readonly IDictionary<string, Node> _nodeMap;
-        private readonly IDictionary<string, TreeType> _typeMap;
+        private readonly Dictionary<string, Node> _nodeMap;
+        private readonly Dictionary<string, TreeType> _typeMap;
 
         public FileWriter(Tree tree, CancellationToken cancellationToken)
         {
@@ -109,14 +109,15 @@ namespace CSharpSyntaxGenerator
 
         public static string GetElementType(string typeName)
         {
-            if (!typeName.Contains("<"))
+            if (!typeName.Contains('<'))
                 return string.Empty;
+
             int iStart = typeName.IndexOf('<');
             int iEnd = typeName.IndexOf('>', iStart + 1);
             if (iEnd < iStart)
                 return string.Empty;
-            var sub = typeName.Substring(iStart + 1, iEnd - iStart - 1);
-            return sub;
+
+            return typeName[(iStart + 1)..iEnd];
         }
 
         public static bool IsAnyList(string typeName)
