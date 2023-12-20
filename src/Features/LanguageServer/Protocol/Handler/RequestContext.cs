@@ -285,7 +285,7 @@ internal readonly struct RequestContext
             {
                 logger.LogError($"Could not find appropriate workspace for operation {workspace} on {method}");
                 FatalError.ReportWithDumpAndCatch(new Exception(
-                    $"Could not find appropriate workspace or solution for operation {workspace}, {solution} on {method}"), ErrorSeverity.General);
+                    $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
 
             context = new RequestContext(
