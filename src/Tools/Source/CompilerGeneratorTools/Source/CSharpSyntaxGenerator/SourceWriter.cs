@@ -551,9 +551,7 @@ namespace CSharpSyntaxGenerator
 
                 builder.WriteLine("#endif", skipIndent: true);
 
-                if (nd.Name != "SkippedTokensTriviaSyntax" &&
-                    nd.Name != "DocumentationCommentTriviaSyntax" &&
-                    nd.Name != "IncompleteMemberSyntax" &&
+                if (nd.Name is not "SkippedTokensTriviaSyntax" and not "DocumentationCommentTriviaSyntax" and not "IncompleteMemberSyntax" &&
                     valueFields.Count + nodeFields.Count <= 3)
                 {
                     builder.WriteLine();
