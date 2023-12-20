@@ -702,7 +702,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestOnVariableDeclaratorDifferentType()
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOn()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -724,13 +724,50 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    IList<int> c = new List<int>
-                    {
-                        1
-                    };
+                    IList<int> c = [1];
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression_for_interfaces=false
+                """
+        }.RunAsync();
     }
 
     [Fact]
