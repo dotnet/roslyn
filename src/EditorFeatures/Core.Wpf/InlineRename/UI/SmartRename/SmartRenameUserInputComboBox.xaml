@@ -103,7 +103,7 @@
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 Style="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}"
-                                Padding="1"
+                                Padding="1,3,1,1"
                                 Command="{Binding GetSuggestionsCommand}">
                             <Button.Content>
                                 <Canvas Width="16" Height="16">
