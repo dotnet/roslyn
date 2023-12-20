@@ -46,7 +46,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TAnalyzer>, new()
 {
     protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
-        => (AnalyzersResources.Object_initialization_can_be_simplified, AnalyzersResources.Object_initialization_can_be_simplified);
+        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
 
     protected abstract TAnalyzer GetAnalyzer();
 
