@@ -222,11 +222,6 @@
         <target state="translated">警告: 新增參數到區域函式宣告可能會產生無效的程式碼。</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_may_change_semantics">
-        <source>{0} (may change semantics)</source>
-        <target state="new">{0} (may change semantics)</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
