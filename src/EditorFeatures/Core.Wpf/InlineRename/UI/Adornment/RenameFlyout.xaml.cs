@@ -239,13 +239,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void Adornment_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            if (e.OldFocus == this || e.OldFocus == RenameUserInput)
+            if (e.NewFocus != RenameUserInput)
             {
-                return;
+                RenameUserInput.Focus();
+                e.Handled = true;
             }
-
-            RenameUserInput.Focus();
-            e.Handled = true;
         }
 
         private void ToggleExpand(object sender, RoutedEventArgs e)
