@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -289,9 +287,9 @@ namespace CSharpSyntaxGenerator
                 builder.Write($"    => new {node.Name}");
                 builder.WriteCommaSeparated([
                     "this.Kind",
-                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
-                "diagnostics",
-                "GetAnnotations()"],
+                    .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                    "diagnostics",
+                    "GetAnnotations()"],
                     "(", ")");
                 builder.WriteLine(";");
             }
@@ -303,9 +301,9 @@ namespace CSharpSyntaxGenerator
                 builder.Write($"    => new {node.Name}");
                 builder.WriteCommaSeparated([
                     "this.Kind",
-                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
-                "GetDiagnostics()",
-                "annotations"],
+                    .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                    "GetDiagnostics()",
+                    "annotations"],
                     open: "(", close: ")");
                 builder.WriteLine(";");
             }
@@ -607,13 +605,13 @@ namespace CSharpSyntaxGenerator
             {
                 builder.WriteCommaSeparated([
                     nd.Kinds.Count == 1 ? $"SyntaxKind.{nd.Kinds[0].Name}" : "kind",
-                .. nodeFields.Select(f =>
-                    f.Type == "SyntaxList<SyntaxToken>" || IsAnyList(f.Type)
-                        ? $"{CamelCase(f.Name)}.Node"
-                        : CamelCase(f.Name)),
-                // values are at end
-                .. valueFields.Select(f => CamelCase(f.Name)),
-                .. withSyntaxFactoryContext ? ["this.context"] : Array.Empty<string>()]);
+                    .. nodeFields.Select(f =>
+                        f.Type == "SyntaxList<SyntaxToken>" || IsAnyList(f.Type)
+                            ? $"{CamelCase(f.Name)}.Node"
+                            : CamelCase(f.Name)),
+                    // values are at end
+                    .. valueFields.Select(f => CamelCase(f.Name)),
+                    .. withSyntaxFactoryContext ? ["this.context"] : Array.Empty<string>()]);
             }
         }
 
@@ -1049,8 +1047,8 @@ namespace CSharpSyntaxGenerator
                     var (baseType, baseField) = GetHighestBaseTypeWithField(node, field.Name);
                     if (baseType != null)
                     {
-                        builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
-                        if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
+                        builder.Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField!)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
+                        if (baseField!.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
                             builder.Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
 
                         builder.WriteLine(");");
@@ -1069,10 +1067,10 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private (TreeType type, Field field) GetHighestBaseTypeWithField(TreeType node, string name)
+        private (TreeType? type, Field? field) GetHighestBaseTypeWithField(TreeType node, string name)
         {
-            TreeType bestType = null;
-            Field bestField = null;
+            TreeType? bestType = null;
+            Field? bestField = null;
             for (var current = node; current != null; current = TryGetBaseType(current))
             {
                 var fields = GetNodeOrNodeListFields(current);
@@ -1087,7 +1085,7 @@ namespace CSharpSyntaxGenerator
             return (bestType, bestField);
         }
 
-        private TreeType TryGetBaseType(TreeType node)
+        private TreeType? TryGetBaseType(TreeType node)
             => node switch
             {
                 AbstractNode an => _fileWriter.GetTreeType(an.Base),
@@ -1130,7 +1128,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private Node TryGetNodeForNestedList(Field field)
+        private Node? TryGetNodeForNestedList(Field field)
         {
             Node referencedNode = _fileWriter.GetNode(field.Type);
             return referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0) ? referencedNode : null;
@@ -1146,7 +1144,7 @@ namespace CSharpSyntaxGenerator
                 var (baseType, baseField) = GetHighestBaseTypeWithField(node, field.Name);
                 if (baseType != null)
                 {
-                    var baseArgType = GetElementType(baseField.Type);
+                    var baseArgType = GetElementType(baseField!.Type);
                     builder.WriteLine($"internal override {baseType.Name} Add{field.Name}Core(params {baseArgType}[] items) => Add{field.Name}(items);");
                     isNew = true;
                 }
@@ -1266,7 +1264,7 @@ namespace CSharpSyntaxGenerator
         {
             return field.Type == "SyntaxToken"
                 && field.Kinds != null
-                && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken", StringComparison.Ordinal)) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
+                && ((field.Kinds is [{ Name: { } name }] && name != "IdentifierToken" && !name.EndsWith("LiteralToken")) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
         }
 
         private bool IsAutoCreatableNode(Field field)
@@ -1508,7 +1506,7 @@ namespace CSharpSyntaxGenerator
             builder.WriteLine(";");
         }
 
-        private Field DetermineMinimalOptionalField(Node nd)
+        private Field? DetermineMinimalOptionalField(Node nd)
         {
             // first if there is a single list, then choose the list because it would not have been optional
             int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
@@ -1540,12 +1538,12 @@ namespace CSharpSyntaxGenerator
         {
             // special case to allow a single optional argument if there would have been no arguments
             // and we can determine a best single argument.
-            Field allowOptionalField = null;
+            Field? allowOptionalField = null;
 
             var optionalCount = OptionalFactoryArgumentCount(nd);
             if (optionalCount == 0)
             {
-                return null; // no fields...
+                return []; // no fields...
             }
 
             var requiredCount = RequiredFactoryArgumentCount(nd, includeKind: false);
