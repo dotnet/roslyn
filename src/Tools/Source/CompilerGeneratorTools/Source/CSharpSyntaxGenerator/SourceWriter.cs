@@ -229,14 +229,14 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{(GetFieldType(field, green: true))} {field.Name} => {CamelCase(field.Name)};");
+                        builder.WriteLine($"public {OverrideOrNewModifier(field)}{(GetFieldType(field, green: true))} {field.Name} => this.{CamelCase(field.Name)};");
                     }
                 }
 
                 foreach (var field in valueFields)
                 {
                     WriteComment(builder, field.PropertyComment);
-                    builder.WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => {CamelCase(field.Name)};");
+                    builder.WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => this.{CamelCase(field.Name)};");
                 }
 
                 // GetSlot
@@ -251,7 +251,7 @@ namespace CSharpSyntaxGenerator
                 {
                     builder.WriteLine();
                     using var _1 = builder.EnterIndentedRegion();
-                    builder.WriteLine($"=> index == 0 ? {CamelCase(nodeFields[0].Name)} : null;");
+                    builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                 }
                 else
                 {
@@ -262,7 +262,7 @@ namespace CSharpSyntaxGenerator
                     using var _2 = builder.EnterIndentedRegion("{", "};");
 
                     for (int i = 0, n = nodeFields.Count; i < n; i++)
-                        builder.WriteLine($"{i} => {CamelCase(nodeFields[i].Name)},");
+                        builder.WriteLine($"{i} => this.{CamelCase(nodeFields[i].Name)},");
 
                     builder.WriteLine("_ => null,");
                 }
@@ -363,7 +363,7 @@ namespace CSharpSyntaxGenerator
             using (builder.EnterBlock())
             {
                 foreach (var node in nodes.OfType<Node>())
-                    builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => DefaultVisit(node);");
+                    builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
         }
 
@@ -393,7 +393,7 @@ namespace CSharpSyntaxGenerator
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
                         field.Type == "SyntaxNodeOrTokenList"),
                     " || ",
-                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != {field.Name}"));
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
 
                 builder.WriteLine(")");
                 using (builder.EnterBlock())
@@ -469,7 +469,7 @@ namespace CSharpSyntaxGenerator
 
                 builder.WriteLine();
                 builder.WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
-                builder.WriteLine("    => context = context;");
+                builder.WriteLine("    => this.context = context;");
 
                 WriteGreenFactories(builder, nodes, withSyntaxFactoryContext: true);
             }
@@ -852,7 +852,7 @@ namespace CSharpSyntaxGenerator
                                 builder.WriteLine("get");
                                 using (builder.EnterBlock())
                                 {
-                                    builder.WriteLine($"var slot = Green.GetSlot({i});");
+                                    builder.WriteLine($"var slot = this.Green.GetSlot({i});");
                                     builder.WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                                 }
                             }
@@ -864,7 +864,7 @@ namespace CSharpSyntaxGenerator
 
                             if (IsNodeList(field.Type))
                             {
-                                builder.WriteLine($" => new {field.Type}(GetRed(ref {CamelCase(field.Name)}, {i}));");
+                                builder.WriteLine($" => new {field.Type}(GetRed(ref this.{CamelCase(field.Name)}, {i}));");
                             }
                             else if (IsSeparatedNodeList(field.Type))
                             {
@@ -874,7 +874,7 @@ namespace CSharpSyntaxGenerator
                                     builder.WriteLine("get");
                                     using (builder.EnterBlock())
                                     {
-                                        builder.WriteLine($"var red = GetRed(ref {CamelCase(field.Name)}, {i});");
+                                        builder.WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
                                         builder.WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
                                     }
                                 }
@@ -888,11 +888,11 @@ namespace CSharpSyntaxGenerator
                                 var suffix = IsOptional(field) ? "" : "!";
                                 if (i == 0)
                                 {
-                                    builder.WriteLine($" => GetRedAtZero(ref {CamelCase(field.Name)}){suffix};");
+                                    builder.WriteLine($" => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix};");
                                 }
                                 else
                                 {
-                                    builder.WriteLine($" => GetRed(ref {CamelCase(field.Name)}, {i}){suffix};");
+                                    builder.WriteLine($" => GetRed(ref this.{CamelCase(field.Name)}, {i}){suffix};");
                                 }
                             }
                         }
@@ -921,8 +921,8 @@ namespace CSharpSyntaxGenerator
                         {
                             var (field, index) = relevantNodes.Single();
                             var whenTrue = index == 0
-                                ? $"GetRedAtZero(ref {CamelCase(field.Name)})"
-                                : $"GetRed(ref {CamelCase(field.Name)}, {index})";
+                                ? $"GetRedAtZero(ref this.{CamelCase(field.Name)})"
+                                : $"GetRed(ref this.{CamelCase(field.Name)}, {index})";
 
                             var suffix = IsOptional(field) ? "" : "!";
                             builder.WriteLine($" => index == {index} ? {whenTrue}{suffix} : null;");
@@ -940,11 +940,11 @@ namespace CSharpSyntaxGenerator
                                         var suffix = IsOptional(field) ? "" : "!";
                                         if (index == 0)
                                         {
-                                            builder.WriteLine($"{index} => GetRedAtZero(ref {CamelCase(field.Name)}){suffix},");
+                                            builder.WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
                                         }
                                         else
                                         {
-                                            builder.WriteLine($"{index} => GetRed(ref {CamelCase(field.Name)}, {index}){suffix},");
+                                            builder.WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
                                         }
                                     }
 
@@ -969,7 +969,7 @@ namespace CSharpSyntaxGenerator
                         else if (relevantNodes.Count() == 1)
                         {
                             var (field, index) = relevantNodes.Single();
-                            builder.WriteLine($" => index == {index} ? {CamelCase(field.Name)} : null;");
+                            builder.WriteLine($" => index == {index} ? this.{CamelCase(field.Name)} : null;");
                         }
                         else
                         {
@@ -980,7 +980,7 @@ namespace CSharpSyntaxGenerator
                                 using (builder.EnterIndentedRegion("{", "};"))
                                 {
                                     foreach (var (field, index) in relevantNodes)
-                                        builder.WriteLine($"{index} => {CamelCase(field.Name)},");
+                                        builder.WriteLine($"{index} => this.{CamelCase(field.Name)},");
 
                                     builder.WriteLine("_ => null,");
                                 }
@@ -1046,7 +1046,7 @@ namespace CSharpSyntaxGenerator
                     static (builder, node, genericResult) =>
                     {
                         WriteComment(builder, $"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                        builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => DefaultVisit(node);");
+                        builder.WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
                     },
                     genericResult);
             }
@@ -1069,7 +1069,7 @@ namespace CSharpSyntaxGenerator
                         _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
                         field.Type == "SyntaxNodeOrTokenList"),
                     " || ",
-                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != {field.Name}"));
+                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
 
                 builder.WriteLine(")");
                 using (builder.EnterBlock())
@@ -1241,7 +1241,7 @@ namespace CSharpSyntaxGenerator
                 {
                     var factoryName = StripPost(referencedNode.Name, "Syntax");
                     var varName = StripPost(CamelCase(field.Name), "Opt");
-                    builder.WriteLine($"var {varName} = {field.Name} ?? SyntaxFactory.{factoryName}();");
+                    builder.WriteLine($"var {varName} = this.{field.Name} ?? SyntaxFactory.{factoryName}();");
                     builder.WriteLine($"return With{StripPost(field.Name, "Opt")}({varName}.With{StripPost(referencedNodeField.Name, "Opt")}({varName}.{referencedNodeField.Name}.AddRange(items)));");
                 }
             }
