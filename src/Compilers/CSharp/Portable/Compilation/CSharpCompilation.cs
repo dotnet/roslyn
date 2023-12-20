@@ -3414,7 +3414,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag))
                 {
-                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag);
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag
+#if DEBUG
+                        , isFiltered: filterOpt != null
+#endif
+                    );
                 }
 
                 bool hasDuplicateFilePaths = CheckDuplicateFilePaths(diagnostics);
@@ -3531,10 +3535,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return anyDuplicates;
         }
 
-        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
+        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag
+#if DEBUG
+            , bool isFiltered
+#endif
+        )
         {
-            Debug.Assert(_declarationDiagnosticsFrozen);
-
+#if DEBUG
+            Debug.Assert(_declarationDiagnosticsFrozen || isFiltered);
+#endif
             if (_moduleInitializerMethods is object)
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
