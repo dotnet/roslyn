@@ -258,7 +258,7 @@ namespace CSharpSyntaxGenerator
 
                     WriteGreenAcceptMethods(concreteNode);
                     WriteGreenUpdateMethod(builder, concreteNode);
-                    WriteSetDiagnostics(builder, concreteNode);
+                    WriteSetDiagnostics(concreteNode);
                     WriteSetAnnotations(concreteNode);
                 }
             }
@@ -279,6 +279,20 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine();
                 builder.WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
                 builder.WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
+            }
+
+            void WriteSetDiagnostics(Node node)
+            {
+                builder.WriteLine();
+                builder.WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
+                builder.Write($"    => new {node.Name}");
+                builder.WriteCommaSeparated([
+                    "this.Kind",
+                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
+                "diagnostics",
+                "GetAnnotations()"],
+                    "(", ")");
+                builder.WriteLine(";");
             }
 
             void WriteSetAnnotations(Node node)
@@ -321,20 +335,6 @@ namespace CSharpSyntaxGenerator
 
             foreach (var field in valueFields)
                 builder.WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-        }
-
-        private static void WriteSetDiagnostics(IndentingStringBuilder builder, Node node)
-        {
-            builder.WriteLine();
-            builder.WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
-            builder.Write($"    => new {node.Name}");
-            builder.WriteCommaSeparated([
-                "this.Kind",
-                .. node.Fields.Select(f => $"this.{CamelCase(f.Name)}"),
-                "diagnostics",
-                "GetAnnotations()"],
-                "(", ")");
-            builder.WriteLine(";");
         }
 
         private void WriteGreenVisitor(IndentingStringBuilder builder, bool withResult)
