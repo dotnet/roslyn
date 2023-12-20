@@ -238,21 +238,23 @@ namespace CSharpSyntaxGenerator
                     else if (nodeFields.Count == 1)
                     {
                         builder.WriteLine();
-                        using var _1 = builder.EnterIndentedRegion();
-                        builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
+                        using (builder.EnterIndentedRegion())
+                            builder.WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                     }
                     else
                     {
                         builder.WriteLine();
-                        using var _1 = builder.EnterIndentedRegion();
+                        using (builder.EnterIndentedRegion())
+                        {
+                            builder.WriteLine("=> index switch");
+                            using (builder.EnterIndentedRegion("{", "};"))
+                            {
+                                for (int i = 0, n = nodeFields.Count; i < n; i++)
+                                    builder.WriteLine($"{i} => this.{CamelCase(nodeFields[i].Name)},");
 
-                        builder.WriteLine("=> index switch");
-                        using var _2 = builder.EnterIndentedRegion("{", "};");
-
-                        for (int i = 0, n = nodeFields.Count; i < n; i++)
-                            builder.WriteLine($"{i} => this.{CamelCase(nodeFields[i].Name)},");
-
-                        builder.WriteLine("_ => null,");
+                                builder.WriteLine("_ => null,");
+                            }
+                        }
                     }
 
                     builder.WriteLine();
@@ -421,24 +423,26 @@ namespace CSharpSyntaxGenerator
 
                         builder.WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
-                        using var _ = builder.EnterIndentedRegion();
-                        if (nodeFields.Count == 0)
+                        using (builder.EnterIndentedRegion())
                         {
-                            builder.WriteLine("=> node;");
-                        }
-                        else
-                        {
-                            builder.Write("=> node.Update");
-                            builder.WriteCommaSeparated(node.Fields.Select(f =>
+                            if (nodeFields.Count == 0)
                             {
-                                if (IsAnyList(f.Type))
-                                    return $"VisitList(node.{f.Name})";
-                                else if (@this._fileWriter.IsNode(f.Type))
-                                    return $"({f.Type})Visit(node.{f.Name})";
-                                else
-                                    return $"node.{f.Name}";
-                            }), open: "(", close: ")");
-                            builder.WriteLine(";");
+                                builder.WriteLine("=> node;");
+                            }
+                            else
+                            {
+                                builder.Write("=> node.Update");
+                                builder.WriteCommaSeparated(node.Fields.Select(f =>
+                                {
+                                    if (IsAnyList(f.Type))
+                                        return $"VisitList(node.{f.Name})";
+                                    else if (@this._fileWriter.IsNode(f.Type))
+                                        return $"({f.Type})Visit(node.{f.Name})";
+                                    else
+                                        return $"node.{f.Name}";
+                                }), open: "(", close: ")");
+                                builder.WriteLine(";");
+                            }
                         }
                     }, this);
             }
@@ -493,12 +497,14 @@ namespace CSharpSyntaxGenerator
                 {
                     builder.WriteLine("switch (kind)");
 
-                    using var _2 = builder.EnterBlock();
-                    var kinds = nd.Kinds.Distinct().ToList();
-                    foreach (var kind in kinds)
-                        builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
+                    using (builder.EnterBlock())
+                    {
+                        var kinds = nd.Kinds.Distinct().ToList();
+                        foreach (var kind in kinds)
+                            builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
 
-                    builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
+                        builder.WriteLine("default: throw new ArgumentException(nameof(kind));");
+                    }
                 }
 
                 // validate parameters
