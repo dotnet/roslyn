@@ -206,8 +206,8 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine("[Fact]");
             builder.WriteLine($"public void Test{strippedName}FactoryAndProperties()");
-            using var _ = builder.EnterBlock();
 
+            using var _ = builder.EnterBlock();
             builder.WriteLine($"var node = Generate{strippedName}();");
             builder.WriteLine();
 
@@ -303,8 +303,8 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine("[Fact]");
             builder.WriteLine($"public void Test{strippedName}TokenDeleteRewriter()");
-            using var _ = builder.EnterBlock();
 
+            using var _ = builder.EnterBlock();
             builder.WriteLine($"var oldNode = Generate{strippedName}();");
             builder.WriteLine("var rewriter = new TokenDeleteRewriter();");
             builder.WriteLine("var newNode = rewriter.Visit(oldNode);");
@@ -324,8 +324,8 @@ namespace CSharpSyntaxGenerator
 
             builder.WriteLine("[Fact]");
             builder.WriteLine($"public void Test{strippedName}IdentityRewriter()");
-            using var _ = builder.EnterBlock();
 
+            using var _ = builder.EnterBlock();
             builder.WriteLine($"var oldNode = Generate{strippedName}();");
             builder.WriteLine("var rewriter = new IdentityRewriter();");
             builder.WriteLine("var newNode = rewriter.Visit(oldNode);");

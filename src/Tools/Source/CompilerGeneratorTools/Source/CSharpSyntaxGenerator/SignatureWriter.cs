@@ -56,16 +56,16 @@ namespace CSharpSyntaxGenerator
             if (treeType is AbstractNode abstractNode)
             {
                 builder.WriteLine($"public abstract partial class {treeType.Name} : {treeType.Base}");
-                using var _ = builder.EnterBlock();
 
+                using var _ = builder.EnterBlock();
                 foreach (var field in abstractNode.Fields)
                     builder.WriteLine($$"""public abstract {{field.Type}} {{field.Name}} { get; }""");
             }
             else if (treeType is Node node)
             {
                 builder.WriteLine($"public partial class {treeType.Name} : {treeType.Base}");
-                using var _ = builder.EnterBlock();
 
+                using var _ = builder.EnterBlock();
                 if (node.Kinds.Count > 1)
                 {
                     foreach (var kind in node.Kinds)

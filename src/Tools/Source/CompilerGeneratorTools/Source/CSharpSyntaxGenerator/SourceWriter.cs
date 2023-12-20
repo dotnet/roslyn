@@ -101,8 +101,8 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode abstractNode)
             {
                 builder.WriteLine($"internal abstract partial class {node.Name} : {node.Base}");
-                using var _ = builder.EnterBlock();
 
+                using var _ = builder.EnterBlock();
                 // ctor with diagnostics and annotations
                 builder.WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 builder.WriteLine("  : base(kind, diagnostics, annotations)");
@@ -156,8 +156,8 @@ namespace CSharpSyntaxGenerator
             else if (node is Node concreteNode)
             {
                 builder.WriteLine($"internal sealed partial class {node.Name} : {node.Base}");
-                using var _ = builder.EnterBlock();
 
+                using var _ = builder.EnterBlock();
                 var valueFields = concreteNode.Fields.Where(n => !_fileWriter.IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = concreteNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)).ToList();
 
@@ -296,11 +296,10 @@ namespace CSharpSyntaxGenerator
                 if (IsAnyList(field.Type) || IsOptional(field))
                 {
                     builder.WriteLine($"if ({CamelCase(field.Name)} != null)");
-                    using (builder.EnterBlock())
-                    {
-                        builder.WriteLine($"this.AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                        builder.WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-                    }
+
+                    using var _ = builder.EnterBlock();
+                    builder.WriteLine($"this.AdjustFlagsAndWidth({CamelCase(field.Name)});");
+                    builder.WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
                 }
                 else
                 {
@@ -310,9 +309,7 @@ namespace CSharpSyntaxGenerator
             }
 
             foreach (var field in valueFields)
-            {
                 builder.WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-            }
         }
 
         private static void WriteSetAnnotations(IndentingStringBuilder builder, Node node)
@@ -356,15 +353,12 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenVisitor(IndentingStringBuilder builder, bool withResult)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-
             builder.WriteLine();
             builder.WriteLine("internal partial class CSharpSyntaxVisitor" + (withResult ? "<TResult>" : ""));
-            using (builder.EnterBlock())
-            {
-                foreach (var node in nodes.OfType<Node>())
-                    builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
-            }
+
+            using var _ = builder.EnterBlock();
+            foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).OfType<Node>())
+                builder.WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
         }
 
         private void WriteGreenUpdateMethod(IndentingStringBuilder builder, Node node)
@@ -384,109 +378,101 @@ namespace CSharpSyntaxGenerator
             }));
             builder.WriteLine(")");
 
+            using var _ = builder.EnterBlock();
+            builder.Write("if (");
+            builder.WriteSeparated(
+                node.Fields.Where(field =>
+                    _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
+                    _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
+                    field.Type == "SyntaxNodeOrTokenList"),
+                " || ",
+                static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
+
+            builder.WriteLine(")");
             using (builder.EnterBlock())
             {
-                builder.Write("if (");
-                builder.WriteSeparated(
-                    node.Fields.Where(field =>
-                        _fileWriter.IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
-                        _fileWriter.IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
-                        field.Type == "SyntaxNodeOrTokenList"),
-                    " || ",
-                    static (builder, field) => builder.Write($"{CamelCase(field.Name)} != this.{field.Name}"));
-
-                builder.WriteLine(")");
-                using (builder.EnterBlock())
-                {
-                    builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                    builder.WriteCommaSeparated([
-                        .. node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>(),
+                builder.Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
+                builder.WriteCommaSeparated([
+                    .. node.Kinds.Count > 1 ? ["this.Kind"] : Array.Empty<string>(),
                         .. node.Fields.Select(f => CamelCase(f.Name))]);
-                    builder.WriteLine(");");
-                    builder.WriteLine("var diags = GetDiagnostics();");
-                    builder.WriteLine("if (diags?.Length > 0)");
-                    builder.WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
-                    builder.WriteLine("var annotations = GetAnnotations();");
-                    builder.WriteLine("if (annotations?.Length > 0)");
-                    builder.WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
-                    builder.WriteLine("return newNode;");
-                }
-
-                builder.WriteLine();
-                builder.WriteLine("return this;");
+                builder.WriteLine(");");
+                builder.WriteLine("var diags = GetDiagnostics();");
+                builder.WriteLine("if (diags?.Length > 0)");
+                builder.WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
+                builder.WriteLine("var annotations = GetAnnotations();");
+                builder.WriteLine("if (annotations?.Length > 0)");
+                builder.WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
+                builder.WriteLine("return newNode;");
             }
+
+            builder.WriteLine();
+            builder.WriteLine("return this;");
         }
 
         private void WriteGreenRewriter(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).ToList();
-
             builder.WriteLine();
             builder.WriteLine("internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
-            using (builder.EnterBlock())
-            {
-                builder.WriteBlankLineSeparated(
-                    nodes.OfType<Node>(),
-                    static (builder, node, @this) =>
-                    {
-                        var nodeFields = node.Fields.Where(nd => @this._fileWriter.IsNodeOrNodeList(nd.Type)).ToList();
 
-                        builder.WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
-                        using (builder.EnterIndentedRegion())
+            using var _ = builder.EnterBlock();
+            builder.WriteBlankLineSeparated(
+                _fileWriter.Tree.Types.Where(n => n is not PredefinedNode).OfType<Node>(),
+                static (builder, node, @this) =>
+                {
+                    var nodeFields = node.Fields.Where(nd => @this._fileWriter.IsNodeOrNodeList(nd.Type)).ToList();
+
+                    builder.WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
+
+                    using var _ = builder.EnterIndentedRegion();
+                    if (nodeFields.Count == 0)
+                    {
+                        builder.WriteLine("=> node;");
+                    }
+                    else
+                    {
+                        builder.Write("=> node.Update(");
+                        builder.WriteCommaSeparated(node.Fields.Select(f =>
                         {
-                            if (nodeFields.Count == 0)
-                            {
-                                builder.WriteLine("=> node;");
-                            }
+                            if (IsAnyList(f.Type))
+                                return $"VisitList(node.{f.Name})";
+                            else if (@this._fileWriter.IsNode(f.Type))
+                                return $"({f.Type})Visit(node.{f.Name})";
                             else
-                            {
-                                builder.Write("=> node.Update(");
-                                builder.WriteCommaSeparated(node.Fields.Select(f =>
-                                {
-                                    if (IsAnyList(f.Type))
-                                        return $"VisitList(node.{f.Name})";
-                                    else if (@this._fileWriter.IsNode(f.Type))
-                                        return $"({f.Type})Visit(node.{f.Name})";
-                                    else
-                                        return $"node.{f.Name}";
-                                }));
-                                builder.WriteLine(");");
-                            }
-                        }
-                    }, this);
-            }
+                                return $"node.{f.Name}";
+                        }));
+                        builder.WriteLine(");");
+                    }
+                }, this);
         }
 
         private void WriteContextualGreenFactories(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal partial class ContextAwareSyntax");
-            using (builder.EnterBlock())
-            {
-                builder.WriteLine();
-                builder.WriteLine("private SyntaxFactoryContext context;");
 
-                builder.WriteLine();
-                builder.WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
-                builder.WriteLine("    => this.context = context;");
+            using var _ = builder.EnterBlock();
+            builder.WriteLine();
+            builder.WriteLine("private SyntaxFactoryContext context;");
 
-                WriteGreenFactories(builder, nodes, withSyntaxFactoryContext: true);
-            }
+            builder.WriteLine();
+            builder.WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
+            builder.WriteLine("    => this.context = context;");
+
+            WriteGreenFactories(builder, withSyntaxFactoryContext: true);
         }
 
         private void WriteStaticGreenFactories(IndentingStringBuilder builder)
         {
-            var nodes = _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             builder.WriteLine();
             builder.WriteLine("internal static partial class SyntaxFactory");
-            using (builder.EnterBlock())
-                WriteGreenFactories(builder, nodes);
+
+            using var _ = builder.EnterBlock();
+            WriteGreenFactories(builder, withSyntaxFactoryContext: false);
         }
 
-        private void WriteGreenFactories(IndentingStringBuilder builder, List<TreeType> nodes, bool withSyntaxFactoryContext = false)
+        private void WriteGreenFactories(IndentingStringBuilder builder, bool withSyntaxFactoryContext)
         {
-            foreach (var node in nodes.OfType<Node>())
+            foreach (var node in _fileWriter.Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>())
             {
                 builder.WriteLine();
                 WriteGreenFactory(builder, node, withSyntaxFactoryContext);
@@ -521,7 +507,7 @@ namespace CSharpSyntaxGenerator
                 builder.WriteLine("#if DEBUG", skipIndent: true);
                 foreach (var field in nodeFields)
                 {
-                    var pname = CamelCase(field.Name);
+                    var fieldName = CamelCase(field.Name);
 
                     if (!IsAnyList(field.Type) && !IsOptional(field))
                         builder.WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
@@ -537,11 +523,11 @@ namespace CSharpSyntaxGenerator
 
                         if (field.Kinds.Count == 1 && !IsOptional(field))
                         {
-                            builder.WriteLine($"if ({pname}.Kind != SyntaxKind.{field.Kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                            builder.WriteLine($"if ({fieldName}.Kind != SyntaxKind.{field.Kinds[0].Name}) throw new ArgumentException(nameof({fieldName}));");
                         }
                         else
                         {
-                            builder.WriteLine($"switch ({pname}.Kind)");
+                            builder.WriteLine($"switch ({fieldName}.Kind)");
                             using (builder.EnterBlock())
                             {
                                 var kinds = field.Kinds.Distinct().ToList();
@@ -557,7 +543,7 @@ namespace CSharpSyntaxGenerator
                                     builder.WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                                 }
 
-                                builder.WriteLine($"default: throw new ArgumentException(nameof({pname}));");
+                                builder.WriteLine($"default: throw new ArgumentException(nameof({fieldName}));");
                             }
                         }
 
