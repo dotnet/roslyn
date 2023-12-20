@@ -13,7 +13,7 @@ internal abstract class AbstractUseCollectionExpressionCodeFixProvider<TExpressi
     where TExpressionSyntax : SyntaxNode
 {
     private readonly string _title = title;
-    private readonly string _titleChangesSemantics = string.Format(CodeFixesResources._0_may_change_semantics);
+    private readonly string _titleChangesSemantics = string.Format(CodeFixesResources._0_may_change_semantics, title);
     private readonly string _equivalenceKey = equivalenceKey;
     private readonly string _equivalenceKeyChangesSemantics = equivalenceKey + "_ChangesSemantics";
 
