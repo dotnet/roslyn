@@ -1019,16 +1019,29 @@ namespace System
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
-                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  1
-                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
-                  IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
-                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<int>)"
-                  IL_000f:  ret
+                  // Code size       45 (0x2d)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0)
+                  IL_0000:  ldc.i4.s   12
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   12
+                  IL_001a:  cpblk
+                  IL_001c:  ldc.i4.3
+                  IL_001d:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0022:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_002c:  ret
                 }
                 """);
         }
@@ -1097,16 +1110,29 @@ namespace System
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1 2.9 3.8" : null,
-                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  1
-                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A469E23C2EF824690D849F86F0B660CC6E91A9E4BE44208A7103F98510BF64F5"
-                  IL_0005:  call       "System.ReadOnlySpan<double> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<double>(System.RuntimeFieldHandle)"
-                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<double>)"
-                  IL_000f:  ret
+                  // Code size       45 (0x2d)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<double> V_0)
+                  IL_0000:  ldc.i4.s   24
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A469E23C2EF824690D849F86F0B660CC6E91A9E4BE44208A7103F98510BF64F5"
+                  IL_000b:  call       "System.ReadOnlySpan<double> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<double>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly double System.ReadOnlySpan<double>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   24
+                  IL_001a:  cpblk
+                  IL_001c:  ldc.i4.3
+                  IL_001d:  newobj     "System.Span<double>..ctor(void*, int)"
+                  IL_0022:  call       "System.ReadOnlySpan<double> System.Span<double>.op_Implicit(System.Span<double>)"
+                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<double>)"
+                  IL_002c:  ret
                 }
                 """);
         }
@@ -1133,16 +1159,29 @@ namespace System
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "XYZ" : null,
-                verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Net70);
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  1
-                  IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.AB25350E3E65EFEBE24584461683ECDA68725576E825E550038B90E7B1479946"
-                  IL_0005:  call       "System.ReadOnlySpan<E> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<E>(System.RuntimeFieldHandle)"
-                  IL_000a:  call       "void C.Write(System.ReadOnlySpan<E>)"
-                  IL_000f:  ret
+                  // Code size       45 (0x2d)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<E> V_0)
+                  IL_0000:  ldc.i4.s   24
+                  IL_0002:  conv.u
+                  IL_0003:  localloc
+                  IL_0005:  dup
+                  IL_0006:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.AB25350E3E65EFEBE24584461683ECDA68725576E825E550038B90E7B1479946"
+                  IL_000b:  call       "System.ReadOnlySpan<E> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<E>(System.RuntimeFieldHandle)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "ref readonly E System.ReadOnlySpan<E>.GetPinnableReference()"
+                  IL_0018:  ldc.i4.s   24
+                  IL_001a:  cpblk
+                  IL_001c:  ldc.i4.3
+                  IL_001d:  newobj     "System.Span<E>..ctor(void*, int)"
+                  IL_0022:  call       "System.ReadOnlySpan<E> System.Span<E>.op_Implicit(System.Span<E>)"
+                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<E>)"
+                  IL_002c:  ret
                 }
                 """);
         }

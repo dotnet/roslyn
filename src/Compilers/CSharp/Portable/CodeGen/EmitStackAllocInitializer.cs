@@ -30,23 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var initExprs = inits.Initializers;
 
-            bool isEncDelta = _module.IsEncDelta;
-            var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, isEncDelta);
-
-            if (TypeSymbol.Equals(type.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
-            {
-                var createSpanHelper = getCreateSpanHelper();
-
-                // ROS<T> is only used here if it has already been decided to use CreateSpan by `UseCreateSpanForReadOnlySpanStackAlloc` in conversion lowering.
-                Debug.Assert(createSpanHelper is not null);
-                Debug.Assert(UseCreateSpanForReadOnlySpanStackAlloc(elementType, inits, isEncDelta: isEncDelta));
-
-                EmitExpression(count, used: false);
-
-                ImmutableArray<byte> data = GetRawData(initExprs);
-                _builder.EmitCreateSpan(data, createSpanHelper, inits.Syntax, _diagnostics.DiagnosticBag);
-            }
-            else if (initializationStyle == ArrayInitializerStyle.Element)
+            var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs);
+            if (initializationStyle == ArrayInitializerStyle.Element)
             {
                 emitLocalloc();
                 EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
@@ -78,17 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    if (getCreateSpanHelper() is { } createSpanHelper &&
-                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference, _diagnostics, syntax: inits.Syntax, isOptional: true) is MethodSymbol getPinnableReferenceDefinition)
+                    var syntaxNode = inits.Syntax;
+                    if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol createSpanHelper &&
+                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol getPinnableReferenceDefinition)
                     {
                         // Use RuntimeHelpers.CreateSpan and cpblk.
-                        var syntaxNode = inits.Syntax;
                         var readOnlySpan = getPinnableReferenceDefinition.ContainingType.Construct(elementType);
                         Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
                         var getPinnableReference = getPinnableReferenceDefinition.AsMember(readOnlySpan);
 
                         _builder.EmitOpCode(ILOpCode.Dup);
-                        _builder.EmitCreateSpan(data, createSpanHelper, syntaxNode, _diagnostics.DiagnosticBag);
+                        var createSpanHelperReference = createSpanHelper.Construct(elementType).GetCciAdapter();
+                        _builder.EmitCreateSpan(data, createSpanHelperReference, syntaxNode, _diagnostics.DiagnosticBag);
 
                         var temp = AllocateTemp(readOnlySpan, syntaxNode);
                         _builder.EmitLocalStore(temp);
@@ -121,24 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
-
-            Cci.IMethodReference? getCreateSpanHelper()
-            {
-                var member = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: inits.Syntax, isOptional: true);
-                return ((MethodSymbol?)member)?.Construct(elementType).GetCciAdapter();
-            }
         }
 
-        internal static bool UseCreateSpanForReadOnlySpanStackAlloc(TypeSymbol elementType, BoundArrayInitialization? inits, bool isEncDelta)
+        private ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            return inits?.Initializers is { } initExprs &&
-                elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes() > 1 &&
-                ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, isEncDelta) == ArrayInitializerStyle.Block;
-        }
-
-        private static ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool isEncDelta)
-        {
-            if (isEncDelta)
+            if (_module.IsEncDelta)
             {
                 // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
                 // Consider removing: https://github.com/dotnet/roslyn/issues/69480
@@ -170,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return ArrayInitializerStyle.Element;
         }
 
-        private static void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
+        private void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
         {
             if (inits.Length == 0)
             {
