@@ -16,14 +16,9 @@ namespace CSharpSyntaxGenerator
 {
     using static FileWriter;
 
-    internal sealed class SourceWriter
+    internal sealed class SourceWriter(Tree tree, CancellationToken cancellationToken = default)
     {
-        private readonly FileWriter _fileWriter;
-
-        private SourceWriter(Tree tree, CancellationToken cancellationToken = default)
-        {
-            _fileWriter = new FileWriter(tree, cancellationToken);
-        }
+        private readonly FileWriter _fileWriter = new(tree, cancellationToken);
 
         public static void WriteMain(TextWriter writer, Tree tree, CancellationToken cancellationToken = default)
             => new SourceWriter(tree, cancellationToken).WriteMain(writer);
