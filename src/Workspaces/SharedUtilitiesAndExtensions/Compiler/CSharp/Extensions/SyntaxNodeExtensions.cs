@@ -694,36 +694,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static (SyntaxToken openParen, SyntaxToken closeParen) GetParentheses(this SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ParenthesizedExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case MakeRefExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case RefTypeExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case RefValueExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CheckedExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case DefaultExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case TypeOfExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SizeOfExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CastExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case WhileStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case DoStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ForStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CommonForEachStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case UsingStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case FixedStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case LockStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case IfStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SwitchStatementSyntax n when n.OpenParenToken != default: return (n.OpenParenToken, n.CloseParenToken);
-                case TupleExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case CatchDeclarationSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case ParameterListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                default: return default;
-            }
-        }
+                ParenthesizedExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                MakeRefExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                RefTypeExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                RefValueExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CheckedExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                DefaultExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                TypeOfExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                SizeOfExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ArgumentListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CastExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                WhileStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                DoStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ForStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CommonForEachStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                UsingStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                FixedStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                LockStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                IfStatementSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                SwitchStatementSyntax n when n.OpenParenToken != default => (n.OpenParenToken, n.CloseParenToken),
+                TupleExpressionSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                CatchDeclarationSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                AttributeArgumentListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ConstructorConstraintSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                ParameterListSyntax n => (n.OpenParenToken, n.CloseParenToken),
+                _ => default,
+            };
 
         public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
             => node switch
