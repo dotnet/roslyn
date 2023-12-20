@@ -56,50 +56,40 @@ namespace CSharpSyntaxGenerator
             if (treeType is AbstractNode abstractNode)
             {
                 builder.WriteLine($"public abstract partial class {treeType.Name} : {treeType.Base}");
-                using (builder.EnterBlock())
-                {
-                    foreach (var field in abstractNode.Fields)
-                        builder.WriteLine($$"""public abstract {{field.Type}} {{field.Name}} { get; }""");
-                }
+                using var _ = builder.EnterBlock();
+
+                foreach (var field in abstractNode.Fields)
+                    builder.WriteLine($$"""public abstract {{field.Type}} {{field.Name}} { get; }""");
             }
             else if (treeType is Node node)
             {
                 builder.WriteLine($"public partial class {treeType.Name} : {treeType.Base}");
-                using (builder.EnterBlock())
+                using var _ = builder.EnterBlock();
+
+                if (node.Kinds.Count > 1)
                 {
-                    if (node.Kinds.Count > 1)
-                    {
-                        foreach (var kind in node.Kinds)
-                            builder.WriteLine($"// {kind.Name}");
-                    }
-
-                    foreach (var field in node.Fields.Where(n => IsNodeOrNodeList(n.Type)))
-                        builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
-
-                    foreach (var field in node.Fields.Where(n => !IsNodeOrNodeList(n.Type)))
-                        builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
+                    foreach (var kind in node.Kinds)
+                        builder.WriteLine($"// {kind.Name}");
                 }
+
+                foreach (var field in node.Fields.Where(n => IsNodeOrNodeList(n.Type)))
+                    builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
+
+                foreach (var field in node.Fields.Where(n => !IsNodeOrNodeList(n.Type)))
+                    builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
             }
         }
 
         private static bool IsSeparatedNodeList(string typeName)
-        {
-            return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
-        }
+            => typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
 
         private static bool IsNodeList(string typeName)
-        {
-            return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
-        }
+            => typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
 
         public bool IsNodeOrNodeList(string typeName)
-        {
-            return IsNode(typeName) || SignatureWriter.IsNodeList(typeName) || SignatureWriter.IsSeparatedNodeList(typeName);
-        }
+            => IsNode(typeName) || IsNodeList(typeName) || IsSeparatedNodeList(typeName);
 
         private bool IsNode(string typeName)
-        {
-            return _typeMap.ContainsKey(typeName);
-        }
+            => _typeMap.ContainsKey(typeName);
     }
 }
