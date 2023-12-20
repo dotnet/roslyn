@@ -446,10 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool ContainsYield(this SyntaxNode node)
-            => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(IsYield);
-
-        private static bool IsYield(SyntaxNode node)
-            => node.Kind() is SyntaxKind.YieldBreakStatement or SyntaxKind.YieldReturnStatement;
+            => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => n is YieldStatementSyntax);
 
         public static bool IsReturnableConstructOrTopLevelCompilationUnit(this SyntaxNode node)
             => node.IsReturnableConstruct() || (node is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement));
