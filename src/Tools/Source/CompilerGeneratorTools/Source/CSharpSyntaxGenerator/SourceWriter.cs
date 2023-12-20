@@ -117,20 +117,17 @@ namespace CSharpSyntaxGenerator
 
                     foreach (var field in abstractNode.Fields.Where(n => _fileWriter.IsNodeOrNodeList(n.Type)))
                     {
-                        if (_fileWriter.IsNodeOrNodeList(field.Type))
-                        {
-                            builder.WriteLine();
-                            WriteComment(builder, field.PropertyComment);
+                        builder.WriteLine();
+                        WriteComment(builder, field.PropertyComment);
 
-                            if (IsSeparatedNodeList(field.Type) ||
-                                IsNodeList(field.Type))
-                            {
-                                builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}CoreSyntax.{field.Type} {field.Name} {{ get; }}");
-                            }
-                            else
-                            {
-                                builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{(GetFieldType(field, green: true))} {field.Name} {{ get; }}");
-                            }
+                        if (IsSeparatedNodeList(field.Type) ||
+                            IsNodeList(field.Type))
+                        {
+                            builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}CoreSyntax.{field.Type} {field.Name} {{ get; }}");
+                        }
+                        else
+                        {
+                            builder.WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{(GetFieldType(field, green: true))} {field.Name} {{ get; }}");
                         }
                     }
 
