@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var methodName = implementingClasses.First().CustomAttributes.First(a => a.AttributeType.FullName == "Microsoft.CodeAnalysis.LanguageServer.Handler.MethodAttribute").ConstructorArguments.First().ToString();
                 methodName = methodName.Replace("\"", "");
 
-                // THIS IS PROBABLY NOT ROBUST 
+                // TODO: This is not robust
                 var types = implementingClasses.First().BaseType.GenericTypeArguments;
                 var requestType = types[0];
                 var responseType = types[1];

@@ -72,7 +72,6 @@ public class HandlerProvider : IHandlerProvider
 
         if (lspServices.SupportsGetRegisteredServices())
         {
-            // TODO. Pass in IMethodHandler similar to here. Additional code may be needed to handle the MethodAttribute.
             var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => typeof(IMethodHandler).IsAssignableFrom(type));
 
             foreach (var handlerType in requestHandlerTypes)

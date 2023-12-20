@@ -146,7 +146,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// Wrapper class to hold the method and properties from the <see cref="AbstractLanguageServer{RequestContextType}"/>
     /// that the method info passed to StreamJsonRpc is created from.
     /// </summary>
-    public sealed class DelegatingEntryPoint
+    private sealed class DelegatingEntryPoint
     {
         private readonly string _method;
         private readonly AbstractLanguageServer<TRequestContext> _target;

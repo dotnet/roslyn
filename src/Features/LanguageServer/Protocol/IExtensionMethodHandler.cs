@@ -15,21 +15,18 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework
 {
-    // Some marker interface so we can have lists of non-generic handlers
+    // A marker interface so we can have lists of non-generic handlers
     public interface IExtensionMethodHandler
     {
     }
 
-    // The actual generic interface that all public handlers implement.
-    // Probably should actually be an abstract class.  Could also instead of implementing ILspServiceRequestHandler, we could create a Wrapper class that implements ILspServiceRequestHandler and then delegates to the actual handler.
-    // This is the main thing a user implements to create a handler.
-
+    // The generic interface that all public handlers implement.
     public abstract class ExtensionMethodHandler<Request, Response> : IExtensionMethodHandler
     {
         public abstract Task<Response> HandleRequestAsync(Request request, SimpleRequestContext context, CancellationToken cancellationToken);
     }
 
-    // May have problem with method attribute 
+    // TODO: Additional code may be needed to handle the MethodAttribute
     internal class ExtensionMethodHandlerWrapper<Request, Response, THandler> : IMethodHandler, ILspServiceRequestHandler<Request, Response>
         where THandler : ExtensionMethodHandler<Request, Response>, new()
     {
