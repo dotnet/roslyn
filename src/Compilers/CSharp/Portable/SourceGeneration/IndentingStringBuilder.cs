@@ -206,19 +206,23 @@ internal sealed class IndentingStringBuilder : IDisposable
             while (content.Length > 0)
             {
                 var endOfLineIndex = content.IndexOfAny(EndOfLineCharacters);
-                if (endOfLineIndex < 0)
+                if (endOfLineIndex >= 0)
+                {
+                    // consume through all the end-of-line characters we have.
+                    while (endOfLineIndex < content.Length && IsEndOfLineCharacter(content[endOfLineIndex]))
+                        endOfLineIndex++;
+
+                    // Then write that content and sequence of end-of-lines to the buffer.
+                    AppendSingleLine(content[0..endOfLineIndex], originalLine: null, skipIndent);
+
+                    // Then start again with the content following the end of lines.
+                    content = content[endOfLineIndex..];
+                }
+                else
                 {
                     // no new line, append the rest of the content to the buffer.
                     AppendSingleLine(content, originalLine: null, skipIndent);
                     break;
-                }
-                else
-                {
-                    while (endOfLineIndex < content.Length && IsEndOfLineCharacter(content[endOfLineIndex]))
-                        endOfLineIndex++;
-
-                    AppendSingleLine(content[0..endOfLineIndex], originalLine: null, skipIndent);
-                    content = content[endOfLineIndex..];
                 }
             }
         }
