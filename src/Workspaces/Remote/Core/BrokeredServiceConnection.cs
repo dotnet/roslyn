@@ -21,22 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class BrokeredServiceConnection<TService> : RemoteServiceConnection<TService>
         where TService : class
     {
-        private readonly struct Rental : IDisposable
+        private readonly struct Rental(ServiceBrokerClient.Rental<TService> proxyRental, TService service) : IDisposable
         {
-#pragma warning disable ISB002 // Avoid storing rentals in fields
-            private readonly ServiceBrokerClient.Rental<TService> _proxyRental;
-#pragma warning restore
-
-            public readonly TService Service;
-
-            public Rental(ServiceBrokerClient.Rental<TService> proxyRental, TService service)
-            {
-                _proxyRental = proxyRental;
-                Service = service;
-            }
+            public readonly TService Service = service;
 
             public void Dispose()
-                => _proxyRental.Dispose();
+                => proxyRental.Dispose();
         }
 
         private readonly IErrorReportingService? _errorReportingService;
