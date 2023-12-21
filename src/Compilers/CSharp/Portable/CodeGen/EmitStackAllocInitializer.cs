@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return ArrayInitializerStyle.Element;
             }
 
-            if (elementType.EnumUnderlyingTypeOrSelf().SpecialType.IsBlittable())
+            if (IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType))
             {
                 int initCount = 0;
                 int constCount = 0;
