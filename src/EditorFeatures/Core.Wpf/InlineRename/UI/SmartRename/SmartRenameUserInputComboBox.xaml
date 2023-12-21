@@ -104,10 +104,10 @@
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 Style="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}"
-                                Padding="1,3,1,1"
+                                Padding="4,3,2,1"
                                 Command="{Binding GetSuggestionsCommand}">
                             <Button.Content>
-                                <Canvas Width="16" Height="16">
+                                <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <!-- TODO: Replace by KnownMoniker once available. -->
                                     <Path Stretch="Uniform"
                                           Fill="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxGlyphBrushKey}}"

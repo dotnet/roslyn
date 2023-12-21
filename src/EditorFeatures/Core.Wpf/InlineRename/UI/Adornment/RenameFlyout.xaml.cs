@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IThreadingContext _threadingContext;
-        private readonly Lazy<RenameUserInputTextBox> _identifierTextBox;
-        private readonly Lazy<SmartRenameUserInputComboBox> _smartRenameUserInputComboBox;
 
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
@@ -54,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
             _threadingContext = threadingContext;
             _wpfThemeService = themeService;
-            _identifierTextBox = new(() => new RenameUserInputTextBox(_viewModel));
-            _smartRenameUserInputComboBox = new(() => new SmartRenameUserInputComboBox(_viewModel));
+
+            RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputComboBox(_viewModel);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // If smart rename is available, insert the control after the identifier text box.
             if (viewModel.SmartRenameViewModel is not null)
             {
-                var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
+                var smartRenameControl = new SmartRenameStatusControl(viewModel.SmartRenameViewModel);
                 var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
                 MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
         }
 
-        internal IRenameUserInput RenameUserInput => _viewModel.SmartRenameViewModel is null ? _identifierTextBox.Value : _smartRenameUserInputComboBox.Value;
+        internal IRenameUserInput RenameUserInput { get; }
 
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
         {

@@ -7,11 +7,11 @@ using System.Windows.Controls;
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
 /// <summary>
-/// Interaction logic for SmartRenameControl.xaml
+/// Interaction logic for SmartRenameStatusControl.xaml
 /// </summary>
-internal sealed partial class SmartRenameControl : UserControl
+internal sealed partial class SmartRenameStatusControl : UserControl
 {
-    public SmartRenameControl(SmartRenameViewModel viewModel)
+    public SmartRenameStatusControl(SmartRenameViewModel viewModel)
     {
         this.DataContext = viewModel;
         InitializeComponent();
