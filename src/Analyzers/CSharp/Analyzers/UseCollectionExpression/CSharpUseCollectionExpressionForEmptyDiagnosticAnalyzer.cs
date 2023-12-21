@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -15,15 +16,11 @@ using static UseCollectionExpressionHelpers;
 /// replace with <c>[]</c> if legal to do so.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForEmpty)
 {
-    public CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForEmpty)
-    {
-    }
-
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
 
@@ -34,7 +31,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -48,7 +45,8 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -56,8 +54,6 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
-            properties: null));
-
-        return;
+            properties: changesSemantics ? ChangesSemantics : null));
     }
 }
