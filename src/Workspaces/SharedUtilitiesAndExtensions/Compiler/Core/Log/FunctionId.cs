@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionState_ComputeChecksumsAsync = 315,
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
+        SolutionCompilationState_ComputeChecksumsAsync = 318,
 
         // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
         // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,

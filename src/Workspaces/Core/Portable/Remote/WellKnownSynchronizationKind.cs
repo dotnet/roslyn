@@ -8,7 +8,8 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-        SolutionState = 1,
+        SolutionState1 = 1,
+        SolutionCompilationState,
         ProjectState,
         DocumentState,
 
@@ -40,7 +41,8 @@ namespace Microsoft.CodeAnalysis.Serialization
         DocumentChecksumCollection,
         AnalyzerConfigDocumentChecksumCollection,
         ProjectChecksumCollection,
-        SolutionStateChecksums,
+        SolutionCompilationStateChecksums,
+        SolutionStateChecksums1,
         ProjectStateChecksums,
         DocumentStateChecksums,
     }

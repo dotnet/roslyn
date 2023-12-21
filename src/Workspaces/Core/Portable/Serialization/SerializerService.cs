@@ -152,8 +152,12 @@ internal partial class SerializerService : ISerializerService
                     SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                     return;
 
-                case WellKnownSynchronizationKind.SolutionState:
-                    ((SolutionStateChecksums)value).Serialize(writer);
+                case WellKnownSynchronizationKind.SolutionState1:
+                    ((SolutionStateChecksums1)value).Serialize(writer);
+                    return;
+
+                case WellKnownSynchronizationKind.SolutionCompilationState:
+                    ((SolutionCompilationStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectState:
