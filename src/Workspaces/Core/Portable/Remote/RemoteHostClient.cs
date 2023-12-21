@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -121,6 +122,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<bool> TryInvokeOnlyToGenerateSourceAsync(
+            SolutionState solution,
+            Func<IRemoteSourceGenerationService, Checksum, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+        {
+            using var connection = CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+            return await connection.TryInvokeOnlyToGenerateSourceAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(

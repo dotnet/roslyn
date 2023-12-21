@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -44,9 +45,25 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
         Func<TService, Checksum, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
+    public abstract ValueTask<bool> TryInvokeOnlyToGenerateSourceAsync(
+        SolutionState solution,
+        Func<IRemoteSourceGenerationService, Checksum, CancellationToken, ValueTask> invocation,
+        CancellationToken cancellationToken);
+
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
         SolutionCompilationState solution,
         Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Specialized entry point used by the solution itself to call over to the OOP process to generate source-generator
+    /// documents.  This entry point differs in that it doesn't want to sync over the entire solution (including
+    /// generated docs), since the point of it is to generate those docs in the first place.  As such, it takes only a
+    /// <see cref="SolutionState"/> object, representing just the actual primordial state of the solution.
+    /// </summary>
+    public abstract ValueTask<Optional<TResult>> TryInvokeOnlyToGenerateSourceAsync<TResult>(
+        SolutionState solution,
+        Func<IRemoteSourceGenerationService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
 
     public ValueTask<bool> TryInvokeAsync(

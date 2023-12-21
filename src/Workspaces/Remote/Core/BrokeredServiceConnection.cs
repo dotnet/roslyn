@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
@@ -178,7 +179,38 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public override async ValueTask<bool> TryInvokeOnlyToGenerateSourceAsync(SolutionState solution, Func<IRemoteSourceGenerationService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return false;
+            }
+        }
+
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState solution, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return default;
+            }
+        }
+
+        public override async ValueTask<Optional<TResult>> TryInvokeOnlyToGenerateSourceAsync<TResult>(SolutionState solution, Func<IRemoteSourceGenerationService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
