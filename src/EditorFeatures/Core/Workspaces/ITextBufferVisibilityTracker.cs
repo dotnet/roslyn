@@ -80,7 +80,10 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
+#pragma warning disable VSTHRD004 // TODO: Calls to JoinableTaskFactory.SwitchToMainThreadAsync() must be awaited (https://github.com/dotnet/roslyn/issues/71377)
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+#pragma warning restore
+
                 if (cancellationToken.IsCancellationRequested)
                     return;
 

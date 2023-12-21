@@ -249,7 +249,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
+#pragma warning disable VSTHRD004 // TODO: Calls to JoinableTaskFactory.SwitchToMainThreadAsync() must be awaited (https://github.com/dotnet/roslyn/issues/71377)
                     await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+#pragma warning restore
+
                     if (cancellationToken.IsCancellationRequested)
                         return default;
 
