@@ -11,7 +11,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         /// <summary>
         /// A helper type for mapping <see cref="ISymbol"/> back to an originating <see cref="Project"/>.
