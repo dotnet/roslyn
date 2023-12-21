@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                         async t =>
                         {
+#pragma warning disable VSTHRD004 // TODO: Calls to JoinableTaskFactory.SwitchToMainThreadAsync() must be awaited (https://github.com/dotnet/roslyn/issues/71377)
                             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+#pragma warning restore
 
                             // Avoid throwing an exception in this common case
                             if (_cancellationToken.IsCancellationRequested)
@@ -113,8 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 task.SafeContinueWithFromAsync(async t =>
                    {
+#pragma warning disable VSTHRD004 // TODO: Calls to JoinableTaskFactory.SwitchToMainThreadAsync() must be awaited (https://github.com/dotnet/roslyn/issues/71377)
                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
-
+#pragma warning restore
                        // Avoid throwing an exception in this common case
                        if (_cancellationToken.IsCancellationRequested)
                            return;

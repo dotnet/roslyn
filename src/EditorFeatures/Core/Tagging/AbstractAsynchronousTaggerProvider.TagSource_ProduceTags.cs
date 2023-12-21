@@ -193,7 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </param>
             private async Task<VoidResult> RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
+#pragma warning disable VSTHRD004 // TODO: Calls to JoinableTaskFactory.SwitchToMainThreadAsync() must be awaited (https://github.com/dotnet/roslyn/issues/71377)
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+#pragma warning restore
+
                 if (cancellationToken.IsCancellationRequested)
                     return default;
 
