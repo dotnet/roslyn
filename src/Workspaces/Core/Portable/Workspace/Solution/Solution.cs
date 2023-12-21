@@ -582,20 +582,15 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             if (projectReference == null)
-            {
                 throw new ArgumentNullException(nameof(projectReference));
-            }
 
             CheckContainsProject(projectId);
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = this.SolutionState.RemoveProjectReference(projectId, projectReference);
-            if (stateChange.NewSolutionState == this.SolutionState)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.ProjectReferences.Contains(projectReference))
                 throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
-            }
 
-            var newCompilationState = _compilationState.RemoveProjectReference(stateChange);
+            var newCompilationState = _compilationState.RemoveProjectReference(projectId, projectReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

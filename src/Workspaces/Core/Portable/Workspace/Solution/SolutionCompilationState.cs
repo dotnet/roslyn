@@ -398,10 +398,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
-    public SolutionCompilationState RemoveProjectReference(StateChange stateChange)
+    public SolutionCompilationState RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveProjectReference(projectId, projectReference),
             translate: null,
             forkTracker: true);
     }
