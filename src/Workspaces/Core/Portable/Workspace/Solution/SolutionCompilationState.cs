@@ -1309,9 +1309,9 @@ internal sealed partial class SolutionCompilationState
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal readonly struct TestAccessor(SolutionCompilationState solutionState)
+    internal readonly struct TestAccessor(SolutionCompilationState compilationState)
     {
         public GeneratorDriver? GetGeneratorDriver(Project project)
-            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+            => project.SupportsCompilation ? compilationState.GetCompilationTracker(project.Id).GeneratorDriver : null;
     }
 }
