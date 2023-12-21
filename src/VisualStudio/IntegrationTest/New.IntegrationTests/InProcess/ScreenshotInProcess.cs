@@ -26,10 +26,22 @@ using Size = System.Drawing.Size;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
+/// <summary>
+/// Test service to support capturing animated screenshots of integration tests (APNG format).
+/// </summary>
+/// <seealso href="https://www.w3.org/TR/png">Portable Network Graphics (PNG) Specification (Third Edition)</seealso>
 [TestService]
 internal partial class ScreenshotInProcess
 {
     private static readonly SharedStopwatch s_timer = SharedStopwatch.StartNew();
+
+    /// <summary>
+    /// Frames captured for the current test. The elapsed time field is a timestamp relative to a fixed but unspecified
+    /// point in time.
+    /// </summary>
+    /// <remarks>
+    /// Lock on this object before accessing to prevent concurrent accesses.
+    /// </remarks>
     private static readonly List<(TimeSpan elapsed, BitmapSource image)> s_frames = new();
     private static readonly System.Buffers.ArrayPool<byte> s_pool = System.Buffers.ArrayPool<byte>.Shared;
     private static ScreenshotInProcess? s_currentInstance;
@@ -147,6 +159,7 @@ internal partial class ScreenshotInProcess
                     frames = s_frames.ToArray();
                 }
 
+                // Make sure the frames are processed in order of their timestamps
                 Array.Sort(frames, (x, y) => x.elapsed.CompareTo(y.elapsed));
 
                 using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
