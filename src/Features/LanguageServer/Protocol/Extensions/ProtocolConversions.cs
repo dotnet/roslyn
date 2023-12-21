@@ -34,15 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
-        private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
         private const string BlockCodeFence = "```";
         private const string InlineCodeFence = "`";
 
-#pragma warning disable RS0030 // Do not use banned APIs
-        private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
-#pragma warning restore
-
         private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
+
+        public const string SourceGeneratedFileScheme = "roslyn-source-generated";
+        public const string SourceGeneratedGuidFormat = "D";
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -220,26 +218,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 #pragma warning restore
         }
 
-        public static Uri CreateUriFromSourceGeneratedFilePath(string filePath)
+        public static Uri CreateUriForSourceGeneratedDocument(SourceGeneratedDocument document)
         {
-            Debug.Assert(!PathUtilities.IsAbsolute(filePath));
+            // For source generated documents, we'll produce a URI specifically for LSP that has a scheme the client can register for; the "host" portion will
+            // just be the project ID of the document, then the path will be the GUID that is the document ID, with the rest of it being the generated file path
+            // just so any display of the end of the URI (like a file tab) works well.
 
-            // Fast path for common cases:
-            if (IsAscii(filePath))
-            {
-#pragma warning disable RS0030 // Do not use banned APIs
-                return new Uri(s_sourceGeneratedDocumentBaseUri, filePath);
-#pragma warning restore
-            }
+            // Ensure the hint path is converted to a URI-friendly format
+            var hintPathParts = document.HintName.Split(s_dirSeparators);
+            var hintPathPortion = string.Join("/", hintPathParts.Select(Uri.EscapeDataString));
 
-            // Workaround for https://github.com/dotnet/runtime/issues/89538:
-
-            var parts = filePath.Split(s_dirSeparators);
-            var url = SourceGeneratedDocumentBaseUri + string.Join("/", parts.Select(Uri.EscapeDataString));
-
-#pragma warning disable RS0030 // Do not use banned APIs
-            return new Uri(url, UriKind.Absolute);
-#pragma warning restore
+            return CreateAbsoluteUri(
+                SourceGeneratedFileScheme + "://" +
+                document.Id.ProjectId.Id.ToString(SourceGeneratedGuidFormat) + "/" +
+                document.Id.Id.ToString(SourceGeneratedGuidFormat) + "/" +
+                hintPathPortion);
         }
 
         private static bool IsAscii(char c)
