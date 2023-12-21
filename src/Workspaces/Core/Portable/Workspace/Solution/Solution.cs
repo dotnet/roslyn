@@ -837,17 +837,12 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            var newState = this.SolutionState.RemoveAnalyzerReference(analyzerReference);
-            if (newState == this.SolutionState)
-            {
+            if (!this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(newState);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(analyzerReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

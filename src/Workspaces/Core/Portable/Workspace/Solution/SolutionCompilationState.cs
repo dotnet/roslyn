@@ -464,12 +464,12 @@ internal sealed partial class SolutionCompilationState
         return Branch(newSolutionState);
     }
 
-    public SolutionCompilationState RemoveAnalyzerReference(SolutionState newSolutionState)
+    public SolutionCompilationState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
         // all come from entrypoints that are specific to a particular project.
-        return Branch(newSolutionState);
+        return Branch(this.Solution.RemoveAnalyzerReference(analyzerReference));
     }
 
     public SolutionCompilationState WithAnalyzerReferences(SolutionState newSolutionState)
