@@ -495,10 +495,6 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectAnalyzerReferences(
         ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        var stateChange = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
         // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
         // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
@@ -512,7 +508,7 @@ internal sealed partial class SolutionCompilationState
         // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
 
         return ForkProject(
-            stateChange,
+            this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences),
             static stateChange =>
             {
                 var addedReferences = stateChange.NewProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.OldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
