@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
+using Xunit;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -41,18 +43,13 @@ internal partial class MessageBoxInProcess
     public IDisposable HandleMessageBox(Func<string, string, DialogResult> callback)
     {
         var handler = new MessageBoxHandler(callback);
-        ImmutableInterlocked.Update(ref s_handlers, handlers => handlers.Add(handler));
+        ImmutableInterlocked.Update(ref s_handlers, static (handlers, handler) => handlers.Add(handler), handler);
         return handler;
     }
 
-    private sealed class MessageBoxHandler : IDisposable
+    private sealed class MessageBoxHandler(Func<string, string, DialogResult> callback) : IDisposable
     {
-        private readonly Func<string, string, DialogResult> _callback;
-
-        public MessageBoxHandler(Func<string, string, DialogResult> callback)
-        {
-            _callback = callback;
-        }
+        private readonly Func<string, string, DialogResult> _callback = callback;
 
         public DialogResult Handle(string text, string caption)
         {
@@ -61,7 +58,7 @@ internal partial class MessageBoxInProcess
 
         public void Dispose()
         {
-            ImmutableInterlocked.Update(ref s_handlers, handlers => handlers.Remove(this));
+            ImmutableInterlocked.Update(ref s_handlers, static (handlers, self) => handlers.Remove(self), this);
         }
     }
 
@@ -107,12 +104,14 @@ internal partial class MessageBoxInProcess
                 }
             }
 
-            throw new NotSupportedException(
+            Assert.True(
+                false,
                 $"""
                 Unexpected dialog box appeared.
                 Text: {lpszText}
                 Caption: {lpszCaption}
                 """);
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }
