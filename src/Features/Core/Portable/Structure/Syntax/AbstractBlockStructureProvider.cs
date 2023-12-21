@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 // )
                 //
                 // We only collapse the "inner" span which has larger start.
-                spans.Sort((x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+                spans.Sort(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
 
                 var lastAddedLine = -1;
                 var text = context.SyntaxTree.GetText(context.CancellationToken);
