@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 /// </summary>
 [TemplatePart(Name = InnerTextBox, Type = typeof(TextBox))]
 [TemplatePart(Name = DropDownPopup, Type = typeof(Popup))]
-public partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
+internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUserInput
 {
     private const string InnerTextBox = "PART_EditableTextBox";
     private const string DropDownPopup = "PART_Popup";

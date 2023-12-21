@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 /// <summary>
 /// Interaction logic for RenameUserInputTextBox.xaml
 /// </summary>
-public partial class RenameUserInputTextBox : TextBox, IRenameUserInput
+internal sealed partial class RenameUserInputTextBox : TextBox, IRenameUserInput
 {
     internal RenameUserInputTextBox(RenameFlyoutViewModel viewModel)
     {
