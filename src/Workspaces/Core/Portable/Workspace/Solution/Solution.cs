@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newCompilationState = _compilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(collection));
+            var newCompilationState = _compilationState.AddAnalyzerReferences(collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
