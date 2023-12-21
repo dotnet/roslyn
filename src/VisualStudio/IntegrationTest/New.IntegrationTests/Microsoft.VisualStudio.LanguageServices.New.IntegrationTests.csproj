@@ -56,6 +56,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
+    <PackageReference Include="System.IO.Hashing" Version="$(SystemIOHashingVersion)" />
     <PackageReference Include="UIAComWrapper" Version="$(UIAComWrapperVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
