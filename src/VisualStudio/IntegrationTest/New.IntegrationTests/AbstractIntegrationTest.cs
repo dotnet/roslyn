@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
-        private static AsyncPackage? s_editorPackage;
+        private static string? s_catalogCacheFolder;
         private static AsynchronousOperationListenerProvider? s_listenerProvider;
         private static VisualStudioWorkspace? s_workspace;
 
@@ -41,11 +42,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
             DataCollectionService.RegisterCustomLogger(
                 static fileName =>
                 {
-                    if (s_editorPackage is null)
+                    if (s_catalogCacheFolder is null)
                         return;
 
-                    var folder = s_editorPackage.UserLocalDataPath;
-                    var file = Path.Combine(folder, "ComponentModelCache", "Microsoft.VisualStudio.Default.err");
+                    var file = Path.Combine(s_catalogCacheFolder, "Microsoft.VisualStudio.Default.err");
                     if (File.Exists(file))
                     {
                         string content;
@@ -55,7 +55,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
                         }
                         catch (Exception ex)
                         {
-                            content = ex.ToString();
+                            content =
+                                $"""
+                                Exception thrown while reading '{file}':
+                                {ex}
+                                """;
                         }
 
                         File.WriteAllText(fileName, content);
@@ -135,7 +139,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             await base.InitializeAsync();
 
-            s_editorPackage ??= await TestServices.Editor.GetEditorPackageAsync(HangMitigatingCancellationToken);
+            if (s_catalogCacheFolder is null)
+            {
+                var componentModel = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsComponentModelHost, IVsComponentModelHost>(HangMitigatingCancellationToken);
+                ErrorHandler.ThrowOnFailure(componentModel.GetCatalogCacheFolder(out s_catalogCacheFolder));
+            }
+
             s_listenerProvider ??= await TestServices.Shell.GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
             s_workspace ??= await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
 

@@ -73,32 +73,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return view.GetBufferContainingCaret();
         }
 
-        public async Task<AsyncPackage> GetEditorPackageAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var shell = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsShell, IVsShell7>(cancellationToken);
-            var editorPackage = await shell.LoadPackageAsync(DefGuidList.guidEditorPkg);
-            return (AsyncPackage)editorPackage;
-        }
-
-        public async Task<AsyncPackage?> GetEditorPackageIfAlreadyLoadedAsync(CancellationToken cancellationToken)
-        {
-            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-            if (shell.IsPackageLoaded(DefGuidList.guidEditorPkg, out var editorPackage) == VSConstants.S_OK)
-            {
-                return (AsyncPackage)editorPackage;
-            }
-
-            return null;
-        }
-
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if ((await GetEditorPackageIfAlreadyLoadedAsync(cancellationToken)) is { } asyncPackage)
+            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
+            if (shell.IsPackageLoaded(DefGuidList.guidEditorPkg, out var editorPackage) == VSConstants.S_OK)
             {
+                var asyncPackage = (AsyncPackage)editorPackage;
                 var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
                 await collection.JoinTillEmptyAsync(cancellationToken);
             }
