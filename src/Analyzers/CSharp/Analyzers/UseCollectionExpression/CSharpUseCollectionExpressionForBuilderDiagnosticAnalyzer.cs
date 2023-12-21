@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -40,10 +41,10 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, cancellationToken) is not { } analysisResult)
             return;
 

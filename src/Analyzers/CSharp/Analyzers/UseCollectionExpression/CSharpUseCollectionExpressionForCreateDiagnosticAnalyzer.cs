@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -35,7 +36,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
@@ -43,7 +44,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return;
 

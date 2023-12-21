@@ -369,7 +369,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = """
                 [*]
-                dotnet_style_prefer_collection_expression_for_interfaces=false
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
     }
@@ -765,7 +765,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             EditorConfig = """
                 [*]
-                dotnet_style_prefer_collection_expression_for_interfaces=false
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
     }

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -77,7 +78,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -96,7 +97,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
 
         var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowInterfaceConversion, addMatches: true, cancellationToken);
         if (analysisResult is null)
             return;

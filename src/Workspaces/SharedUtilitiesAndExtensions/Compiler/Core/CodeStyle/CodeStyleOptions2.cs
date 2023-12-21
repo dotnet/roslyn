@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -90,15 +91,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_collection_initializer",
             IdeCodeStyleOptions.CommonDefaults.PreferCollectionInitializer);
 
-        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpression = CreatePerLanguageOption(
+        internal static readonly PerLanguageOption2<CodeStyleOption2<CollectionExpressionPreference>> PreferCollectionExpression = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             "dotnet_style_prefer_collection_expression",
-            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpression);
-
-        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpressionForInterfaces = CreatePerLanguageOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences,
-            "dotnet_style_prefer_collection_expression_for_interfaces",
-            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpressionForInterfaces);
+            IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpression,
+            defaultValue => new(
+                parseValue: s => CollectionExpressionPreferenceUtilities.Parse(s, defaultValue),
+                serializeValue: v => CollectionExpressionPreferenceUtilities.GetEditorConfigString(v, defaultValue)));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,

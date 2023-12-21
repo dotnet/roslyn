@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,16 +43,16 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         // Analyze the statements that follow to see if they can initialize this array.
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         var matches = TryGetMatches(semanticModel, arrayCreationExpression, expressionType, allowInterfaceConversion, cancellationToken, out var changesSemantics);
         if (matches.IsDefault)
             return;
 
-        ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression, changesSemantics);
+        ReportArrayCreationDiagnostics(context, syntaxTree, option.Notification, arrayCreationExpression, changesSemantics);
     }
 
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
@@ -113,7 +114,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var isConcreteOrImplicitArrayCreation = initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax;
@@ -131,7 +132,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var replacementCollectionExpression = CollectionExpression(
             SeparatedList<CollectionElementSyntax>(initializer.Expressions.Select(ExpressionElement)));
 
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
                 semanticModel, arrayCreationExpression, replacementCollectionExpression,
                 expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken,
@@ -152,7 +153,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             if (matches.IsDefault)
                 return;
 
-            ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression, changesSemantics);
+            ReportArrayCreationDiagnostics(context, syntaxTree, option.Notification, arrayCreationExpression, changesSemantics);
         }
         else
         {
@@ -171,14 +172,14 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     }
 
     private void ReportArrayCreationDiagnostics(
-        SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, CodeStyleOption2<bool> option, ExpressionSyntax expression, bool changesSemantics)
+        SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, NotificationOption2 notification, ExpressionSyntax expression, bool changesSemantics)
     {
         var properties = changesSemantics ? ChangesSemantics : null;
         var locations = ImmutableArray.Create(expression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification,
+            notification,
             additionalLocations: locations,
             properties: properties));
 

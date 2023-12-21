@@ -2784,7 +2784,7 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
             EditorConfig = """
                 [*]
-                dotnet_style_prefer_collection_expression_for_interfaces=false
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
     }

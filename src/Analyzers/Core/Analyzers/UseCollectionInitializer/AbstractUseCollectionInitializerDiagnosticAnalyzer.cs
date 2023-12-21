@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -140,11 +141,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var preferInitializerOption = context.GetAnalyzerOptions().PreferCollectionInitializer;
         var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
 
         // not point in analyzing if both options are off.
         if (!preferInitializerOption.Value
-            && !preferExpressionOption.Value
+            && preferExpressionOption.Value == Shared.CodeStyle.CollectionExpressionPreference.Never
             && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
                     ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification),
                     context.CancellationToken))
@@ -188,7 +188,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-        var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
+        var notification = shouldUseCollectionExpression ? preferExpressionOption.Notification : preferInitializerOption.Notification;
         var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : ImmutableDictionary<string, string?>.Empty;
         if (changesSemantics)
             properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
@@ -196,7 +196,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
-            option.Notification,
+            notification,
             additionalLocations: locations,
             properties));
 
@@ -223,7 +223,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
-            if (!preferExpressionOption.Value)
+            if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
 
             // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
@@ -237,6 +237,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
+            var allowInterfaceConversion = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
             if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, cancellationToken, out var changesSemantics))
                 return null;
 

@@ -1546,7 +1546,7 @@ public partial class UseCollectionExpressionForBuilderTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             EditorConfig = """
                 [*]
-                dotnet_style_prefer_collection_expression_for_interfaces=false
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
         }.RunAsync();
     }

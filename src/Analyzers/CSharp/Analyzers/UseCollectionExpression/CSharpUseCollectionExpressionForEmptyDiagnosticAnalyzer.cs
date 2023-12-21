@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -30,7 +31,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -44,7 +45,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        var allowInterfaceConversion = context.GetAnalyzerOptions().PreferCollectionExpressionForInterfaces.Value;
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             return;
 
