@@ -764,18 +764,13 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (analyzerReference == null)
-            {
                 throw new ArgumentNullException(nameof(analyzerReference));
-            }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference);
-            if (stateChange.NewSolutionState == this.SolutionState)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveAnalyzerReference(stateChange, analyzerReference);
+            var newCompilationState = _compilationState.RemoveAnalyzerReference(projectId, analyzerReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

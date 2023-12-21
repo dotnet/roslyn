@@ -481,10 +481,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(StateChange stateChange, AnalyzerReference analyzerReference)
+    public SolutionCompilationState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveAnalyzerReference(projectId, analyzerReference),
             static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true,
