@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis
         {
             var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-            var newCompilationState = _compilationState.WithAnalyzerReferences(this.SolutionState.WithAnalyzerReferences(collection));
+            var newCompilationState = _compilationState.WithAnalyzerReferences(collection);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
