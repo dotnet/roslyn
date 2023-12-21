@@ -2,48 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Serialization
+namespace Microsoft.CodeAnalysis.Serialization;
+
+internal enum WellKnownSynchronizationKind
 {
-    internal enum WellKnownSynchronizationKind
-    {
-        // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
+    // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-        SolutionState1 = 1,
-        SolutionCompilationState,
-        ProjectState,
-        DocumentState,
+    SolutionState1 = 1,
+    SolutionCompilationState,
+    ProjectState,
+    DocumentState,
 
-        ChecksumCollection,
+    ChecksumCollection,
 
-        SolutionAttributes,
-        ProjectAttributes,
-        DocumentAttributes,
-        SourceGeneratedDocumentIdentity,
+    SolutionAttributes,
+    ProjectAttributes,
+    DocumentAttributes,
+    SourceGeneratedDocumentIdentity,
 
-        CompilationOptions,
-        ParseOptions,
-        ProjectReference,
-        MetadataReference,
-        AnalyzerReference,
-        SourceText,
+    CompilationOptions,
+    ParseOptions,
+    ProjectReference,
+    MetadataReference,
+    AnalyzerReference,
+    SourceText,
 
-        SerializableSourceText,
-
-        //
-
-        SyntaxTreeIndex,
-        SymbolTreeInfo,
-
-        ProjectReferenceChecksumCollection,
-        MetadataReferenceChecksumCollection,
-        AnalyzerReferenceChecksumCollection,
-        TextDocumentChecksumCollection,
-        DocumentChecksumCollection,
-        AnalyzerConfigDocumentChecksumCollection,
-        ProjectChecksumCollection,
-        SolutionCompilationStateChecksums,
-        SolutionStateChecksums1,
-        ProjectStateChecksums,
-        DocumentStateChecksums,
-    }
+    SerializableSourceText,
 }

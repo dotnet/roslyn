@@ -37,8 +37,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
             {
-                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
+                    assetHint: AssetHint.None, newSolutionCompilationChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+
                 var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
                     assetHint: AssetHint.None, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
@@ -56,9 +59,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     // if needed again later.
                     solution = solution.WithoutFrozenSourceGeneratedDocuments();
 
-                    var oldSolutionChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+                    var oldSolutionChecksums = await solution.CompilationState.Solution.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
+                        assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                     {
@@ -81,12 +87,13 @@ namespace Microsoft.CodeAnalysis.Remote
                             assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
-                    if (newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null && newSolutionChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
+                    if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null &&
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
                     {
                         var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                            assetHint: AssetHint.None, newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity, cancellationToken).ConfigureAwait(false);
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity, cancellationToken).ConfigureAwait(false);
                         var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                            assetHint: AssetHint.None, newSolutionChecksums.FrozenSourceGeneratedDocumentText, cancellationToken).ConfigureAwait(false);
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText, cancellationToken).ConfigureAwait(false);
 
                         var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         solution = solution.WithFrozenSourceGeneratedDocument(identity, sourceText).Project.Solution;
@@ -106,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private async Task<Solution> UpdateProjectsAsync(
-                Solution solution, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
+                Solution solution, SolutionStateChecksums1 oldSolutionChecksums, SolutionStateChecksums1 newSolutionChecksums, CancellationToken cancellationToken)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();

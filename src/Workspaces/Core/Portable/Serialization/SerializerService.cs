@@ -188,8 +188,11 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.SolutionState:
-                    return (T)(object)SolutionStateChecksums.Deserialize(reader);
+                case WellKnownSynchronizationKind.SolutionState1:
+                    return (T)(object)SolutionStateChecksums1.Deserialize(reader);
+
+                case WellKnownSynchronizationKind.SolutionCompilationState:
+                    return (T)(object)SolutionCompilationStateChecksums.Deserialize(reader);
 
                 case WellKnownSynchronizationKind.ProjectState:
                     return (T)(object)ProjectStateChecksums.Deserialize(reader);

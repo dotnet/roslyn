@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
+            // when solution state is changed, we recalculate its checksum
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
+
             CheckInvariants();
 
             // make sure we don't accidentally capture any state but the list of references:
