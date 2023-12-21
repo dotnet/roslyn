@@ -661,9 +661,6 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
@@ -682,9 +679,6 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateAdditionalDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // This method shouldn't have been called if the document has not changed.cument has not changed.
         Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
