@@ -18,12 +18,12 @@ internal partial class SolutionAssetStorage
     internal sealed partial class Scope(
         SolutionAssetStorage storage,
         Checksum solutionChecksum,
-        SolutionState solution) : IDisposable
+        SolutionCompilationState solution) : IDisposable
     {
         private readonly SolutionAssetStorage _storage = storage;
 
         public readonly Checksum SolutionChecksum = solutionChecksum;
-        public readonly SolutionState Solution = solution;
+        public readonly SolutionCompilationState Solution = solution;
 
         /// <summary>
         ///  Will be disposed from <see cref="DecreaseScopeRefCount(Scope)"/> when the last ref-count to this scope goes
@@ -70,7 +70,7 @@ internal partial class SolutionAssetStorage
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
                 await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
-            foreach (var projectId in solutionState.ProjectIds)
+            foreach (var projectId in solutionState.Solution.ProjectIds)
             {
                 if (remainingChecksumsToFind.Count == 0)
                     break;

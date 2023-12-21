@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var solutionKey = SolutionKey.ToSolutionKey(project.Solution);
 
                 var regularDocumentStates = project.State.DocumentStates;
-                var sourceGeneratorDocumentStates = await project.Solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+                var sourceGeneratorDocumentStates = await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
                 var allStates =
                     regularDocumentStates.States.Select(kvp => (kvp.Key, kvp.Value)).Concat(

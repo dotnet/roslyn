@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
                 Contract.ThrowIfNull(matchingAction);
 
-                currentActions = matchingAction.NestedCodeActions;
+                currentActions = matchingAction.NestedActions;
                 if (currentActions.IsEmpty)
                 {
                     return matchingAction;

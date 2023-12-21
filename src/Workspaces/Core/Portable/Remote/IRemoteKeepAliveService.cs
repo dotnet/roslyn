@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        private RemoteKeepAliveSession(SolutionState solution, IAsynchronousOperationListener listener)
+        private RemoteKeepAliveSession(SolutionCompilationState solution, IAsynchronousOperationListener listener)
         {
             var cancellationToken = _cancellationTokenSource.Token;
             var token = listener.BeginAsyncOperation(nameof(RemoteKeepAliveSession));
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// any reason (for example for tracking down problems in testing scenarios).
         /// </remarks>
         public static RemoteKeepAliveSession Create(Solution solution, IAsynchronousOperationListener listener)
-            => Create(solution.State, listener);
+            => Create(solution.CompilationState, listener);
 
         /// <inheritdoc cref="Create(Solution, IAsynchronousOperationListener)"/>
         public static RemoteKeepAliveSession Create(
-            SolutionState solution, IAsynchronousOperationListener listener)
+            SolutionCompilationState solution, IAsynchronousOperationListener listener)
         {
             return new RemoteKeepAliveSession(solution, listener);
         }
