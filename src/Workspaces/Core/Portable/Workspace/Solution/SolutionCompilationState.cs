@@ -1091,47 +1091,50 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+            static (documentInfo, project, _) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)),
+            /*unused*/ false);
     }
 
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            static (documentInfo, project, @this) => new AdditionalDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)),
+            this);
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (oldProject, documents) =>
+            static (documentInfo, project, @this) => new AnalyzerConfigDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (oldProject, documents) =>
             {
                 var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
                 return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-            });
+            },
+            this);
     }
 
     public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+            static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
+            static (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
     }
 
     public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+            static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
+            static (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-            (oldProject, documentIds, _) =>
+            static (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
+            static (oldProject, documentIds, _) =>
             {
                 var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
                 return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
@@ -1144,21 +1147,18 @@ internal sealed partial class SolutionCompilationState
     /// <param name="documentInfos">The set of documents to add.</param>
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
     /// <returns></returns>
-    private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
+    private SolutionCompilationState AddDocumentsToMultipleProjects<T, TArg>(
         ImmutableArray<DocumentInfo> documentInfos,
-        Func<DocumentInfo, ProjectState, T> createDocumentState,
-        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        Func<DocumentInfo, ProjectState, TArg, T> createDocumentState,
+        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState,
+        TArg arg)
         where T : TextDocumentState
     {
         if (documentInfos.IsDefault)
-        {
             throw new ArgumentNullException(nameof(documentInfos));
-        }
 
         if (documentInfos.IsEmpty)
-        {
             return this;
-        }
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll process
         // project-at-a-time.
@@ -1175,7 +1175,7 @@ internal sealed partial class SolutionCompilationState
 
             foreach (var documentInfo in documentInfosInProject)
             {
-                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
+                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState, arg));
             }
 
             var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
