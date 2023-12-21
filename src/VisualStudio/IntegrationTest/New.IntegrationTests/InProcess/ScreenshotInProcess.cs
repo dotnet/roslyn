@@ -167,15 +167,6 @@ internal partial class ScreenshotInProcess
                         // acTL
                         WriteActl(fileStream, buffer, crc, frames.Length, playCount: 1);
 
-                        //// sRGB
-                        //Write(fileStream, buffer, crc: null, firstEncoded.srgb.Span);
-
-                        //// gAMA
-                        //Write(fileStream, buffer, crc: null, firstEncoded.gama.Span);
-
-                        //// pHYs
-                        //Write(fileStream, buffer, crc: null, firstEncoded.phys.Span);
-
                         // Write the first frame data as IDAT
                         WriteFctl(fileStream, buffer, crc, sequenceNumber: 0, firstFrame, offset: Size.Empty, delay: TimeSpan.Zero, ApngDisposeOp.None, ApngBlendOp.Source);
                         foreach (var idat in firstEncoded.idat)
@@ -217,28 +208,6 @@ internal partial class ScreenshotInProcess
         WriteCrc(stream, buffer, crc);
     }
 
-    //private static void WriteIhdr(Stream stream, byte[] buffer, BitmapSource firstImage)
-    //{
-    //    Write(stream, buffer, Ihdr);
-
-    //    // Width (4 bytes)
-    //    WritePngUInt32(stream, buffer, (uint)firstImage.PixelWidth);
-    //    // Height (4 bytes)
-    //    WritePngUInt32(stream, buffer, (uint)firstImage.PixelHeight);
-    //    // Bit depth (1 byte)
-    //    Debug.Assert(firstImage.Format.BitsPerPixel == 32);
-    //    Debug.Assert(firstImage.Format.Masks.Count == 4);
-    //    stream.WriteByte((byte)(firstImage.Format.BitsPerPixel / firstImage.Format.Masks.Count));
-    //    // Color type (1 byte)
-    //    stream.WriteByte((byte)PngColorType.TrueColorWithAlpha);
-    //    // Compression method (1 byte)
-    //    stream.WriteByte((byte)PngCompressionMethod.Deflate);
-    //    // Filter method (1 byte)
-    //    stream.WriteByte((byte)PngFilterMethod.Adaptive);
-    //    // Interlace method (1 byte)
-    //    stream.WriteByte((byte)PngInterlaceMethod.None);
-    //}
-
     private static void WriteActl(Stream stream, byte[] buffer, Crc32 crc, int frameCount, int playCount)
     {
         crc.Reset();
@@ -257,7 +226,7 @@ internal partial class ScreenshotInProcess
     {
         WriteFctl(stream, buffer, crc, sequenceNumber++, frame, offset: Size.Empty, delay, ApngDisposeOp.None, ApngBlendOp.Source);
 
-        var (_, _, _, _, _, idats, _) = EncodeFrame(frame);
+        var (_, _, idats, _) = EncodeFrame(frame);
         foreach (var idat in idats)
         {
             WriteFdat(stream, buffer, crc, sequenceNumber++, idat.Span[8..^4]);
@@ -293,7 +262,7 @@ internal partial class ScreenshotInProcess
         WritePngUInt32(stream, buffer, crc: null, crc.GetCurrentHashAsUInt32());
     }
 
-    private static (ReadOnlyMemory<byte> signature, ReadOnlyMemory<byte> ihdr, ReadOnlyMemory<byte> srgb, ReadOnlyMemory<byte> gama, ReadOnlyMemory<byte> phys, ImmutableArray<ReadOnlyMemory<byte>> idat, ReadOnlyMemory<byte> iend) EncodeFrame(BitmapFrame frame)
+    private static (ReadOnlyMemory<byte> signature, ReadOnlyMemory<byte> ihdr, ImmutableArray<ReadOnlyMemory<byte>> idat, ReadOnlyMemory<byte> iend) EncodeFrame(BitmapFrame frame)
     {
         using var stream = new MemoryStream();
 
@@ -307,9 +276,6 @@ internal partial class ScreenshotInProcess
             throw new InvalidOperationException();
 
         var ihdr = ReadOnlyMemory<byte>.Empty;
-        var srgb = ReadOnlyMemory<byte>.Empty;
-        var gama = ReadOnlyMemory<byte>.Empty;
-        var phys = ReadOnlyMemory<byte>.Empty;
         List<ReadOnlyMemory<byte>> idat = [];
         var iend = ReadOnlyMemory<byte>.Empty;
         for (var remaining = memory[signature.Length..]; !remaining.IsEmpty; remaining = remaining[GetChunkLength(remaining)..])
@@ -321,20 +287,12 @@ internal partial class ScreenshotInProcess
                 Contract.ThrowIfFalse(ihdr.IsEmpty);
                 ihdr = chunk;
             }
-            else if (chunkType.Span.SequenceEqual(Srgb))
+            else if (chunkType.Span.SequenceEqual(Srgb)
+                || chunkType.Span.SequenceEqual(Gama)
+                || chunkType.Span.SequenceEqual(Phys))
             {
-                Contract.ThrowIfFalse(srgb.IsEmpty);
-                srgb = chunk;
-            }
-            else if (chunkType.Span.SequenceEqual(Gama))
-            {
-                Contract.ThrowIfFalse(gama.IsEmpty);
-                gama = chunk;
-            }
-            else if (chunkType.Span.SequenceEqual(Phys))
-            {
-                Contract.ThrowIfFalse(phys.IsEmpty);
-                phys = chunk;
+                // These are expected chunks in the PNG, but not needed for the final APNG
+                continue;
             }
             else if (chunkType.Span.SequenceEqual(Idat))
             {
@@ -353,13 +311,10 @@ internal partial class ScreenshotInProcess
         }
 
         Contract.ThrowIfTrue(ihdr.IsEmpty);
-        Contract.ThrowIfTrue(srgb.IsEmpty);
-        Contract.ThrowIfTrue(gama.IsEmpty);
-        Contract.ThrowIfTrue(phys.IsEmpty);
         Contract.ThrowIfTrue(idat.Count == 0);
         Contract.ThrowIfTrue(iend.IsEmpty);
 
-        return (signature, ihdr, srgb, gama, phys, idat.ToImmutableArrayOrEmpty(), iend);
+        return (signature, ihdr, idat.ToImmutableArrayOrEmpty(), iend);
 
         static ReadOnlyMemory<byte> GetChunkType(ReadOnlyMemory<byte> chunk)
             => chunk[4..8];
