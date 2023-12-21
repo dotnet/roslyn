@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -84,8 +83,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         public virtual string? EquivalenceKey => null;
 
-        internal virtual bool IsInlinable => false;
-
         /// <summary>
         /// Priority of this particular action within a group of other actions.  Less relevant actions should override
         /// this and specify a lower priority so that more important actions are easily accessible to the user.  Returns
@@ -152,8 +149,30 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public virtual ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
-        internal virtual ImmutableArray<CodeAction> NestedCodeActions
+        /// <summary>
+        /// Child actions contained within this <see cref="CodeAction"/>.  Can be presented in a host to provide more
+        /// potential solution actions to a particular problem.  To create a <see cref="CodeAction"/> with nested
+        /// actions, use <see cref="Create(string, ImmutableArray{CodeAction}, bool)"/>.
+        /// </summary>
+        public virtual ImmutableArray<CodeAction> NestedActions
             => ImmutableArray<CodeAction>.Empty;
+
+        /// <summary>
+        /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
+        /// </summary>
+        internal ImmutableArray<CodeAction> NestedCodeActions
+            => NestedActions;
+
+        /// <summary>
+        /// If this code action contains <see cref="NestedActions"/>, this property provides a hint to hosts as to
+        /// whether or not it's ok to elide this code action and just present the nested actions instead.  When a host
+        /// already has a lot of top-level actions to show, it should consider <em>not</em> inlining this action, to
+        /// keep the number of options presented to the user low.  However, if there are few options to show to the
+        /// user, inlining this action could be beneficial as it would allow the user to see and choose one of the
+        /// nested options with less steps.  To create a <see cref="CodeAction"/> with nested actions, use <see
+        /// cref="Create(string, ImmutableArray{CodeAction}, bool)"/>.
+        /// </summary>
+        public virtual bool IsInlinable => false;
 
         /// <summary>
         /// Gets custom tags for the CodeAction.
@@ -609,10 +628,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         internal abstract class SimpleCodeAction(
-                string title,
-                string? equivalenceKey,
-                CodeActionPriority priority,
-                bool createdFromFactoryMethod) : CodeAction
+            string title,
+            string? equivalenceKey,
+            CodeActionPriority priority,
+            bool createdFromFactoryMethod) : CodeAction
         {
             public sealed override string Title { get; } = title;
             public sealed override string? EquivalenceKey { get; } = equivalenceKey;
@@ -639,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : base(title, ComputeEquivalenceKey(nestedActions), priority, createdFromFactoryMethod)
             {
                 Debug.Assert(nestedActions.Length > 0);
-                NestedCodeActions = nestedActions;
+                NestedActions = nestedActions;
                 IsInlinable = isInlinable;
             }
 
@@ -659,9 +678,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                CodeActionPriority priority = CodeActionPriority.Default)
                 => new(title, nestedActions, isInlinable, priority, createdFromFactoryMethod: true);
 
-            internal sealed override bool IsInlinable { get; }
+            public sealed override bool IsInlinable { get; }
 
-            internal sealed override ImmutableArray<CodeAction> NestedCodeActions { get; }
+            public sealed override ImmutableArray<CodeAction> NestedActions { get; }
 
             private static string? ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {
