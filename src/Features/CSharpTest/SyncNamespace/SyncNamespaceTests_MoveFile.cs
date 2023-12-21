@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_DeclarationNotContainedInDefaultNamespace()
         {
             // No "move file" action because default namespace is not container of declared namespace
@@ -43,7 +43,7 @@ namespace [||]{declaredNamespace}
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_DeclarationNotContainedInDefaultNamespace_FileScopedNamespace()
         {
             // No "move file" action because default namespace is not container of declared namespace
@@ -69,7 +69,7 @@ class Class1
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_SingleAction1()
         {
             // current path is <root>\
@@ -101,7 +101,7 @@ namespace [||]{declaredNamespace}
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_SingleAction2()
         {
             // current path is <root>\
@@ -142,7 +142,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MoveToRoot()
         {
             // current path is <root>\A\B\C\
@@ -174,7 +174,7 @@ class Class2
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MultipleAction1()
         {
             // current path is <root>\
@@ -216,7 +216,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_MultipleAction2()
         {
             // current path is <root>\
@@ -269,7 +269,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother1()
         {
             var defaultNamespace = "A";
@@ -307,7 +307,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother2()
         {
             var defaultNamespace = "A";
@@ -344,7 +344,7 @@ namespace Foo
             await TestMoveFileToMatchNamespace(code, expectedFolders);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MoveFile_FromOneFolderToAnother2_FileScopedNamespace()
         {
             var defaultNamespace = "A";
