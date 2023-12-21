@@ -675,18 +675,13 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             if (metadataReference == null)
-            {
                 throw new ArgumentNullException(nameof(metadataReference));
-            }
 
-            // If the project didn't change itself, there's no need to change the compilation state.
-            var stateChange = this.SolutionState.RemoveMetadataReference(projectId, metadataReference);
-            if (stateChange.NewSolutionState == this.SolutionState)
-            {
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.MetadataReferences.Contains(metadataReference))
                 throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
-            }
 
-            var newCompilationState = _compilationState.RemoveMetadataReference(stateChange);
+            var newCompilationState = _compilationState.RemoveMetadataReference(projectId, metadataReference);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 

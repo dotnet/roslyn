@@ -427,10 +427,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
-    public SolutionCompilationState RemoveMetadataReference(StateChange stateChange)
+    public SolutionCompilationState RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveMetadataReference(projectId, metadataReference),
             translate: null,
             forkTracker: true);
     }
