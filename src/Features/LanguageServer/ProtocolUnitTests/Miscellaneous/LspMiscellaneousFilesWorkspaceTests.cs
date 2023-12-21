@@ -128,7 +128,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         // Open a file that is part of a registered workspace and verify it is not present in the misc workspace.
-        var fileInWorkspaceUri = ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().FilePath!);
+        var fileInWorkspaceUri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
         await testLspServer.OpenDocumentAsync(fileInWorkspaceUri).ConfigureAwait(false);
         Assert.Null(GetMiscellaneousDocument(testLspServer));
     }
