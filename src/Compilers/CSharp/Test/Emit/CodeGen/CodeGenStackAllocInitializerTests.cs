@@ -948,8 +948,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       40 (0x28)
-                  .maxstack  4
+                  // Code size       41 (0x29)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -959,13 +959,14 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   12
-                  IL_001a:  cpblk
-                  IL_001c:  ldc.i4.3
-                  IL_001d:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_0022:  call       "void C.Write(System.Span<int>)"
-                  IL_0027:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0019:  ldc.i4.s   12
+                  IL_001b:  cpblk
+                  IL_001d:  ldc.i4.3
+                  IL_001e:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0023:  call       "void C.Write(System.Span<int>)"
+                  IL_0028:  ret
                 }
                 """);
         }
@@ -1097,8 +1098,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       45 (0x2d)
-                  .maxstack  4
+                  // Code size       46 (0x2e)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -1108,14 +1109,15 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   12
-                  IL_001a:  cpblk
-                  IL_001c:  ldc.i4.3
-                  IL_001d:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_0022:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<int>)"
-                  IL_002c:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0019:  ldc.i4.s   12
+                  IL_001b:  cpblk
+                  IL_001d:  ldc.i4.3
+                  IL_001e:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0023:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0028:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_002d:  ret
                 }
                 """);
         }
@@ -1188,8 +1190,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       45 (0x2d)
-                  .maxstack  4
+                  // Code size       46 (0x2e)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<double> V_0)
                   IL_0000:  ldc.i4.s   24
                   IL_0002:  conv.u
@@ -1199,14 +1201,15 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<double> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<double>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly double System.ReadOnlySpan<double>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   24
-                  IL_001a:  cpblk
-                  IL_001c:  ldc.i4.3
-                  IL_001d:  newobj     "System.Span<double>..ctor(void*, int)"
-                  IL_0022:  call       "System.ReadOnlySpan<double> System.Span<double>.op_Implicit(System.Span<double>)"
-                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<double>)"
-                  IL_002c:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly double System.ReadOnlySpan<double>.this[int].get"
+                  IL_0019:  ldc.i4.s   24
+                  IL_001b:  cpblk
+                  IL_001d:  ldc.i4.3
+                  IL_001e:  newobj     "System.Span<double>..ctor(void*, int)"
+                  IL_0023:  call       "System.ReadOnlySpan<double> System.Span<double>.op_Implicit(System.Span<double>)"
+                  IL_0028:  call       "void C.Write(System.ReadOnlySpan<double>)"
+                  IL_002d:  ret
                 }
                 """);
         }
@@ -1237,8 +1240,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       45 (0x2d)
-                  .maxstack  4
+                  // Code size       46 (0x2e)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<E> V_0)
                   IL_0000:  ldc.i4.s   24
                   IL_0002:  conv.u
@@ -1248,14 +1251,15 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<E> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<E>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly E System.ReadOnlySpan<E>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   24
-                  IL_001a:  cpblk
-                  IL_001c:  ldc.i4.3
-                  IL_001d:  newobj     "System.Span<E>..ctor(void*, int)"
-                  IL_0022:  call       "System.ReadOnlySpan<E> System.Span<E>.op_Implicit(System.Span<E>)"
-                  IL_0027:  call       "void C.Write(System.ReadOnlySpan<E>)"
-                  IL_002c:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly E System.ReadOnlySpan<E>.this[int].get"
+                  IL_0019:  ldc.i4.s   24
+                  IL_001b:  cpblk
+                  IL_001d:  ldc.i4.3
+                  IL_001e:  newobj     "System.Span<E>..ctor(void*, int)"
+                  IL_0023:  call       "System.ReadOnlySpan<E> System.Span<E>.op_Implicit(System.Span<E>)"
+                  IL_0028:  call       "void C.Write(System.ReadOnlySpan<E>)"
+                  IL_002d:  ret
                 }
                 """);
         }
@@ -1385,7 +1389,7 @@ namespace System
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
         [InlineData((int)WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle)]
-        [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference)]
+        [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__get_Item)]
         public void TestPointerCreateSpan(int missingMember)
         {
             var source = """
@@ -1411,8 +1415,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       34 (0x22)
-                  .maxstack  4
+                  // Code size       35 (0x23)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -1422,11 +1426,12 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   12
-                  IL_001a:  cpblk
-                  IL_001c:  call       "void C.Write(int*)"
-                  IL_0021:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0019:  ldc.i4.s   12
+                  IL_001b:  cpblk
+                  IL_001d:  call       "void C.Write(int*)"
+                  IL_0022:  ret
                 }
                 """);
 
@@ -1544,8 +1549,8 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size       53 (0x35)
-                  .maxstack  4
+                  // Code size       54 (0x36)
+                  .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   16
                   IL_0002:  conv.u
@@ -1555,22 +1560,23 @@ namespace System
                   IL_000b:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_0010:  stloc.0
                   IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()"
-                  IL_0018:  ldc.i4.s   16
-                  IL_001a:  cpblk
-                  IL_001c:  dup
-                  IL_001d:  ldc.i4.3
-                  IL_001e:  conv.i
-                  IL_001f:  ldc.i4.4
-                  IL_0020:  mul
-                  IL_0021:  add
-                  IL_0022:  ldarg.0
-                  IL_0023:  stind.i4
-                  IL_0024:  ldc.i4.4
-                  IL_0025:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_002a:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                  IL_002f:  call       "void C.Write(System.ReadOnlySpan<int>)"
-                  IL_0034:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                  IL_0019:  ldc.i4.s   16
+                  IL_001b:  cpblk
+                  IL_001d:  dup
+                  IL_001e:  ldc.i4.3
+                  IL_001f:  conv.i
+                  IL_0020:  ldc.i4.4
+                  IL_0021:  mul
+                  IL_0022:  add
+                  IL_0023:  ldarg.0
+                  IL_0024:  stind.i4
+                  IL_0025:  ldc.i4.4
+                  IL_0026:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_002b:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0030:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_0035:  ret
                 }
                 """);
         }

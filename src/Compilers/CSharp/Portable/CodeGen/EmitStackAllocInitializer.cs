@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     var syntaxNode = inits.Syntax;
                     if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol createSpanHelper &&
-                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol getPinnableReferenceDefinition)
+                        Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__get_Item, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol spanGetItemDefinition)
                     {
                         // Use RuntimeHelpers.CreateSpan and cpblk.
-                        var readOnlySpan = getPinnableReferenceDefinition.ContainingType.Construct(elementType);
+                        var readOnlySpan = spanGetItemDefinition.ContainingType.Construct(elementType);
                         Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
-                        var getPinnableReference = getPinnableReferenceDefinition.AsMember(readOnlySpan);
+                        var spanGetItem = spanGetItemDefinition.AsMember(readOnlySpan);
 
                         _builder.EmitOpCode(ILOpCode.Dup);
 
@@ -89,8 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         _builder.EmitLocalStore(temp);
                         _builder.EmitLocalAddress(temp);
 
+                        // span.get_Item[0]
+                        _builder.EmitIntConstant(0);
                         _builder.EmitOpCode(ILOpCode.Call, 0);
-                        EmitSymbolToken(getPinnableReference, syntaxNode, optArgList: null);
+                        EmitSymbolToken(spanGetItem, syntaxNode, optArgList: null);
+
                         _builder.EmitIntConstant(data.Length);
                         _builder.EmitOpCode(ILOpCode.Cpblk, -3);
 
