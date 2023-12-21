@@ -993,13 +993,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
