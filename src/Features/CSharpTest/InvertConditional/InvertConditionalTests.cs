@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
     [Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
     public class InvertConditionalTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpInvertConditionalCodeRefactoringProvider();
 
         [Fact]

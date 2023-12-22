@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWi
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
     public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider();
 
         [Fact]

@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace
+    public partial class TestWorkspace<TDocument>
     {
         internal static XElement CreateWorkspaceElement(
             string language,

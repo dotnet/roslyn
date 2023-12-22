@@ -6,12 +6,14 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -23,14 +25,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
     public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         {
-            var testWorkspace = (TestWorkspace)workspace;
-            var pasteTrackingService = testWorkspace.ExportProvider.GetExportedValue<PasteTrackingService>();
+            var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
             return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
         }
 
-        protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
+        protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
         {
             // Treat the span being tested as the pasted span
             var hostDocument = workspace.Documents.First();

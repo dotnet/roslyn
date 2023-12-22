@@ -4707,7 +4707,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler GetCommandHandler(EditorTestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/32337")]
@@ -5000,7 +5000,7 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }

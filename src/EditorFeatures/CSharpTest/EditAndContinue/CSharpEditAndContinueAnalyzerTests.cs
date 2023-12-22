@@ -506,7 +506,7 @@ class C
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
-                using var workspace = TestWorkspace.CreateCSharp(
+                using var workspace = EditorTestWorkspace.CreateCSharp(
                     source1, parseOptions: experimental, compilationOptions: null);
 
                 var oldSolution = workspace.CurrentSolution;

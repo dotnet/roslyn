@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
     [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
         [Theory]
@@ -1224,7 +1224,7 @@ class TestClass
                 </Workspace>
                 """, LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString);
             // refactor file1 and check
             var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(
@@ -1271,7 +1271,7 @@ class TestClass
                 </Workspace>
                 """, LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString);
             // refactor file2 and check
             var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(

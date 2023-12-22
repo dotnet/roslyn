@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SpellCheck
     Public Class SpellCheckSpanTests
         Inherits AbstractSpellCheckSpanTests
 
-        Protected Overrides Function CreateWorkspace(content As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(content)
+        Protected Overrides Function CreateWorkspace(content As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(content)
         End Function
 
         <Fact>

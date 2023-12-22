@@ -756,7 +756,7 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(EditorTestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
@@ -998,7 +998,7 @@ class Class
                         new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(EditorTestWorkspace workspace, TestParameters parameters)
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;

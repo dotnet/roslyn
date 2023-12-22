@@ -42,7 +42,7 @@ public sealed class AsynchronousTaggerTests
     [InlineData(101, 50)]
     public async Task LargeNumberOfSpans(int tagsProduced, int expectedCount)
     {
-        using var workspace = TestWorkspace.CreateCSharp("""
+        using var workspace = EditorTestWorkspace.CreateCSharp("""
             class Program
             {
                 void M()
@@ -96,7 +96,7 @@ public sealed class AsynchronousTaggerTests
     [WpfFact]
     public void TestNotSynchronousOutlining()
     {
-        using var workspace = TestWorkspace.CreateCSharp("""
+        using var workspace = EditorTestWorkspace.CreateCSharp("""
             class Program {
 
             }
@@ -118,7 +118,7 @@ public sealed class AsynchronousTaggerTests
     [WpfFact]
     public void TestSynchronousOutlining()
     {
-        using var workspace = TestWorkspace.CreateCSharp("""
+        using var workspace = EditorTestWorkspace.CreateCSharp("""
             #region x
 
             class Program

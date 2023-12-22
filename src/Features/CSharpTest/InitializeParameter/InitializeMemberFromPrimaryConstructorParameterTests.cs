@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public partial class InitializeMemberFromPrimaryConstructorParameterTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider();
 
         private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);

@@ -14,9 +14,125 @@ using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class TestHostProject
+    public abstract class AbstractTestHostProject
+    {
+        public abstract string Language { get; }
+        public abstract ProjectId Id { get; }
+        public abstract HostLanguageServices LanguageServiceProvider { get; }
+        public abstract string AssemblyName { get; }
+        public abstract string Name { get; }
+    }
+
+    public class TestHostProject : TestHostProject<TestHostDocument>
+    {
+        public TestHostProject(
+            HostLanguageServices languageServices,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            params MetadataReference[] references)
+            : this(languageServices, compilationOptions, parseOptions, "Test", references)
+        {
+        }
+
+        public TestHostProject(
+            HostLanguageServices languageServices,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            string assemblyName,
+            params MetadataReference[] references)
+            : this(languageServices,
+                   compilationOptions,
+                   parseOptions,
+                   assemblyName: assemblyName,
+                   projectName: assemblyName,
+                   references: references,
+                   documents: [])
+        {
+        }
+
+        public TestHostProject(
+            TestWorkspace workspace,
+            TestHostDocument document,
+            string name = null,
+            string language = null,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            IEnumerable<TestHostProject> projectReferences = null,
+            IEnumerable<MetadataReference> metadataReferences = null,
+            IEnumerable<AnalyzerReference> analyzerReferences = null,
+            string assemblyName = null,
+            string defaultNamespace = null)
+            : this(workspace, name, language, compilationOptions, parseOptions, [document], [], [], projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
+        {
+        }
+
+        internal TestHostProject(
+            HostLanguageServices languageServices,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            string assemblyName,
+            string projectName,
+            IList<MetadataReference> references,
+            IList<TestHostDocument> documents,
+            IList<TestHostDocument> additionalDocuments = null,
+            IList<TestHostDocument> analyzerConfigDocuments = null,
+            Type hostObjectType = null,
+            bool isSubmission = false,
+            string filePath = null,
+            IList<AnalyzerReference> analyzerReferences = null,
+            string defaultNamespace = null)
+            : base(languageServices,
+                   compilationOptions,
+                   parseOptions,
+                   assemblyName,
+                   projectName,
+                   references,
+                   documents,
+                   additionalDocuments,
+                   analyzerConfigDocuments,
+                   hostObjectType,
+                   isSubmission,
+                   filePath,
+                   analyzerReferences,
+                   defaultNamespace)
+        {
+        }
+
+        public TestHostProject(
+            TestWorkspace workspace,
+            string name = null,
+            string language = null,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            IEnumerable<TestHostDocument> documents = null,
+            IEnumerable<TestHostDocument> additionalDocuments = null,
+            IEnumerable<TestHostDocument> analyzerConfigDocuments = null,
+            IEnumerable<TestHostProject> projectReferences = null,
+            IEnumerable<MetadataReference> metadataReferences = null,
+            IEnumerable<AnalyzerReference> analyzerReferences = null,
+            string assemblyName = null,
+            string defaultNamespace = null)
+            : base(workspace,
+                   name,
+                   language,
+                   compilationOptions,
+                   parseOptions,
+                   documents,
+                   additionalDocuments,
+                   analyzerConfigDocuments,
+                   projectReferences,
+                   metadataReferences,
+                   analyzerReferences,
+                   assemblyName,
+                   defaultNamespace)
+        {
+        }
+    }
+
+    public class TestHostProject<TDocument> : AbstractTestHostProject
+        where TDocument : TestHostDocument
     {
         private readonly HostLanguageServices _languageServices;
 
@@ -33,13 +149,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly string _outputFilePath;
         private readonly string _defaultNamespace;
 
-        public IEnumerable<TestHostDocument> Documents;
-        public IEnumerable<TestHostDocument> AdditionalDocuments;
-        public IEnumerable<TestHostDocument> AnalyzerConfigDocuments;
+        public IEnumerable<TDocument> Documents;
+        public IEnumerable<TDocument> AdditionalDocuments;
+        public IEnumerable<TDocument> AnalyzerConfigDocuments;
         public IEnumerable<ProjectReference> ProjectReferences;
         private string _filePath;
 
-        public string Name
+        public override string Name
         {
             get
             {
@@ -79,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public ProjectId Id
+        public override ProjectId Id
         {
             get
             {
@@ -95,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public string AssemblyName
+        public override string AssemblyName
         {
             get
             {
@@ -144,36 +260,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             HostLanguageServices languageServices,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
-            params MetadataReference[] references)
-            : this(languageServices, compilationOptions, parseOptions, "Test", references)
-        {
-        }
-        internal TestHostProject(
-            HostLanguageServices languageServices,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            string assemblyName,
-            params MetadataReference[] references)
-            : this(languageServices,
-                   compilationOptions,
-                   parseOptions,
-                   assemblyName: assemblyName,
-                   projectName: assemblyName,
-                   references: references,
-                   documents: Array.Empty<TestHostDocument>())
-        {
-        }
-
-        internal TestHostProject(
-            HostLanguageServices languageServices,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
             string assemblyName,
             string projectName,
             IList<MetadataReference> references,
-            IList<TestHostDocument> documents,
-            IList<TestHostDocument> additionalDocuments = null,
-            IList<TestHostDocument> analyzerConfigDocuments = null,
+            IList<TDocument> documents,
+            IList<TDocument> additionalDocuments = null,
+            IList<TDocument> analyzerConfigDocuments = null,
             Type hostObjectType = null,
             bool isSubmission = false,
             string filePath = null,
@@ -189,8 +281,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataReferences = references;
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             this.Documents = documents;
-            this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
-            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
+            this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _isSubmission = isSubmission;
             _hostObjectType = hostObjectType;
@@ -201,31 +293,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostProject(
-            TestWorkspace workspace,
-            TestHostDocument document,
+            TestWorkspace<TDocument> workspace,
             string name = null,
             string language = null,
             CompilationOptions compilationOptions = null,
             ParseOptions parseOptions = null,
-            IEnumerable<TestHostProject> projectReferences = null,
-            IEnumerable<MetadataReference> metadataReferences = null,
-            IEnumerable<AnalyzerReference> analyzerReferences = null,
-            string assemblyName = null,
-            string defaultNamespace = null)
-            : this(workspace, name, language, compilationOptions, parseOptions, SpecializedCollections.SingletonEnumerable(document), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
-        {
-        }
-
-        public TestHostProject(
-            TestWorkspace workspace,
-            string name = null,
-            string language = null,
-            CompilationOptions compilationOptions = null,
-            ParseOptions parseOptions = null,
-            IEnumerable<TestHostDocument> documents = null,
-            IEnumerable<TestHostDocument> additionalDocuments = null,
-            IEnumerable<TestHostDocument> analyzerConfigDocuments = null,
-            IEnumerable<TestHostProject> projectReferences = null,
+            IEnumerable<TDocument> documents = null,
+            IEnumerable<TDocument> additionalDocuments = null,
+            IEnumerable<TDocument> analyzerConfigDocuments = null,
+            IEnumerable<TestHostProject<TDocument>> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             string assemblyName = null,
@@ -240,9 +316,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             _compilationOptions = compilationOptions ?? this.LanguageServiceProvider.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             _parseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
-            this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
-            this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
-            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
+            this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TDocument>();
+            this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _metadataReferences = metadataReferences ?? new MetadataReference[] { TestMetadata.Net451.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
@@ -276,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal void SetSolution(TestHostSolution _)
+        internal void SetSolution()
         {
             // set up back pointer to this project.
             if (this.Documents != null)
@@ -298,34 +374,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal void AddDocument(TestHostDocument document)
+        internal void AddDocument(TDocument document)
         {
-            this.Documents = this.Documents.Concat(new TestHostDocument[] { document });
+            this.Documents = this.Documents.Concat(new TDocument[] { document });
             document.SetProject(this);
         }
 
-        internal void RemoveDocument(TestHostDocument document)
+        internal void RemoveDocument(TDocument document)
             => this.Documents = this.Documents.Where(d => d != document);
 
-        internal void AddAdditionalDocument(TestHostDocument document)
+        internal void AddAdditionalDocument(TDocument document)
         {
-            this.AdditionalDocuments = this.AdditionalDocuments.Concat(new TestHostDocument[] { document });
+            this.AdditionalDocuments = this.AdditionalDocuments.Concat(new TDocument[] { document });
             document.SetProject(this);
         }
 
-        internal void RemoveAdditionalDocument(TestHostDocument document)
+        internal void RemoveAdditionalDocument(TDocument document)
             => this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
 
-        internal void AddAnalyzerConfigDocument(TestHostDocument document)
+        internal void AddAnalyzerConfigDocument(TDocument document)
         {
-            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Concat(new TestHostDocument[] { document });
+            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Concat(new TDocument[] { document });
             document.SetProject(this);
         }
 
-        internal void RemoveAnalyzerConfigDocument(TestHostDocument document)
+        internal void RemoveAnalyzerConfigDocument(TDocument document)
             => this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
 
-        public string Language
+        public override string Language
         {
             get
             {
@@ -333,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal HostLanguageServices LanguageServiceProvider
+        public override HostLanguageServices LanguageServiceProvider
         {
             get
             {

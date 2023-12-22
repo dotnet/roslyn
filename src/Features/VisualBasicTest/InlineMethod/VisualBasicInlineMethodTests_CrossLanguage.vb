@@ -11,9 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
     Public Class VisualBasicInlineMethodTests_CrossLanguage
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Dim testWorkspace = DirectCast(workspace, TestWorkspace)
-            Return testWorkspace.ExportProvider.GetExportedValue(Of VisualBasicInlineMethodRefactoringProvider)
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+            Return workspace.ExportProvider.GetExportedValue(Of VisualBasicInlineMethodRefactoringProvider)
         End Function
 
         Private Async Function TestNoActionIsProvided(initialMarkup As String) As Task

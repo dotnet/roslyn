@@ -639,7 +639,7 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compila
 end class"
 
             Dim parameters = New TestParameters(options:=RemoveAllUnnecessaryParentheses)
-            Using workspace As TestWorkspace = CreateWorkspaceFromOptions(input, parameters)
+            Using workspace As EditorTestWorkspace = CreateWorkspaceFromOptions(input, parameters)
                 Dim expectedSpans = workspace.Documents.First().AnnotatedSpans
 
                 Dim diagnostics = Await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(False)

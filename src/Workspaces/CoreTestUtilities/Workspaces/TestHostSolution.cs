@@ -5,20 +5,13 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal partial class TestHostSolution
+    internal partial class TestHostSolution(params TestHostProject[] projects)
+        : TestHostSolution<TestHostDocument>(projects)
     {
-        public readonly SolutionId Id;
-        public readonly VersionStamp Version;
-        public readonly string FilePath = null;
-        public readonly IEnumerable<TestHostProject> Projects;
-
         public TestHostSolution(
             HostLanguageServices languageServiceProvider,
             CompilationOptions compilationOptions,
@@ -27,8 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             : this(new TestHostProject(languageServiceProvider, compilationOptions, parseOptions, references))
         {
         }
+    }
 
-        public TestHostSolution(params TestHostProject[] projects)
+    internal partial class TestHostSolution<TDocument>
+        where TDocument : TestHostDocument
+    {
+        public readonly SolutionId Id;
+        public readonly VersionStamp Version;
+        public readonly string FilePath = null;
+        public readonly IEnumerable<TestHostProject<TDocument>> Projects;
+
+        public TestHostSolution(params TestHostProject<TDocument>[] projects)
         {
             this.Id = SolutionId.CreateNewId();
             this.Version = VersionStamp.Create();
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             foreach (var project in projects)
             {
-                project.SetSolution(this);
+                project.SetSolution();
             }
         }
     }

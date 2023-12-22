@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Private Shared ReadOnly NuGetPackageSources As ImmutableArray(Of PackageSource) =
             ImmutableArray.Create(New PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org"))
 
-        Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
+        Protected Overrides Sub InitializeWorkspace(workspace As EditorTestWorkspace, parameters As TestParameters)
             workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic, True)
             workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic, True)
         End Sub

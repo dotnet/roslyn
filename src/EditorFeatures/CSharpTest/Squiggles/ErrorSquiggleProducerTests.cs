@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
 
             workspace.GlobalOptions.SetGlobalOption(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task SemanticErrorReported()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 
             var document = workspace.Documents.First();
 
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 
             var document = workspace.Documents.First();
 
@@ -379,20 +379,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
+            using var workspace = EditorTestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
         {
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
