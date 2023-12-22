@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     internal abstract class AbstractCommandHandlerTestState : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
         private readonly ITextView _textView;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             bool makeSeparateBufferForCursor = false,
             ImmutableArray<string> roles = default)
         {
-            Workspace = TestWorkspace.CreateWorkspace(
+            Workspace = EditorTestWorkspace.CreateWorkspace(
                 workspaceElement,
                 composition: composition,
                 workspaceKind: workspaceKind);

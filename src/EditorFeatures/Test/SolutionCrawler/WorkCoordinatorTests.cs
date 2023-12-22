@@ -1522,7 +1522,7 @@ class C
 
         private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using var workspace = TestWorkspace.Create(
+            using var workspace = EditorTestWorkspace.Create(
                 language,
                 compilationOptions: null,
                 parseOptions: null,

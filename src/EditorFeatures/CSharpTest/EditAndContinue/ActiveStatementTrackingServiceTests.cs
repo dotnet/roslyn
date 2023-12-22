@@ -175,8 +175,8 @@ class C
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
-            var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
-            var testDocument2 = new TestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
+            var testDocument1 = new EditorTestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
+            var testDocument2 = new EditorTestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
             workspace.AddTestProject(new TestHostProject(workspace, documents: new[] { testDocument1, testDocument2 }));
 
             // opens the documents

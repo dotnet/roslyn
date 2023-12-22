@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
 
             if (baseIndentation.HasValue)
             {

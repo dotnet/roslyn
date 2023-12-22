@@ -4,22 +4,16 @@
 
 #nullable disable
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace(TestComposition composition = null)
+        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
         {
-            return TestWorkspace.CreateWithSingleEmptySourceFile(
+            return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
                 LanguageNames.VisualBasic,
                 compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 parseOptions: new VisualBasicParseOptions(kind: SourceCodeKind.Regular),

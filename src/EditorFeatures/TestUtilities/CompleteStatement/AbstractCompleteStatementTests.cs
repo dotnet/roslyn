@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
         internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         /// <summary>
         /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 

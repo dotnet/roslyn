@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     internal class EncapsulateFieldTestState : IDisposable
     {
-        private readonly TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
+        private readonly EditorTestHostDocument _testDocument;
+        public EditorTestWorkspace Workspace { get; }
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
-        public EncapsulateFieldTestState(TestWorkspace workspace)
+        public EncapsulateFieldTestState(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue || d.SelectedSpans.Any());
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static EncapsulateFieldTestState Create(string markup)
         {
-            var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+            var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
 
             workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
             workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);

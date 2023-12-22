@@ -5,7 +5,7 @@
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     public static class XElementExtensions
     {

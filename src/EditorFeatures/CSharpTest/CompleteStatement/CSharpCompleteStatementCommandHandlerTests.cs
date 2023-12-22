@@ -4325,7 +4325,7 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }

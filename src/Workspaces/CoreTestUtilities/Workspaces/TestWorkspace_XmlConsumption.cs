@@ -4,7 +4,7 @@
 
 #nullable disable
 
-extern alias WORKSPACES;
+extern alias SCRIPTING;
 
 using System;
 using System.Collections.Generic;
@@ -19,9 +19,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -33,12 +31,73 @@ using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
+using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
+
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
-
     public partial class TestWorkspace
     {
+        private const string CSharpExtension = ".cs";
+        private const string CSharpScriptExtension = ".csx";
+        private const string VisualBasicExtension = ".vb";
+        private const string VisualBasicScriptExtension = ".vbx";
+
+        private const string WorkspaceElementName = "Workspace";
+        private const string ProjectElementName = "Project";
+        private const string SubmissionElementName = "Submission";
+        private const string MetadataReferenceElementName = "MetadataReference";
+        private const string MetadataReferenceFromSourceElementName = "MetadataReferenceFromSource";
+        private const string ProjectReferenceElementName = "ProjectReference";
+        private const string CompilationOptionsElementName = "CompilationOptions";
+        private const string RootNamespaceAttributeName = "RootNamespace";
+        private const string OutputTypeAttributeName = "OutputType";
+        private const string ReportDiagnosticAttributeName = "ReportDiagnostic";
+        private const string CryptoKeyFileAttributeName = "CryptoKeyFile";
+        private const string StrongNameProviderAttributeName = "StrongNameProvider";
+        private const string DelaySignAttributeName = "DelaySign";
+        private const string ParseOptionsElementName = "ParseOptions";
+        private const string LanguageVersionAttributeName = "LanguageVersion";
+        private const string FeaturesAttributeName = "Features";
+        private const string DocumentationModeAttributeName = "DocumentationMode";
+        private const string DocumentElementName = "Document";
+        private const string AdditionalDocumentElementName = "AdditionalDocument";
+        private const string AnalyzerConfigDocumentElementName = "AnalyzerConfigDocument";
+        private const string AnalyzerElementName = "Analyzer";
+        private const string AssemblyNameAttributeName = "AssemblyName";
+        private const string CommonReferencesAttributeName = "CommonReferences";
+        private const string CommonReferencesWithoutValueTupleAttributeName = "CommonReferencesWithoutValueTuple";
+        private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
+        private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
+        private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
+        private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
+        private const string CommonReferencesNet6Name = "CommonReferencesNet6";
+        private const string CommonReferencesNet7Name = "CommonReferencesNet7";
+        private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
+        private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
+        private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
+        private const string FilePathAttributeName = "FilePath";
+        private const string FoldersAttributeName = "Folders";
+        private const string KindAttributeName = "Kind";
+        private const string LanguageAttributeName = "Language";
+        private const string GlobalImportElementName = "GlobalImport";
+        private const string IncludeXmlDocCommentsAttributeName = "IncludeXmlDocComments";
+        private const string IsLinkFileAttributeName = "IsLinkFile";
+        private const string LinkAssemblyNameAttributeName = "LinkAssemblyName";
+        private const string LinkProjectNameAttributeName = "LinkProjectName";
+        private const string LinkFilePathAttributeName = "LinkFilePath";
+        private const string MarkupAttributeName = "Markup";
+        private const string NormalizeAttributeName = "Normalize";
+        private const string PreprocessorSymbolsAttributeName = "PreprocessorSymbols";
+        private const string AnalyzerDisplayAttributeName = "Name";
+        private const string AnalyzerFullPathAttributeName = "FullPath";
+        private const string AliasAttributeName = "Alias";
+        private const string ProjectNameAttribute = "Name";
+        private const string CheckOverflowAttributeName = "CheckOverflow";
+        private const string AllowUnsafeAttributeName = "AllowUnsafe";
+        private const string OutputKindName = "OutputKind";
+        private const string NullableAttributeName = "Nullable";
+        private const string DocumentFromSourceGeneratorElementName = "DocumentFromSourceGenerator";
+
         /// <summary>
         /// This place-holder value is used to set a project's file path to be null.  It was explicitly chosen to be
         /// convoluted to avoid any accidental usage (e.g., what if I really wanted FilePath to be the string "null"?),
@@ -56,31 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             public override int GetHashCode()
                 => RuntimeHelpers.GetHashCode(this);
-        }
-
-        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, TestComposition composition = null)
-            => Create(XElement.Parse(xmlDefinition), openDocuments, composition);
-
-        public static TestWorkspace CreateWorkspace(
-            XElement workspaceElement,
-            bool openDocuments = true,
-            TestComposition composition = null,
-            string workspaceKind = null)
-        {
-            return Create(workspaceElement, openDocuments, composition, workspaceKind);
-        }
-
-        internal static TestWorkspace Create(
-            XElement workspaceElement,
-            bool openDocuments = true,
-            TestComposition composition = null,
-            string workspaceKind = null,
-            IDocumentServiceProvider documentServiceProvider = null,
-            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-        {
-            var workspace = new TestWorkspace(composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
-            workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
-            return workspace;
         }
 
         internal void InitializeDocuments(
@@ -194,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
+#if EDITOR_FEATURES
             foreach (var project in projectNameToTestHostProject.Values)
             {
                 foreach (var document in project.Documents)
@@ -205,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     }
                 }
             }
+#endif
         }
 
         private IList<TestHostProject> CreateSubmissions(
@@ -839,6 +875,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 exportProvider, languageServiceProvider, code, fileName, fileName, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
+#if EDITOR_FEATURES
         internal static TestHostDocument CreateDocument(
             XElement documentElement,
             ExportProvider exportProvider,
@@ -867,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, code, name: string.Empty, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
         }
-
+#endif
 #nullable enable
 
         private static TestDocumentServiceProvider? GetDocumentServiceProvider(XElement documentElement)

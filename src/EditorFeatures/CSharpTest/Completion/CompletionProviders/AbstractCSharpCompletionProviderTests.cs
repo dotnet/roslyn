@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     </Project>
 </Workspace>";
 
-        protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
+        protected override EditorTestWorkspace CreateWorkspace(string fileContents)
+            => EditorTestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
 
         internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));

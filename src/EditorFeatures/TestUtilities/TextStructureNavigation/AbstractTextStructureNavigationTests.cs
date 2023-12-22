@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
     public abstract class AbstractTextStructureNavigatorTests
     {
         protected abstract string ContentType { get; }
-        protected abstract TestWorkspace CreateWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateWorkspace(string code);
 
         protected StringBuilder result = new StringBuilder();
 

@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
@@ -46,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             If language = LanguageNames.CSharp Then
                 _context = New CSharpDebuggerIntelliSenseContext(
                     DirectCast(MyBase.TextView, IWpfTextView),
-                    Workspace.Projects.First().Documents.Last().GetTextBuffer(),
+                    DirectCast(Workspace.Projects.First().Documents.Last(), EditorTestHostDocument).GetTextBuffer(),
                     span,
                     componentModel,
                     isImmediateWindow)
@@ -54,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 ' VB
                 _context = New VisualBasicDebuggerIntelliSenseContext(
                     DirectCast(MyBase.TextView, IWpfTextView),
-                    Workspace.Projects.First().Documents.Last().GetTextBuffer(),
+                    DirectCast(Workspace.Projects.First().Documents.Last(), EditorTestHostDocument).GetTextBuffer(),
                     span,
                     componentModel,
                     isImmediateWindow)

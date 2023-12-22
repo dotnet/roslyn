@@ -51,7 +51,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             internal DocumentOutlineTestMocks(
                 LanguageServiceBrokerCallback languageServiceBrokerCallback,
                 IThreadingContext threadingContext,
-                TestWorkspace workspace,
+                EditorTestWorkspace workspace,
                 IAsyncDisposable disposable)
             {
                 LanguageServiceBrokerCallback = languageServiceBrokerCallback;
@@ -81,7 +81,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
         {
-            var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
+            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
             var threadingContext = workspace.GetService<IThreadingContext>();
 
             var clientCapabilities = new LSP.ClientCapabilities()
@@ -108,7 +108,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions)
         {
             var solution = workspace.CurrentSolution;
 

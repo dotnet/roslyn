@@ -10,11 +10,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -57,10 +60,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected static string CreateFolderPath(params string[] folders)
             => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
+        private protected override TestWorkspace CreateWorkspace(string workspaceMarkupOrCode, TestParameters parameters, TestComposition composition, IDocumentServiceProvider documentServiceProvider)
+            => TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+               ? EditorTestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
+               : EditorTestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {
             var testOptions = new TestParameters();
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
+            using (var workspace = (EditorTestWorkspace)CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 if (expectedFolders?.Count > 0)
                 {

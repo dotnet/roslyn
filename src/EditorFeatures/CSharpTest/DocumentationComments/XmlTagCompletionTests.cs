@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
         private protected override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace workspace)
             => workspace.ExportProvider.GetCommandHandler<XmlTagCompletionCommandHandler>(nameof(XmlTagCompletionCommandHandler), ContentTypeNames.CSharpContentType);
 
-        private protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
-            => TestWorkspace.CreateCSharp(initialMarkup);
+        private protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+            => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
         [WpfFact]
         public void SimpleTagCompletion()

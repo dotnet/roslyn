@@ -892,7 +892,7 @@ class A
             var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
                 typeof(TestDocumentTrackingService));
 
-            using var workspace = new TestWorkspace(composition);
+            using var workspace = new EditorTestWorkspace(composition);
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);

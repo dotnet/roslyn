@@ -13,9 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     internal class MockInvisibleEditor : IInvisibleEditor
     {
         private readonly DocumentId _documentId;
-        private readonly TestWorkspace _workspace;
+        private readonly EditorTestWorkspace _workspace;
 
-        public MockInvisibleEditor(DocumentId document, TestWorkspace workspace)
+        public MockInvisibleEditor(DocumentId document, EditorTestWorkspace workspace)
         {
             _documentId = document;
             _workspace = workspace;

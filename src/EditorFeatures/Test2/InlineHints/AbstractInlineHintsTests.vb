@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineHintsTests
         Protected Async Function VerifyParamHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
                 Dim options = New InlineParameterHintsOptions() With
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
         End Function
 
         Protected Async Function VerifyTypeHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
                 Dim options = New InlineTypeHintsOptions() With

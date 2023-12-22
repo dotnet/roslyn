@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         internal abstract ICommandHandler<TCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
 
         protected abstract (TCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer);
 

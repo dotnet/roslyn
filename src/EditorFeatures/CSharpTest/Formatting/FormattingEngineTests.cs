@@ -2936,7 +2936,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
     private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection? globalOptions = null, ParseOptions? parseOptions = null)
     {
-        using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
 
         var subjectDocument = workspace.Documents.Single();
 

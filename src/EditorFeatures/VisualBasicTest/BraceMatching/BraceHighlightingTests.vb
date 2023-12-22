@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
         <WpfFact>
         Public Async Function TestParens() As Tasks.Task
-            Using workspace = TestWorkspace.CreateVisualBasic(
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(
 "Module Module1
     Function Goo(x As Integer) As Integer
     End Function
@@ -78,7 +78,7 @@ End Module")
 
         <WpfFact>
         Public Async Function TestNestedTouchingItems() As Tasks.Task
-            Using workspace = TestWorkspace.CreateVisualBasic(
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(
 "Module Module1
     <SomeAttr(New With {.name = ""test""})>  
     Sub Goo()
@@ -153,7 +153,7 @@ End Module")
 
         <WpfFact>
         Public Async Function TestUnnestedTouchingItems() As Tasks.Task
-            Using workspace = TestWorkspace.CreateVisualBasic(
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(
 "Module Module1
     Dim arr()() As Integer
 End Module")
@@ -193,7 +193,7 @@ End Module")
 
         <WpfFact>
         Public Async Function TestAngles() As Tasks.Task
-            Using workspace = TestWorkspace.CreateVisualBasic(
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(
 "Module Module1
     <Attribute()>
     Sub Goo()

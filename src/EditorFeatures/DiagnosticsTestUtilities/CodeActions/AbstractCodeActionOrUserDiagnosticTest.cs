@@ -160,6 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual TestParameters SetParameterDefaults(TestParameters parameters)
             => parameters;
 
+        private protected virtual TestWorkspace CreateWorkspace(string workspaceMarkupOrCode, TestParameters parameters, TestComposition composition, IDocumentServiceProvider documentServiceProvider)
+            => TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+               ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
+               : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+
         protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters = null)
         {
             parameters ??= TestParameters.Default;
@@ -169,9 +174,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             parameters = SetParameterDefaults(parameters);
 
             var documentServiceProvider = GetDocumentServiceProvider();
-            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
-                ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
-                : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+
+            var workspace = CreateWorkspace(workspaceMarkupOrCode, parameters, composition, documentServiceProvider);
 
 #if !CODE_STYLE
             if (parameters.testHost == TestHost.OutOfProcess && _logger != null)

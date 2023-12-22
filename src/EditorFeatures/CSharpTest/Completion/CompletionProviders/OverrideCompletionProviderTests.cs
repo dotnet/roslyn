@@ -2474,7 +2474,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2490,7 +2490,7 @@ End Class
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2731,7 +2731,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2747,7 +2747,7 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2787,7 +2787,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
+            using var testWorkspace = EditorTestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2803,7 +2803,7 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -3240,7 +3240,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.Create(source, composition: GetComposition());
             var before = @"
 public abstract class Base
 {

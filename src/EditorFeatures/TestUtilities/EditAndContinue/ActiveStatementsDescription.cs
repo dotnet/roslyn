@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)
             {
-                var documentName = filePaths?[sourceIndex] ?? Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension));
+                var documentName = filePaths?[sourceIndex] ?? Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension ?? ""));
                 var tree = syntaxTreeFactory(SourceMarkers.Clear(markedSource), documentName);
                 var statements = CreateActiveStatementMapFromMarkers(markedSource, tree, flags, map);
 

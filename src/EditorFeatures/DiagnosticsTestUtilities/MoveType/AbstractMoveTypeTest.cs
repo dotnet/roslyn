@@ -10,11 +10,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -80,6 +83,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             }
         }
 
+        private protected override TestWorkspace CreateWorkspace(string workspaceMarkupOrCode, TestParameters parameters, TestComposition composition, IDocumentServiceProvider documentServiceProvider)
+            => TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+               ? EditorTestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
+               : EditorTestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+
         protected async Task TestRenameFileToMatchTypeAsync(
             string originalCode,
             string expectedDocumentName = null,
@@ -88,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             object fixProviderData = null)
         {
             var testOptions = new TestParameters(fixProviderData: fixProviderData);
-            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
+            using (var workspace = (EditorTestWorkspace)CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {

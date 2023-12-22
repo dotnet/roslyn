@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 {
     public abstract class AbstractSplitCommentCommandHandlerTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string markup);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup);
 
         /// <summary>
         /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033

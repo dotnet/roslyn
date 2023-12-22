@@ -119,8 +119,8 @@ End Class
                 AbstractCommentSelectionBase(Of ValueTuple))
         End Function
 
-        Friend Overrides Function GetWorkspace(markup As String, composition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(markup, composition:=composition)
+        Friend Overrides Function GetWorkspace(markup As String, composition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup, composition:=composition)
         End Function
     End Class
 End Namespace

@@ -1506,7 +1506,7 @@ class C
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
-            => TestWorkspace.CreateCSharp(markup, composition: composition);
+        internal override EditorTestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => EditorTestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

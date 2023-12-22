@@ -3239,10 +3239,10 @@ public class Bar
 
         protected override string Language => LanguageNames.CSharp;
 
-        protected override Action CreateNextHandler(TestWorkspace workspace)
+        protected override Action CreateNextHandler(EditorTestWorkspace workspace)
             => () => { };
 
-        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace)
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
         {
             return Assert.IsType<AutomaticLineEnderCommandHandler>(
                 workspace.GetService<ICommandHandler>(

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
             where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
             where TTag : class, ITag

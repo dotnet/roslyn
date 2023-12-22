@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 leftItemGrayed As Boolean,
                 rightItem As ExpectedItem,
                 rightItemGrayed As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 

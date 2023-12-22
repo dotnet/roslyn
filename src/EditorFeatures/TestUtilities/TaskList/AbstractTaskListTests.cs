@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
         private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
         private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
 
-        protected TestWorkspace CreateWorkspace(string codeWithMarker, TestHost host)
+        protected EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestHost host)
             => CreateWorkspace(codeWithMarker, host == TestHost.OutOfProcess ? s_outOffProcessComposition : s_inProcessComposition);
 
-        protected abstract TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition testComposition);
+        protected abstract EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition testComposition);
 
         protected async Task TestAsync(string codeWithMarker, TestHost host)
         {

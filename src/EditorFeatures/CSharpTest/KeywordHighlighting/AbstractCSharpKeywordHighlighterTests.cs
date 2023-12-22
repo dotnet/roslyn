@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
@@ -13,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     public abstract class AbstractCSharpKeywordHighlighterTests
         : AbstractKeywordHighlighterTests
     {
-        protected override TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options)
-            => TestWorkspace.CreateCSharp(code, options, composition: Composition);
+        protected override EditorTestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options)
+            => EditorTestWorkspace.CreateCSharp(code, options, composition: Composition);
 
         protected override IEnumerable<ParseOptions> GetOptions()
         {
-            yield return Options.Regular;
-            yield return Options.Script;
+            yield return TestOptions.Regular;
+            yield return TestOptions.Script;
         }
     }
 }

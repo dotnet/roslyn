@@ -1235,8 +1235,8 @@ End Class
             Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentCommandHandler)(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)
         End Function
 
-        Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, composition:=s_composition)
+        Protected Overrides Function CreateTestWorkspace(code As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code, composition:=s_composition)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

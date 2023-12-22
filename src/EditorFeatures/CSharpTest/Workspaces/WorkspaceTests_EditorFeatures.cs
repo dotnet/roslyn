@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public class WorkspaceTests_EditorFeatures : TestBase
     {
-        private static TestWorkspace CreateWorkspace(
+        private static EditorTestWorkspace CreateWorkspace(
             string workspaceKind = null,
             bool disablePartialSolutions = true,
             TestComposition composition = null)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
-            return new TestWorkspace(composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
+            return new EditorTestWorkspace(composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -474,10 +474,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             using var workspace = CreateWorkspace();
             var solutionX = workspace.CurrentSolution;
 
-            var document1 = new TestHostDocument(@"public class C { }");
+            var document1 = new EditorTestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("""
+            var document2 = new EditorTestHostDocument("""
                 Public Class D 
                   Inherits C
                 End Class
@@ -523,10 +523,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             using var workspace = CreateWorkspace(disablePartialSolutions: false);
             var solutionX = workspace.CurrentSolution;
 
-            var document1 = new TestHostDocument(@"public class C { }");
+            var document1 = new EditorTestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("""
+            var document2 = new EditorTestHostDocument("""
                 Public Class D 
                   Inherits C
                 End Class
@@ -584,10 +584,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
 
-            var document1 = new TestHostDocument(@"public class C { }");
+            var document1 = new EditorTestHostDocument(@"public class C { }");
             var project1 = new TestHostProject(workspace, document1, name: "project1");
 
-            var document2 = new TestHostDocument("""
+            var document2 = new EditorTestHostDocument("""
                 Public Class D 
                   Inherits C
                 End Class
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
 
-            var document = new TestHostDocument(string.Empty);
+            var document = new EditorTestHostDocument(string.Empty);
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var startText = "public class C { }";
             var newText = "public class D { }";
 
-            var document = new TestHostDocument(startText);
+            var document = new EditorTestHostDocument(startText);
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(doc1Text)}</DocumentFromSourceGenerator>
   </Project>
 </Workspace>";
-            using var workspace = TestWorkspace.Create(workspaceElement, composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = EditorTestWorkspace.Create(workspaceElement, composition: EditorTestCompositions.EditorFeatures);
             var document = workspace.Documents.Single();
 
             var longEventTimeout = TimeSpan.FromMinutes(5);
@@ -1078,8 +1078,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var newText = """
                 <setting value = "goo1"
                 """;
-            var document = new TestHostDocument("public class C { }");
-            var additionalDoc = new TestHostDocument(startText);
+            var document = new EditorTestHostDocument("public class C { }");
+            var additionalDoc = new EditorTestHostDocument(startText);
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
 
             workspace.AddTestProject(project1);
@@ -1110,9 +1110,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             using var workspace = CreateWorkspace();
             var startText = @"root = true";
             var newText = @"root = false";
-            var document = new TestHostDocument("public class C { }");
+            var document = new EditorTestHostDocument("public class C { }");
             var analyzerConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
-            var analyzerConfigDoc = new TestHostDocument(startText, filePath: analyzerConfigPath);
+            var analyzerConfigDoc = new EditorTestHostDocument(startText, filePath: analyzerConfigPath);
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
             workspace.AddTestProject(project1);
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(input, composition: EditorTestCompositions.EditorFeatures, openDocuments: true);
+            using var workspace = EditorTestWorkspace.Create(input, composition: EditorTestCompositions.EditorFeatures, openDocuments: true);
             var eventArgs = new List<WorkspaceChangeEventArgs>();
 
             workspace.WorkspaceChanged += (s, e) =>

@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
             Verify(code, expected);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
-            => TestWorkspace.CreateCSharp(initialMarkup);
+        protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+            => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
         protected override (TypeCharCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new TypeCharCommandArgs(textView, textBuffer, '/'), "/");

@@ -66,6 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         internal virtual IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
             => workspace.GetService<IBraceMatchingService>();
 
-        protected abstract TestWorkspace CreateWorkspace(string markup, ParseOptions options);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options);
     }
 }

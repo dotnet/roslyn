@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck
 {
     public abstract class AbstractSpellCheckFixerProviderTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string content);
+        protected abstract EditorTestWorkspace CreateWorkspace(string content);
 
 #pragma warning disable CS0612 // Type or member is obsolete
 #pragma warning disable CS0618 // Type or member is obsolete

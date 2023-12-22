@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal static Holder CreateSession(TestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
+        internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
         {
             var document = workspace.Documents.First();
 

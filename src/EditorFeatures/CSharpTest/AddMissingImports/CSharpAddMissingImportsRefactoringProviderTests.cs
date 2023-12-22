@@ -6,12 +6,14 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -30,10 +32,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
         }
 
+        private protected override TestWorkspace CreateWorkspace(string workspaceMarkupOrCode, TestParameters parameters, TestComposition composition, IDocumentServiceProvider documentServiceProvider)
+            => TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+               ? EditorTestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
+               : EditorTestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+
         protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
             // Treat the span being tested as the pasted span
-            var hostDocument = workspace.Documents.First();
+            var hostDocument = (EditorTestHostDocument)workspace.Documents.First();
             var pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault();
 
             if (!pastedTextSpan.IsEmpty)

@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
     [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
-            => TestWorkspace.Create(
+        protected override EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options)
+            => EditorTestWorkspace.Create(
                 NoCompilationConstants.LanguageName, compilationOptions: null, parseOptions: options, content: markup);
 
         internal override IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)

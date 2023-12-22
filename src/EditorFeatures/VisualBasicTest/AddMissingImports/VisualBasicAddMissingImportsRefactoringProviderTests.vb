@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.PasteTracking
 
 Namespace Microsoft.CodeAnalysis.AddMissingImports
@@ -23,9 +24,15 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             Return New VisualBasicAddMissingImportsRefactoringProvider(pasteTrackingService)
         End Function
 
+        Private Protected Overrides Function CreateWorkspace(workspaceMarkupOrCode As String, parameters As TestParameters, composition As TestComposition, documentServiceProvider As IDocumentServiceProvider) As TestWorkspace
+            Return If(TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode),
+                EditorTestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments:=False, composition:=composition, documentServiceProvider:=documentServiceProvider, workspaceKind:=parameters.workspaceKind),
+                EditorTestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files:={workspaceMarkupOrCode}, composition:=composition, documentServiceProvider:=documentServiceProvider, workspaceKind:=parameters.workspaceKind))
+        End Function
+
         Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
             ' Treat the span being tested as the pasted span
-            Dim hostDocument = workspace.Documents.First()
+            Dim hostDocument = DirectCast(workspace, EditorTestWorkspace).Documents.First()
             Dim pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault()
 
             If Not pastedTextSpan.IsEmpty Then

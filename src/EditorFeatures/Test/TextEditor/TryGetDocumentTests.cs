@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         {
             var code = @"class C
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         public void EmptyTextChanges()
         {
             var code = @"class C";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
 

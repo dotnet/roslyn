@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
         internal abstract ICommandHandler CreateCommandHandler(TestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         internal void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
         {

@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Return testWorkspace.ExportProvider.GetCommandHandler(Of XmlTagCompletionCommandHandler)("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)
         End Function
 
-        Private Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(initialMarkup)
+        Private Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(initialMarkup)
         End Function
 
         <WpfFact>

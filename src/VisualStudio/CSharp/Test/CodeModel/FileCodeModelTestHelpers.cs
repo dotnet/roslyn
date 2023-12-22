@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static (TestWorkspace workspace, EnvDTE.FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
+        public static (EditorTestWorkspace workspace, EnvDTE.FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
         {
-            var workspace = TestWorkspace.CreateCSharp(file, composition: CodeModelTestHelpers.Composition);
+            var workspace = EditorTestWorkspace.CreateCSharp(file, composition: CodeModelTestHelpers.Composition);
 
             try
             {

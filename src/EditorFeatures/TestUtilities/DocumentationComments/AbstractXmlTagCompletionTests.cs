@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     public abstract class AbstractXmlTagCompletionTests
     {
         private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace testWorkspace);
-        private protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        private protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {

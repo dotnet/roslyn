@@ -2405,7 +2405,7 @@ class C
             return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }
