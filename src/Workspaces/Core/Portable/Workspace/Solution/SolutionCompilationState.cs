@@ -398,10 +398,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProjectReference"/>
-    public SolutionCompilationState RemoveProjectReference(StateChange stateChange)
+    public SolutionCompilationState RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveProjectReference(projectId, projectReference),
             translate: null,
             forkTracker: true);
     }
@@ -427,10 +427,10 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.RemoveMetadataReference"/>
-    public SolutionCompilationState RemoveMetadataReference(StateChange stateChange)
+    public SolutionCompilationState RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveMetadataReference(projectId, metadataReference),
             translate: null,
             forkTracker: true);
     }
@@ -456,35 +456,35 @@ internal sealed partial class SolutionCompilationState
             arg: analyzerReferences);
     }
 
-    public SolutionCompilationState AddAnalyzerReferences(SolutionState newSolutionState)
+    public SolutionCompilationState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
         // all come from entrypoints that are specific to a particular project.
-        return Branch(newSolutionState);
+        return Branch(this.Solution.AddAnalyzerReferences(analyzerReferences));
     }
 
-    public SolutionCompilationState RemoveAnalyzerReference(SolutionState newSolutionState)
+    public SolutionCompilationState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
         // all come from entrypoints that are specific to a particular project.
-        return Branch(newSolutionState);
+        return Branch(this.Solution.RemoveAnalyzerReference(analyzerReference));
     }
 
-    public SolutionCompilationState WithAnalyzerReferences(SolutionState newSolutionState)
+    public SolutionCompilationState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
         // all come from entrypoints that are specific to a particular project.
-        return Branch(newSolutionState);
+        return Branch(this.Solution.WithAnalyzerReferences(analyzerReferences));
     }
 
     /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(StateChange stateChange, AnalyzerReference analyzerReference)
+    public SolutionCompilationState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
     {
         return ForkProject(
-            stateChange,
+            this.Solution.RemoveAnalyzerReference(projectId, analyzerReference),
             static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)),
             forkTracker: true,
@@ -495,10 +495,6 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithProjectAnalyzerReferences(
         ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        var stateChange = this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences);
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
         // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
         // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
@@ -512,7 +508,7 @@ internal sealed partial class SolutionCompilationState
         // but this avoids any surprises where other components calling WithAnalyzerReferences might not expect that.
 
         return ForkProject(
-            stateChange,
+            this.Solution.WithProjectAnalyzerReferences(projectId, analyzerReferences),
             static stateChange =>
             {
                 var addedReferences = stateChange.NewProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.OldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
@@ -665,9 +661,6 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
@@ -686,9 +679,6 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateAdditionalDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        if (stateChange.NewSolutionState == this.Solution)
-            return this;
-
         // This method shouldn't have been called if the document has not changed.cument has not changed.
         Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
@@ -1095,47 +1085,50 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+            static (documentInfo, project, _) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)),
+            /*unused*/ false);
     }
 
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            static (documentInfo, project, @this) => new AdditionalDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)),
+            this);
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            (oldProject, documents) =>
+            static (documentInfo, project, @this) => new AnalyzerConfigDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (oldProject, documents) =>
             {
                 var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
                 return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
-            });
+            },
+            this);
     }
 
     public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+            static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
+            static (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
     }
 
     public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+            static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
+            static (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
-            (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-            (oldProject, documentIds, _) =>
+            static (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
+            static (oldProject, documentIds, _) =>
             {
                 var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
                 return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
@@ -1148,21 +1141,18 @@ internal sealed partial class SolutionCompilationState
     /// <param name="documentInfos">The set of documents to add.</param>
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
     /// <returns></returns>
-    private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
+    private SolutionCompilationState AddDocumentsToMultipleProjects<T, TArg>(
         ImmutableArray<DocumentInfo> documentInfos,
-        Func<DocumentInfo, ProjectState, T> createDocumentState,
-        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        Func<DocumentInfo, ProjectState, TArg, T> createDocumentState,
+        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState,
+        TArg arg)
         where T : TextDocumentState
     {
         if (documentInfos.IsDefault)
-        {
             throw new ArgumentNullException(nameof(documentInfos));
-        }
 
         if (documentInfos.IsEmpty)
-        {
             return this;
-        }
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll process
         // project-at-a-time.
@@ -1179,7 +1169,7 @@ internal sealed partial class SolutionCompilationState
 
             foreach (var documentInfo in documentInfosInProject)
             {
-                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
+                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState, arg));
             }
 
             var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
@@ -1309,9 +1299,9 @@ internal sealed partial class SolutionCompilationState
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal readonly struct TestAccessor(SolutionCompilationState solutionState)
+    internal readonly struct TestAccessor(SolutionCompilationState compilationState)
     {
         public GeneratorDriver? GetGeneratorDriver(Project project)
-            => project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+            => project.SupportsCompilation ? compilationState.GetCompilationTracker(project.Id).GeneratorDriver : null;
     }
 }

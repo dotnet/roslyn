@@ -27,7 +27,7 @@ internal partial class SolutionCompilationState
     private partial class CompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
-            SolutionCompilationState solution,
+            SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -57,7 +57,7 @@ internal partial class SolutionCompilationState
             }
 
             return await ComputeNewGeneratorInfoAsync(
-                solution,
+                compilationState,
                 compilationWithoutGeneratedFiles,
                 generatorInfo,
                 compilationWithStaleGeneratedTrees,
@@ -65,7 +65,7 @@ internal partial class SolutionCompilationState
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoAsync(
-            SolutionCompilationState solution,
+            SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -75,12 +75,12 @@ internal partial class SolutionCompilationState
             // back over to us to ensure that both processes are in total agreement about the SG docs and their
             // contents.
             var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                compilationState, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
             if (result.HasValue)
                 return result.Value;
 
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-            var telemetryCollector = solution.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
+            var telemetryCollector = compilationState.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(
                 telemetryCollector, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }

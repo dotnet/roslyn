@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
                 if (_solutionId != null)
                 {
-                    pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
+                    pool.Object.UnionWith(solution.SolutionState.ProjectStates.Select(kv => kv.Value.Language));
                     return string.Join(",", pool.Object);
                 }
 
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var count = 0;
                 if (_solutionId != null)
                 {
-                    foreach (var projectState in solution.State.ProjectStates)
+                    foreach (var projectState in solution.SolutionState.ProjectStates)
                     {
                         count += projectState.Value.DocumentStates.Count;
                     }
