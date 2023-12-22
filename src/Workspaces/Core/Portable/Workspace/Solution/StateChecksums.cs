@@ -165,9 +165,9 @@ internal sealed class SolutionStateChecksums1(
         {
             Contract.ThrowIfTrue(assetHint.DocumentId != null);
 
-            // Before doing a depth-first-search *into* each project, first run across all the project at their top level.
-            // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
-            // that we don't unnecessarily walk all documents looking just for those.
+            // Before doing a depth-first-search *into* each project, first run across all the project at their top
+            // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
+            // instance that we don't unnecessarily walk all documents looking just for those.
 
             foreach (var (_, projectState) in solution.ProjectStates)
             {
@@ -188,8 +188,8 @@ internal sealed class SolutionStateChecksums1(
                 if (searchingChecksumsLeft.Count == 0)
                     break;
 
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been
-                // asked to compute the checksum tree for a subset of projects that were all that a feature needed.
+                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
+                // compute the checksum tree for a subset of projects that were all that a feature needed.
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                     await projectStateChecksums.FindAsync(projectState, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
