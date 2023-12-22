@@ -381,4 +381,14 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
+
+  <!--Version override to ensure local deployment always succeeds if environment variable Version42 is set-->
+  <Target Name="GetVsixVersion" DependsOnTargets="GetBuildVersion" Returns="$(BuildVersion)">
+
+    <PropertyGroup Condition="'$(Version42)'=='True'">
+      <BuildVersion>42.42.42.42</BuildVersion>
+    </PropertyGroup>
+
+    <Message Text="Vsix version: $(BuildVersion)" />
+  </Target>
 </Project>
