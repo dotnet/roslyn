@@ -453,7 +453,7 @@ namespace Roslyn.Test.Utilities
                     Contract.ThrowIfNull(document.FilePath);
 
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
-                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, ProtocolConversions.CreateAbsoluteUri(document.FilePath))));
+                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, document.GetURI())));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
