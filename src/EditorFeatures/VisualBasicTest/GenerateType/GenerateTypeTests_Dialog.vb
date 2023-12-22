@@ -397,7 +397,7 @@ existingFilename:="Test2.vb")
 #End Region
 
 #Region "SameProject NewFile"
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeInNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -429,7 +429,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateType_UsingsNotNeeded_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -463,7 +463,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateType_InValidFolderNameNotMadeNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -497,7 +497,7 @@ newFileName:="Test2.vb")
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907454")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateType_UsingsNeeded_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -536,7 +536,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907454")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateType_UsingsPresentAlready_InNewFile_InFolder() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -577,7 +577,7 @@ newFileName:="Test2.vb")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -745,7 +745,7 @@ projectName:="Assembly2")
 #End Region
 #Region "SameLanguage DifferentProject NewFile"
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -781,7 +781,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -824,7 +824,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -862,7 +862,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_ProjectReference() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
@@ -905,7 +905,7 @@ projectName:="Assembly2")
 #End Region
 #End Region
 #Region "Different Language"
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -941,7 +941,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -991,7 +991,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1028,7 +1028,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports_DefaultNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1078,7 +1078,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName_DefaultNamespace() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1282,7 +1282,7 @@ projectName:="Assembly2")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")>
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateTypeIntoDifferentLanguageNewFileAdjustTheFileExtension() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -2070,7 +2070,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function GenerateDelegateTypeIntoDifferentLanguageNewFile() As Task
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#if EDITOR_FEATURES
 
 using System;
 using System.Collections.Generic;
@@ -196,3 +197,4 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
     }
 }
+#endif

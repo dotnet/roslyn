@@ -5300,7 +5300,7 @@ index: 1);
                 }
             }
             """,
-new TestParameters(Options.Regular));
+new TestParameters(TestOptions.Regular));
     }
 
     [Theory]

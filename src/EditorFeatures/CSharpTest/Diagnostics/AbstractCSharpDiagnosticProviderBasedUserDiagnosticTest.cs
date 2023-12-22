@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
         {
         }
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 

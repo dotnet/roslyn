@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
     <Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
     Partial Public Class MoveTypeTests
 
-        <WpfFact>
+        <Fact>
         Public Async Function SingleClassInFileWithNoContainerNamespace_RenameFile() As Task
             Dim code =
 <File>
@@ -17,7 +17,7 @@ End Class
             Await TestRenameFileToMatchTypeAsync(code, expectedDocumentName)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMissing_TypeNameMatchesFileName_RenameFile() As Task
             ' testworkspace creates files Like test1.cs, test2.cs And so on.. 
             ' so type name matches filename here And rename file action should Not be offered.
@@ -30,7 +30,7 @@ End Class
             Await TestRenameFileToMatchTypeAsync(code, expectedCodeAction:=False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile() As Task
             Dim code =
 <File>
@@ -44,7 +44,7 @@ End Class
             Await TestRenameFileToMatchTypeAsync(code, expectedCodeAction:=False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameFile() As Task
             Dim code =
 <File>

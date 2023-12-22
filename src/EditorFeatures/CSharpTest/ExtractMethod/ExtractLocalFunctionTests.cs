@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -845,7 +845,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

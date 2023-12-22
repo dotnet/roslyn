@@ -460,7 +460,7 @@ namespace N
         }
     }
 }",
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
         }
 
         [Theory, CombinatorialData]

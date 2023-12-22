@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -2319,7 +2320,7 @@ count: 1);
 
                 C.i ++ ;
                 """,
-parseOptions: Options.Script);
+parseOptions: TestOptions.Script);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
@@ -3132,7 +3133,7 @@ object Goo { get; private set; }
 
 Goo
 """,
-parseOptions: Options.Script);
+parseOptions: TestOptions.Script);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
@@ -10609,7 +10610,7 @@ index: PropertyIndex);
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48172")]
         public async Task TestMissingOfferParameterInTopLevel()
         {
-            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
+            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(TestOptions.Regular));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47586")]

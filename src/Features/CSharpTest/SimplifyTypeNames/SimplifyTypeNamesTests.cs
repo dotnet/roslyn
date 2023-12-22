@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -2290,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
         {
             await TestMissingAsync(
 @"[|Console.WrieLine();|]",
-new TestParameters(Options.Script));
+new TestParameters(TestOptions.Script));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]

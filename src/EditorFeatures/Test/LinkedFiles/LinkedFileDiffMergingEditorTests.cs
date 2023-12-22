@@ -5,12 +5,16 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -47,6 +51,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                 expectedText: expectedCode,
                 action: codeIssueOrRefactoring.CodeActions[0].action,
                 expectedPreviewContents: expectedCode);
+        }
+
+        protected async Task TestActionOnLinkedFiles(
+            TestWorkspace workspace,
+            string expectedText,
+            CodeAction action,
+            string expectedPreviewContents = null)
+        {
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
+
+            await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
+
+            var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
+            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
+
+            foreach (var document in workspace.Documents)
+            {
+                var fixedRoot = await workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync();
+                var actualText = fixedRoot.ToFullString();
+                Assert.Equal(expectedText, actualText);
+            }
+        }
+
+        private static async Task VerifyPreviewContents(
+            TestWorkspace workspace, string expectedPreviewContents,
+            ImmutableArray<CodeActionOperation> operations)
+        {
+            if (expectedPreviewContents != null)
+            {
+                var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
+                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var content = (await previews.GetPreviewsAsync())[0];
+                var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
+                var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+                diffView.Dispose();
+
+                Assert.Equal(expectedPreviewContents, previewContents);
+            }
         }
 
         [Fact]

@@ -36,10 +36,6 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-#endif
-
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     [UseExportProvider]
@@ -149,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => null;
 
         protected virtual TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeatures
+            => FeaturesTestCompositions.Features
                 .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
                 .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 

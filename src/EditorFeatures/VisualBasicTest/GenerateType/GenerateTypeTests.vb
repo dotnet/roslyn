@@ -486,7 +486,7 @@ End Interface
 index:=1)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestGenerateIntoNewNamespace() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "Imports System
@@ -509,7 +509,7 @@ expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestPreserveBanner1() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "' I am a banner!
@@ -531,7 +531,7 @@ expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestPreserveBanner2() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "''' I am a doc comment!
@@ -553,7 +553,7 @@ expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestPreserveBanner3() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "' I am a banner!
@@ -579,7 +579,7 @@ expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Bar.vb")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestGenerateIntoGlobalNamespaceNewFile() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "Imports System
@@ -806,7 +806,7 @@ parameters:=New TestParameters(parseOptions:=TestOptions.Regular))
 "Imports [|System|]")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestNoContainersInNewType() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "Class Base

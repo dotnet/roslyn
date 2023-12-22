@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var actual = (await addedDocument.GetTextAsync()).ToString();
             Assert.Equal(expected, actual);
 
+#if EDITOR_FEATURES
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
             if (!hasProjectChange)
             {
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 Assert.True(hasPreview);
             }
+#endif
 
             return Tuple.Create(oldSolution, newSolution);
         }

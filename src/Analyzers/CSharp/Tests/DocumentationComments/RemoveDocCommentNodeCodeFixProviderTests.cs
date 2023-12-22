@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 
         private async Task TestAsync(string initial, string expected)
         {
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+            var parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
             await TestAsync(initial, expected, parseOptions: parseOptions);
         }
 

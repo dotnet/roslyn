@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
     Partial Public Class MoveTypeTests
         Inherits BasicMoveTypeTestsBase
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMissing_OnMatchingFileName() As Task
             Dim code =
 "
@@ -18,7 +18,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMissing_Nested_OnMatchingFileName_Simple() As Task
             Dim code =
 "
@@ -31,7 +31,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
             Dim code =
 "
@@ -55,7 +55,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function MoveNestedTypeToNewFile_Simple() As Task
             Dim code =
 "
@@ -81,7 +81,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function MoveNestedTypeToNewFile_Simple_DottedName() As Task
             Dim code =
 "
@@ -108,7 +108,7 @@ End Class
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/14484")>
-        <WpfFact>
+        <Fact>
         Public Async Function MoveNestedTypeToNewFile_RemoveComments() As Task
             Dim code =
 "
@@ -140,7 +140,7 @@ End Class
                 index:=1)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestImports() As Task
             Dim code =
 "
@@ -187,7 +187,7 @@ End Class
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/16282")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestTypeInheritance() As Task
             Dim code =
 "
@@ -229,7 +229,7 @@ End Class
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestLeadingBlankLines1() As Task
             Dim code =
 "' Banner Text
@@ -273,7 +273,7 @@ end class
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact>
+        <Fact>
         Public Async Function TestLeadingBlankLines2() As Task
             Dim code =
 "' Banner Text
