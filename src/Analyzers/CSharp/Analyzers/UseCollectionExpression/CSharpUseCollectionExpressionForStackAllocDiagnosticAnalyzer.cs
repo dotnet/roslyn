@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -43,11 +44,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
+        // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
         {
             return;
         }
@@ -82,10 +84,11 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var matches = TryGetMatches(semanticModel, expression, expressionType, cancellationToken);
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var matches = TryGetMatches(semanticModel, expression, expressionType, allowInterfaceConversion, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -114,14 +117,17 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
             expressionType,
+            allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,
-            cancellationToken);
+            cancellationToken,
+            out _);
     }
 }
