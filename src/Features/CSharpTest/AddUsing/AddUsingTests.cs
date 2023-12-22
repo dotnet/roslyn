@@ -6527,5 +6527,55 @@ class Program
                 index: 0,
                 parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
+        public async Task TestAddUsingWithMalformedGeneric(TestHost testHost)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                class Class
+                {
+                    [|List<Y|] x;
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class Class
+                {
+                    List<Y x;
+                }
+                """,
+                index: 0,
+                parameters: new TestParameters(testHost: testHost));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+                
+                class Program
+                {
+                    Func<[|FlowControl|] x
+                }
+                """,
+                """
+                using System;
+                using System.Reflection.Emit;
+                
+                class Program
+                {
+                    Func<FlowControl x
+                }
+                """,
+                index: 0,
+                parameters: new TestParameters(testHost: testHost));
+        }
     }
 }
