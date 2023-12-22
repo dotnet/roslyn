@@ -112,36 +112,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IAsynchronousOperationListener _workspaceListener;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
+        public VisualStudioWorkspaceImpl(
+            ExportProvider exportProvider,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            Lazy<IProjectCodeModelFactory> projectCodeModelFactory,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
+            IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
-            _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
-            _globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-            _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
-            _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
-            _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
-            _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+            _textBufferCloneService = textBufferCloneService;
+            _textBufferFactoryService = textBufferFactoryService;
+            _projectionBufferFactoryService = projectionBufferFactoryService;
+            _projectCodeModelFactory = projectCodeModelFactory;
 
             _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
 
-            FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
+            FileChangeWatcher = fileChangeWatcherProvider.Watcher;
 
             ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
-            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
+            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
+            var token = listener.BeginAsyncOperation(nameof(InitializeUIAffinitizedServicesAsync));
+            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider))
+                .CompletesAsyncOperation(token);
 
-            _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-                new ExternalErrorDiagnosticUpdateSource(
-                    this,
-                    exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                    exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                    exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                    _threadingContext),
-                isThreadSafe: true);
+            _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(Services.GetRequiredService<ExternalErrorDiagnosticUpdateSource>);
 
             _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
         }

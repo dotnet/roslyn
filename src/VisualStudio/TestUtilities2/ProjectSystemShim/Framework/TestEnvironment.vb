@@ -13,8 +13,10 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -26,6 +28,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -100,9 +104,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider,
-                           exportProvider.GetExportedValue(Of MockServiceProvider))
+            Public Sub New(
+                exportProvider As Composition.ExportProvider,
+                asynchronousOperationListenerProvider As IAsynchronousOperationListenerProvider,
+                threadingContext As IThreadingContext,
+                globalOptions As IGlobalOptionService,
+                textBufferCloneService As ITextBufferCloneService,
+                textBufferFactoryService As ITextBufferFactoryService,
+                projectionBufferFactoryService As IProjectionBufferFactoryService,
+                projectCodeModelFactory As Lazy(Of IProjectCodeModelFactory),
+                fileChangeWatcherProvider As FileChangeWatcherProvider,
+                asyncServiceProvider As MockServiceProvider)
+                MyBase.New(
+                    exportProvider,
+                    asynchronousOperationListenerProvider,
+                    threadingContext,
+                    globalOptions,
+                    textBufferCloneService,
+                    textBufferFactoryService,
+                    projectionBufferFactoryService,
+                    projectCodeModelFactory,
+                    fileChangeWatcherProvider,
+                    asyncServiceProvider)
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))

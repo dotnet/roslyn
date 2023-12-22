@@ -17,13 +17,18 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
@@ -45,10 +50,27 @@ namespace Microsoft.VisualStudio.LanguageServices
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            Lazy<IProjectCodeModelFactory> projectCodeModelFactory,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
-            : base(exportProvider, asyncServiceProvider)
+            : base(
+                exportProvider,
+                asynchronousOperationListenerProvider,
+                threadingContext,
+                globalOptions,
+                textBufferCloneService,
+                textBufferFactoryService,
+                projectionBufferFactoryService,
+                projectCodeModelFactory,
+                fileChangeWatcherProvider,
+                asyncServiceProvider)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;

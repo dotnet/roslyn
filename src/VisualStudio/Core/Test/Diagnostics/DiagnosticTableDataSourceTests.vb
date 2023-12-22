@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
@@ -27,6 +28,9 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     <[UseExportProvider]>
     Public Class DiagnosticTableDataSourceTests
+        Private Shared ReadOnly s_compositionWithExternalErrorDiagnosticUpdateSource As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddParts(GetType(ExternalErrorDiagnosticUpdateSourceFactory))
+
         <Fact>
         Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
@@ -661,16 +665,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspace.Create(markup)
+            Using workspace = TestWorkspace.Create(markup, composition:=s_compositionWithExternalErrorDiagnosticUpdateSource)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                Dim notificationService = workspace.GetService(Of IGlobalOperationNotificationService)
                 Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
-                Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.GetService(Of IDiagnosticService)())
                 Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
-                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, notificationService, listener, CancellationToken.None)
+                Using updateSource = workspace.Services.GetRequiredService(Of ExternalErrorDiagnosticUpdateSource)()
 
                     Dim tableManagerProvider = New TestTableManagerProvider()
                     Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, updateSource, tableManagerProvider)
@@ -731,7 +733,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     updateSource.OnSolutionBuildCompleted()
 
-                    Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.ErrorList).ExpeditedWaitAsync()
 
                     Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                     Dim sinkAndSubscription = manager.Sinks_TestOnly.First()

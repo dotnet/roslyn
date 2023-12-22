@@ -5,16 +5,21 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
     <PartNotDiscoverable>
@@ -27,10 +32,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         Private _workspace As TestWorkspace
 
         <ImportingConstructor>
-        <System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be marked with 'ObsoleteAttribute'", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(exportProvider As ExportProvider)
-            MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
-
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(
+            exportProvider As ExportProvider,
+            asynchronousOperationListenerProvider As IAsynchronousOperationListenerProvider,
+            threadingContext As IThreadingContext,
+            globalOptions As IGlobalOptionService,
+            textBufferCloneService As ITextBufferCloneService,
+            textBufferFactoryService As ITextBufferFactoryService,
+            projectionBufferFactoryService As IProjectionBufferFactoryService,
+            projectCodeModelFactory As Lazy(Of IProjectCodeModelFactory),
+            fileChangeWatcherProvider As FileChangeWatcherProvider,
+            asyncServiceProvider As MockServiceProvider)
+            MyBase.New(
+                    exportProvider,
+                    asynchronousOperationListenerProvider,
+                    threadingContext,
+                    globalOptions,
+                    textBufferCloneService,
+                    textBufferFactoryService,
+                    projectionBufferFactoryService,
+                    projectCodeModelFactory,
+                    fileChangeWatcherProvider,
+                    asyncServiceProvider)
         End Sub
 
         Public Sub SetWorkspace(testWorkspace As TestWorkspace)

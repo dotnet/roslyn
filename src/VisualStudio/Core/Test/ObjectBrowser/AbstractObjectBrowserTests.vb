@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
@@ -42,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Dim result As TestState = Nothing
 
             Try
-                Dim vsWorkspace = New MockVisualStudioWorkspace(workspace.ExportProvider)
+                Dim vsWorkspace = Assert.IsType(Of MockVisualStudioWorkspace)(workspace.ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)())
                 vsWorkspace.SetWorkspace(workspace)
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)

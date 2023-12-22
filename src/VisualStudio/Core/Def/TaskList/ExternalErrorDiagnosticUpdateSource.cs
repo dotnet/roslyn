@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
     /// sources to update the reported diagnostics.
     /// </summary>
-    internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource, IDisposable
+    internal sealed class ExternalErrorDiagnosticUpdateSource : IWorkspaceService, IDiagnosticUpdateSource, IDisposable
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -73,32 +75,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// </summary>
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ExternalErrorDiagnosticUpdateSource(
-            VisualStudioWorkspace workspace,
+            Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
-            registrationService.Register(this);
-        }
+            var listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
-        /// <summary>
-        /// internal for testing
-        /// </summary>
-        internal ExternalErrorDiagnosticUpdateSource(
-            Workspace workspace,
-            IDiagnosticAnalyzerService diagnosticService,
-            IGlobalOperationNotificationService notificationService,
-            IAsynchronousOperationListener listener,
-            CancellationToken disposalToken)
-        {
             // use queue to serialize work. no lock needed
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _postBuildAndErrorListRefreshTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
-            _disposalToken = disposalToken;
+            _disposalToken = threadingContext.DisposalToken;
 
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -107,6 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
             _notificationService = notificationService;
+
+            registrationService.Register(this);
         }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
