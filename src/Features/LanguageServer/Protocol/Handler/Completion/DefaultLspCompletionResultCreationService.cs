@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
                     var lspOffset = newPosition is null ? -1 : newPosition.Value;
 
-                    lspItem.Command = lspItem.Command = new LSP.Command()
+                    lspItem.Command = new LSP.Command()
                     {
                         CommandIdentifier = CompleteComplexEditCommand,
                         Title = nameof(CompleteComplexEditCommand),
