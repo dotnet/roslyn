@@ -365,7 +365,7 @@ function TestUsingRunTests() {
   $dotnet = InitializeDotNetCli
 
   if ($testVsi) {
-    Deploy-VsixViaTool
+    Configure-VisualStudio
 
     if ($ci) {
       # Minimize all windows to avoid interference during integration test runs
@@ -536,16 +536,7 @@ function EnablePreviewSdks() {
   'UsePreviews=True' | Set-Content $sdkFile
 }
 
-# Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
-# deploying at build time.
-function Deploy-VsixViaTool() {
-
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
-  Write-Host "VSIX EXE path: " $vsixExe
-  if (-not (Test-Path $vsixExe)) {
-    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
-    ExitWithExitCode 1
-  }
+function Configure-VisualStudio() {
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
@@ -554,44 +545,10 @@ function Deploy-VsixViaTool() {
 
   $vsDir = $vsInfo.installationPath.TrimEnd("\")
   $vsId = $vsInfo.instanceId
-  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
   $displayVersion = $vsInfo.catalog.productDisplayVersion
 
   $hive = "RoslynDev"
   Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
-
-  Write-Host "Uninstalling old Roslyn VSIX"
-
-  # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
-  # wildfire to uninstall our VSIX extensions
-  $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
-  if (Test-Path $extDir) {
-    foreach ($dir in Get-ChildItem -Directory $extDir) {
-      $name = Split-Path -leaf $dir
-      Write-Host "`tUninstalling $name"
-    }
-    Remove-Item -re -fo $extDir
-  }
-
-  Write-Host "Installing all Roslyn VSIX"
-
-  # VSIX files need to be installed in this specific order:
-  $orderedVsixFileNames = @(
-    "Roslyn.Compilers.Extension.vsix",
-    "Roslyn.VisualStudio.Setup.vsix",
-    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
-    "Roslyn.VisualStudio.Setup.Dependencies.vsix",
-    "ExpressionEvaluatorPackage.vsix",
-    "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-    "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
-
-  foreach ($vsixFileName in $orderedVsixFileNames) {
-    $vsixFile = Join-Path $VSSetupDir $vsixFileName
-    $fullArg = "$baseArgs $vsixFile"
-    Write-Host "`tInstalling $vsixFileName"
-    Exec-Console $vsixExe $fullArg
-  }
 
   # Set up registry
   $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'

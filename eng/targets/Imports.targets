@@ -2,6 +2,8 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
+  <!-- Arcade excludes this import for design time builds, which breaks detection of the target VSIX path -->
+  <Import Project="../tools/VisualStudio.VsixBuild.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" Condition="'$(UsingToolVSSDK)' == 'true' AND '$(DesignTimeBuild)' == 'true'" />
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <!--

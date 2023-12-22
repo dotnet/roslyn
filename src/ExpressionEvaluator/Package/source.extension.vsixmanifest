@@ -23,7 +23,14 @@
     </InstallationTarget>
   </Installation>
   <Dependencies>
-    <Dependency Version="[|VisualStudioSetup;GetVsixVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency d:ProjectName="VisualStudioSetup"
+                DisplayName="Roslyn Language Services"
+                Version="[|%CurrentProject%;GetVsixVersion|,)"
+                d:Source="Project"
+                d:InstallSource="Embed"
+                d:VsixSubPath="Vsixes"
+                Location="|VisualStudioSetup;VSIXContainerProjectOutputGroup|"
+                Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
   </Dependencies>
   <Assets>
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicExpressionCompiler" Path="|BasicExpressionCompiler;VsdConfigOutputGroup|" />
