@@ -112,6 +112,13 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         return SuggestedNames[currentIndex];
     }
 
+    public void CancelNameSuggestions()
+    {
+        // Only cancel the request to get suggestions.
+        // Do not call OnCancel() because it should only be called when rename is not committed for telemetry purpose.
+        _cancellationTokenSource.Cancel();
+    }
+
     public void Cancel()
     {
         _cancellationTokenSource.Cancel();
