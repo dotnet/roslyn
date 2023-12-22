@@ -61,6 +61,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
         }
 
+        private protected override Task BaseVerifyWorkerAsync(
+            string code, int position, bool usePreviousCharAsTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
+            CompletionTestExpectedResult[] expectedResults,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+        {
+            return base.VerifyWorkerAsync(
+                code, position, usePreviousCharAsTrigger, hasSuggestionItem, sourceCodeKind,
+                expectedResults, matchingFilters, flags, options, skipSpeculation);
+        }
+
         private protected override async Task VerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
