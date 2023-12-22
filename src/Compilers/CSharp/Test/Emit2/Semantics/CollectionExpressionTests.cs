@@ -6411,6 +6411,56 @@ static class Program
         }
 
         [Fact]
+        public void CollectionInitializerType_GetEnumeratorPattern_NoImplementations()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection
+                {
+                    private List<string> _list = new();
+                    public void Add(string s) { _list.Add(s); }
+                    public IEnumerator<string> GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c = new();
+                        c.Add("1");
+                        c.Add(default);
+                        foreach (var i in c)
+                            Console.Write("{0}, ", i ?? "null");
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, expectedOutput: "1, null, ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = ["1", default];
+                        MyCollection y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection x = ["1", default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[""1"", default]").WithArguments("MyCollection").WithLocation(5, 26),
+                // 1.cs(6,26): error CS9174: Cannot initialize type 'MyCollection' with a collection expression because the type is not constructible.
+                //         MyCollection y = [..x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..x]").WithArguments("MyCollection").WithLocation(6, 26));
+        }
+
+        [Fact]
         public void CollectionInitializerType_GetEnumeratorPattern_RefStruct_Generic()
         {
             string sourceA = """
