@@ -496,6 +496,18 @@ Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclara
 |CodeFix|False|
 ---
 
+## [RS1041](https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1041.md): Compiler extensions should be implemented in assemblies targeting netstandard2.0
+
+Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisCorrectness|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.
