@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        return VisitCollectionInitializerCollectionExpression(node, node.Type);
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                         if (useListOptimization(_compilation, node, out var listElementType))
                         {
                             return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(unwrapListElement));

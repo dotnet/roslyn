@@ -169,14 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
                         _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
                         elementType = elementTypeWithAnnotations.Type;
                         if (elementType is null)
                         {
-                            Debug.Assert(collectionTypeKind != CollectionExpressionTypeKind.ImplementsIEnumerable);
                             return Conversion.NoConversion;
                         }
                     }
