@@ -70,9 +70,6 @@ internal sealed class SolutionCompilationStateChecksums(
         if (searchingChecksumsLeft.Remove(Checksum))
             result[Checksum] = this;
 
-        if (searchingChecksumsLeft.Remove(this.SolutionState))
-            result[SolutionState] = compilationState.Solution;
-
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
         {
             Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
