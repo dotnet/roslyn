@@ -61,28 +61,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (smartRenameSession is not null)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
-                SmartRenameViewModel.OnSelectedSuggestedNameChanged += OnSuggestedNameSelected;
-                SmartRenameViewModel.PropertyChanged += SmartRenameViewModel_PropertyChanged;
+                SmartRenameViewModel.OnCurrentIdentifierTextChanged += OnCurrentIdentifierTextChanged;
             }
 
             RegisterOleComponent();
         }
 
-        private void SmartRenameViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void OnCurrentIdentifierTextChanged(object sender, string? identifierText)
         {
-            if (e.PropertyName == nameof(SmartRenameViewModel.CurrentIdentifierText) && SmartRenameViewModel != null)
-            {
-                this.IdentifierText = SmartRenameViewModel.CurrentIdentifierText;
-            }
-        }
-
-        private void OnSuggestedNameSelected(object sender, string? selectedName)
-        {
-            // When user clicks one of the suggestions, update the IdentifierTextBox content to it.
             _threadingContext.ThrowIfNotOnUIThread();
-            if (selectedName is not null)
+            if (identifierText is not null)
             {
-                IdentifierText = selectedName;
+                IdentifierText = identifierText;
             }
         }
 
@@ -336,8 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.OnSelectedSuggestedNameChanged -= OnSuggestedNameSelected;
-                        SmartRenameViewModel.PropertyChanged -= SmartRenameViewModel_PropertyChanged;
+                        SmartRenameViewModel.OnCurrentIdentifierTextChanged -= OnCurrentIdentifierTextChanged;
                         SmartRenameViewModel.Dispose();
                     }
 

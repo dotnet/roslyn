@@ -32,7 +32,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event EventHandler<string?>? OnSelectedSuggestedNameChanged;
+    public event EventHandler<string?>? OnCurrentIdentifierTextChanged;
 
     public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
@@ -60,6 +60,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
                 return;
             }
             currentIdentifierText = value;
+            OnCurrentIdentifierTextChanged?.Invoke(this, value);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIdentifierText)));
         }
     }
@@ -78,7 +79,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             {
                 _threadingContext.ThrowIfNotOnUIThread();
                 _selectedSuggestedName = value;
-                OnSelectedSuggestedNameChanged?.Invoke(this, value);
+                CurrentIdentifierText = value ?? string.Empty;
             }
         }
     }
@@ -106,6 +107,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     private void OnGetSuggestionsCommandExecute()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
