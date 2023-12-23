@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 aeu
                 """;
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 aeu
                 """;
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,

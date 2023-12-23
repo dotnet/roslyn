@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpPullMemberUpCodeRefactoringProvider((IPullMemberUpOptionsService)parameters.fixProviderData);
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions) => FlattenActions(actions);
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions) => FlattenActions(actions);
 
         #region Quick Action
 

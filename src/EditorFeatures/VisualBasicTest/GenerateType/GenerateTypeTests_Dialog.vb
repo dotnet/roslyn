@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.GenerateType
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 #Region "SameProject SameFile"
         <Fact>
         Public Async Function GenerateTypeDefaultValues() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f As [|$$Goo|]
@@ -36,7 +37,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeInsideNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.Goo$$|]
@@ -62,7 +63,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeInsideQualifiedNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.Goo$$|]
@@ -88,7 +89,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithinQualifiedNestedNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.C.Goo$$|]
@@ -118,7 +119,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithinNestedQualifiedNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.C.Goo$$|]
@@ -148,7 +149,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithConstructorMembers() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
         Dim f = New [|$$Goo|](bar:=1, baz:=2)
@@ -177,7 +178,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithBaseTypes() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
             initial:=<Text>Imports System.Collections.Generic
 Class Program
     Sub Main()
@@ -202,7 +203,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithPublicInterface() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.C.Goo$$|]
@@ -232,7 +233,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithInternalStruct() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.C.Goo$$|]
@@ -262,7 +263,7 @@ isNewFile:=False)
 
         <Fact>
         Public Async Function GenerateTypeWithDefaultEnum() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
         Dim f As [|A.B.Goo$$|]
@@ -309,7 +310,7 @@ End Namespace</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -338,7 +339,7 @@ End Class</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -379,7 +380,7 @@ End Namespace</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -412,7 +413,7 @@ Namespace A.B
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -445,7 +446,7 @@ Namespace outer
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -479,7 +480,7 @@ Namespace outer
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -510,7 +511,7 @@ Class Program
 End Class</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -551,7 +552,7 @@ Class Program
 End Class</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -592,7 +593,7 @@ Namespace A.B
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -630,7 +631,7 @@ End Namespace</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -669,7 +670,7 @@ End Namespace</Document>
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -710,7 +711,7 @@ End Namespace</Document>
 End Namespace</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -763,7 +764,7 @@ End Namespace</Document>
                                        <CompilationOptions RootNamespace="BarBaz"/>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -797,7 +798,7 @@ End Class</Document>
                                        <CompilationOptions RootNamespace="Zoozoo"/>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -843,7 +844,7 @@ End Namespace</Document>
                                        <CompilationOptions RootNamespace="Zoozoo"/>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -884,7 +885,7 @@ Class Program
 End Class</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -922,7 +923,7 @@ End Namespace</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -960,7 +961,7 @@ End Namespace</Document>
                                        <CompilationOptions RootNamespace="Zoozoo"/>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1008,7 +1009,7 @@ End Namespace</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1046,7 +1047,7 @@ End Namespace</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1096,7 +1097,7 @@ End Namespace</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1135,7 +1136,7 @@ End Namespace</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1169,7 +1170,7 @@ End Class</Document>
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1216,7 +1217,7 @@ namespace A
 }</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1261,7 +1262,7 @@ End Namespace</Document>
 }</Document>
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1299,7 +1300,7 @@ End Namespace</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Goo",
@@ -1321,7 +1322,7 @@ projectName:="Assembly2")
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Class C
     Implements [|$$D|]
 End Class</Text>.NormalizedValue,
@@ -1342,7 +1343,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Class CC
     Inherits [|$$DD|]
 End Class</Text>.NormalizedValue,
@@ -1361,7 +1362,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Interface CCC
     Inherits [|$$DDD|]
 End Interface</Text>.NormalizedValue,
@@ -1381,7 +1382,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         Public Async Function GenerateTypeWithProperAccessibilityAndTypeKind_4() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Structure CCC
     Implements [|$$DDD|]
 End Structure</Text>.NormalizedValue,
@@ -1403,7 +1404,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")>
         Public Async Function GenerateTypeWithModuleOption() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s as [|$$A.B.C|]
@@ -1431,7 +1432,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpression() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = [|$$A.B|]
@@ -1456,7 +1457,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         Public Async Function GenerateTypeInMemberAccessExpressionWithNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Namespace A
     Module Program
         Sub Main(args As String())
@@ -1485,7 +1486,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")>
         Public Async Function GenerateType_NoParameterLessConstructor() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = new [|$$Goo|]()
@@ -1510,7 +1511,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInMemberAccessExpression() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = [|$$Goo(Of Bar).D|]
@@ -1541,7 +1542,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeWithoutEnumForGenericsInNameContext() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s As [|$$Goo(Of Bar)|]
@@ -1572,7 +1573,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithNSForModule() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = [|$$Goo.Bar|].Baz
@@ -1601,7 +1602,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")>
         Public Async Function GenerateTypeInMemberAccessWithGlobalNSForModule() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = [|$$Bar|].Baz
@@ -1626,7 +1627,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeInMemberAccessWithoutNS() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = [|$$Bar|].Baz
@@ -1644,7 +1645,7 @@ isMissing:=True)
 #Region "Delegates"
         <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s = New [|$$MyD|](AddressOf goo)
@@ -1674,7 +1675,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpressionIntoNamespace() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim goo = New NS.[|$$MyD|](Sub()
@@ -1704,7 +1705,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim goo = New [|$$NS.MyD|](Function(n) n)
@@ -1730,7 +1731,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim goo = New [|$$MyD|](Sub() System.Console.WriteLine(1))
@@ -1754,7 +1755,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateFromObjectCreationExpression_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim goo = New [|$$MyD|](Function(n As Integer)
@@ -1782,7 +1783,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpression() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD(Of Integer)|] = AddressOf goo(Of Integer)
@@ -1810,7 +1811,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|] = AddressOf goo(Of Integer)
@@ -1838,7 +1839,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|] = AddressOf goo
@@ -1866,7 +1867,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|] = AddressOf goo
@@ -1894,7 +1895,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithNoInitializer() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|]
@@ -1918,7 +1919,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_MultiLineFunction() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|] = Function()
@@ -1946,7 +1947,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_SingleLineFunction() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim a As [|$$MyD|] = Function(n As Integer) ""
@@ -1970,7 +1971,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_MultiLineSub() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar As [|$$MyD|] = Sub()
@@ -1996,7 +1997,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithLambda_SingleLineSub() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim a As [|$$MyD|] = Sub(n As Double) Console.WriteLine(0)
@@ -2020,7 +2021,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithCast() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar = DirectCast(AddressOf goo, [|$$MyD|])
@@ -2048,7 +2049,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateTypeDelegateWithCastAndError() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim bar = DirectCast(AddressOf goo, [|$$MyD|])
@@ -2084,7 +2085,7 @@ End Module</Document>
                                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
                                    </Project>
                                </Workspace>.ToString()
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
@@ -2100,7 +2101,7 @@ projectName:="Assembly2")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")>
         Public Async Function GenerateTypeDelegate_NoInfo() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim s as [|$$MyD(Of Integer)|]
@@ -2124,7 +2125,7 @@ typeKind:=TypeKind.Delegate)
 #Region "Dev12Filtering"
         <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_0() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim a = [|$$Baz.Goo|].Bar()
@@ -2153,7 +2154,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
 
         <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
         Dim a = [|$$Goo.Bar|]()
@@ -2178,7 +2179,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
 
         <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
     Custom Event E As Action
         AddHandler(value As [|$$Goo|])
@@ -2213,7 +2214,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
 
         <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
     Custom Event E As Action
         AddHandler(value As Action)
@@ -2248,7 +2249,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
 
         <Fact>
         Public Async Function GenerateType_Invocation_NoEnum_4() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>Imports System
 Module Program
     Sub Main(args As String())
@@ -2279,7 +2280,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
 
         <Fact>
         Public Async Function GenerateType_TypeConstraint_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Public Class Goo(Of T As [|$$Bar|])
 End Class</Text>.NormalizedValue,
@@ -2300,7 +2301,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact>
         Public Async Function GenerateType_TypeConstraint_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Outer
     Public Class Goo(Of T As [|$$Bar|])
@@ -2325,7 +2326,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_TypeConstraint_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Public Class OuterOuter
     Public Class Outer
@@ -2354,7 +2355,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact>
         Public Async Function GenerateType_Event_1() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
     Custom Event E As [|$$Goo|]
@@ -2390,7 +2391,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_2() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
     Custom Event E As [|$$NS.Goo|]
@@ -2428,7 +2429,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_3() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
     Custom Event E As [|$$NS.Goo.MyDel|]
@@ -2469,7 +2470,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_4() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Goo
     Public Event F As [|$$Bar|]
@@ -2491,7 +2492,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_5() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Goo
     Public Event F As [|$$NS.Bar|]
@@ -2515,7 +2516,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_6() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Goo
     Public Event F As [|$$NS.Bar.MyDel|]
@@ -2542,7 +2543,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_7() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Bar
     Public WithEvents G As [|$$Delegate1|]
@@ -2565,7 +2566,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_8() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Bar
     Public WithEvents G As [|$$NS.Delegate1|]
@@ -2590,7 +2591,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_9() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Bar
     Public WithEvents G As [|$$NS.Delegate1.MyDel|]
@@ -2617,7 +2618,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_10() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Baz
     Public Class Goo
@@ -2643,7 +2644,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_11() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Public Class Baz
     Public Class Goo
@@ -2669,7 +2670,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <Fact>
         Public Async Function GenerateType_Event_12() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Baz
     Public Class Bar
@@ -2696,7 +2697,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <Fact>
         Public Async Function GenerateType_Event_13() As Task
-            Await TestWithMockedGenerateTypeDialog(
+            Await Me.TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Public Class Baz
     Public Class Bar

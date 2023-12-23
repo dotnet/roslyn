@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {

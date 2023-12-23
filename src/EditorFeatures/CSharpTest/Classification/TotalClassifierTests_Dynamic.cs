@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 };
                 """;
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,

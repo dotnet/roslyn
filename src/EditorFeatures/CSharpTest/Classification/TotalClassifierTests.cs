@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 }
                 """,
                 testHost,
-                ParseOptions(Options.Regular),
+                ParseOptions(TestOptions.Regular),
                 Method("_"),
                 Method("_"),
                 Punctuation.OpenParen,
@@ -1015,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 }
                 """,
                 testHost,
-                ParseOptions(Options.Regular),
+                ParseOptions(TestOptions.Regular),
                 Keyword("static"),
                 Keyword("class"),
                 Class("ExtMethod"),

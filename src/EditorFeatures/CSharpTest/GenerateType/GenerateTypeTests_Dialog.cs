@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         [Fact]
         public async Task GenerateTypeDefaultValues()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -46,7 +47,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeInsideNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -80,7 +81,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeInsideFileScopedNamespace1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 namespace A;
 
@@ -114,7 +115,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeInsideFileScopedNamespace2()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 namespace A;
 
@@ -148,7 +149,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeInsideQualifiedNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -180,7 +181,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithinQualifiedNestedNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -218,7 +219,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithinNestedQualifiedNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -256,7 +257,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithConstructorMembers()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -291,7 +292,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithBaseTypes()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System.Collections.Generic;
 class Program
 {
@@ -320,7 +321,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithPublicInterface()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -360,7 +361,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithInternalStruct()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -400,7 +401,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeWithDefaultEnum()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -440,7 +441,7 @@ isNewFile: false);
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -475,7 +476,7 @@ isNewFile: false);
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -519,7 +520,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateTypeInExistingEmptyFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -556,7 +557,7 @@ existingFilename: "Test2.cs");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -600,7 +601,7 @@ existingFilename: "Test2.cs");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -645,7 +646,7 @@ existingFilename: "Test2.cs");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -690,7 +691,7 @@ existingFilename: "Test2.cs");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -730,7 +731,7 @@ existingFilename: "Test2.cs");
         [Fact]
         public async Task GenerateTypeInNewFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -766,7 +767,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -806,7 +807,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -849,7 +850,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -886,7 +887,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -930,7 +931,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -978,7 +979,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1028,7 +1029,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateType_InValidFolderNameNotMadeNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1089,7 +1090,7 @@ newFileName: "Test2.cs");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1128,7 +1129,7 @@ projectName: "Assembly2");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1177,7 +1178,7 @@ projectName: "Assembly2");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1238,7 +1239,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1277,7 +1278,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1323,7 +1324,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1363,7 +1364,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1410,7 +1411,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1452,7 +1453,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1490,7 +1491,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1535,7 +1536,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1574,7 +1575,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1620,7 +1621,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1660,7 +1661,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
                         <CompilationOptions RootNamespace=""BarBaz""/>
@@ -1706,7 +1707,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1743,7 +1744,7 @@ projectName: "Assembly2");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1782,7 +1783,7 @@ projectName: "Assembly2");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1827,7 +1828,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1871,7 +1872,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1924,7 +1925,7 @@ projectName: "Assembly2");
         [Fact]
         public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1965,7 +1966,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 public class C : [|$$D|]
 {
@@ -1988,7 +1989,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"public interface CCC : [|$$DDD|]
 {
 }",
@@ -2010,7 +2011,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"public struct CCC : [|$$DDD|]
 {
 }",
@@ -2032,7 +2033,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
         public async Task GenerateTypeInMemberAccessExpression()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2062,7 +2063,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
         public async Task GenerateTypeInMemberAccessExpressionInNamespace()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2099,7 +2100,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2137,7 +2138,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2175,7 +2176,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithNSForModule()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2212,7 +2213,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2242,7 +2243,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
         public async Task GenerateTypeInMemberAccessWithoutNS()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2263,7 +2264,7 @@ isMissing: true);
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
         public async Task GenerateType_NoParameterLessConstructorForStruct()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2294,7 +2295,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2329,7 +2330,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2364,7 +2365,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2397,7 +2398,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Action()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2430,7 +2431,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_Func()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2463,7 +2464,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2492,7 +2493,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2522,7 +2523,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2551,7 +2552,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_MethodGroup()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2586,7 +2587,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_Delegate()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2621,7 +2622,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_Action()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2654,7 +2655,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_Func()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2687,7 +2688,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_ParenLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2717,7 +2718,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_VarDecl_SimpleLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2746,7 +2747,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_MethodGroup()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2781,7 +2782,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_Delegate()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2816,7 +2817,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_Action()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2849,7 +2850,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_Func()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2882,7 +2883,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_ParenLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2912,7 +2913,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateType_Cast_SimpleLambda()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2941,7 +2942,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -2977,7 +2978,7 @@ projectName: "Assembly2");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
         public async Task GenerateDelegateType_NoInfo()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3006,7 +3007,7 @@ isNewFile: false);
         [Fact]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3036,7 +3037,7 @@ assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         [Fact]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3073,7 +3074,7 @@ assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         [Fact]
         public async Task GenerateType_TypeConstraint_1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3110,7 +3111,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact]
         public async Task GenerateType_TypeConstraint_2()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3153,7 +3154,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_TypeConstraint_3()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3202,7 +3203,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 public class B
 {
@@ -3231,7 +3232,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class B
 {
@@ -3260,7 +3261,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3295,7 +3296,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_1()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3328,7 +3329,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_2()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3353,7 +3354,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_3()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3388,7 +3389,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_4()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3415,7 +3416,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_5()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3456,7 +3457,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_6()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3489,7 +3490,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         [Fact]
         public async Task GenerateType_Event_7()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 public class A
 {
@@ -3522,7 +3523,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         [Fact]
         public async Task GenerateType_Event_8()
         {
-            await TestWithMockedGenerateTypeDialog(
+            await this.TestWithMockedGenerateTypeDialog(
 initial: @"
 public class outer
 {

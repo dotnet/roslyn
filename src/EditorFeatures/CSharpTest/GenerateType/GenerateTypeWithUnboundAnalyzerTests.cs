@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

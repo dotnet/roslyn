@@ -24,7 +24,7 @@ public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
 
-    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+    internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
     private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
@@ -1886,7 +1886,7 @@ options: ImplicitTypingEverywhere());
 
                 private const int {|Rename:V|} = 1 + 1;
             }
-            """, parameters: new TestParameters(Options.Regular));
+            """, parameters: new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1934,7 +1934,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1948,7 +1948,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1965,7 +1965,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1982,7 +1982,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2003,7 +2003,7 @@ options: ImplicitTypingEverywhere());
                             select [|x + x|];
                 }
             }
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2047,7 +2047,7 @@ options: ImplicitTypingEverywhere());
             }
             #line default
             """,
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
     }
 
     [Fact]

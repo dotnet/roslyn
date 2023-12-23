@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         protected override TestComposition GetComposition() => s_composition;
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 

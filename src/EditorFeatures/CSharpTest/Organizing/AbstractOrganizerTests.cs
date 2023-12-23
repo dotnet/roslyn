@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         protected static async Task CheckAsync(string initial, string final)
         {
             await CheckAsync(initial, final, options: null);
-            await CheckAsync(initial, final, Options.Script);
+            await CheckAsync(initial, final, TestOptions.Script);
         }
 
         protected static async Task CheckAsync(string initial, string final, CSharpParseOptions options)

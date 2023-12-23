@@ -99,21 +99,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: true);
-            VerifyWorker(text, validLocation: true, options: Options.Script);
+            VerifyWorker(text, validLocation: true, options: TestOptions.Script);
         }
 
         protected void VerifyOnlyInScript(string text)
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: false);
-            VerifyWorker(text, validLocation: true, options: Options.Script);
+            VerifyWorker(text, validLocation: true, options: TestOptions.Script);
         }
 
         protected void VerifyFalse(string text)
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: false);
-            VerifyWorker(text, validLocation: false, options: Options.Script);
+            VerifyWorker(text, validLocation: false, options: TestOptions.Script);
         }
 
         protected static string AddInsideMethod(string text)

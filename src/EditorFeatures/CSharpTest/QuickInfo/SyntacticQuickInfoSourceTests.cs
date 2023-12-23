@@ -596,7 +596,7 @@ if (true)
         }
 
         protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
-            => TestAsync(code, expectedContent, expectedContent, Options.Script);
+            => TestAsync(code, expectedContent, expectedContent, TestOptions.Script);
 
         protected override async Task TestAsync(
             string code,

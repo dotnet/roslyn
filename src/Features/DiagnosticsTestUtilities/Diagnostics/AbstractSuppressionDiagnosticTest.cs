@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
             return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
                 ? a.NestedActions

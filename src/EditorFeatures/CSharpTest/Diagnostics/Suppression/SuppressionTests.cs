@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
     public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
     {
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 

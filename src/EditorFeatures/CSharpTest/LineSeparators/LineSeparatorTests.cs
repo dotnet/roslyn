@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.LineSeparators;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -575,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
         public async Task IncompleteOperator()
         {
             // top level operators not supported in script code
-            await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), TestOptions.Regular);
         }
 
         [Fact]
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
         private static async Task AssertTagsOnBracesOrSemicolonsAsync(string contents, params int[] tokenIndices)
         {
             await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices);
-            await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices, Options.Script);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices, TestOptions.Script);
         }
 
         private static async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions? options = null)

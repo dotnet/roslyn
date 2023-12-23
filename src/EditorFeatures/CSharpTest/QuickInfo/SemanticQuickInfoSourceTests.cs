@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
-            await TestWithOptionsAsync(Options.Script, markup, expectedResults);
+            await TestWithOptionsAsync(TestOptions.Regular, markup, expectedResults);
+            await TestWithOptionsAsync(TestOptions.Script, markup, expectedResults);
         }
 
         private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
@@ -2826,7 +2826,7 @@ var y = $$x;",
         public async Task NullableReference()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
 @"class A<T>
 {
 }
@@ -2862,7 +2862,7 @@ public class C
     }
 }";
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
                 code, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
         }
 
@@ -3433,7 +3433,7 @@ public class Publisher
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541885")]
         public async Task TestQuickInfoOnExtensionMethod()
         {
-            await TestWithOptionsAsync(Options.Regular,
+            await TestWithOptionsAsync(TestOptions.Regular,
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3462,7 +3462,7 @@ public static class MyExtensions
         [Fact]
         public async Task TestQuickInfoOnExtensionMethodOverloads()
         {
-            await TestWithOptionsAsync(Options.Regular,
+            await TestWithOptionsAsync(TestOptions.Regular,
 @"using System;
 using System.Linq;
 
@@ -3494,7 +3494,7 @@ public static class Ex
         [Fact]
         public async Task TestQuickInfoOnExtensionMethodOverloads2()
         {
-            await TestWithOptionsAsync(Options.Regular,
+            await TestWithOptionsAsync(TestOptions.Regular,
 @"using System;
 using System.Linq;
 
@@ -7608,7 +7608,7 @@ class Person
         public async Task QuickInfoRecord()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"record Person(string First, string Last)
 {
     void M($$Person p)
@@ -7621,7 +7621,7 @@ class Person
         public async Task QuickInfoDerivedRecord()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"record Person(string First, string Last)
 {
 }
@@ -7728,7 +7728,7 @@ class Program
         public async Task QuickInfoRecordClass()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"record class Person(string First, string Last)
 {
     void M($$Person p)
@@ -7741,7 +7741,7 @@ class Program
         public async Task QuickInfoRecordStruct()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"record struct Person(string First, string Last)
 {
     void M($$Person p)
@@ -7754,7 +7754,7 @@ class Program
         public async Task QuickInfoReadOnlyRecordStruct()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"readonly record struct Person(string First, string Last)
 {
     void M($$Person p)
@@ -7767,7 +7767,7 @@ class Program
         public async Task QuickInfoRecordProperty()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"/// <param name=""First"">The person's first name.</param>
 record Person(string First, string Last)
 {
@@ -8100,7 +8100,7 @@ class C1_1 : I1
         public async Task QuickInfoLambdaReturnType_01()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"class Program
 {
     System.Delegate D = bo$$ol () => true;
@@ -8112,7 +8112,7 @@ class C1_1 : I1
         public async Task QuickInfoLambdaReturnType_02()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"class A
 {
     struct B { }
@@ -8125,7 +8125,7 @@ class C1_1 : I1
         public async Task QuickInfoLambdaReturnType_03()
         {
             await TestWithOptionsAsync(
-                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
 @"class A<T>
 {
 }
@@ -8569,7 +8569,7 @@ forach (var arg in $$args)
 ";
 
             await TestWithOptionsAsync(
-                Options.Regular, markup,
+                TestOptions.Regular, markup,
                 MainDescription($"({FeaturesResources.parameter}) string[] args"));
         }
 
@@ -8603,7 +8603,7 @@ class Program
     void M(string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
+            await TestWithOptionsAsync(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8616,7 +8616,7 @@ class Program
     void M([My(nameof($$s))] string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
+            await TestWithOptionsAsync(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8633,7 +8633,7 @@ class Program
     }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
+            await TestWithOptionsAsync(TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 

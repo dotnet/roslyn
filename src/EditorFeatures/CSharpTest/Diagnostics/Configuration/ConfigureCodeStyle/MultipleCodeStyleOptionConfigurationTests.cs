@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
     {
         protected abstract int OptionIndex { get; }
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
             Assert.Single(actions);
             var nestedActionForOptionIndex = ((AbstractConfigurationActionWithNestedActions)actions[0]).NestedActions[OptionIndex];
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         internal sealed override AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer
             => new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer();
 
-        protected sealed override ParseOptions GetScriptOptions() => Options.Script;
+        protected sealed override ParseOptions GetScriptOptions() => TestOptions.Script;
         protected internal sealed override string GetLanguage() => LanguageNames.CSharp;
 
         protected override TestParameters SetParameterDefaults(TestParameters parameters)

@@ -482,7 +482,7 @@ on a new line """),
         {
             var code = @"string s = @""""""/*"";";
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,
@@ -501,7 +501,7 @@ on a new line """),
         {
             var code = @"string s = @""""""/*""u8;";
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,
@@ -521,7 +521,7 @@ on a new line """),
         {
             var code = @"string s = @""""""/*""u8;";
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,
@@ -686,7 +686,7 @@ on a new line """),
         {
             var code = @"var goo = 2;";
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(code,
                 code,
@@ -712,7 +712,7 @@ on a new line """),
              orderby goo ascending, goo descending
              select goo;";
 
-            var parseOptions = script ? Options.Script : null;
+            var parseOptions = script ? TestOptions.Script : null;
 
             await TestAsync(
                 code,
@@ -1345,7 +1345,7 @@ System.Console.WriteLine();";
                 Punctuation.Semicolon
             };
 
-            await TestAsync(code, code, testHost, Options.Script, expected);
+            await TestAsync(code, code, testHost, TestOptions.Script, expected);
         }
 
         [Theory, CombinatorialData]
@@ -1368,7 +1368,7 @@ System.Console.WriteLine();";
                 Punctuation.Semicolon
             };
 
-            await TestAsync(code, code, testHost, Options.Regular, expected);
+            await TestAsync(code, code, testHost, TestOptions.Regular, expected);
         }
 
         [Theory, CombinatorialData]
@@ -1391,7 +1391,7 @@ System.Console.WriteLine();";
                 Punctuation.Semicolon
             };
 
-            await TestAsync(code, code, testHost, Options.Script, expected);
+            await TestAsync(code, code, testHost, TestOptions.Script, expected);
         }
 
         [Theory, CombinatorialData]
@@ -4346,7 +4346,7 @@ void M()
         {
             await TestInMethodAsync("(int, string) x",
                 testHost,
-                ParseOptions(TestOptions.Regular, Options.Script),
+                ParseOptions(TestOptions.Regular, TestOptions.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -4360,7 +4360,7 @@ void M()
         {
             await TestInMethodAsync("(int a, string b) x",
                 testHost,
-                ParseOptions(TestOptions.Regular, Options.Script),
+                ParseOptions(TestOptions.Regular, TestOptions.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("a"),
@@ -4376,7 +4376,7 @@ void M()
         {
             await TestInMethodAsync("var values = (1, 2)",
                 testHost,
-                ParseOptions(TestOptions.Regular, Options.Script),
+                ParseOptions(TestOptions.Regular, TestOptions.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,
@@ -4392,7 +4392,7 @@ void M()
         {
             await TestInMethodAsync("var values = (a: 1, b: 2)",
                 testHost,
-                ParseOptions(TestOptions.Regular, Options.Script),
+                ParseOptions(TestOptions.Regular, TestOptions.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,

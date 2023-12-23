@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)
         {
             await TestAsync(code, allCode, testHost, parseOptions: null, expected);
-            await TestAsync(code, allCode, testHost, parseOptions: Options.Script, expected);
+            await TestAsync(code, allCode, testHost, parseOptions: TestOptions.Script, expected);
         }
 
         protected override string WrapInClass(string className, string code)

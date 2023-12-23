@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
-        protected static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
+        internal static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
             ImmutableArray<CodeActionOperation> operations,
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
         }
 
-        protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
+        internal static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
-        protected virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        internal virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => actions;
 
         internal static void VerifyCodeActionsRegisteredByProvider(CodeFixProvider provider, List<CodeFix> fixes)

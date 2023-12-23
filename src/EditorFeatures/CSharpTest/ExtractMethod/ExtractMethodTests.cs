@@ -9574,7 +9574,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
                 i = 3;
                 """;
-            await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
+            await TestExtractMethodAsync(code, expected, parseOptions: TestOptions.Script);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542670")]
@@ -9996,7 +9996,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 }
                 """;
 
-            await TestExtractMethodAsync(code, expected, parseOptions: Options.Script);
+            await TestExtractMethodAsync(code, expected, parseOptions: TestOptions.Script);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529008")]

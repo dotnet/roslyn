@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => GetNestedActions(actions);
 
         protected Task TestAsync(string initial, string expected, int index = 0)
-            => TestAsync(initial, expected, Options.Script, null, index);
+            => TestAsync(initial, expected, TestOptions.Script, null, index);
 
         [Fact]
         public async Task TestMethodFix1()

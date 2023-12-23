@@ -11,20 +11,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    public abstract partial class AbstractUserDiagnosticTest
+    public static class EditorUserDiagnosticTest
     {
         // TODO: IInlineRenameService requires WPF (https://github.com/dotnet/roslyn/issues/46153)
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
@@ -34,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 typeof(TestGenerateTypeOptionsService),
                 typeof(TestProjectManagementService));
 
-        internal async Task TestWithMockedGenerateTypeDialog(
+        internal static async Task TestWithMockedGenerateTypeDialog(
+            this AbstractUserDiagnosticTest diagnosticTest,
             string initial,
             string languageName,
             string typeName,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                   : TestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
             var testOptions = new TestParameters();
-            var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
+            var (diagnostics, actions, _) = await diagnosticTest.GetDiagnosticAndFixesAsync(workspace, testOptions);
 
             var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return;
             }
 
-            var fixActions = MassageActions(actions);
+            var fixActions = diagnosticTest.MassageActions(actions);
             Assert.False(fixActions.IsDefault);
 
             // Since the dialog option is always fed as the last CodeAction

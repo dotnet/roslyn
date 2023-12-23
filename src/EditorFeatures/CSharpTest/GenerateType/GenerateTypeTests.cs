@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateTypeCodeFixProvider());
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
+        internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
 
         // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
@@ -195,7 +195,7 @@ index: 1);
 {
 }",
 count: 3,
-parameters: new TestParameters(Options.Regular));
+parameters: new TestParameters(TestOptions.Regular));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18240")]
@@ -909,7 +909,7 @@ index: 2);
 {
 }",
 count: 3,
-parameters: new TestParameters(Options.Regular));
+parameters: new TestParameters(TestOptions.Regular));
         }
 
         [Fact]

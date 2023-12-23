@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(code,
                 code,
                 testHost,
-                Options.Regular,
+                TestOptions.Regular,
                 Namespace("System"),
                 Class("Str"),
                 Namespace("System"),
@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             await TestAsync(code,
                 testHost,
-                ParseOptions(Options.Regular),
+                ParseOptions(TestOptions.Regular),
                 Class("C"),
                 Method("M"),
                 Static("M"));
@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             await TestAsync(code,
                 testHost,
-                ParseOptions(Options.Script),
+                ParseOptions(TestOptions.Script),
                 Class("Script"),
                 Class("C"),
                 Method("M"),
@@ -2129,7 +2129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             await TestAsync(code,
                 testHost,
-                ParseOptions(Options.Regular),
+                ParseOptions(TestOptions.Regular),
                 Class("Program"),
                 Class("Program"),
                 Class("Program"));
@@ -2149,7 +2149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             await TestAsync(code,
                 testHost,
-                ParseOptions(Options.Script),
+                ParseOptions(TestOptions.Script),
                 Class("Program"),
                 Class("Script"),
                 Class("Program"),
@@ -2700,7 +2700,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 }
                 """,
                 testHost,
-                ParseOptions(TestOptions.Regular, Options.Script));
+                ParseOptions(TestOptions.Regular, TestOptions.Script));
         }
 
         [Theory, CombinatorialData]

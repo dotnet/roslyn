@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName, action);
         }
 
-        private async Task<Tuple<Solution, Solution>> TestAddDocument(
+        protected async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expectedMarkup,
             ImmutableArray<string> expectedFolders,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName: expectedDocumentName);
         }
 
-        protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
+        internal static async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,
