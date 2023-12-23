@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (CanBePassedByReference(expr))
+                if (expr is BoundParameter { ParameterSymbol.RefKind: RefKind.None } or BoundLocal { LocalSymbol.RefKind: RefKind.None })
                 {
                     // new ReadOnlySpan<char>(in <expr>)
                     return new BoundObjectCreationExpression(

@@ -2655,6 +2655,61 @@ class Test
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatThree_ReadOnlySpan_ReferenceToSameLocation()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                c.M();
+
+                class C
+                {
+                    public char c = 'a';
+
+                    public ref char GetC()
+                    {
+                        c = 'b';
+                        return ref c;
+                    }
+
+                    public void M()
+                    {
+                        Console.Write("a" + c + GetC());
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aab" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", """
+                {
+                  // Code size       50 (0x32)
+                  .maxstack  3
+                  .locals init (char V_0,
+                                char V_1)
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  ldarg.0
+                  IL_000b:  ldfld      "char C.c"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0018:  ldarg.0
+                  IL_0019:  call       "ref char C.GetC()"
+                  IL_001e:  ldind.u2
+                  IL_001f:  stloc.1
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0027:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_002c:  call       "void System.Console.Write(string)"
+                  IL_0031:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
         [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
         [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
@@ -3309,6 +3364,70 @@ class Test
                   IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0033:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatFour_ReadOnlySpan_ReferenceToSameLocation()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                c.M();
+
+                class C
+                {
+                    public char c = 'a';
+
+                    public ref char GetC() => ref c;
+
+                    public ref char GetC2()
+                    {
+                        c = 'b';
+                        return ref c;
+                    }
+
+                    public void M()
+                    {
+                        Console.Write("a" + c + GetC() + GetC2());
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aaab" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", """
+                {
+                  // Code size       65 (0x41)
+                  .maxstack  4
+                  .locals init (char V_0,
+                                char V_1,
+                                char V_2)
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000a:  ldarg.0
+                  IL_000b:  ldfld      "char C.c"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0018:  ldarg.0
+                  IL_0019:  call       "ref char C.GetC()"
+                  IL_001e:  ldind.u2
+                  IL_001f:  stloc.1
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0027:  ldarg.0
+                  IL_0028:  call       "ref char C.GetC2()"
+                  IL_002d:  ldind.u2
+                  IL_002e:  stloc.2
+                  IL_002f:  ldloca.s   V_2
+                  IL_0031:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0036:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_003b:  call       "void System.Console.Write(string)"
+                  IL_0040:  ret
                 }
                 """);
         }
