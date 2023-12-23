@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     ref int x = ref true ? $$
                     """, topLevelStatement: topLevelStatement),
                 absent: false,
-                options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
+                options: sourceCodeKind == SourceCodeKind.Script ? TestOptions.Script : CSharp9ParseOptions);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
@@ -897,7 +898,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     ref int y = ref true ? ref x : $$
                     """, topLevelStatement: topLevelStatement),
                 absent: false,
-                options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
+                options: sourceCodeKind == SourceCodeKind.Script ? TestOptions.Script : CSharp9ParseOptions);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22253")]

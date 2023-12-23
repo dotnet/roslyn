@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             // run the verification in both context(normal and script)
             await VerifyWorkerAsync(text, absent: false, options: options);
-            await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? Options.Script);
+            await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? TestOptions.Script);
         }
 
         protected async Task VerifyKeywordAsync(SourceCodeKind kind, string text)
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Script);
+                    await VerifyWorkerAsync(text, absent: false, options: TestOptions.Script);
                     break;
             }
         }
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             // run the verification in both context(normal and script)
             await VerifyWorkerAsync(text, absent: true, options: options);
-            await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? Options.Script);
+            await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? TestOptions.Script);
         }
 
         protected async Task VerifyAbsenceAsync(SourceCodeKind kind, string text)
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     await VerifyWorkerAsync(text, absent: true);
                     break;
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Script);
+                    await VerifyWorkerAsync(text, absent: true, options: TestOptions.Script);
                     break;
             }
         }

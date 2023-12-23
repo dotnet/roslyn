@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
     {
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override ParseOptions GetScriptOptions() => Options.Regular;
+        protected override ParseOptions GetScriptOptions() => TestOptions.Regular;
 
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             => new(new CSharpUseImplicitTypeDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());

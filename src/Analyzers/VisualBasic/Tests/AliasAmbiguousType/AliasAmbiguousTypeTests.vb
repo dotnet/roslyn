@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasA
             Return (Nothing, New VisualBasicAliasAmbiguousTypeCodeFixProvider())
         End Function
 
-        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+        Friend Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
             Return FlattenActions(actions)
         End Function
 

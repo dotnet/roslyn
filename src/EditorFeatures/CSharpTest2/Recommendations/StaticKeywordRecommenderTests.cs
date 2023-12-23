@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyWorkerAsync(source, absent: true);
 
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            //await VerifyWorkerAsync(source, absent: true, Options.Script);
+            //await VerifyWorkerAsync(source, absent: true, TestOptions.Script);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyWorkerAsync(source, absent: true);
 
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            //await VerifyWorkerAsync(source, absent: true, Options.Script);
+            //await VerifyWorkerAsync(source, absent: true, TestOptions.Script);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyWorkerAsync(source, absent: true);
 
             // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-            //await VerifyWorkerAsync(source, absent: true, Options.Script);
+            //await VerifyWorkerAsync(source, absent: true, TestOptions.Script);
         }
 
         [Theory]

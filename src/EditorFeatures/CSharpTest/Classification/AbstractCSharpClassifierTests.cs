@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;

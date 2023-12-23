@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2.vbproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\Features\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -71,6 +72,7 @@
     <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
+    <Import Include="Microsoft.CodeAnalysis.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
     public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest
     {
-        protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        internal sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
         private protected TestParameters GetIndentionColumn(int column)

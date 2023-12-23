@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     void N()
                     {
                         M(out var $$
-                """, options: Options.Regular.WithFeatures(experimentalFeatures), scriptOptions: Options.Script.WithFeatures(experimentalFeatures));
+                """, options: TestOptions.Regular.WithFeatures(experimentalFeatures), scriptOptions: TestOptions.Script.WithFeatures(experimentalFeatures));
         }
 
         #region Collection expressions

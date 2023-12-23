@@ -7,13 +7,13 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 

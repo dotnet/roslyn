@@ -20,7 +20,7 @@ public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
         => new CSharpConvertNumericLiteralCodeRefactoringProvider();
 
-    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+    internal override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => FlattenActions(actions);
 
     private enum Refactoring { ChangeBase1, ChangeBase2, AddOrRemoveDigitSeparators }

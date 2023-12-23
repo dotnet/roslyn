@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function MassageActions(ByVal actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+        Friend Overrides Function MassageActions(ByVal actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
             Return actions(0).NestedActions
         End Function
 

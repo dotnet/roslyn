@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             var experimentalFeatures = new System.Collections.Generic.Dictionary<string, string>(); // no experimental features to enable
             await VerifyAbsenceAsync(AddInsideMethod(
-@"M(out var $$"), options: Options.Regular.WithFeatures(experimentalFeatures), scriptOptions: Options.Script.WithFeatures(experimentalFeatures));
+@"M(out var $$"), options: TestOptions.Regular.WithFeatures(experimentalFeatures), scriptOptions: TestOptions.Script.WithFeatures(experimentalFeatures));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]

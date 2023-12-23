@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
@@ -932,7 +933,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             {
                 // A legal top level script field.
                 await VerifyKeywordAsync(
-@"readonly $$", Options.Script);
+@"readonly $$", TestOptions.Script);
             }
             else
             {
