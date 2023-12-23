@@ -1345,6 +1345,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateCache = _lazyDelegateCache ??= new DelegateCache(_topLevelMethodOrdinal);
                     var originalCurrentFunction = _currentMethod is SynthesizedClosureMethod closureMethod ? closureMethod.BaseMethod : _currentMethod;
                     var originalFactory = new SyntheticBoundNodeFactory(originalCurrentFunction, node.Syntax, CompilationState, Diagnostics);
+
+                    // Clear wasLocalFunctionConversion to avoid infinite recursion.
+                    node = node.Update(
+                        node.Argument, node.MethodOpt, node.IsExtensionMethod,
+                        node.WasTargetTyped, wasLocalFunctionConversion: false, node.Type);
+
                     var originalRewritten = delegateCache.Rewrite(originalFactory, node);
 
                     return Visit(originalRewritten);
@@ -1356,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     mappedTargetMethod,
                     node.IsExtensionMethod,
                     node.WasTargetTyped,
-                    wasLocalFunctionConversion: false, // Not needed anymore.
+                    node.WasLocalFunctionConversion,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);

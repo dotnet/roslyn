@@ -47,11 +47,6 @@ internal sealed class DelegateCache
 
         var boundCacheField = factory.Field(receiver: null, cacheField);
 
-        // Clear wasLocalFunctionConversion to avoid infinite recursion.
-        boundDelegateCreation = boundDelegateCreation.Update(
-            boundDelegateCreation.Argument, boundDelegateCreation.MethodOpt, boundDelegateCreation.IsExtensionMethod,
-            boundDelegateCreation.WasTargetTyped, wasLocalFunctionConversion: false, boundDelegateCreation.Type);
-
         var rewrittenNode = factory.Coalesce(boundCacheField, factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
 
         factory.Syntax = oldSyntax;
