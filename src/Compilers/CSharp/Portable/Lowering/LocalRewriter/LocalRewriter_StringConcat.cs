@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
-                case BoundSequence { Value: BoundCall previousCall } boundSequence:
+                case BoundSequence { Value: BoundCall previousCall, SideEffects.IsEmpty: true } boundSequence:
                     if (TryExtractStringConcatArgs(previousCall, out var previousArguments, out _))
                     {
                         arguments = previousArguments;
