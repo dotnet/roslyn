@@ -61,8 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> leftFlattened = ArrayBuilder<BoundExpression>.GetInstance();
             ArrayBuilder<BoundExpression> rightFlattened = ArrayBuilder<BoundExpression>.GetInstance();
 
-            FlattenConcatArg(loweredLeft, leftFlattened);
-            FlattenConcatArg(loweredRight, rightFlattened);
+            var previousLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+
+            FlattenConcatArg(loweredLeft, leftFlattened, previousLocals);
+            FlattenConcatArg(loweredRight, rightFlattened, previousLocals);
 
             if (leftFlattened.Any() && rightFlattened.Any())
             {
@@ -94,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 2:
                     var left = leftFlattened[0];
                     var right = leftFlattened[1];
-                    result = RewriteStringConcatenationTwoExprs(syntax, left, right);
+                    Debug.Assert(previousLocals.Count <= 1);
+                    result = RewriteStringConcatenationTwoExprs(syntax, left, right, previousLocals);
                     break;
 
                 case 3:
@@ -102,7 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var first = leftFlattened[0];
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
-                        result = RewriteStringConcatenationThreeExprs(syntax, first, second, third);
+                        Debug.Assert(previousLocals.Count <= 2);
+                        result = RewriteStringConcatenationThreeExprs(syntax, first, second, third, previousLocals);
                     }
                     break;
 
@@ -112,16 +116,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
                         var fourth = leftFlattened[3];
-                        result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth);
+                        Debug.Assert(previousLocals.Count <= 3);
+                        result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth, previousLocals);
                     }
                     break;
 
                 default:
+                    Debug.Assert(previousLocals.Count == 0);
                     result = RewriteStringConcatenationManyExprs(syntax, leftFlattened.ToImmutable());
                     break;
             }
 
             leftFlattened.Free();
+            previousLocals.Free();
             return result;
         }
 
@@ -131,11 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Generally we only need to recognize same node patterns that we create as a result of concatenation rewrite.
         /// </summary>
-        private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened)
+        private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened, ArrayBuilder<LocalSymbol> previousLocalsBuilder)
         {
-            if (TryExtractStringConcatArgs(lowered, out var arguments))
+            if (TryExtractStringConcatArgs(lowered, out var arguments, out var previousLocals))
             {
                 flattened.AddRange(arguments);
+
+                if (!previousLocals.IsDefaultOrEmpty)
+                    previousLocalsBuilder.AddRange(previousLocals);
             }
             else
             {
@@ -149,12 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// its args if so.
         /// </summary>
         /// <returns>True if this is a call to a known string concat operator, false otherwise</returns>
-        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments)
+        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<LocalSymbol> previousLocals)
         {
-            switch (lowered.Kind)
+            previousLocals = default;
+
+            switch (lowered)
             {
-                case BoundKind.Call:
-                    var boundCall = (BoundCall)lowered;
+                case BoundCall boundCall:
                     var method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
@@ -200,9 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.NullCoalescingOperator:
-                    var boundCoalesce = (BoundNullCoalescingOperator)lowered;
-
+                case BoundNullCoalescingOperator boundCoalesce:
                     Debug.Assert(boundCoalesce.LeftPlaceholder is null);
                     Debug.Assert(boundCoalesce.LeftConversion is null);
 
@@ -215,6 +224,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                     {
                         arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
+                        return true;
+                    }
+
+                    break;
+
+                case BoundSequence { Value: BoundCall previousCall } boundSequence:
+                    Debug.Assert(boundSequence.SideEffects.IsEmpty);
+
+                    if (TryExtractStringConcatArgs(previousCall, out var previousArguments, out _))
+                    {
+                        arguments = previousArguments;
+                        previousLocals = boundSequence.Locals;
                         return true;
                     }
 
@@ -303,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If it's a call to 'string.Concat' (or is something which ends in '?? ""', which this method also extracts),
             // we know the result cannot be null. Otherwise return loweredOperand ?? ""
-            if (TryExtractStringConcatArgs(loweredOperand, out _))
+            if (TryExtractStringConcatArgs(loweredOperand, out _, out _))
             {
                 return loweredOperand;
             }
@@ -313,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
+        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> previousLocals)
         {
             var leftType = loweredLeft.Type;
             var rightType = loweredRight.Type;
@@ -334,11 +355,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 2);
+                locals.AddRange(previousLocals);
 
-                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
+                var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var leftTempLocal);
+                var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var rightTempLocal);
+
+                locals.AddIfNotNull(leftTempLocal);
+                locals.AddIfNotNull(rightTempLocal);
+
+                var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
+
+                return new BoundSequence(
+                    syntax,
+                    locals.ToImmutableAndFree(),
+                    ImmutableArray<BoundExpression>.Empty,
+                    concatCall,
+                    concatCall.Type);
             }
+
+            Debug.Assert(!leftType.IsReadOnlySpanChar() && !rightType.IsReadOnlySpanChar());
+            Debug.Assert(previousLocals.Count == 0);
 
             if (leftIsChar)
             {
@@ -356,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
         }
 
-        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
+        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, ArrayBuilder<LocalSymbol> previousLocals)
         {
             var firstType = loweredFirst.Type;
             var secondType = loweredSecond.Type;
@@ -380,14 +417,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 3);
+                locals.AddRange(previousLocals);
 
-                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var firstTempLocal);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var secondTempLocal);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var thirdTempLocal);
+
+                locals.AddIfNotNull(firstTempLocal);
+                locals.AddIfNotNull(secondTempLocal);
+                locals.AddIfNotNull(thirdTempLocal);
+
+                var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
+
+                return new BoundSequence(
+                    syntax,
+                    locals.ToImmutableAndFree(),
+                    ImmutableArray<BoundExpression>.Empty,
+                    concatCall,
+                    concatCall.Type);
             }
 
             Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar());
+            Debug.Assert(previousLocals.Count == 0);
 
             if (firstIsChar)
             {
@@ -410,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
-        private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
+        private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth, ArrayBuilder<LocalSymbol> previousLocals)
         {
             var firstType = loweredFirst.Type;
             var secondType = loweredSecond.Type;
@@ -437,15 +489,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
-                var wrappedFourth = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFourth, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 4);
+                locals.AddRange(previousLocals);
 
-                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird, wrappedFourth));
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var firstTempLocal);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var secondTempLocal);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var thirdTempLocal);
+                var wrappedFourth = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFourth, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var fourthTempLocal);
+
+                locals.AddIfNotNull(firstTempLocal);
+                locals.AddIfNotNull(secondTempLocal);
+                locals.AddIfNotNull(thirdTempLocal);
+                locals.AddIfNotNull(fourthTempLocal);
+
+                var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird, wrappedFourth));
+
+                return new BoundSequence(
+                    syntax,
+                    locals.ToImmutableAndFree(),
+                    ImmutableArray<BoundExpression>.Empty,
+                    concatCall,
+                    concatCall.Type);
             }
 
             Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar() && !fourthType.IsReadOnlySpanChar());
+            Debug.Assert(previousLocals.Count == 0);
 
             if (firstIsChar)
             {
@@ -517,8 +585,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
-        private BoundExpression WrapIntoReadOnlySpanOfCharIfNecessary(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanCtorRefParamChar)
+        private BoundExpression WrapIntoReadOnlySpanOfCharIfNecessary(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanCtorRefParamChar, out LocalSymbol? tempLocal)
         {
+            tempLocal = null;
             var exprType = expr.Type;
 
             Debug.Assert(exprType is not null && (exprType.IsStringType() || exprType.IsCharType() || exprType.IsReadOnlySpanChar()));
@@ -552,6 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var temp = _factory.StoreToTemp(expr, out var tempAssignment);
+                    tempLocal = temp.LocalSymbol;
 
                     var wrappedChar = new BoundObjectCreationExpression(
                         expr.Syntax,
@@ -570,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // new ReadOnlySpan<char>(in temp)
                     return new BoundSequence(
                         expr.Syntax,
-                        ImmutableArray.Create(temp.LocalSymbol),
+                        ImmutableArray<LocalSymbol>.Empty,
                         ImmutableArray.Create<BoundExpression>(tempAssignment),
                         wrappedChar,
                         wrappedChar.Type);

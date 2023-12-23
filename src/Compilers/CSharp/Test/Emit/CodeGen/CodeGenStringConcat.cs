@@ -2514,7 +2514,8 @@ class Test
                 {
                   // Code size       40 (0x28)
                   .maxstack  3
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  ldarg.1
                   IL_0001:  call       "char char.ToLowerInvariant(char)"
                   IL_0006:  stloc.0
@@ -2524,8 +2525,8 @@ class Test
                   IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0014:  ldarg.1
                   IL_0015:  call       "char char.ToLowerInvariant(char)"
-                  IL_001a:  stloc.0
-                  IL_001b:  ldloca.s   V_0
+                  IL_001a:  stloc.1
+                  IL_001b:  ldloca.s   V_1
                   IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0022:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0027:  ret
@@ -2636,7 +2637,8 @@ class Test
                 {
                   // Code size       42 (0x2a)
                   .maxstack  3
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  call       "char Test.GetCharWithSideEffect()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
@@ -2644,8 +2646,8 @@ class Test
                   IL_000d:  call       "string Test.GetStringWithSideEffect()"
                   IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0017:  call       "char Test.GetCharWithSideEffect()"
-                  IL_001c:  stloc.0
-                  IL_001d:  ldloca.s   V_0
+                  IL_001c:  stloc.1
+                  IL_001d:  ldloca.s   V_1
                   IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0024:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0029:  ret
@@ -3040,7 +3042,8 @@ class Test
                 {
                   // Code size       46 (0x2e)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  ldarg.1
                   IL_0001:  call       "char char.ToLowerInvariant(char)"
                   IL_0006:  stloc.0
@@ -3050,8 +3053,8 @@ class Test
                   IL_000f:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0014:  ldarg.1
                   IL_0015:  call       "char char.ToLowerInvariant(char)"
-                  IL_001a:  stloc.0
-                  IL_001b:  ldloca.s   V_0
+                  IL_001a:  stloc.1
+                  IL_001b:  ldloca.s   V_1
                   IL_001d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0022:  ldarg.0
                   IL_0023:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
@@ -3063,7 +3066,8 @@ class Test
                 {
                   // Code size       46 (0x2e)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0006:  ldarg.1
@@ -3075,8 +3079,8 @@ class Test
                   IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_001a:  ldarg.1
                   IL_001b:  call       "char char.ToLowerInvariant(char)"
-                  IL_0020:  stloc.0
-                  IL_0021:  ldloca.s   V_0
+                  IL_0020:  stloc.1
+                  IL_0021:  ldloca.s   V_1
                   IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_002d:  ret
@@ -3086,7 +3090,8 @@ class Test
                 {
                   // Code size       46 (0x2e)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  ldarg.1
                   IL_0001:  call       "char char.ToLowerInvariant(char)"
                   IL_0006:  stloc.0
@@ -3098,8 +3103,8 @@ class Test
                   IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_001a:  ldarg.1
                   IL_001b:  call       "char char.ToLowerInvariant(char)"
-                  IL_0020:  stloc.0
-                  IL_0021:  ldloca.s   V_0
+                  IL_0020:  stloc.1
+                  IL_0021:  ldloca.s   V_1
                   IL_0023:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0028:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_002d:  ret
@@ -3244,7 +3249,8 @@ class Test
                 {
                   // Code size       52 (0x34)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  call       "char Test.GetCharWithSideEffect()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
@@ -3252,8 +3258,8 @@ class Test
                   IL_000d:  call       "string Test.GetStringWithSideEffect()"
                   IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0017:  call       "char Test.GetCharWithSideEffect()"
-                  IL_001c:  stloc.0
-                  IL_001d:  ldloca.s   V_0
+                  IL_001c:  stloc.1
+                  IL_001d:  ldloca.s   V_1
                   IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_0024:  call       "string Test.GetStringWithSideEffect()"
                   IL_0029:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
@@ -3265,7 +3271,8 @@ class Test
                 {
                   // Code size       52 (0x34)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  call       "string Test.GetStringWithSideEffect()"
                   IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_000a:  call       "char Test.GetCharWithSideEffect()"
@@ -3275,8 +3282,8 @@ class Test
                   IL_0017:  call       "string Test.GetStringWithSideEffect()"
                   IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0021:  call       "char Test.GetCharWithSideEffect()"
-                  IL_0026:  stloc.0
-                  IL_0027:  ldloca.s   V_0
+                  IL_0026:  stloc.1
+                  IL_0027:  ldloca.s   V_1
                   IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0033:  ret
@@ -3286,7 +3293,8 @@ class Test
                 {
                   // Code size       52 (0x34)
                   .maxstack  4
-                  .locals init (char V_0)
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  call       "char Test.GetCharWithSideEffect()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
@@ -3296,8 +3304,8 @@ class Test
                   IL_0017:  call       "string Test.GetStringWithSideEffect()"
                   IL_001c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0021:  call       "char Test.GetCharWithSideEffect()"
-                  IL_0026:  stloc.0
-                  IL_0027:  ldloca.s   V_0
+                  IL_0026:  stloc.1
+                  IL_0027:  ldloca.s   V_1
                   IL_0029:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                   IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
                   IL_0033:  ret
