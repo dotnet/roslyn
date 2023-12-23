@@ -1016,8 +1016,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // We have reached the expression:
+            //
+            // goo.Baz<|
+            //
+            // This could either be an incomplete generic type or method, or a binary less than operator
+            // To ensure that we are in the generic case, we need to match at least one generic method or type,
+            // and all other candidates to be types or methods.
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
-            return symbols.Any(static s =>
+            if (symbols.Length == 0)
+                return false;
+
+            var anyGeneric = symbols.Any(static s =>
             {
                 return s switch
                 {
@@ -1026,6 +1036,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     _ => false,
                 };
             });
+
+            if (!anyGeneric)
+                return false;
+
+            return symbols.All(static s => s is INamedTypeSymbol or IMethodSymbol);
         }
 
         public static bool IsParameterModifierContext(
@@ -1439,7 +1454,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // For instance:
             // e is { A.$$ }
-            if (leftToken.IsKind(SyntaxKind.DotToken))
+            // e is { A->$$ }
+            if (leftToken.IsKind(SyntaxKind.DotToken) ||
+                leftToken.IsKind(SyntaxKind.MinusGreaterThanToken))
             {
                 return false;
             }
@@ -2678,6 +2695,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // Collection expressions
+            // [|
+            // [0, |
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.DotDotToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.CollectionExpression))
+            {
+                return true;
+            }
+
+            // Spread elements in collection expressions
+            // [.. |
+            // [0, .. |
+            if (token.Kind() is SyntaxKind.DotDotToken &&
+                token.Parent.IsKind(SyntaxKind.SpreadElement))
+            {
+                return true;
+            }
+
             // $"{ |
             // $@"{ |
             // $"""{ |
@@ -2790,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
             {
                 // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
-                if (expression.IsAnyLambdaOrAnonymousMethod())
+                if (expression is AnonymousFunctionExpressionSyntax)
                     return false;
 
                 var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();

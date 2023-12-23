@@ -528,6 +528,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -560,7 +561,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
                          WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
                          WellKnownType.System_Runtime_CompilerServices_Unsafe,
-                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute
+                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -607,6 +610,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -638,7 +642,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
                          WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
                          WellKnownType.System_Runtime_CompilerServices_Unsafe,
-                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute
+                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -700,7 +706,6 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
-                         WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -801,7 +806,15 @@ End Namespace
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
-                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+                         WellKnownMember.System_Span_T__ToArray,
+                         WellKnownMember.System_ReadOnlySpan_T__ToArray,
+                         WellKnownMember.System_Span_T__CopyTo_Span_T,
+                         WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
                         ' Not always available.
                         Continue For
                 End Select
@@ -898,7 +911,6 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
-                         WellKnownMember.System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -999,7 +1011,15 @@ End Namespace
                          WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
-                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+                         WellKnownMember.System_Span_T__ToArray,
+                         WellKnownMember.System_ReadOnlySpan_T__ToArray,
+                         WellKnownMember.System_Span_T__CopyTo_Span_T,
+                         WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
                         ' Not always available.
                         Continue For
                 End Select

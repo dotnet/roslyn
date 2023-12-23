@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
     internal sealed class NullableImpactingSpanWalker(
         SemanticModel semanticModel,
         int positionOfFirstReducingNullableDirective,
-        SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans,
+        TextSpanIntervalTree? ignoredSpans,
         CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
     {
         private readonly SemanticModel _semanticModel = semanticModel;
         private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans = ignoredSpans;
+        private readonly TextSpanIntervalTree? _ignoredSpans = ignoredSpans;
         private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private ImmutableArray<TextSpan>.Builder? _spans;

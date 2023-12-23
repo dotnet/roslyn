@@ -15,13 +15,14 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
@@ -235,7 +236,7 @@ class A
                     {
                         CompletionItem = new CompletionItemSetting
                         {
-                            DocumentationFormat = new MarkupKind[] { MarkupKind.Markdown }
+                            DocumentationFormat = [MarkupKind.Markdown]
                         }
                     }
                 }
@@ -250,13 +251,13 @@ class A
 void A.AMethod(int i)
 ```
   
-A&nbsp;cref&nbsp;A\.AMethod\(int\)  
-**strong&nbsp;text**  
-_italic&nbsp;text_  
-<u>underline&nbsp;text</u>  
+A cref&nbsp;A\.AMethod\(int\)  
+**strong text**  
+_italic text_  
+<u>underline text</u>  
   
-•&nbsp;Item&nbsp;1\.  
-•&nbsp;Item&nbsp;2\.  
+•&nbsp;Item 1\.  
+•&nbsp;Item 2\.  
   
 [link text](https://google.com)";
 
@@ -395,7 +396,7 @@ link text";
                 };
             }
 
-            expectedCompletionItem.Description = description;
+            expectedCompletionItem.Description = description.ToLSPElement();
             return expectedCompletionItem;
         }
 

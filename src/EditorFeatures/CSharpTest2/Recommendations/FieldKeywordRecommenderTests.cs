@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -68,8 +74,10 @@ $$");
         public async Task TestInAttributeInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-    [$$");
+                """
+                class C {
+                    [$$
+                """);
         }
 
         [Theory]
@@ -89,48 +97,58 @@ $@"{record} C {{
         public async Task TestInAttributeAfterAttributeInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-    [Goo]
-    [$$");
+                """
+                class C {
+                    [Goo]
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInAttributeAfterMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-    }
-    [$$");
+                """
+                class C {
+                    void Goo() {
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInAttributeAfterProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-    int Goo {
-        get;
-    }
-    [$$");
+                """
+                class C {
+                    int Goo {
+                        get;
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInAttributeAfterField()
         {
             await VerifyKeywordAsync(
-@"class C {
-    int Goo;
-    [$$");
+                """
+                class C {
+                    int Goo;
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInAttributeAfterEvent()
         {
             await VerifyKeywordAsync(
-@"class C {
-    event Action<int> Goo;
-    [$$");
+                """
+                class C {
+                    event Action<int> Goo;
+                    [$$
+                """);
         }
 
         [Fact]
@@ -144,24 +162,30 @@ $@"{record} C {{
         public async Task TestNotInParameterAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo([$$");
+                """
+                class C {
+                    void Goo([$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { [$$");
+                """
+                class C {
+                    int Goo { [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInEventAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event Action<int> Goo { [$$");
+                """
+                class C {
+                    event Action<int> Goo { [$$
+                """);
         }
 
         [Fact]
@@ -175,24 +199,30 @@ $@"{record} C {{
         public async Task TestNotInInterface()
         {
             await VerifyAbsenceAsync(
-@"interface I {
-    [$$");
+                """
+                interface I {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-    [$$");
+                """
+                struct S {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestInEnum()
         {
             await VerifyKeywordAsync(
-@"enum E {
-    [$$");
+                """
+                enum E {
+                    [$$
+                """);
         }
     }
 }

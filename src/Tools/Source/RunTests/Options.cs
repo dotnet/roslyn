@@ -58,11 +58,6 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
-        /// Retry tests on failure 
-        /// </summary>
-        public bool Retry { get; set; }
-
-        /// <summary>
         /// Whether or not to collect dumps on crashes and timeouts.
         /// </summary>
         public bool CollectDumps { get; set; }
@@ -149,7 +144,6 @@ namespace RunTests
             var helix = false;
             var helixQueueName = "Windows.10.Amd64.Open";
             string? helixApiAccessToken = null;
-            var retry = false;
             string? testFilter = null;
             int? timeout = null;
             string? resultFileDirectory = null;
@@ -184,7 +178,6 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
-                { "retry", "Retry failed test a few times", o => retry = o is object },
                 { "accessToken=", "Pipeline access token with permissions to view test history", (string s) => accessToken = s },
                 { "projectUri=", "ADO project containing the pipeline", (string s) => projectUri = s },
                 { "pipelineDefinitionId=", "Pipeline definition id", (string s) => pipelineDefinitionId = s },
@@ -234,12 +227,6 @@ namespace RunTests
                 return null;
             }
 
-            if (retry && includeHtml)
-            {
-                ConsoleUtil.WriteLine($"Cannot specify both --retry and --html");
-                return null;
-            }
-
             if (procDumpFilePath is { } && !collectDumps)
             {
                 ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
@@ -266,7 +253,6 @@ namespace RunTests
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
-                Retry = retry,
                 AccessToken = accessToken,
                 ProjectUri = projectUri,
                 PipelineDefinitionId = pipelineDefinitionId,

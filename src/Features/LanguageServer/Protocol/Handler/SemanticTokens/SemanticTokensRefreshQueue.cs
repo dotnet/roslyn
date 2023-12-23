@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -106,7 +106,7 @@ internal class SemanticTokensRefreshQueue :
         {
             // Determine the checksum for this project cone.  Note: this should be fast in practice because this is
             // the same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
-            var projectChecksum = await project.Solution.State.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
+            var projectChecksum = await project.Solution.CompilationState.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
 
             lock (_gate)
             {
@@ -176,12 +176,8 @@ internal class SemanticTokensRefreshQueue :
                 // If the document's attributes haven't changed, then use the document's URI for
                 //   the call to EnqueueSemanticTokenRefreshNotification which will enable the
                 //   tracking check before sending the WorkspaceSemanticTokensRefreshName message.
-                if (oldDocument?.State.Attributes is IChecksummedObject oldChecksumObject
-                    && newDocument.State.Attributes is IChecksummedObject newChecksumObject
-                    && oldChecksumObject.Checksum == newChecksumObject.Checksum)
-                {
+                if (oldDocument?.State.Attributes.Checksum == newDocument.State.Attributes.Checksum)
                     documentUri = newDocument.GetURI();
-                }
             }
         }
 

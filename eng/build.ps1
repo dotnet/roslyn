@@ -247,8 +247,8 @@ function BuildSolution() {
   # that MSBuild output as well as ones that custom tasks output.
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
-  # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
-  $ibcDir = Join-Path $RepoRoot ".o%5c"
+  # Workaround for some machines in the AzDO pool not allowing long paths
+  $ibcDir = $RepoRoot
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
@@ -256,13 +256,8 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
- # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-  # in our CI builds
-  # https://github.com/NuGet/Home/issues/12373
-  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+  $restoreUseStaticGraphEvaluation = $true
   
-  $isNpmAvailable = IsNpmAvailable
-
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -285,7 +280,6 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:IsNpmPackable=$isNpmAvailable `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -333,7 +327,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
@@ -431,7 +425,7 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
-    $args += " --retry"
+    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -545,8 +539,13 @@ function EnablePreviewSdks() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
-  $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-  $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
+
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  Write-Host "VSIX EXE path: " $vsixExe
+  if (-not (Test-Path $vsixExe)) {
+    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
+    ExitWithExitCode 1
+  }
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
@@ -608,6 +607,9 @@ function Deploy-VsixViaTool() {
 
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
 
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
@@ -713,14 +715,6 @@ function List-Processes() {
   Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
 }
 
-function IsNpmAvailable() {
-  if (Get-Command "npm" -ErrorAction SilentlyContinue) {
-    return $true
-  }
-
-  return $false;
-}
-
 try {
   if ($PSVersionTable.PSVersion.Major -lt "5") {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
@@ -809,6 +803,8 @@ finally {
     Stop-Processes
   }
 
-  Unsubst-TempDir
+  if (Test-Path Function:\Unsubst-TempDir) {
+    Unsubst-TempDir
+  }
   Pop-Location
 }

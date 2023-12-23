@@ -30,7 +30,7 @@ public class InterceptorsTests : CSharpTestBase
         }
         """, "attributes.cs");
 
-    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreview");
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global");
 
     [Fact]
     public void FeatureFlag()
@@ -53,27 +53,32 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>$(Features);InterceptorsPreview</Features>' to your project.
+        var sadCaseDiagnostics = new[]
+        {
+            // Program.cs(13,6): error CS9206: An interceptor cannot be declared in the global namespace.
             //     [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<Features>$(Features);InterceptorsPreview</Features>").WithLocation(13, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorGlobalNamespace, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6)
+        };
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
 
         comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview-experimental"));
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>$(Features);InterceptorsPreview</Features>' to your project.
-            //     [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<Features>$(Features);InterceptorsPreview</Features>").WithLocation(13, 6));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "false"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreview"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "Global"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "global.a"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
-
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "false"), expectedOutput: "1");
-        verifier.VerifyDiagnostics();
-
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreview"), expectedOutput: "1");
-        verifier.VerifyDiagnostics();
-
     }
 
     [Fact]
@@ -199,9 +204,71 @@ public class InterceptorsTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", ""));
         comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>$(Features);InterceptorsPreview</Features>' to your project.
+            // Program.cs(13,6): error CS9206: An interceptor cannot be declared in the global namespace.
             //     [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<Features>$(Features);InterceptorsPreview</Features>").WithLocation(13, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorGlobalNamespace, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_04()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreviewnamespaces", "global"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_05()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global.B
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global.A"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
     }
 
     [Fact]
@@ -1209,13 +1276,14 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void InterceptableDelegateInvocation()
+    public void InterceptableDelegateInvocation_01()
     {
         var source = """
             using System.Runtime.CompilerServices;
             using System;
 
             C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
 
             static class C
             {
@@ -1223,17 +1291,68 @@ public class InterceptorsTests : CSharpTestBase
                 {
                     action();
                 }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action();
+                }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 10, 9)]
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "12");
-        verifier.VerifyDiagnostics(
-            );
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
+    }
+
+    [Fact]
+    public void InterceptableDelegateInvocation_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
+
+            static class C
+            {
+                public static void M(Action action)
+                {
+                    action!();
+                }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action!();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
+                public static void Interceptor1(this Action action) { action(); Console.Write(2); }
+            }
+            """;
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
     }
 
     [Fact]
@@ -1663,6 +1782,91 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(21,10): error CS9146: An interceptor method must be an ordinary member method.
             //         [InterceptsLocation("Program.cs", 13, 8)] // 3
             Diagnostic(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 13, 8)").WithLocation(21, 10)
+            );
+    }
+
+    [Fact]
+    public void InterceptableMethod_BadMethodKind_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // property
+                    _ = Prop;
+
+                    // constructor
+                    new Program();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 8, 13)] // 1
+                [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+                [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics(
+            // Program.cs(16,6): error CS9151: Possible method name 'Prop' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 8, 13)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 8, 13)").WithArguments("Prop").WithLocation(16, 6),
+            // Program.cs(17,6): error CS9141: The provided line and character number does not refer to an interceptable method name, but rather to token 'new'.
+            //     [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("new").WithLocation(17, 6),
+            // Program.cs(18,6): error CS9151: Possible method name 'Program' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 13)").WithArguments("Program").WithLocation(18, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptableMethod_BadMethodKind_02()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // delegate
+                    Action a = () => throw null!;
+                    a();
+
+                    // local function
+                    void local() => throw null!;
+                    local();
+
+                    // fnptr invoke
+                    delegate*<void> fnptr = &Interceptor1;
+                    fnptr();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 10, 9)] // 1
+                [InterceptsLocation("Program.cs", 14, 9)] // 2
+                [InterceptsLocation("Program.cs", 18, 9)] // 3
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(23,6): error CS9207: Cannot intercept 'a' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 10, 9)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 10, 9)").WithArguments("a").WithLocation(23, 6),
+            // Program.cs(24,6): error CS9207: Cannot intercept 'local' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 14, 9)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 14, 9)").WithArguments("local").WithLocation(24, 6),
+            // Program.cs(25,6): error CS9207: Cannot intercept 'fnptr' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 18, 9)] // 3
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 18, 9)").WithArguments("fnptr").WithLocation(25, 6)
             );
     }
 
@@ -3212,7 +3416,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor(in int x) => Console.Write("interceptor " + x);
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.RegularPreview.WithFeature("InterceptorsPreview"));
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Program.cs(17,6): error CS9144: Cannot intercept method 'Program.InterceptableMethod(ref readonly int)' with interceptor 'D.Interceptor(in int)' because the signatures do not match.
             //     [InterceptsLocation("Program.cs", 11, 9)]
@@ -4431,7 +4635,7 @@ partial struct CustomHandler
         var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, @"\_/"));
 
         var comp = CreateCompilation(
-            new[] { (source, path), s_attributesSource },
+            [(source, path), s_attributesSource],
             parseOptions: RegularWithInterceptors,
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));

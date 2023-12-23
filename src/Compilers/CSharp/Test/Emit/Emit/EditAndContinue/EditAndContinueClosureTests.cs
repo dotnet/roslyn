@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
@@ -23,54 +24,194 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void MethodToMethodWithClosure()
         {
-            var source0 =
-@"delegate object D();
-class C
-{
-    static object F(object o)
-    {
-        return o;
-    }
-}";
-            var source1 =
-@"delegate object D();
-class C
-{
-    static object F(object o)
-    {
-        return ((D)(() => o))();
-    }
-}";
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    """
+                    delegate object D();
+                    class C
+                    {
+                        static void F()
+                        {
+                        }
 
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("C.F"), compilation1.GetMember<MethodSymbol>("C.F"))));
+                        static void F(object o)
+                        {
+                        }
+                    
+                        static void F(bool a, bool b)
+                        {
+                        }
+                    }
+                    """)
+                .AddGeneration(
+                    """
+                    delegate object D();
+                    class C
+                    {
+                        static void F()
+                        {
+                            int x = 1;
+                            D d = () => x;
+                        }
 
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
+                        static void F(object o)
+                        {
+                            D d1 = () => o;
+                            D d2 = () => o;
+                        }
+                    
+                        static void F(bool a, bool b)
+                        {
+                            D d = () => null;
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is []), preserveLocalVariables: true),
+                        Edit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [_]), preserveLocalVariables: true),
+                        Edit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [_, _]), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Note that the synthesized names have generation #1 suffix. This is because baseline methods did not have any lambdas
+                        // and thus no MethodId.
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c, <>c__DisplayClass0#1_0#1, <>c__DisplayClass1#1_0#1}",
+                            "C.<>c: {<>9__2#1_0#1, <F>b__2#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}",
+                            "C.<>c__DisplayClass1#1_0#1: {o, <F>b__0#1, <F>b__1#1}");
 
-                // Field 'o'
-                // Methods: 'F', '.ctor', '<F>b__1'
-                // Type: display class
-                CheckEncLogDefinitions(reader1,
-                    Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default));
-            }
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void MethodToMethodWithClosure_DeletedAndReadded()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    """
+                    using System;
+                    class C
+                    {
+                        static void F()
+                        {
+                        }
+                    }
+                    """)
+                .AddGeneration(
+                    """
+                    using System;
+                    class C
+                    {
+                        static void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            var d = new Func<int>(<N:2>() => x</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
+                    })
+                .AddGeneration(
+                    """
+                    using System;
+                    class C
+                    {
+                        static void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
+                    })
+                .AddGeneration(
+                    """
+                    using System;
+                    class C
+                    {
+                        static void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            var d = new Func<bool>(() => x == 1);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0#1_0#3, <>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#3: {x, <F>b__0#3}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -105,11 +246,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -166,11 +307,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -238,11 +379,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -296,11 +437,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>g__x|0_0}");
@@ -349,11 +490,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>g__x|0_0}");
@@ -408,11 +549,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -462,11 +603,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -517,11 +658,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -573,11 +714,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>g__x|0_0}");
@@ -628,11 +769,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -696,11 +837,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
@@ -774,11 +915,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>g__x|0_0, <>c__DisplayClass0_0}",
@@ -848,11 +989,11 @@ class C : D
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -915,11 +1056,11 @@ partial class C
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -974,11 +1115,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1062,11 +1203,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1151,11 +1292,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1235,11 +1376,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1326,11 +1467,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1408,11 +1549,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -1486,22 +1627,22 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // new lambda "<F>b__0#1" has been added:
+            // new lambda "<F>b__1#1_0#1" has been added:
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0#1, <F>b__0#1}");
+                "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>b__0#1", @"
+            diff1.VerifyIL("C.<>c.<F>b__1#1_0#1", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1514,14 +1655,14 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0#1, <F>b__0#1}");
+                "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>b__0#1", @"
+            diff2.VerifyIL("C.<>c.<F>b__1#1_0#1", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1585,23 +1726,23 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // new lambda "<F>b__0#1" has been added:
+            // new local function has been added:
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__f|0#1, <>O#1}",
+                "C: {<F>g__f|1#1_0#1, <>O#1}",
                 "C.<>O#1: {<0>__f}"
             );
 
             // added:
-            diff1.VerifyIL("C.<F>g__f|0#1(int)", @"
+            diff1.VerifyIL("C.<F>g__f|1#1_0#1", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1614,16 +1755,16 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
                 "C.<>O#2: {<0>__f}",
-                "C: {<F>g__f|0#1, <>O#2, <>O#1}",
+                "C: {<F>g__f|1#1_0#1, <>O#2, <>O#1}",
                 "C.<>O#1: {<0>__f}"
             );
 
             // updated:
-            diff2.VerifyIL("C.<F>g__f|0#1(int)", @"
+            diff2.VerifyIL("C.<F>g__f|1#1_0#1", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1681,21 +1822,21 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // new lambda "<F>b__0#1" has been added:
+            // new local function has been added:
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__f|0#1}");
+                "C: {<F>g__f|0#1_0#1}");
 
             // added:
-            diff1.VerifyIL("C.<F>g__f|0#1(int)", @"
+            diff1.VerifyIL("C.<F>g__f|0#1_0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1708,13 +1849,13 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>g__f|0#1}");
+                "C: {<F>g__f|0#1_0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<F>g__f|0#1(int)", @"
+            diff2.VerifyIL("C.<F>g__f|0#1_0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1790,11 +1931,11 @@ class C
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
             var f3 = compilation3.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -1829,7 +1970,7 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             // new lambda "<F>b__1_2#2" has been added:
             diff2.VerifySynthesizedMembers(
@@ -1873,7 +2014,7 @@ class C
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))));
 
             diff3.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -1988,11 +2129,11 @@ class C
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
             var f3 = compilation3.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -2028,7 +2169,7 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
                 "C.<>O#2: {<0>__f1, <1>__f2, <2>__f3}",
@@ -2073,7 +2214,7 @@ class C
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))));
 
             diff3.VerifySynthesizedMembers(
                 "C.<>O#2: {<0>__f1, <1>__f2, <2>__f3}",
@@ -2207,11 +2348,11 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -2235,7 +2376,7 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             // no new members:
             diff2.VerifySynthesizedMembers(
@@ -2346,7 +2487,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2463,7 +2604,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2596,12 +2737,12 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Insert, null, f1),
-                    SemanticEdit.Create(SemanticEditKind.Update, main0, main1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, main0, main1)));
 
             diff1.VerifySynthesizedMembers(
                 "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}",
@@ -2612,7 +2753,7 @@ public class C
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Insert, null, f_int2),
-                    SemanticEdit.Create(SemanticEditKind.Update, main1, main2, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, main1, main2)));
 
             diff2.VerifySynthesizedMembers(
                 "C.<>c__DisplayClass1#2_0#2: {<>4__this, a, <F>b__1#2, <F>b__2#2}",
@@ -2623,7 +2764,7 @@ public class C
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, main2, main3, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, main2, main3)));
 
             diff3.VerifySynthesizedMembers(
                 "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
@@ -2667,11 +2808,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -2739,13 +2880,13 @@ class C
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true),
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1)),
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -2845,13 +2986,13 @@ class C
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true),
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1)),
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -2964,13 +3105,13 @@ class C
             var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
             var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Insert, null, b1),
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -3059,13 +3200,13 @@ class C
             var b1 = compilation1.GetMember<FieldSymbol>("C.B");
             var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Insert, null, b1),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, ctor1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3120,12 +3261,12 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3248,12 +3389,12 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3364,12 +3505,12 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3489,12 +3630,12 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -3614,7 +3755,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             v0.VerifyIL("C.F", @"
 {
@@ -3641,7 +3782,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -3673,7 +3814,7 @@ class C
 
             var diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -3735,7 +3876,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             string expectedIL = @"
 {
@@ -3766,7 +3907,7 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -3778,7 +3919,7 @@ class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
@@ -3815,7 +3956,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             v0.VerifyIL("C.F",
 @"{
   // Code size      112 (0x70)
@@ -3866,7 +4007,7 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
             diff1.VerifyIL("C.F",
 @"{
   // Code size      113 (0x71)
@@ -3918,7 +4059,7 @@ class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))));
             diff2.VerifyIL("C.F",
 @"{
   // Code size      113 (0x71)
@@ -4007,11 +4148,11 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4092,11 +4233,11 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4174,11 +4315,11 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4247,11 +4388,11 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4329,11 +4470,11 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4381,108 +4522,107 @@ public class C
         [Fact]
         public void CaptureStructAndThroughClassEnvChain()
         {
-            var source0 = MarkedSource(@"
-using System;
-public class C 
-{
-    public void F(int x) 
-    <N:0>{</N:0>
-        <N:1>{</N:1>
-            int <N:2>y</N:2> = 0;
-            Func<int> f = <N:3>() => x</N:3>;
-            <N:4>{</N:4>
-                Func<int> f2 = <N:5>() => x + y</N:5>;
-                int <N:6>z</N:6> = 0;
-                // Capture struct and through class env chain
-                <N:7>int L() => x + y + z;</N:7>
-            }
-        }
-    }
-}");
+            using var _ = new EditAndContinueTest()
+                .AddBaseline("""
+                    using System;
+                    public class C 
+                    {
+                        public void F(int x) 
+                        <N:0>{</N:0>
+                            <N:1>{</N:1>
+                                int <N:2>y = 0</N:2>;
+                                Func<int> f = <N:3>() => x</N:3>;
+                                <N:4>{</N:4>
+                                    Func<int> f2 = <N:5>() => x + y</N:5>;
+                                    int <N:6>z = 0</N:6>;
+                                    // Capture struct and through class env chain
+                                    <N:7>int L() => x + y + z;</N:7>
+                                }
+                            }
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", """
+                        {
+                          // Code size       26 (0x1a)
+                          .maxstack  2
+                          // sequence point: x + y + z
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      "C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1"
+                          IL_0006:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                          IL_000b:  ldarg.0
+                          IL_000c:  ldfld      "int C.<>c__DisplayClass0_1.y"
+                          IL_0011:  add
+                          IL_0012:  ldarg.1
+                          IL_0013:  ldfld      "int C.<>c__DisplayClass0_2.z"
+                          IL_0018:  add
+                          IL_0019:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration("""
+                    using System;
+                    public class C 
+                    {
+                        public void F(int x) 
+                        <N:0>{</N:0>
+                            <N:1>{</N:1>
+                                int <N:2>y = 0</N:2>;
+                                Func<int> f = <N:3>() => x</N:3>;
+                                <N:4>{</N:4>
+                                    Func<int> f2 = <N:5>() => x + y</N:5>;
+                                    int <N:6>z = 0</N:6>;
+                                    // Capture struct and through class env chain
+                                    <N:7>int L() => x + y + z + 1;</N:7>
+                                }
+                            }
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C.<>c__DisplayClass0_2: {z}",
+                            "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                            "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1, <>c__DisplayClass0_2}",
+                            "C.<>c__DisplayClass0_1: {y, CS$<>8__locals1, <F>b__1, <F>g__L|2}");
 
-            var source1 = MarkedSource(@"
-using System;
-public class C 
-{
-    public void F(int x) 
-<N:0>{</N:0>
-        <N:1>{</N:1>
-            int <N:2>y</N:2> = 0;
-            Func<int> f = <N:3>() => x</N:3>;
-            <N:4>{</N:4>
-                Func<int> f2 = <N:5>() => x + y</N:5>;
-                int <N:6>z</N:6> = 0;
-                // Capture struct and through class env chain
-                <N:7>int L() => x + y + z + 1;</N:7>
-            }
-        }
-    }
-}");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+                        g.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", """
+                        {
+                            // Code size       28 (0x1c)
+                            .maxstack  2
+                            IL_0000:  ldarg.0
+                            IL_0001:  ldfld      "C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1"
+                            IL_0006:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                            IL_000b:  ldarg.0
+                            IL_000c:  ldfld      "int C.<>c__DisplayClass0_1.y"
+                            IL_0011:  add
+                            IL_0012:  ldarg.1
+                            IL_0013:  ldfld      "int C.<>c__DisplayClass0_2.z"
+                            IL_0018:  add
+                            IL_0019:  ldc.i4.1
+                            IL_001a:  add
+                            IL_001b:  ret
+                        }
+                        """);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-
-            diff1.VerifySynthesizedMembers(
-                "C.<>c__DisplayClass0_2: {z}",
-                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
-                "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1, <>c__DisplayClass0_2}",
-                "C.<>c__DisplayClass0_1: {y, CS$<>8__locals1, <F>b__1, <F>g__L|2}");
-
-            v0.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
-{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
-  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
-  IL_0011:  add
-  IL_0012:  ldarg.1
-  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
-  IL_0018:  add
-  IL_0019:  ret
-}");
-
-            diff1.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
-  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
-  IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
-  IL_0011:  add
-  IL_0012:  ldarg.1
-  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
-  IL_0018:  add
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  ret
-}
-");
-
-            CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        ]);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -4513,11 +4653,11 @@ Console.WriteLine(x());
             var f0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
             var f1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -4572,11 +4712,11 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -4622,7 +4762,7 @@ class C
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+            var generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider);
 
             // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
             var diff1 = compilation1.EmitDifference(
@@ -4673,6 +4813,4585 @@ class C
                 Handle(5, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.StandAloneSig),
                 Handle(2, TableIndex.NestedClass));
+        }
+
+        [Fact]
+        public void Capture_Local_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(2)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Static lambda is reused.
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c, <>c__DisplayClass0_0#1}",
+                            "C.<>c: {<>9__0_1, <F>b__0_1}",
+                            "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", "<F>b__0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       44 (0x2c)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000007
+                          IL_0005:  stloc.1
+                          IL_0006:  nop
+                          IL_0007:  ldloc.1
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000004
+                          IL_000e:  nop
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  brtrue.s   IL_002b
+                          IL_0016:  ldsfld     0x04000001
+                          IL_001b:  ldftn      0x06000006
+                          IL_0021:  newobj     0x0A000009
+                          IL_0026:  stsfld     0x04000003
+                          IL_002b:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000A
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000C
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  call       0x0A00000B
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_Local_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            <N:2>void L1() => Console.WriteLine(0);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<F>g__L1|0_0", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(0)
+                              IL_0000:  ldc.i4.0
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            <N:2>void L1() => Console.WriteLine(x);</N:2>
+                            <N:3>void L2() => Console.WriteLine(2);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
+                            "C.<>c__DisplayClass0_0#1: {x}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       12 (0xc)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_1
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000001
+                          IL_0009:  nop
+                          IL_000a:  nop
+                          IL_000b:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A000009
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_MethodParameter_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F(int x)
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F(int x)
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(2)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Static lambda is reused.
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c, <>c__DisplayClass0_0#1}",
+                            "C.<>c: {<>9__0_1, <F>b__0_1}",
+                            "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", "<F>b__0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       44 (0x2c)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000007
+                          IL_0005:  stloc.0
+                          IL_0006:  ldloc.0
+                          IL_0007:  ldarg.1
+                          IL_0008:  stfld      0x04000004
+                          IL_000d:  nop
+                          IL_000e:  nop
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  brtrue.s   IL_002b
+                          IL_0016:  ldsfld     0x04000001
+                          IL_001b:  ldftn      0x06000006
+                          IL_0021:  newobj     0x0A000009
+                          IL_0026:  stsfld     0x04000003
+                          IL_002b:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000A
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000C
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  call       0x0A00000B
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_MethodParameter_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F(int x)
+                        <N:0>{
+                            <N:1>void L1() => Console.WriteLine(0);</N:1>
+                            <N:2>void L2() => Console.WriteLine(1);</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<F>g__L1|0_0", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(0)
+                              IL_0000:  ldc.i4.0
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F(int x)
+                        <N:0>{
+                            <N:1>void L1() => Console.WriteLine(x);</N:1>
+                            <N:2>void L2() => Console.WriteLine(2);</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
+                            "C.<>c__DisplayClass0_0#1: {x}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       12 (0xc)
+                          .maxstack  2
+                          IL_0000:  ldloca.s   V_0
+                          IL_0002:  ldarg.1
+                          IL_0003:  stfld      0x04000001
+                          IL_0008:  nop
+                          IL_0009:  nop
+                          IL_000a:  nop
+                          IL_000b:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A000009
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_LambdaParameter_ExpressionBody()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        static int G(Func<int> f) => 1;
+                    
+                        static void F()
+                        {
+                            Func<int, int> <N:0>f1 = <N:1>x => <N:2>G(<N:3>() => 1</N:3>)</N:2></N:1></N:0>;
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        static int G(Func<int> f) => 1;
+                    
+                        static void F()
+                        {
+                            Func<int, int> <N:0>f1 = <N:1>x => <N:2>G(<N:3>() => x</N:3>)</N:2></N:1></N:0>;
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c, <>c__DisplayClass1_0#1}",
+                            "C.<>c: {<>9__1_0, <F>b__1_0}",
+                            "C.<>c__DisplayClass1_0#1: {x, <F>b__1#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", "<F>b__1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       34 (0x22)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldsfld     0x04000003
+                          IL_0006:  dup
+                          IL_0007:  brtrue.s   IL_0020
+                          IL_0009:  pop
+                          IL_000a:  ldsfld     0x04000001
+                          IL_000f:  ldftn      0x06000006
+                          IL_0015:  newobj     0x0A000009
+                          IL_001a:  dup
+                          IL_001b:  stsfld     0x04000003
+                          IL_0020:  stloc.0
+                          IL_0021:  ret
+                        }
+                        {
+                          // Code size       31 (0x1f)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000008
+                          IL_0005:  stloc.0
+                          IL_0006:  ldloc.0
+                          IL_0007:  ldarg.1
+                          IL_0008:  stfld      0x04000004
+                          IL_000d:  ldloc.0
+                          IL_000e:  ldftn      0x06000009
+                          IL_0014:  newobj     0x0A00000A
+                          IL_0019:  call       0x06000001
+                          IL_001e:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000B
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000C
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_ConstructorParameter()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class B(Func<int> f);
+
+                    class C : B
+                    {
+                        <N:0>public C(int x, int y)
+                            : base(<N:1>() => 1</N:1>)
+                        {
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class B(Func<int> f);
+
+                    class C : B
+                    {
+                        <N:0>public C(int x, int y)
+                            : base(<N:1>() => x</N:1>)
+                        {
+                            _ = new Action(<N:2>() => Console.WriteLine(y)</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0_0#1}",
+                            "C.<>c__DisplayClass0_0#1: {x, y, <.ctor>b__0#1, <.ctor>b__1#1}");
+
+                        g.VerifyMethodDefNames(
+                            ".ctor", "<.ctor>b__0_0", "<.ctor>b__0_1", ".ctor", "<.ctor>b__0#1", "<.ctor>b__1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       42 (0x2a)
+                          .maxstack  3
+                          IL_0000:  newobj     0x06000007
+                          IL_0005:  stloc.0
+                          IL_0006:  ldloc.0
+                          IL_0007:  ldarg.1
+                          IL_0008:  stfld      0x04000004
+                          IL_000d:  ldloc.0
+                          IL_000e:  ldarg.2
+                          IL_000f:  stfld      0x04000005
+                          IL_0014:  ldarg.0
+                          IL_0015:  ldloc.0
+                          IL_0016:  ldftn      0x06000008
+                          IL_001c:  newobj     0x0A00000A
+                          IL_0021:  call       0x06000001
+                          IL_0026:  nop
+                          IL_0027:  nop
+                          IL_0028:  nop
+                          IL_0029:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000B
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x700001F4
+                          IL_0005:  newobj     0x0A00000B
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000C
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000005
+                          IL_0006:  call       0x0A00000D
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_PrimaryConstructorParameter()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class B(Func<int> f);
+
+                    <N:0>class C(int x) : B(<N:1>() => 1</N:1>);</N:0>
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class B(Func<int> f);
+
+                    <N:0>class C(int x) : B(<N:1>() => x</N:1>);</N:0>
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0_0#1}",
+                            "C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0#1}");
+
+                        g.VerifyMethodDefNames(
+                            ".ctor", "<.ctor>b__0_0", ".ctor", "<.ctor>b__0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       33 (0x21)
+                          .maxstack  3
+                          IL_0000:  newobj     0x06000006
+                          IL_0005:  stloc.0
+                          IL_0006:  ldloc.0
+                          IL_0007:  ldarg.1
+                          IL_0008:  stfld      0x04000003
+                          IL_000d:  ldarg.0
+                          IL_000e:  ldloc.0
+                          IL_000f:  ldftn      0x06000007
+                          IL_0015:  newobj     0x0A000008
+                          IL_001a:  call       0x06000001
+                          IL_001f:  nop
+                          IL_0020:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000003
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_TopLevelArgs()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe)
+                .AddBaseline(
+                    source: """
+                    <N:0>
+                    using System;
+                    var _ = new Func<string[]>(<N:1>() => null</N:1>);
+                    </N:0>
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    <N:0>
+                    using System;
+                    var _ = new Func<string[]>(<N:1>() => args</N:1>);
+                    </N:0>
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "Program: {<>c__DisplayClass0_0#1}",
+                            "Program.<>c__DisplayClass0_0#1: {args, <<Main>$>b__0#1}");
+
+                        g.VerifyMethodDefNames(
+                            "<Main>$", "<<Main>$>b__0_0", ".ctor", "<<Main>$>b__0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       27 (0x1b)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000006
+                          IL_0005:  stloc.1
+                          IL_0006:  ldloc.1
+                          IL_0007:  ldarg.0
+                          IL_0008:  stfld      0x04000003
+                          IL_000d:  ldloc.1
+                          IL_000e:  ldftn      0x06000007
+                          IL_0014:  newobj     0x0A000008
+                          IL_0019:  stloc.2
+                          IL_001a:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000003
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_This_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<>c.<F>b__1_0", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(0)
+                              IL_0000:  ldc.i4.0
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c.<F>b__1_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Static lambda is reused.
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>b__1_0#1, <>c}",
+                            "C.<>c: {<>9__1_1, <F>b__1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       31 (0x1f)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldsfld     0x04000004
+                          IL_0007:  brtrue.s   IL_001e
+                          IL_0009:  ldsfld     0x04000002
+                          IL_000e:  ldftn      0x06000006
+                          IL_0014:  newobj     0x0A000009
+                          IL_0019:  stsfld     0x04000004
+                          IL_001e:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000A
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A00000B
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_This_LocalFunction()
+        {
+            // Rude edit since we can't convert static method to an instance method.
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(0);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<F>g__L1|1_0", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(0)
+                              IL_0000:  ldc.i4.0
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|1_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(x);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size        4 (0x4)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  nop
+                          IL_0003:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A000009
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_PrimaryParameter_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C(int x)
+                    {
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C(int x)
+                    {
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(2)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Static lambda is reused.
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>b__1_0#1, <>c}",
+                            "C.<>c: {<>9__1_1, <F>b__1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       31 (0x1f)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldsfld     0x04000003
+                          IL_0007:  brtrue.s   IL_001e
+                          IL_0009:  ldsfld     0x04000001
+                          IL_000e:  ldftn      0x06000006
+                          IL_0014:  newobj     0x0A00000A
+                          IL_0019:  stsfld     0x04000003
+                          IL_001e:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000B
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A00000C
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  call       0x0A00000C
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Capture_PrimaryParameter_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C(int x)
+                    {
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(0);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C(int x)
+                    {
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(x);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size        4 (0x4)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  nop
+                          IL_0003:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A00000A
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_Local_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => x + y</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="G" parameterNames="f" />
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="0" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <closure offset="0" />
+                                      <lambda offset="86" closure="0" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__0", """
+                            {
+                              // Code size       14 (0xe)
+                              .maxstack  2
+                              // sequence point: x + y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ldarg.0
+                              IL_0007:  ldfld      "int C.<>c__DisplayClass1_0.y"
+                              IL_000c:  add
+                              IL_000d:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => x</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0}",
+                            "C.<>c__DisplayClass1_0: {x, <F>b__0}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       35 (0x23)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000004
+                          IL_0005:  stloc.0
+                          IL_0006:  nop
+                          IL_0007:  ldloc.0
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000001
+                          IL_000e:  ldc.i4.2
+                          IL_000f:  stloc.1
+                          IL_0010:  ldloc.0
+                          IL_0011:  ldftn      0x06000005
+                          IL_0017:  newobj     0x0A000008
+                          IL_001c:  call       0x06000001
+                          IL_0021:  nop
+                          IL_0022:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_Local_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            <N:3>int L() => x + y;</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass0_0: {x, y}",
+                            "class C: {<F>g__L|0_0, <>c__DisplayClass0_0}"
+                        ]);
+
+                        g.VerifyMethodBody("C.<F>g__L|0_0", """
+                            {
+                              // Code size       14 (0xe)
+                              .maxstack  2
+                              // sequence point: x + y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_0006:  ldarg.0
+                              IL_0007:  ldfld      "int C.<>c__DisplayClass0_0.y"
+                              IL_000c:  add
+                              IL_000d:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            <N:3>int L() => x;</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass0_0: {x}",
+                            "class C: {<F>g__L|0_0, <>c__DisplayClass0_0}"
+                        ]);
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_0
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000001
+                          IL_0009:  ldc.i4.2
+                          IL_000a:  stloc.1
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_LastLocal_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(<N:2>() => Console.WriteLine(2)</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c}",
+                            "C.<>c: {<>9__0_0#1, <F>b__0_0#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0", ".cctor", ".ctor", "<F>b__0_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.1
+                          IL_0002:  stloc.1
+                          IL_0003:  ldsfld     0x04000003
+                          IL_0008:  brtrue.s   IL_001f
+                          IL_000a:  ldsfld     0x04000002
+                          IL_000f:  ldftn      0x06000007
+                          IL_0015:  newobj     0x0A000008
+                          IL_001a:  stsfld     0x04000003
+                          IL_001f:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  newobj     0x06000006
+                          IL_0005:  stsfld     0x04000002
+                          IL_000a:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration( // resume capture
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(<N:2>() => Console.WriteLine(x + 3)</N:2>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0_0#2, <>c}",
+                            "C.<>c: {<>9__0_0#1, <F>b__0_0#1}",
+                            "C.<>c__DisplayClass0_0#2: {x, <F>b__0#2}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0_0#1", ".ctor", "<F>b__0#2");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000008
+                          IL_0005:  stloc.2
+                          IL_0006:  nop
+                          IL_0007:  ldloc.2
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000004
+                          IL_000e:  nop
+                          IL_000f:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x700001F5
+                          IL_0005:  newobj     0x0A00000D
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000E
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       15 (0xf)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ldc.i4.3
+                          IL_0007:  add
+                          IL_0008:  call       0x0A00000F
+                          IL_000d:  nop
+                          IL_000e:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_LastLocal_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            <N:1>{
+                                int <N:2>x = 1</N:2>;
+                                <N:3>void L() => Console.WriteLine(x);</N:3>;
+                            }</N:1>
+                            <N:4>{
+                                int <N:5>x = 1</N:5>;
+                                <N:6>void L() => Console.WriteLine(x);</N:6>;
+                            }</N:4>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="16" />
+                                      <slot kind="30" offset="143" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>0</methodOrdinal>
+                                      <closure offset="16" />
+                                      <closure offset="143" />
+                                      <lambda offset="83" />
+                                      <lambda offset="210" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            <N:1>{
+                                int <N:2>x = 1</N:2>;
+                                <N:3>void L() => Console.WriteLine(1);</N:3>;
+                            }</N:1>
+                            <N:4>{
+                                int <N:5>x = 1</N:5>;
+                                <N:6>void L() => Console.WriteLine(2);</N:6>;
+                            }</N:4>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L|0_0#1, <F>g__L|0_1#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_1", "<F>g__L|0_0#1", "<F>g__L|0_1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  1
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldc.i4.1
+                          IL_0003:  stloc.2
+                          IL_0004:  nop
+                          IL_0005:  nop
+                          IL_0006:  nop
+                          IL_0007:  nop
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stloc.3
+                          IL_000a:  nop
+                          IL_000b:  nop
+                          IL_000c:  nop
+                          IL_000d:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x700001F4
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.2
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_This_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(x)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <lambda offset="37" closure="this" />
+                                      <lambda offset="101" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>b__1_0", """
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(x)
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.x"
+                              IL_0006:  call       "void System.Console.WriteLine(int)"
+                              IL_000b:  nop
+                              IL_000c:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c.<F>b__1_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            _ = new Action(<N:2>() => Console.WriteLine(0)</N:2>);
+                            _ = new Action(<N:3>() => Console.WriteLine(1)</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Static lambda is reused.
+                        // A new display class and method is generated for lambda that captured x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c}",
+                            "C.<>c: {<>9__1_0#1, <>9__1_1, <F>b__1_0#1, <F>b__1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       58 (0x3a)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  ldsfld     0x04000004
+                          IL_0006:  brtrue.s   IL_001d
+                          IL_0008:  ldsfld     0x04000002
+                          IL_000d:  ldftn      0x06000007
+                          IL_0013:  newobj     0x0A000009
+                          IL_0018:  stsfld     0x04000004
+                          IL_001d:  ldsfld     0x04000003
+                          IL_0022:  brtrue.s   IL_0039
+                          IL_0024:  ldsfld     0x04000002
+                          IL_0029:  ldftn      0x06000006
+                          IL_002f:  newobj     0x0A000009
+                          IL_0034:  stsfld     0x04000003
+                          IL_0039:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A00000A
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.0
+                          IL_0001:  call       0x0A00000B
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CeaseCapture_This_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(x);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <lambda offset="29" closure="this" />
+                                      <lambda offset="84" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|1_0", """
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(x)
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.x"
+                              IL_0006:  call       "void System.Console.WriteLine(int)"
+                              IL_000b:  nop
+                              IL_000c:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|1_1", """
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  1
+                              // sequence point: Console.WriteLine(1)
+                              IL_0000:  ldc.i4.1
+                              IL_0001:  call       "void System.Console.WriteLine(int)"
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        int x = 1;
+                    
+                        public void F()
+                        <N:0>{
+                            <N:2>void L1() => Console.WriteLine(0);</N:2>
+                            <N:3>void L2() => Console.WriteLine(1);</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size        4 (0x4)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  nop
+                          IL_0003:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.0
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void AddingAndRemovingClosure_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            _ = new Action(() => Console.WriteLine(x));
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
+
+                        g.VerifyMethodDefNames("F", ".ctor", "<F>b__0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000003
+                          IL_0005:  stloc.1
+                          IL_0006:  nop
+                          IL_0007:  ldloc.1
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000001
+                          IL_000e:  nop
+                          IL_000f:  ret
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A000006
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A000007
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration( // remove closure
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0#1");
+
+                        g.VerifyIL("""
+                        {
+                          // Code size        4 (0x4)
+                          .maxstack  1
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.1
+                          IL_0002:  stloc.2
+                          IL_0003:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000009
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void AddingAndRemovingClosure_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            void L() => Console.WriteLine(x);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L|0#1_0#1, <>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_1
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000001
+                          IL_0009:  nop
+                          IL_000a:  ret
+                        }
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  call       0x0A000006
+                          IL_000b:  nop
+                          IL_000c:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration( // remove closure
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L|0#1_0#1, <>c__DisplayClass0#1_0#1}",
+                            "C.<>c__DisplayClass0#1_0#1: {x}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1");
+
+                        g.VerifyIL("""
+                        {
+                          // Code size        4 (0x4)
+                          .maxstack  1
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.1
+                          IL_0002:  stloc.2
+                          IL_0003:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000009
+                          IL_0005:  newobj     0x0A000007
+                          IL_000a:  throw
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChainClosure_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        void G(Func<int, int> f) {}
+
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1
+
+                                    G(<N:4>a => x0</N:4>);
+                                    G(<N:5>a => x1</N:5>);
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                             <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="G" parameterNames="f" />
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="16" />
+                                      <slot kind="30" offset="77" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <closure offset="16" />
+                                      <closure offset="77" />
+                                      <lambda offset="147" closure="0" />
+                                      <lambda offset="187" closure="1" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        void G(Func<int, int> f) {}
+                    
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1 -> Closure 0
+                    
+                                    G(<N:4>a => x0</N:4>);
+                                    G(<N:5>a => x0 + x1</N:5>);
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1}",
+                            "C.<>c__DisplayClass1_1#1: {x1, CS$<>8__locals1, <F>b__1#1}",
+                            "C.<>c__DisplayClass1_0: {x0, <F>b__0}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", "<F>b__1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       82 (0x52)
+                          .maxstack  3
+                          IL_0000:  nop
+                          IL_0001:  newobj     0x06000004
+                          IL_0006:  stloc.0
+                          IL_0007:  nop
+                          IL_0008:  ldloc.0
+                          IL_0009:  ldc.i4.0
+                          IL_000a:  stfld      0x04000001
+                          IL_000f:  newobj     0x06000008
+                          IL_0014:  stloc.2
+                          IL_0015:  ldloc.2
+                          IL_0016:  ldloc.0
+                          IL_0017:  stfld      0x04000004
+                          IL_001c:  nop
+                          IL_001d:  ldloc.2
+                          IL_001e:  ldc.i4.0
+                          IL_001f:  stfld      0x04000003
+                          IL_0024:  ldarg.0
+                          IL_0025:  ldloc.2
+                          IL_0026:  ldfld      0x04000004
+                          IL_002b:  ldftn      0x06000005
+                          IL_0031:  newobj     0x0A000008
+                          IL_0036:  call       0x06000001
+                          IL_003b:  nop
+                          IL_003c:  ldarg.0
+                          IL_003d:  ldloc.2
+                          IL_003e:  ldftn      0x06000009
+                          IL_0044:  newobj     0x0A000008
+                          IL_0049:  call       0x06000001
+                          IL_004e:  nop
+                          IL_004f:  nop
+                          IL_0050:  nop
+                          IL_0051:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       19 (0x13)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ldfld      0x04000001
+                          IL_000b:  ldarg.0
+                          IL_000c:  ldfld      0x04000003
+                          IL_0011:  add
+                          IL_0012:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChainClosure_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1
+
+                                    <N:4>int L1() => x0;</N:4>
+                                    <N:5>int L2() => x1;</N:5>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="16" />
+                                      <slot kind="30" offset="77" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>0</methodOrdinal>
+                                      <closure offset="16" />
+                                      <closure offset="77" />
+                                      <lambda offset="152" />
+                                      <lambda offset="196" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|0_0(ref C.<>c__DisplayClass0_0)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x0
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x0"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1(ref C.<>c__DisplayClass0_1)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_1.x1"
+                              IL_0006:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1 -> Closure 0
+                    
+                                    <N:4>int L1() => x0;</N:4>
+                                    <N:5>int L2() => x0 + x1;</N:5>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0, <F>g__L2|0_1#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                            "C.<>c__DisplayClass0_0: {x0}",
+                            "C.<>c__DisplayClass0_1: {x1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       24 (0x18)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldloca.s   V_0
+                          IL_0004:  ldc.i4.0
+                          IL_0005:  stfld      0x04000001
+                          IL_000a:  nop
+                          IL_000b:  ldloca.s   V_1
+                          IL_000d:  ldc.i4.0
+                          IL_000e:  stfld      0x04000002
+                          IL_0013:  nop
+                          IL_0014:  nop
+                          IL_0015:  nop
+                          IL_0016:  nop
+                          IL_0017:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000007
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ldarg.1
+                          IL_0007:  ldfld      0x04000002
+                          IL_000c:  add
+                          IL_000d:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void UnchainClosure_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        static void G(Func<int, int> f) {}
+
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1 -> Closure 0
+
+                                    G(<N:4>a => x0</N:4>);
+                                    G(<N:5>a => x0 + x1</N:5>);
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="G" parameterNames="f" />
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="16" />
+                                      <slot kind="30" offset="77" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <closure offset="16" />
+                                      <closure offset="77" />
+                                      <lambda offset="160" closure="0" />
+                                      <lambda offset="200" closure="1" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        static void G(Func<int, int> f) {}
+
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1
+
+                                    G(<N:4>a => x0</N:4>);
+                                    G(<N:5>a => x1</N:5>);
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // closure #0 is preserved, a new closure #1 is created as it has a different parent now:
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1}",
+                            "C.<>c__DisplayClass1_0: {x0, <F>b__0}",
+                            "C.<>c__DisplayClass1_1#1: {x1, <F>b__1#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", "<F>b__1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       68 (0x44)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  newobj     0x06000004
+                          IL_0006:  stloc.0
+                          IL_0007:  nop
+                          IL_0008:  ldloc.0
+                          IL_0009:  ldc.i4.0
+                          IL_000a:  stfld      0x04000001
+                          IL_000f:  newobj     0x06000008
+                          IL_0014:  stloc.2
+                          IL_0015:  nop
+                          IL_0016:  ldloc.2
+                          IL_0017:  ldc.i4.0
+                          IL_0018:  stfld      0x04000004
+                          IL_001d:  ldloc.0
+                          IL_001e:  ldftn      0x06000005
+                          IL_0024:  newobj     0x0A000008
+                          IL_0029:  call       0x06000001
+                          IL_002e:  nop
+                          IL_002f:  ldloc.2
+                          IL_0030:  ldftn      0x06000009
+                          IL_0036:  newobj     0x0A000008
+                          IL_003b:  call       0x06000001
+                          IL_0040:  nop
+                          IL_0041:  nop
+                          IL_0042:  nop
+                          IL_0043:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000004
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void UnchainClosure_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        void F()                       
+                        {                              
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0             
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1 -> Closure 0             
+                    
+                                    <N:4>int L1() => x0;</N:4>
+                                    <N:5>int L2() => x0 + x1;</N:5>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="46" />
+                                      <slot kind="30" offset="120" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>0</methodOrdinal>
+                                      <closure offset="46" />
+                                      <closure offset="120" />
+                                      <lambda offset="221" />
+                                      <lambda offset="265" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|0_0(ref C.<>c__DisplayClass0_0)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x0
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x0"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", """
+                            {
+                              // Code size       14 (0xe)
+                              .maxstack  2
+                              // sequence point: x0 + x1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x0"
+                              IL_0006:  ldarg.1
+                              IL_0007:  ldfld      "int C.<>c__DisplayClass0_1.x1"
+                              IL_000c:  add
+                              IL_000d:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        void F()                       
+                        {                              
+                            <N:0>{ int <N:1>x0 = 0</N:1>;      // Closure 0             
+                                <N:2>{ int <N:3>x1 = 0</N:3>;  // Closure 1               
+                    
+                                    <N:4>int L1() => x0;</N:4>
+                                    <N:5>int L2() => x1;</N:5>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0, <F>g__L2|0_1#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                            "C.<>c__DisplayClass0_1: {x1}",
+                            "C.<>c__DisplayClass0_0: {x0}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       24 (0x18)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldloca.s   V_0
+                          IL_0004:  ldc.i4.0
+                          IL_0005:  stfld      0x04000001
+                          IL_000a:  nop
+                          IL_000b:  ldloca.s   V_1
+                          IL_000d:  ldc.i4.0
+                          IL_000e:  stfld      0x04000002
+                          IL_0013:  nop
+                          IL_0014:  nop
+                          IL_0015:  nop
+                          IL_0016:  nop
+                          IL_0017:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000007
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeClosureParent_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x = 1</N:1>;
+                                <N:2>{ int <N:3>y = 2</N:3>;
+                                    <N:4>{ int <N:5>z = 3</N:5>;
+                                        G(<N:6>() => x</N:6>);
+                                        G(<N:7>() => z + x</N:7>);
+                                    }</N:4>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1}",
+                            "C.<>c__DisplayClass1_0: {x, <F>b__0}",
+                            "C.<>c__DisplayClass1_1: {z, CS$<>8__locals1, <F>b__1}");
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x = 1</N:1>;
+                                <N:2>{ int <N:3>y = 2</N:3>;
+                                    <N:4>{ int <N:5>z = 3</N:5>;
+                                        G(<N:6>() => x</N:6>);
+                                        G(<N:7>() => z + x</N:7>);
+                                        G(() => z + x + y);
+                                    }</N:4>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // closure #0 is preserved, new closures #1 and #2 are created:
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1, <>c__DisplayClass1_2#1}",
+                            "C.<>c__DisplayClass1_0: {x, <F>b__0}",
+                            "C.<>c__DisplayClass1_1#1: {y, CS$<>8__locals1}",
+                            "C.<>c__DisplayClass1_2#1: {z, CS$<>8__locals2, <F>b__1#1, <F>b__2#1}");
+
+                        g.VerifyMethodDefNames(
+                            "F",
+                            "<F>b__0",
+                            "<F>b__1",
+                            ".ctor",
+                            ".ctor",
+                            "<F>b__1#1",
+                            "<F>b__2#1");
+
+                        g.VerifyIL("""
+                        {
+                          // Code size      131 (0x83)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  newobj     0x06000004
+                          IL_0006:  stloc.0
+                          IL_0007:  nop
+                          IL_0008:  ldloc.0
+                          IL_0009:  ldc.i4.1
+                          IL_000a:  stfld      0x04000001
+                          IL_000f:  newobj     0x06000008
+                          IL_0014:  stloc.3
+                          IL_0015:  ldloc.3
+                          IL_0016:  ldloc.0
+                          IL_0017:  stfld      0x04000005
+                          IL_001c:  nop
+                          IL_001d:  ldloc.3
+                          IL_001e:  ldc.i4.2
+                          IL_001f:  stfld      0x04000004
+                          IL_0024:  newobj     0x06000009
+                          IL_0029:  stloc.s    V_4
+                          IL_002b:  ldloc.s    V_4
+                          IL_002d:  ldloc.3
+                          IL_002e:  stfld      0x04000007
+                          IL_0033:  nop
+                          IL_0034:  ldloc.s    V_4
+                          IL_0036:  ldc.i4.3
+                          IL_0037:  stfld      0x04000006
+                          IL_003c:  ldloc.s    V_4
+                          IL_003e:  ldfld      0x04000007
+                          IL_0043:  ldfld      0x04000005
+                          IL_0048:  ldftn      0x06000005
+                          IL_004e:  newobj     0x0A000008
+                          IL_0053:  call       0x06000001
+                          IL_0058:  nop
+                          IL_0059:  ldloc.s    V_4
+                          IL_005b:  ldftn      0x0600000A
+                          IL_0061:  newobj     0x0A000008
+                          IL_0066:  call       0x06000001
+                          IL_006b:  nop
+                          IL_006c:  ldloc.s    V_4
+                          IL_006e:  ldftn      0x0600000B
+                          IL_0074:  newobj     0x0A000008
+                          IL_0079:  call       0x06000001
+                          IL_007e:  nop
+                          IL_007f:  nop
+                          IL_0080:  nop
+                          IL_0081:  nop
+                          IL_0082:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A00000A
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size       24 (0x18)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000006
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000007
+                          IL_000c:  ldfld      0x04000005
+                          IL_0011:  ldfld      0x04000001
+                          IL_0016:  add
+                          IL_0017:  ret
+                        }
+                        {
+                          // Code size       36 (0x24)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000006
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000007
+                          IL_000c:  ldfld      0x04000005
+                          IL_0011:  ldfld      0x04000001
+                          IL_0016:  add
+                          IL_0017:  ldarg.0
+                          IL_0018:  ldfld      0x04000007
+                          IL_001d:  ldfld      0x04000004
+                          IL_0022:  add
+                          IL_0023:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeClosureParent_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+
+                    class C
+                    {
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x = 1</N:1>;
+                                <N:2>{ int <N:3>y = 2</N:3>;
+                                    <N:4>{ int <N:5>z = 3</N:5>;
+                                        <N:6>int L1() => x;</N:6>
+                                        <N:7>int L2() => z + x;</N:7>
+                                    }</N:4>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="16" />
+                                      <slot kind="0" offset="69" />
+                                      <slot kind="30" offset="104" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>0</methodOrdinal>
+                                      <closure offset="16" />
+                                      <closure offset="104" />
+                                      <lambda offset="166" />
+                                      <lambda offset="213" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|0_0(ref C.<>c__DisplayClass0_0)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", """
+                            {
+                              // Code size       14 (0xe)
+                              .maxstack  2
+                              // sequence point: z + x
+                              IL_0000:  ldarg.1
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_1.z"
+                              IL_0006:  ldarg.0
+                              IL_0007:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_000c:  add
+                              IL_000d:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    
+                    class C
+                    {
+                        void F()
+                        {
+                            <N:0>{ int <N:1>x = 1</N:1>;
+                                <N:2>{ int <N:3>y = 2</N:3>;
+                                    <N:4>{ int <N:5>z = 3</N:5>;
+                                        <N:6>int L1() => x;</N:6>
+                                        <N:7>int L2() => z + x;</N:7>
+                                        int L3() => z + x + y;
+                                    }</N:4>
+                                }</N:2>
+                            }</N:0>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // closures 0 and 1 are preserved, a new closure is created:
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0, <F>g__L2|0_1, <F>g__L3|0_2#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1, <>c__DisplayClass0_1#1}",
+                            "C.<>c__DisplayClass0_0: {x}",
+                            "C.<>c__DisplayClass0_1: {z}",
+                            "C.<>c__DisplayClass0_1#1: {y}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2#1");
+
+                        g.VerifyIL("""
+                        {
+                          // Code size       35 (0x23)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  nop
+                          IL_0002:  ldloca.s   V_0
+                          IL_0004:  ldc.i4.1
+                          IL_0005:  stfld      0x04000001
+                          IL_000a:  nop
+                          IL_000b:  ldloca.s   V_3
+                          IL_000d:  ldc.i4.2
+                          IL_000e:  stfld      0x04000003
+                          IL_0013:  nop
+                          IL_0014:  ldloca.s   V_2
+                          IL_0016:  ldc.i4.3
+                          IL_0017:  stfld      0x04000002
+                          IL_001c:  nop
+                          IL_001d:  nop
+                          IL_001e:  nop
+                          IL_001f:  nop
+                          IL_0020:  nop
+                          IL_0021:  nop
+                          IL_0022:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  8
+                          IL_0000:  ldarg.1
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000001
+                          IL_000c:  add
+                          IL_000d:  ret
+                        }
+                        {
+                          // Code size       21 (0x15)
+                          .maxstack  8
+                          IL_0000:  ldarg.2
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000001
+                          IL_000c:  add
+                          IL_000d:  ldarg.1
+                          IL_000e:  ldfld      0x04000003
+                          IL_0013:  add
+                          IL_0014:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeLambdaParent_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                   G(<N:4>() => x</N:4>);
+                                   G(<N:5>() => y</N:5>);
+
+                                   G(<N:6>() => x + 1</N:6>);
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="G" parameterNames="f" />
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="0" />
+                                      <slot kind="30" offset="38" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <closure offset="0" />
+                                      <closure offset="38" />
+                                      <lambda offset="91" closure="0" />
+                                      <lambda offset="130" closure="1" />
+                                      <lambda offset="171" closure="0" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__0", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_1.<F>b__1", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_1.y"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__2", """
+                            {
+                              // Code size        9 (0x9)
+                              .maxstack  2
+                              // sequence point: x + 1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ldc.i4.1
+                              IL_0007:  add
+                              IL_0008:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                   G(<N:4>() => x</N:4>);
+                                   G(<N:5>() => y</N:5>);
+                    
+                                   G(<N:6>() => y + 1</N:6>);
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Lambda moved from closure 0 to 1:
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1}",
+                            "C.<>c__DisplayClass1_0: {x, <F>b__0}",
+                            "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__2", "<F>b__1", "<F>b__2#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       84 (0x54)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000004
+                          IL_0005:  stloc.0
+                          IL_0006:  nop
+                          IL_0007:  ldloc.0
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000001
+                          IL_000e:  newobj     0x06000007
+                          IL_0013:  stloc.1
+                          IL_0014:  nop
+                          IL_0015:  ldloc.1
+                          IL_0016:  ldc.i4.2
+                          IL_0017:  stfld      0x04000002
+                          IL_001c:  ldloc.0
+                          IL_001d:  ldftn      0x06000005
+                          IL_0023:  newobj     0x0A000008
+                          IL_0028:  call       0x06000001
+                          IL_002d:  nop
+                          IL_002e:  ldloc.1
+                          IL_002f:  ldftn      0x06000008
+                          IL_0035:  newobj     0x0A000008
+                          IL_003a:  call       0x06000001
+                          IL_003f:  nop
+                          IL_0040:  ldloc.1
+                          IL_0041:  ldftn      0x06000009
+                          IL_0047:  newobj     0x0A000008
+                          IL_004c:  call       0x06000001
+                          IL_0051:  nop
+                          IL_0052:  nop
+                          IL_0053:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        9 (0x9)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldc.i4.1
+                          IL_0007:  add
+                          IL_0008:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeLambdaParent_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                <N:5>int L2() => y;</N:5>
+
+                                <N:6>int L3() => x + 1;</N:6>
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <using>
+                                      <namespace usingCount="1" />
+                                    </using>
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="0" />
+                                      <slot kind="30" offset="38" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>0</methodOrdinal>
+                                      <closure offset="0" />
+                                      <closure offset="38" />
+                                      <lambda offset="92" />
+                                      <lambda offset="131" />
+                                      <lambda offset="172" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|0_0(ref C.<>c__DisplayClass0_0)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L2|0_1(ref C.<>c__DisplayClass0_1)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_1.y"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L3|0_2(ref C.<>c__DisplayClass0_0)", """
+                            {
+                              // Code size        9 (0x9)
+                              .maxstack  2
+                              // sequence point: x + 1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_0006:  ldc.i4.1
+                              IL_0007:  add
+                              IL_0008:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                <N:5>int L2() => y;</N:5>
+                    
+                                <N:6>int L3() => y + 1;</N:6>
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Lambda moved from closure 0 to 1:
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|0_0, <F>g__L2|0_1, <F>g__L3|0_2#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                            "C.<>c__DisplayClass0_0: {x}",
+                            "C.<>c__DisplayClass0_1: {y}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2", "<F>g__L3|0_2#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       23 (0x17)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_0
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000001
+                          IL_0009:  nop
+                          IL_000a:  ldloca.s   V_1
+                          IL_000c:  ldc.i4.2
+                          IL_000d:  stfld      0x04000002
+                          IL_0012:  nop
+                          IL_0013:  nop
+                          IL_0014:  nop
+                          IL_0015:  nop
+                          IL_0016:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000007
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        9 (0x9)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldc.i4.1
+                          IL_0007:  add
+                          IL_0008:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeLambdaParent_LambdaAndLocalFunction_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                G(<N:5>() => y</N:5>);
+
+                                G(<N:6>() => x + 1</N:6>);
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1}",
+                            "C.<>c__DisplayClass1_0: {x, <F>g__L1|0, <F>b__2}",
+                            "C.<>c__DisplayClass1_1: {y, <F>b__1}");
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>g__L1|0()", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_1.<F>b__1()", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_1.y"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__2()", """
+                            {
+                              // Code size        9 (0x9)
+                              .maxstack  2
+                              // sequence point: x + 1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ldc.i4.1
+                              IL_0007:  add
+                              IL_0008:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                G(<N:5>() => y</N:5>);
+                    
+                                G(<N:6>() => y + 1</N:6>);
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|1_0#1, <>c__DisplayClass1_0#1, <>c__DisplayClass1_1}",
+                            "C.<>c__DisplayClass1_0#1: {x}",
+                            "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0", "<F>b__2", "<F>b__1", "<F>g__L1|1_0#1", "<F>b__2#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       62 (0x3e)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_2
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000003
+                          IL_0009:  newobj     0x06000007
+                          IL_000e:  stloc.1
+                          IL_000f:  nop
+                          IL_0010:  ldloc.1
+                          IL_0011:  ldc.i4.2
+                          IL_0012:  stfld      0x04000002
+                          IL_0017:  nop
+                          IL_0018:  ldloc.1
+                          IL_0019:  ldftn      0x06000008
+                          IL_001f:  newobj     0x0A000008
+                          IL_0024:  call       0x06000001
+                          IL_0029:  nop
+                          IL_002a:  ldloc.1
+                          IL_002b:  ldftn      0x0600000A
+                          IL_0031:  newobj     0x0A000008
+                          IL_0036:  call       0x06000001
+                          IL_003b:  nop
+                          IL_003c:  nop
+                          IL_003d:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x700001F4
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000003
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        9 (0x9)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldc.i4.1
+                          IL_0007:  add
+                          IL_0008:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void ChangeLambdaParent_LambdaAndLocalFunction_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                G(<N:5>() => y</N:5>);
+
+                                <N:6>int L3() => x + 1;</N:6>
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyCustomDebugInformation("C.F", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="F">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="G" parameterNames="f" />
+                                    <encLocalSlotMap>
+                                      <slot kind="30" offset="0" />
+                                      <slot kind="30" offset="38" />
+                                    </encLocalSlotMap>
+                                    <encLambdaMap>
+                                      <methodOrdinal>1</methodOrdinal>
+                                      <closure offset="0" />
+                                      <closure offset="38" />
+                                      <lambda offset="92" />
+                                      <lambda offset="127" closure="1" />
+                                      <lambda offset="169" />
+                                    </encLambdaMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L1|1_0(ref C.<>c__DisplayClass1_0)", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_1.<F>b__1()", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_1.y"
+                              IL_0006:  ret
+                            }
+                            """);
+
+                        g.VerifyMethodBody("C.<F>g__L3|1_2(ref C.<>c__DisplayClass1_0)", """
+                            {
+                              // Code size        9 (0x9)
+                              .maxstack  2
+                              // sequence point: x + 1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ldc.i4.1
+                              IL_0007:  add
+                              IL_0008:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{ int <N:1>x = 1</N:1>;
+                            <N:2>{ int <N:3>y = 2</N:3>;
+                                <N:4>int L1() => x;</N:4>
+                                G(<N:5>() => y</N:5>);
+                    
+                                <N:6>int L3() => y + 1;</N:6>
+                            }</N:2>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Lambda moved from closure 0 to 1:
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L1|1_0, <>c__DisplayClass1_0, <>c__DisplayClass1_1}",
+                            "C.<>c__DisplayClass1_0: {x}",
+                            "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>g__L3|2#1}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L3|1_2", "<F>b__1", "<F>g__L3|2#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       45 (0x2d)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_0
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000001
+                          IL_0009:  newobj     0x06000006
+                          IL_000e:  stloc.1
+                          IL_000f:  nop
+                          IL_0010:  ldloc.1
+                          IL_0011:  ldc.i4.2
+                          IL_0012:  stfld      0x04000002
+                          IL_0017:  nop
+                          IL_0018:  ldloc.1
+                          IL_0019:  ldftn      0x06000007
+                          IL_001f:  newobj     0x0A000008
+                          IL_0024:  call       0x06000001
+                          IL_0029:  nop
+                          IL_002a:  nop
+                          IL_002b:  nop
+                          IL_002c:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        {
+                          // Code size        9 (0x9)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldc.i4.1
+                          IL_0007:  add
+                          IL_0008:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        /// <summary>
+        /// We allow to add a capture as long as the closure tree shape remains the same.
+        /// The value of the captured variable might be uninitialized in the lambda.
+        /// We leave it up to the user to set its value as needed.
+        /// </summary>
+        [Fact]
+        public void UninitializedCapture_Lambda()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => x</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__0", """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => x + y</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0}",
+                            "C.<>c__DisplayClass1_0: {x, y, <F>b__0}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       40 (0x28)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000004
+                          IL_0005:  stloc.0
+                          IL_0006:  nop
+                          IL_0007:  ldloc.0
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000001
+                          IL_000e:  ldloc.0
+                          IL_000f:  ldc.i4.2
+                          IL_0010:  stfld      0x04000002
+                          IL_0015:  ldloc.0
+                          IL_0016:  ldftn      0x06000005
+                          IL_001c:  newobj     0x0A000008
+                          IL_0021:  call       0x06000001
+                          IL_0026:  nop
+                          IL_0027:  ret
+                        }
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000001
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000002
+                          IL_000c:  add
+                          IL_000d:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void UninitializedCapture_LocalFunction()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            <N:3>int L() => x;</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L|0_0, <>c__DisplayClass0_0}",
+                            "C.<>c__DisplayClass0_0: {x}");
+
+                        g.VerifyMethodBody("C.<F>g__L|0_0(ref C.<>c__DisplayClass0_0)", """
+                             {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              // sequence point: x
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass0_0.x"
+                              IL_0006:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            <N:3>int L() => x + y;</N:3>
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<F>g__L|0_0#1, <>c__DisplayClass0_0#1}",
+                            "C.<>c__DisplayClass0_0#1: {x, y}");
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_0#1");
+
+                        g.VerifyIL("""
+                        {
+                          // Code size       19 (0x13)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_2
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000002
+                          IL_0009:  ldloca.s   V_2
+                          IL_000b:  ldc.i4.2
+                          IL_000c:  stfld      0x04000003
+                          IL_0011:  nop
+                          IL_0012:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000007
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000003
+                          IL_000c:  add
+                          IL_000d:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void CaptureOrdering()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => x + y</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0}",
+                            "C.<>c__DisplayClass1_0: {x, y, <F>b__0}");
+
+                        g.VerifyMethodBody("C.<>c__DisplayClass1_0.<F>b__0", """
+                            {
+                              // Code size       14 (0xe)
+                              .maxstack  2
+                              // sequence point: x + y
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.<>c__DisplayClass1_0.x"
+                              IL_0006:  ldarg.0
+                              IL_0007:  ldfld      "int C.<>c__DisplayClass1_0.y"
+                              IL_000c:  add
+                              IL_000d:  ret
+                            }
+                            """);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{
+                            int <N:1>x = 1</N:1>;
+                            int <N:2>y = 2</N:2>;
+                            G(<N:3>() => y + x</N:3>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        // Unlike local slots, the order is insignificant since the fields are referred to by name (MemberRef)
+                        g.VerifySynthesizedMembers(
+                            "C: {<>c__DisplayClass1_0}",
+                            "C.<>c__DisplayClass1_0: {y, x, <F>b__0}");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       40 (0x28)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000004
+                          IL_0005:  stloc.0
+                          IL_0006:  nop
+                          IL_0007:  ldloc.0
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000001
+                          IL_000e:  ldloc.0
+                          IL_000f:  ldc.i4.2
+                          IL_0010:  stfld      0x04000002
+                          IL_0015:  ldloc.0
+                          IL_0016:  ldftn      0x06000005
+                          IL_001c:  newobj     0x0A000008
+                          IL_0021:  call       0x06000001
+                          IL_0026:  nop
+                          IL_0027:  ret
+                        }
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ldarg.0
+                          IL_0007:  ldfld      0x04000001
+                          IL_000c:  add
+                          IL_000d:  ret
+                        }
+                        """);
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Closure_ClassToStruct()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                            G(<N:3>() => x</N:3>);
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c__DisplayClass1_0}",
+                            "class C.<>c__DisplayClass1_0: {x, <F>g__L|0, <F>b__1}"
+                        ]);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass1_0#1: {x}",
+                            "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
+                        ]);
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>b__1", "<F>g__L|1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_1
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000002
+                          IL_0009:  nop
+                          IL_000a:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x700001F4
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        """);
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Closure_ClassToStruct_DelegateConversion()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                            G(L);
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c__DisplayClass1_0}",
+                            "class C.<>c__DisplayClass1_0: {x, <F>g__L|0}"
+                        ]);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass1_0#1: {x}",
+                            "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
+                        ]);
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>g__L|1_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  2
+                          IL_0000:  nop
+                          IL_0001:  ldloca.s   V_1
+                          IL_0003:  ldc.i4.1
+                          IL_0004:  stfld      0x04000002
+                          IL_0009:  nop
+                          IL_000a:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Closure_StructToClass()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass1_0: {x}",
+                            "class C: {<F>g__L|1_0, <>c__DisplayClass1_0}",
+                        ]);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                            G(<N:3>() => x</N:3>);
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c__DisplayClass1_0#1}",
+                            "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1, <F>b__1#1}"
+                        ]);
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       34 (0x22)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000005
+                          IL_0005:  stloc.1
+                          IL_0006:  nop
+                          IL_0007:  ldloc.1
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000002
+                          IL_000e:  nop
+                          IL_000f:  ldloc.1
+                          IL_0010:  ldftn      0x06000007
+                          IL_0016:  newobj     0x0A000007
+                          IL_001b:  call       0x06000001
+                          IL_0020:  nop
+                          IL_0021:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Closure_StructToClass_DelegateConversion()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                        }
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "struct C.<>c__DisplayClass1_0: {x}",
+                            "class C: {<F>g__L|1_0, <>c__DisplayClass1_0}",
+                        ]);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        static void G(Func<int> f) {}
+                    
+                        public void F()
+                        <N:0>{</N:0>
+                            int <N:1>x = 1</N:1>;
+                            <N:2>int L() => x;</N:2>
+                            G(L);
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c__DisplayClass1_0#1}",
+                            "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1}"
+                        ]);
+
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", "<F>g__L|0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       34 (0x22)
+                          .maxstack  2
+                          IL_0000:  newobj     0x06000005
+                          IL_0005:  stloc.1
+                          IL_0006:  nop
+                          IL_0007:  ldloc.1
+                          IL_0008:  ldc.i4.1
+                          IL_0009:  stfld      0x04000002
+                          IL_000e:  nop
+                          IL_000f:  ldloc.1
+                          IL_0010:  ldftn      0x06000006
+                          IL_0016:  newobj     0x0A000007
+                          IL_001b:  call       0x06000001
+                          IL_0020:  nop
+                          IL_0021:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000008
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size        8 (0x8)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       0x0A000009
+                          IL_0006:  nop
+                          IL_0007:  ret
+                        }
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
     }
 }

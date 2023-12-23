@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public static SemanticTokensSchema LegacyTokensSchemaForLSIF
             => s_vsTokenSchema;
 
-        public static string[] TokenModifiers = new string[]
-        {
+        public static string[] TokenModifiers =
+        [
             // This must be in the same order as SemanticTokens.TokenModifiers, but skip the "None" item
             SemanticTokenModifiers.Static,
             nameof(SemanticTokens.TokenModifiers.ReassignedVariable)
-        };
+        ];
     }
 }

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 markupWithPositionAndOptSpan,
                 out var code,
                 out var cursorPosition,
-                out ImmutableArray<TextSpan> textSpans);
+                out var textSpans);
 
             if (textSpans.Any())
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
             else
             {
-                Assert.Equal(expectedTestItem.Signature, signature.Content);
+                AssertEx.Equal(expectedTestItem.Signature, signature.Content);
             }
 
             if (expectedTestItem.PrettyPrintedSignature != null)

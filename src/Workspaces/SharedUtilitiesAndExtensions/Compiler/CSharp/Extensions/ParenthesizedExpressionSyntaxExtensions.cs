@@ -73,14 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
-                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
-                        {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
-                        })
-                    {
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type.IsSpanOrReadOnlySpan())
                         return !varDecl.Type.IsVar;
-                    }
                 }
 
                 return false;
@@ -188,11 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   {(x)} -> {x}
             if (nodeParent is InitializerExpressionSyntax)
             {
-                // Assignment expressions are not allowed in initializers
-                if (expression.IsAnyAssignExpression())
-                    return false;
-
-                return true;
+                // Assignment expressions and collection expressions are not allowed in initializers
+                // as they are not parsed as expressions, but as more complex constructs
+                return expression is not AssignmentExpressionSyntax and not CollectionExpressionSyntax;
             }
 
             // Cases:
@@ -202,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (nodeParent is AnonymousObjectMemberDeclaratorSyntax anonymousDeclarator)
             {
                 // Assignment expressions are not allowed unless member is named
-                if (anonymousDeclarator.NameEquals == null && expression.IsAnyAssignExpression())
+                if (anonymousDeclarator.NameEquals == null && expression is AssignmentExpressionSyntax)
                     return false;
 
                 return true;
@@ -306,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
 
             var exprSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (exprSymbol is not IFieldSymbol { IsConst: true } field)
+            if (exprSymbol is not IFieldSymbol { IsConst: true })
                 return false;
 
             // See if interpreting the same expression as a type in this location binds.

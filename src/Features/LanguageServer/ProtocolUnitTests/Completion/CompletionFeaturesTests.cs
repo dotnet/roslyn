@@ -18,12 +18,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 
@@ -735,5 +735,244 @@ public class C
 
         foreach (var item in results.Items)
             Assert.Null(item.CommitCharacters);
+    }
+
+    private sealed class CSharpLspThrowExceptionOnChangeCompletionService : CompletionService
+    {
+        private CSharpLspThrowExceptionOnChangeCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider) : base(services, listenerProvider)
+        {
+        }
+
+        public override string Language => LanguageNames.CSharp;
+
+        internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
+            => CompletionRules.Default;
+
+        internal override bool ShouldTriggerCompletion(
+            Project project, LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger,
+            CodeAnalysis.Completion.CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string> roles = null)
+        {
+            return true;
+        }
+
+        public ImmutableArray<CodeAnalysis.Completion.CompletionItem> ReturnedItems { get; set; } = ImmutableArray<CodeAnalysis.Completion.CompletionItem>.Empty;
+
+        public (int defaultItemCount, int nonDefaultItemCount) ItemCounts { get; set; }
+
+        internal override async Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(
+            Document document, int caretPosition, CodeAnalysis.Completion.CompletionOptions options, OptionSet passThroughOptions,
+            CompletionTrigger trigger = default, ImmutableHashSet<string> roles = null, CancellationToken cancellationToken = default)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
+
+            return CodeAnalysis.Completion.CompletionList.Create(defaultItemSpan, ReturnedItems);
+        }
+
+        public override Task<CompletionChange> GetChangeAsync(Document document, CodeAnalysis.Completion.CompletionItem item, char? commitCharacter = null, CancellationToken cancellationToken = default)
+        {
+            Assert.Contains(item, ReturnedItems);
+            throw new Exception("GetChangeAsync throws");
+        }
+
+        [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp, ServiceLayer.Test), Shared]
+        internal sealed class Factory : ILanguageServiceFactory
+        {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
+            {
+                _listenerProvider = listenerProvider;
+            }
+
+            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            {
+                return new CSharpLspThrowExceptionOnChangeCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
+            }
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestHandleExceptionFromGetCompletionChange(bool mutatingLspWorkspace)
+    {
+        var markup = "Item {|caret:|}";
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
+            extraExportedTypes: new[] { typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory) }.ToList());
+
+        var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspThrowExceptionOnChangeCompletionService;
+        var builder = ImmutableArray.CreateBuilder<CodeAnalysis.Completion.CompletionItem>();
+        builder.Add(CodeAnalysis.Completion.CompletionItem.Create("SimpleItem"));
+
+        var importItem = CodeAnalysis.Completion.CompletionItem.Create("ExpandedItem");
+        importItem.Flags |= CodeAnalysis.Completion.CompletionItemFlags.Expanded;
+        builder.Add(importItem);
+
+        builder.Add(CodeAnalysis.Completion.CompletionItem.Create("ComplexItem", isComplexTextEdit: true));
+
+        mockService.ReturnedItems = builder.ToImmutable();
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        // getting and resolving completions should not throw
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        foreach (var item in results.Items)
+        {
+            item.Data = results.ItemDefaults.Data;
+            var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, item, CancellationToken.None).ConfigureAwait(false);
+
+            if (item.Label == "SimpleItem")
+            {
+                Assert.Null(item.TextEditText);
+                Assert.Null(resolvedItem.AdditionalTextEdits);
+                Assert.Null(resolvedItem.Command);
+            }
+            else if (item.Label == "ExpandedItem")
+            {
+                Assert.Null(item.TextEditText);
+                Assert.Null(resolvedItem.AdditionalTextEdits);
+                Assert.Null(resolvedItem.Command);
+            }
+            else if (item.Label == "ComplexItem")
+            {
+                Assert.Equal("", item.TextEditText);
+                Assert.Null(item.TextEdit);
+                Assert.Null(resolvedItem.AdditionalTextEdits);
+
+                Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
+                Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+
+                Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+
+                var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(0, 5), End = new(0, 5) }, NewText = "ComplexItem" };
+                AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
+
+                Assert.Equal(false, resolvedItem.Command.Arguments[2]);
+                Assert.Equal((long)-1, resolvedItem.Command.Arguments[3]);
+            }
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOverrideCompletionWithOutCommonReferences(bool mutatingLspWorkspace)
+    {
+        var markup = """
+                     public abstract class BaseClass
+                     {
+                         public abstract bool AbstractMethod(int x);
+                     }
+                     
+                     public class MyClass : BaseClass
+                     {
+                         override {|caret:|}
+                     }
+                     """;
+        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+            new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true }, commonReferences: false);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        // getting and resolving completions should not throw
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        var item = results.Items.Single(i => i.FilterText == "AbstractMethod");
+        Assert.Equal("", item.TextEditText);
+        Assert.Null(item.TextEdit);
+
+        item.Data = results.ItemDefaults.Data;
+
+        var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, item, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.Null(resolvedItem.AdditionalTextEdits);
+
+        Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
+        Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+
+        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+
+        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
+        AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
+
+        Assert.Equal(false, resolvedItem.Command.Arguments[2]);
+        Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]
+    public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class Z
+{
+    public int M()
+    {
+        int ia, ib, ic, ifa, ifb, ifc; 
+        i{|caret:|}Exception
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caret.Uri);
+
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
+        var listMaxSize = 3;
+
+        globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
+
+        // Because of the limit in list size, we should not have item "if" returned here
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.False(results.Items.Any(i => i.Label == "if"));
+
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caret),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "f",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        // Now that user typed "Z", we should have item "Z" in the updated list since it's a perfect match
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.True(results.Items.Any(i => i.Label == "if"));
+
     }
 }

@@ -401,19 +401,15 @@
 {2}: Localized exception message
 {3}: Localized detail message</comment>
   </data>
-  <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
-    <value>Analyzer '{0}' threw the following exception:
-'{1}'.</value>
-  </data>
   <data name="AnalyzerDriverFailure" xml:space="preserve">
     <value>Analyzer Driver Failure</value>
   </data>
   <data name="AnalyzerDriverThrows" xml:space="preserve">
-    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.</value>
-  </data>
-  <data name="AnalyzerDriverThrowsDescription" xml:space="preserve">
-    <value>Analyzer driver threw the following exception:
-'{0}'.</value>
+    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</value>
+    <comment>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</comment>
   </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
@@ -727,6 +723,18 @@
   </data>
   <data name="EncCannotResumeSuspendedIteratorMethod" xml:space="preserve">
     <value>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</value>
+  </data>
+  <data name="EncDeletedMethodInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</value>
+  </data>
+  <data name="EncDeletedLambdaInvoked" xml:space="preserve">
+    <value>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</value>
+  </data>
+  <data name="EncLambdaRudeEdit" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</value>
+  </data>
+  <data name="EncLambdaRudeEdit_CapturedVariables" xml:space="preserve">
+    <value>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</value>
   </data>
   <data name="GeneratorNameColumnHeader" xml:space="preserve">
     <value>Generator</value>

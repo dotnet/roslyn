@@ -649,8 +649,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     if (sawLambdas || sawLocalFunctions)
                     {
-                        var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
-                        var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                        var closureDebugInfoBuilder = ArrayBuilder<EncClosureInfo>.GetInstance();
+                        var lambdaDebugInfoBuilder = ArrayBuilder<EncLambdaInfo>.GetInstance();
+                        var lambdaRuntimeRudeEditsBuilder = ArrayBuilder<LambdaRuntimeRudeEditInfo>.GetInstance();
 
                         body = ClosureConversion.Rewrite(
                             loweredBody: body,
@@ -659,10 +660,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             method: this,
                             methodOrdinal: _methodOrdinal,
                             substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
-                            closureDebugInfoBuilder: closureDebugInfoBuilder,
+                            lambdaDebugInfoBuilder,
+                            lambdaRuntimeRudeEditsBuilder,
+                            closureDebugInfoBuilder,
+                            slotAllocator: null,
                             delegateCache: delegateCache,
-                            lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
-                            slotAllocatorOpt: null,
                             compilationState: compilationState,
                             diagnostics: diagnostics,
                             assignLocals: localsSet);
@@ -670,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         // we don't need this information:
                         closureDebugInfoBuilder.Free();
                         lambdaDebugInfoBuilder.Free();
+                        lambdaRuntimeRudeEditsBuilder.Free();
                     }
                 }
                 finally
@@ -757,5 +760,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsNullableAnalysisEnabled() => false;
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
     }
 }

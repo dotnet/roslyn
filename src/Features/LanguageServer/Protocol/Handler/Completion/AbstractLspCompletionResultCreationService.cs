@@ -11,14 +11,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -65,17 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
-            // By default, Roslyn would treat continuous alphabetical text as a single word for completion purpose.
-            // e.g. when user triggers completion at the location of {$} in "pub{$}class", the span would cover "pubclass",
-            // which is used for subsequent matching and commit.
-            // This works fine for VS async-completion, where we have full control of entire completion process.
-            // However, the insert mode in VSCode (i.e. the mode our LSP server supports) expects us to return TextEdit that only
-            // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
-            // adjust the span accordingly.
-            var defaultSpan = !capabilityHelper.SupportVSInternalClientCapabilities && position < list.Span.End
-                ? new(list.Span.Start, length: position - list.Span.Start)
-                : list.Span;
-
+            var defaultSpan = list.Span;
             var typedText = documentText.GetSubText(defaultSpan).ToString();
             foreach (var item in list.ItemsList)
             {
@@ -379,7 +369,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             Contract.ThrowIfTrue(item.IsComplexTextEdit);
             Contract.ThrowIfNull(lspItem.Label);
 
-            var completionChange = await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, item, cancellationToken).ConfigureAwait(false);
             var change = completionChange.TextChange;
 
             // If the change's span is different from default, then the item should be mark as IsComplexTextEdit.
@@ -395,7 +385,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             Debug.Assert(selectedItem.Flags.IsExpanded());
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var builder);
@@ -414,6 +404,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             return builder.ToArray();
         }
 
+        private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await completionService.GetChangeAsync(document, completionItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            {
+                // In case of exception, we simply return DisplayText with default span as the change.
+                return CompletionChange.Create(new TextChange(completionItem.Span, completionItem.DisplayText));
+            }
+        }
+
         public static async Task<(LSP.TextEdit edit, bool isSnippetString, int? newPosition)> GenerateComplexTextEditAsync(
             Document document,
             CompletionService completionService,
@@ -424,7 +427,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         {
             Debug.Assert(selectedItem.IsComplexTextEdit);
 
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
             var newText = completionChange.TextChange.NewText;
             Contract.ThrowIfNull(newText);

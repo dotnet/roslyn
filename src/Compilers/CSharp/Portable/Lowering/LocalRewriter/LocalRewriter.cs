@@ -248,7 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? type = node.Type;
                 if (type?.IsNullableType() != true)
                 {
-                    return MakeLiteral(node.Syntax, constantValue, type);
+                    var result = MakeLiteral(node.Syntax, constantValue, type);
+
+                    if (node.WasCompilerGenerated)
+                    {
+                        result.MakeCompilerGenerated();
+                    }
+
+                    return result;
                 }
             }
 
@@ -449,6 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
             => PlaceholderReplacement(node);
 
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
         /// Each occurrence of the placeholder node is replaced with the node returned.
@@ -559,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
@@ -569,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
@@ -589,14 +601,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
+        private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method, bool isOptional = false)
         {
-            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
+            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method, isOptional);
         }
 
-        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method)
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method, bool isOptional = false)
         {
-            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
+            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method, isOptional);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
@@ -984,6 +996,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                     // A handler placeholder is the receiver of the interpolated string AppendLiteral
                     // or AppendFormatted calls, and should never be defensively copied.
+                    return true;
+
+                case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
+                    // Used for Length or Count properties only which are effectively readonly.
                     return true;
 
                 case BoundKind.EventAccess:

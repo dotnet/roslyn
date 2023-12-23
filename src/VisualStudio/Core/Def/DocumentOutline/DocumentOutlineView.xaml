@@ -11,6 +11,7 @@
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             d:DataContext="{d:DesignInstance Type=self:DocumentOutlineViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="DocumentOutline"
@@ -92,8 +93,9 @@
                   AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
+                  SourceUpdated="SymbolTree_SourceUpdated"
                   TreeViewItem.Selected="SymbolTreeItem_Selected"
+                  Visibility="{Binding Visibility, Mode=OneWayToSource}"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">

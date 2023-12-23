@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 {
     internal class SeverityViewModel
     {
-        private static readonly string[] s_severities = new[]
-        {
+        private static readonly string[] s_severities =
+        [
             ServicesVSResources.Disabled,
             ServicesVSResources.Refactoring_Only,
             ServicesVSResources.Suggestion,
             ServicesVSResources.Warning,
             ServicesVSResources.Error
-        };
+        ];
 
         private readonly int _selectedSeverityIndex;
 

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
 {
@@ -52,7 +52,7 @@ comment */|}";
             AssertJsonEquals(expected, results);
         }
 
-        [Theory(Skip = "GetFoldingRangeAsync does not yet support regions."), CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
         {
             var markup =
@@ -73,7 +73,7 @@ comment */|}";
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(ProtocolConversions.CreateAbsoluteUri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI())
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,

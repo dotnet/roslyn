@@ -112,6 +112,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
+        /// that are compilation end descriptors.
+        /// </summary>
+        public ImmutableArray<DiagnosticDescriptor> GetCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
+        {
+            var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
+            return descriptorInfo.HasCompilationEndDescriptor
+                ? descriptorInfo.SupportedDescriptors.WhereAsArray(d => d.IsCompilationEnd())
+                : ImmutableArray<DiagnosticDescriptor>.Empty;
+        }
+
+        /// <summary>
         /// Returns true if given <paramref name="analyzer"/> has a compilation end descriptor
         /// that is reported in the Compilation end action.
         /// </summary>

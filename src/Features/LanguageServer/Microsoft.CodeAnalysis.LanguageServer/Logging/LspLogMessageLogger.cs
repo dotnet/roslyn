@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
@@ -25,7 +23,7 @@ internal sealed class LspLogMessageLogger : ILogger
         _fallbackLogger = fallbackLoggerFactory.CreateLogger(categoryName);
     }
 
-    public IDisposable BeginScope<TState>(TState state)
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull
     {
         throw new NotImplementedException();
     }
@@ -60,7 +58,7 @@ internal sealed class LspLogMessageLogger : ILogger
 
         if (message != null && logLevel != LogLevel.None)
         {
-            message = $"[{_categoryName}]{message}";
+            message = $"[{_categoryName}] {message}";
             var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = message,

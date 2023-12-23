@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -41,7 +41,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document is null)
                 return null;
 
-            var options = _globalOptions.GetBlockStructureOptions(document.Project);
+            var options = _globalOptions.GetBlockStructureOptions(document.Project) with
+            {
+                // Need to set the block structure guide options to true since the concept does not exist in vscode
+                // but we still want to categorize them as the correct BlockType.
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true,
+                ShowBlockStructureGuidesForDeclarationLevelConstructs = true,
+                ShowBlockStructureGuidesForCodeLevelConstructs = true
+            };
+
             return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
