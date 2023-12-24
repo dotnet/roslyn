@@ -129,324 +129,318 @@ class C
     [Fact]
     public void Not_DelegateCreations_CapturingLocalFunction()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    var capture = 0;
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        var capture = 0;
 
-                    c.Invoke(new D(Target), new D(Target));
-                    void Target() { Console.WriteLine(capture); }
-                }
+        c.Invoke(new D(Target), new D(Target));
+        void Target() { Console.WriteLine(capture); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       48 (0x30)
-              .maxstack  4
-              .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
-              IL_0000:  newobj     "C.<>c__DisplayClass0_0..ctor()"
-              IL_0005:  stloc.0
-              IL_0006:  newobj     "C..ctor()"
-              IL_000b:  ldloc.0
-              IL_000c:  ldc.i4.0
-              IL_000d:  stfld      "int C.<>c__DisplayClass0_0.capture"
-              IL_0012:  ldloc.0
-              IL_0013:  ldftn      "void C.<>c__DisplayClass0_0.<Main>g__Target|0()"
-              IL_0019:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001e:  ldloc.0
-              IL_001f:  ldftn      "void C.<>c__DisplayClass0_0.<Main>g__Target|0()"
-              IL_0025:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_002a:  callvirt   "void C.Invoke(D, D)"
-              IL_002f:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  newobj     ""C..ctor()""
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stfld      ""int C.<>c__DisplayClass0_0.capture""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""void C.<>c__DisplayClass0_0.<Main>g__Target|0()""
+  IL_0019:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001e:  ldloc.0
+  IL_001f:  ldftn      ""void C.<>c__DisplayClass0_0.<Main>g__Target|0()""
+  IL_0025:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_002a:  callvirt   ""void C.Invoke(D, D)""
+  IL_002f:  ret
+}
+");
     }
 
     [Fact]
     public void Not_Conversions_CapturingLocalFunction()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    var capture = 0;
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        var capture = 0;
 
-                    c.Invoke(Target, Target);
-                    void Target() { Console.WriteLine(capture); }
-                }
+        c.Invoke(Target, Target);
+        void Target() { Console.WriteLine(capture); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       48 (0x30)
-              .maxstack  4
-              .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
-              IL_0000:  newobj     "C.<>c__DisplayClass0_0..ctor()"
-              IL_0005:  stloc.0
-              IL_0006:  newobj     "C..ctor()"
-              IL_000b:  ldloc.0
-              IL_000c:  ldc.i4.0
-              IL_000d:  stfld      "int C.<>c__DisplayClass0_0.capture"
-              IL_0012:  ldloc.0
-              IL_0013:  ldftn      "void C.<>c__DisplayClass0_0.<Main>g__Target|0()"
-              IL_0019:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001e:  ldloc.0
-              IL_001f:  ldftn      "void C.<>c__DisplayClass0_0.<Main>g__Target|0()"
-              IL_0025:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_002a:  callvirt   "void C.Invoke(D, D)"
-              IL_002f:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  newobj     ""C..ctor()""
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stfld      ""int C.<>c__DisplayClass0_0.capture""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""void C.<>c__DisplayClass0_0.<Main>g__Target|0()""
+  IL_0019:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001e:  ldloc.0
+  IL_001f:  ldftn      ""void C.<>c__DisplayClass0_0.<Main>g__Target|0()""
+  IL_0025:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_002a:  callvirt   ""void C.Invoke(D, D)""
+  IL_002f:  ret
+}
+");
     }
 
     [Fact]
     public void Not_DelegateCreations_NonCapturingLocalFunction()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    c.Invoke(new D(Target), new D(Target));
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(new D(Target), new D(Target));
 
-                    void Target() { Console.WriteLine("FAIL"); }
-                }
+        void Target() { Console.WriteLine(""FAIL""); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       35 (0x23)
-              .maxstack  4
-              IL_0000:  newobj     "C..ctor()"
-              IL_0005:  ldnull
-              IL_0006:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_000c:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_0011:  ldnull
-              IL_0012:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0018:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001d:  callvirt   "void C.Invoke(D, D)"
-              IL_0022:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldnull
+  IL_0006:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_000c:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0018:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001d:  callvirt   ""void C.Invoke(D, D)""
+  IL_0022:  ret
+}
+");
     }
 
     [Fact]
     public void Not_DelegateCreations_StaticLocalFunction()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    c.Invoke(new D(Target), new D(Target));
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(new D(Target), new D(Target));
 
-                    static void Target() { Console.WriteLine("FAIL"); }
-                }
+        static void Target() { Console.WriteLine(""FAIL""); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       35 (0x23)
-              .maxstack  4
-              IL_0000:  newobj     "C..ctor()"
-              IL_0005:  ldnull
-              IL_0006:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_000c:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_0011:  ldnull
-              IL_0012:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0018:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001d:  callvirt   "void C.Invoke(D, D)"
-              IL_0022:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldnull
+  IL_0006:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_000c:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0018:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001d:  callvirt   ""void C.Invoke(D, D)""
+  IL_0022:  ret
+}
+");
     }
 
     [Fact]
     public void Cache_Conversions_StaticLocalFunction()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    c.Invoke(Target, Target);
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(Target, Target);
 
-                    static void Target() { Console.WriteLine("FAIL"); }
-                }
+        static void Target() { Console.WriteLine(""FAIL""); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(!Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(!Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "D <0>__Target"
         ));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       65 (0x41)
-              .maxstack  4
-              IL_0000:  newobj     "C..ctor()"
-              IL_0005:  ldsfld     "D C.<>O.<0>__Target"
-              IL_000a:  dup
-              IL_000b:  brtrue.s   IL_0020
-              IL_000d:  pop
-              IL_000e:  ldnull
-              IL_000f:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0015:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001a:  dup
-              IL_001b:  stsfld     "D C.<>O.<0>__Target"
-              IL_0020:  ldsfld     "D C.<>O.<0>__Target"
-              IL_0025:  dup
-              IL_0026:  brtrue.s   IL_003b
-              IL_0028:  pop
-              IL_0029:  ldnull
-              IL_002a:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0030:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_0035:  dup
-              IL_0036:  stsfld     "D C.<>O.<0>__Target"
-              IL_003b:  callvirt   "void C.Invoke(D, D)"
-              IL_0040:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldsfld     ""D C.<>O.<0>__Target""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0020
+  IL_000d:  pop
+  IL_000e:  ldnull
+  IL_000f:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0015:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""D C.<>O.<0>__Target""
+  IL_0020:  ldsfld     ""D C.<>O.<0>__Target""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0030:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""D C.<>O.<0>__Target""
+  IL_003b:  callvirt   ""void C.Invoke(D, D)""
+  IL_0040:  ret
+}
+");
     }
 
     [Fact]
     public void Cache_Conversions_NonCapturingLocalFunction_TypeScoped()
     {
-        var source = """
-            using System;
-            delegate void D();
-            class C
-            {
-                public static void Main(string[] args)
-                {
-                    var c = new C();
-                    c.Invoke(Target, Target);
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(Target, Target);
 
-                    void Target() { Console.WriteLine("FAIL"); }
-                }
+        void Target() { Console.WriteLine(""FAIL""); }
+    }
 
-                void Invoke(D x, D y) { Console.Write(!Object.ReferenceEquals(x, y) ? "FAIL" : "PASS"); }
-            }
-            """;
+    void Invoke(D x, D y) { Console.Write(!Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "D <0>__Target"
         ));
-        verifier.VerifyIL("C.Main", """
-            {
-              // Code size       65 (0x41)
-              .maxstack  4
-              IL_0000:  newobj     "C..ctor()"
-              IL_0005:  ldsfld     "D C.<>O.<0>__Target"
-              IL_000a:  dup
-              IL_000b:  brtrue.s   IL_0020
-              IL_000d:  pop
-              IL_000e:  ldnull
-              IL_000f:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0015:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_001a:  dup
-              IL_001b:  stsfld     "D C.<>O.<0>__Target"
-              IL_0020:  ldsfld     "D C.<>O.<0>__Target"
-              IL_0025:  dup
-              IL_0026:  brtrue.s   IL_003b
-              IL_0028:  pop
-              IL_0029:  ldnull
-              IL_002a:  ldftn      "void C.<Main>g__Target|0_0()"
-              IL_0030:  newobj     "D..ctor(object, System.IntPtr)"
-              IL_0035:  dup
-              IL_0036:  stsfld     "D C.<>O.<0>__Target"
-              IL_003b:  callvirt   "void C.Invoke(D, D)"
-              IL_0040:  ret
-            }
-            """);
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldsfld     ""D C.<>O.<0>__Target""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0020
+  IL_000d:  pop
+  IL_000e:  ldnull
+  IL_000f:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0015:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""D C.<>O.<0>__Target""
+  IL_0020:  ldsfld     ""D C.<>O.<0>__Target""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void C.<Main>g__Target|0_0()""
+  IL_0030:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""D C.<>O.<0>__Target""
+  IL_003b:  callvirt   ""void C.Invoke(D, D)""
+  IL_0040:  ret
+}
+");
     }
 
     [Fact]
     public void Cache_Conversions_NonCapturingLocalFunction_MethodScoped()
     {
-        var source = """
-            using System;
+        var source = @"
+using System;
 
-            var m = new M<int>();
-            m.Test(0);
+var m = new M<int>();
+m.Test(0);
 
-            class M<N>
-            {
-                public void Test<I>(I i)
-                {
-                    Compare<bool>();
+class M<N>
+{
+    public void Test<I>(I i)
+    {
+        Compare<bool>();
 
-                    void Compare<C>()
-                    {
-                        Console.WriteLine(Object.ReferenceEquals(Target<N>, Target<N>) ? "PASS" : "FAIL");
+        void Compare<C>()
+        {
+            Console.WriteLine(Object.ReferenceEquals(Target<N>, Target<N>) ? ""PASS"" : ""FAIL"");
 
-                        (N, I, C, E) Target<E>(N n, I i, C c, E e) => (n, i, c, e);
-                    }
-                }
-            }
-            """;
+            (N, I, C, E) Target<E>(N n, I i, C c, E e) => (n, i, c, e);
+        }
+    }
+}
+";
         var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyCacheContainer("M.<Compare>O__0_0", arity: 2
             , "System.Func<N, I, C, N, (N, I, C, N)> <0>__Target"
         ));
-        verifier.VerifyIL("M<N>.<Test>g__Compare|0_0<I, C>", """
-            {
-              // Code size       74 (0x4a)
-              .maxstack  3
-              IL_0000:  ldsfld     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target"
-              IL_0005:  dup
-              IL_0006:  brtrue.s   IL_001b
-              IL_0008:  pop
-              IL_0009:  ldnull
-              IL_000a:  ldftn      "System.ValueTuple<N, I, C, N> M<N>.<Test>g__Target|0_1<I, C, N>(N, I, C, N)"
-              IL_0010:  newobj     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>>..ctor(object, System.IntPtr)"
-              IL_0015:  dup
-              IL_0016:  stsfld     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target"
-              IL_001b:  ldsfld     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target"
-              IL_0020:  dup
-              IL_0021:  brtrue.s   IL_0036
-              IL_0023:  pop
-              IL_0024:  ldnull
-              IL_0025:  ldftn      "System.ValueTuple<N, I, C, N> M<N>.<Test>g__Target|0_1<I, C, N>(N, I, C, N)"
-              IL_002b:  newobj     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>>..ctor(object, System.IntPtr)"
-              IL_0030:  dup
-              IL_0031:  stsfld     "System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target"
-              IL_0036:  beq.s      IL_003f
-              IL_0038:  ldstr      "FAIL"
-              IL_003d:  br.s       IL_0044
-              IL_003f:  ldstr      "PASS"
-              IL_0044:  call       "void System.Console.WriteLine(string)"
-              IL_0049:  ret
-            }
-            """);
+        verifier.VerifyIL("M<N>.<Test>g__Compare|0_0<I, C>", @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  3
+  IL_0000:  ldsfld     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""System.ValueTuple<N, I, C, N> M<N>.<Test>g__Target|0_1<I, C, N>(N, I, C, N)""
+  IL_0010:  newobj     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target""
+  IL_001b:  ldsfld     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target""
+  IL_0020:  dup
+  IL_0021:  brtrue.s   IL_0036
+  IL_0023:  pop
+  IL_0024:  ldnull
+  IL_0025:  ldftn      ""System.ValueTuple<N, I, C, N> M<N>.<Test>g__Target|0_1<I, C, N>(N, I, C, N)""
+  IL_002b:  newobj     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>>..ctor(object, System.IntPtr)""
+  IL_0030:  dup
+  IL_0031:  stsfld     ""System.Func<N, I, C, N, System.ValueTuple<N, I, C, N>> M<N>.<Compare>O__0_0<I, C>.<0>__Target""
+  IL_0036:  beq.s      IL_003f
+  IL_0038:  ldstr      ""FAIL""
+  IL_003d:  br.s       IL_0044
+  IL_003f:  ldstr      ""PASS""
+  IL_0044:  call       ""void System.Console.WriteLine(string)""
+  IL_0049:  ret
+}
+");
     }
 
     [Fact]
@@ -5332,76 +5326,76 @@ class C
     [Fact]
     public void TopLevelMethod_LocalFunctions_EffectivelyStatic()
     {
-        var source = """
-            using System;
-            class C
-            {
-                void Test(int t)
-                {
-                    Func<int, dynamic> f = Target<int>;
-                    f(t);
+        var source = @"
+using System;
+class C
+{
+    void Test(int t)
+    {
+        Func<int, dynamic> f = Target<int>;
+        f(t);
 
-                    dynamic Target<G>(G g) => 0;
-                }
-            }
-            """;
-        CompileAndVerify(source).VerifyIL("C.Test", """
-            {
-              // Code size       35 (0x23)
-              .maxstack  2
-              IL_0000:  ldsfld     "System.Func<int, dynamic> C.<>O.<0>__Target"
-              IL_0005:  dup
-              IL_0006:  brtrue.s   IL_001b
-              IL_0008:  pop
-              IL_0009:  ldnull
-              IL_000a:  ldftn      "dynamic C.<Test>g__Target|0_0<int>(int)"
-              IL_0010:  newobj     "System.Func<int, dynamic>..ctor(object, System.IntPtr)"
-              IL_0015:  dup
-              IL_0016:  stsfld     "System.Func<int, dynamic> C.<>O.<0>__Target"
-              IL_001b:  ldarg.1
-              IL_001c:  callvirt   "dynamic System.Func<int, dynamic>.Invoke(int)"
-              IL_0021:  pop
-              IL_0022:  ret
-            }
-            """);
+        dynamic Target<G>(G g) => 0;
+    }
+}
+";
+        CompileAndVerify(source).VerifyIL("C.Test", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<int, dynamic> C.<>O.<0>__Target""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""dynamic C.<Test>g__Target|0_0<int>(int)""
+  IL_0010:  newobj     ""System.Func<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<int, dynamic> C.<>O.<0>__Target""
+  IL_001b:  ldarg.1
+  IL_001c:  callvirt   ""dynamic System.Func<int, dynamic>.Invoke(int)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
     }
 
     [Fact]
     public void TopLevelMethod_LocalFunctions_NotStatic()
     {
-        var source = """
-            using System;
-            class C
-            {
-                void Test(int t)
-                {
-                    Func<int, dynamic> f = Target<int>;
-                    f(t);
+        var source = @"
+using System;
+class C
+{
+    void Test(int t)
+    {
+        Func<int, dynamic> f = Target<int>;
+        f(t);
 
-                    dynamic Target<G>(G g) => t;
-                }
-            }
-            """;
-        CompileAndVerify(source).VerifyIL("C.Test", """
-            {
-              // Code size       38 (0x26)
-              .maxstack  2
-              .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
-              IL_0000:  newobj     "C.<>c__DisplayClass0_0..ctor()"
-              IL_0005:  stloc.0
-              IL_0006:  ldloc.0
-              IL_0007:  ldarg.1
-              IL_0008:  stfld      "int C.<>c__DisplayClass0_0.t"
-              IL_000d:  ldloc.0
-              IL_000e:  ldftn      "dynamic C.<>c__DisplayClass0_0.<Test>g__Target|0<int>(int)"
-              IL_0014:  newobj     "System.Func<int, dynamic>..ctor(object, System.IntPtr)"
-              IL_0019:  ldloc.0
-              IL_001a:  ldfld      "int C.<>c__DisplayClass0_0.t"
-              IL_001f:  callvirt   "dynamic System.Func<int, dynamic>.Invoke(int)"
-              IL_0024:  pop
-              IL_0025:  ret
-            }
-            """);
+        dynamic Target<G>(G g) => t;
+    }
+}
+";
+        CompileAndVerify(source).VerifyIL("C.Test", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""int C.<>c__DisplayClass0_0.t""
+  IL_000d:  ldloc.0
+  IL_000e:  ldftn      ""dynamic C.<>c__DisplayClass0_0.<Test>g__Target|0<int>(int)""
+  IL_0014:  newobj     ""System.Func<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      ""int C.<>c__DisplayClass0_0.t""
+  IL_001f:  callvirt   ""dynamic System.Func<int, dynamic>.Invoke(int)""
+  IL_0024:  pop
+  IL_0025:  ret
+}
+");
     }
 
     [Fact]
