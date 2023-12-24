@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                         if (!isFullyLoaded)
                         {
-                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution.State, Id);
+                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                         }
                     }
                 }
@@ -273,10 +273,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// Reports a telemetry event if compilation information is being thrown away after being previously computed
         /// </summary>
-        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        private static void TryReportCompilationThrownAway(
+            Solution solution, ProjectId projectId)
         {
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
-            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var projectState = solution.State.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
             foreach (var (_, documentState) in projectState.DocumentStates.States)
             {
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             }
 
             // But we also want to know if a compilation was created
-            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
+            var hadCompilation = solution.CompilationState.TryGetCompilation(projectId, out _);
 
             if (parsedTrees > 0 || hadCompilation)
             {
@@ -719,8 +720,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         #region Additional File Addition/Removal
 
         // TODO: should AdditionalFiles have source code kinds?
-        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
+        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public bool ContainsAdditionalFile(string fullPath)
             => _additionalFiles.ContainsFile(fullPath);

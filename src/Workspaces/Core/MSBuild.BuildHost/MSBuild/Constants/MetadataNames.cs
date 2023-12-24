@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string Link = nameof(Link);
         public const string Name = nameof(Name);
         public const string ReferenceOutputAssembly = nameof(ReferenceOutputAssembly);
+        public const string Version = nameof(Version);
     }
 }

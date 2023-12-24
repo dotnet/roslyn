@@ -8036,7 +8036,9 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithConfigureAwaitFalse()
     {
         await TestInRegularAndScriptAsync(
@@ -8067,7 +8069,7 @@ new TestParameters(Options.Regular));
                     bool x = await Goo().ConfigureAwait(false);
                 }
 
-                private static Task<bool> Goo()
+                private static async Task<bool> Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8075,7 +8077,9 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining()
     {
         await TestInRegularAndScriptAsync(
@@ -8106,7 +8110,7 @@ new TestParameters(Options.Regular));
                     bool x = await Goo().ConfigureAwait(false);
                 }
 
-                private static Task<bool> Goo()
+                private static async Task<bool> Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8114,7 +8118,9 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining2()
     {
         await TestInRegularAndScriptAsync(
@@ -8149,7 +8155,7 @@ new TestParameters(Options.Regular));
                     });
                 }
 
-                private static Task<object> M()
+                private static async Task<object> M()
                 {
                     throw new NotImplementedException();
                 }

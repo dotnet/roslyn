@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
         internal sealed override SynthesizedLocalKind SynthesizedKind

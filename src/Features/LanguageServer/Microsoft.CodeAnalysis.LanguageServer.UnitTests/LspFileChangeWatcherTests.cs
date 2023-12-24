@@ -6,12 +6,12 @@ using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using Xunit.Abstractions;
-using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
+using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

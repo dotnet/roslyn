@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(
                 Sub(syntaxContext As SyntaxNodeAnalysisContext)
+                    If ShouldSkipAnalysis(syntaxContext, notification:=Nothing) Then
+                        Return
+                    End If
+
                     Dim parameterSyntax = DirectCast(syntaxContext.Node, ParameterSyntax)
                     For Each modifier In parameterSyntax.Modifiers
                         If modifier.IsKind(SyntaxKind.ByValKeyword) Then

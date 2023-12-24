@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
 
             var option = GetStylePreference(context);
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var (matched, canSimplify) = TryMatchPattern(ifOperation, context.ContainingSymbol);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: canSimplify ? UseConditionalExpressionHelpers.CanSimplifyProperties : null));
         }

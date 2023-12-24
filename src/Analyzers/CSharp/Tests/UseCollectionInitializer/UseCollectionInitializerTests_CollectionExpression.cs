@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -314,9 +316,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestInArgument2()
+    public async Task TestInArgument2_InterfacesOn()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -324,12 +326,52 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    X(new List<int>());
+                    X([|new|] List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([]);
                 }
 
                 void X(IEnumerable<int> list) { }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2_InterfacesOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        X(new List<int>());
+                    }
+
+                    void X(IEnumerable<int> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
     }
 
     [Fact]
@@ -660,7 +702,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
-    public async Task TestOnVariableDeclaratorDifferentType()
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOn()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -682,13 +724,50 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    IList<int> c = new List<int>
-                    {
-                        1
-                    };
+                    IList<int> c = [1];
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclaratorDifferentType_InterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
     }
 
     [Fact]
@@ -4996,6 +5075,76 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     c.AddRange(x);
                     c.AddRange(x);
                     c.Add(1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Func<List<int>> f = () => [|new|] List<int>();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Func<List<int>> f = () => [];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    var e = () => new List<int>();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Expression<Func<List<int>>> e = () => new List<int>();
                 }
             }
             """);

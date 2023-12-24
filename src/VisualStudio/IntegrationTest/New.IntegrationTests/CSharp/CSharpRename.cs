@@ -644,7 +644,7 @@ class p$$rogram
 }", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68880")]
+        [IdeFact]
         public async Task VerifyTextSync()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
