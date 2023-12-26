@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -16,15 +17,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 /// Base type for all analyzers that offer to update code to use a collection-expression.
 /// </summary>
 internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
-    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
+    public static readonly ImmutableDictionary<string, string?> ChangesSemantics =
+        ImmutableDictionary<string, string?>.Empty.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+
+    protected new readonly DiagnosticDescriptor Descriptor;
+    protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
+
     protected AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
-        : base(diagnosticId, enforceOnBuild, CodeStyleOptions2.PreferCollectionExpression,
-            fadingOption: null,
-            title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
+            // Ugly hack.  We need to create a descriptor to pass to our base *and* assign to one of our fields.
+            // The conditional pattern form lets us do that.
+            .Add(CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false) is var descriptor ? descriptor : null, CodeStyleOptions2.PreferCollectionExpression)
+            .Add(CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true) is var unnecessaryCodeDescriptor ? unnecessaryCodeDescriptor : null, CodeStyleOptions2.PreferCollectionExpression))
     {
+        Descriptor = descriptor;
+        UnnecessaryCodeDescriptor = unnecessaryCodeDescriptor;
     }
+
+    private static DiagnosticDescriptor CreateDescriptor(string diagnosticId, EnforceOnBuild enforceOnBuild, bool isUnnecessary)
+        => CreateDescriptorWithId(
+            diagnosticId,
+            enforceOnBuild,
+            hasAnyCodeStyleOption: true,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: isUnnecessary);
 
     protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType);
 

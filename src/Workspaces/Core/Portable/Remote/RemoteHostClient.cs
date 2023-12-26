@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
             where TService : class
         {
-            return TryInvokeAsync(solution.State, invocation, cancellationToken);
+            return TryInvokeAsync(solution.CompilationState, invocation, cancellationToken);
         }
 
         public async ValueTask<bool> TryInvokeAsync<TService>(
-            SolutionState solution,
+            SolutionCompilationState solution,
             Func<TService, Checksum, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken)
             where TService : class

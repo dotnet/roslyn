@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -43,29 +44,35 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
+        // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
         {
             return;
         }
 
-        var location = expression.GetFirstToken().GetLocation();
-        var additionalLocations = ImmutableArray.Create(expression.GetLocation());
-        var fadingLocations = ImmutableArray.Create(
+        var locations = ImmutableArray.Create(expression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            expression.GetFirstToken().GetLocation(),
+            option.Notification,
+            additionalLocations: locations,
+            properties: null));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 expression.SpanStart,
                 expression.CloseBracketToken.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            location,
-            option.Notification,
-            additionalLocations,
-            fadingLocations,
-            properties: null));
+            UnnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
     private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
@@ -77,41 +84,50 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var matches = TryGetMatches(semanticModel, expression, expressionType, cancellationToken);
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var matches = TryGetMatches(semanticModel, expression, expressionType, allowInterfaceConversion, cancellationToken);
         if (matches.IsDefault)
             return;
 
-        var location = expression.GetFirstToken().GetLocation();
-        var additionalLocations = ImmutableArray.Create(expression.GetLocation());
-        var fadingLocations = ImmutableArray.Create(
+        var locations = ImmutableArray.Create(expression.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            expression.GetFirstToken().GetLocation(),
+            option.Notification,
+            additionalLocations: locations,
+            properties: null));
+
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 expression.SpanStart,
                 expression.Type.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            location,
-            option.Notification,
-            additionalLocations,
-            fadingLocations,
-            properties: null));
+            UnnecessaryCodeDescriptor,
+            additionalUnnecessaryLocations[0],
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
             expressionType,
+            allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,
-            cancellationToken);
+            cancellationToken,
+            out _);
     }
 }

@@ -15,6 +15,7 @@ $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
 $bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
+$originalTemp = $env:TEMP;
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
   $projectName = if ($projectName -ne "") { $projectName } else { [System.IO.Path]::GetFileNameWithoutExtension($fileName) }
@@ -358,5 +359,9 @@ function Subst-TempDir() {
 function Unsubst-TempDir() {
   if ($ci) {
     Exec-Command "subst" "T: /d"
+
+    # Restore the original temp directory
+    $env:TEMP=$originalTemp
+    $env:TMP=$originalTemp
   }
 }
