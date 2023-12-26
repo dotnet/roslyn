@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var parent = node.Parent;
 
-                return InferTypesWorkerFromParent(parent, expression: expression);
+                return InferTypesWorkerFromParent(parent, node: node, expression: expression);
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
