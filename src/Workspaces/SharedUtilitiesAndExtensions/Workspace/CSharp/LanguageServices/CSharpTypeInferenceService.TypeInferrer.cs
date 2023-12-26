@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var parent = node.Parent;
 
-                return InferTypesWorkerFromParent(parent, node: node, expression: expression);
+                return InferTypesWorkerFromParent(parent, node, expression, null);
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 var parent = token.Parent;
 
-                return InferTypesWorkerFromParent(parent, token);
+                return InferTypesWorkerFromParent(parent, null, null, token);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods, argument, parentInvocationExpressionToTypeInfer: null);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypesWorkerFromParent(SyntaxNode parent, SyntaxToken? token = null, SyntaxNode node = null, ExpressionSyntax expression = null)
+            private IEnumerable<TypeInferenceInfo> InferTypesWorkerFromParent(SyntaxNode parent, SyntaxNode node, ExpressionSyntax expression, SyntaxToken? token)
             {
                 return parent switch
                 {
@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon, SyntaxToken? previousToken = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon, SyntaxToken? previousToken)
             {
                 if (previousToken.HasValue)
                 {
@@ -1851,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon, SyntaxToken? previousToken = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon, SyntaxToken? previousToken)
             {
                 if (previousToken.HasValue)
                 {
