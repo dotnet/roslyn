@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnaryPatternSyntax unaryPattern => GetPatternTypes(unaryPattern),
                     ImplicitArrayCreationExpressionSyntax implicitArray => InferTypeInImplicitArrayCreation(implicitArray),
 
-                    // Keep UnSealed Classes in the bottom, if a new syntax is introduced from sub class, Switch statement may select the parent class.   
+                    // Keep UnSealed Classes in the bottom, if a new syntax is introduced from a sub class, Switch statement may select the parent class.   
 
                     BaseObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token.Value),
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
