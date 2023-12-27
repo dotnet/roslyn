@@ -981,6 +981,9 @@ namespace Microsoft.CodeAnalysis
                     if (parent == null || parent.FullWidth != node.FullWidth) break;
                     // prefer child over compilation unit
                     if (parent == cuRoot) break;
+                    // Special Cases in Languages Like C# where Top-Level Statements are supported.
+                    if (parent.FullSpan == node.FullSpan && (parent.Parent == null || parent.Parent == cuRoot)) break;
+
                     node = parent;
                 }
             }
