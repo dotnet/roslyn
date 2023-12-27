@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // dependent on anything. We need to first determine which parameters need to be 
             // fixed, and then fix them all at once.
 
-            Span<bool> needsFixing = _methodTypeParameters.Length <= 1024 ? stackalloc bool[_methodTypeParameters.Length] : new bool[_methodTypeParameters.Length];
+            var needsFixing = new bool[_methodTypeParameters.Length];
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
