@@ -71,9 +71,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return Checksum.Null;
-
                 case WellKnownSynchronizationKind.CompilationOptions:
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
@@ -81,16 +78,16 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
+                    return CreateChecksum((MetadataReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
+                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetChecksum());
+                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
 
                 case WellKnownSynchronizationKind.SourceText:
-                    return Checksum.Create(((SourceText)value).GetChecksum());
+                    return Checksum.Create(((SourceText)value).GetContentHash());
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -110,15 +107,20 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    // do nothing
+                case WellKnownSynchronizationKind.SolutionAttributes:
+                    ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
                     return;
 
-                case WellKnownSynchronizationKind.SolutionAttributes:
                 case WellKnownSynchronizationKind.ProjectAttributes:
+                    ((ProjectInfo.ProjectAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.DocumentAttributes:
+                    ((DocumentInfo.DocumentAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    ((IObjectWritable)value).WriteTo(writer);
+                    ((SourceGeneratedDocumentIdentity)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:
@@ -174,7 +176,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+    public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
         {
@@ -182,9 +184,6 @@ internal partial class SerializerService : ISerializerService
 
             switch (kind)
             {
-                case WellKnownSynchronizationKind.Null:
-                    return default;
-
                 case WellKnownSynchronizationKind.SolutionState:
                     return (T)(object)SolutionStateChecksums.Deserialize(reader);
 

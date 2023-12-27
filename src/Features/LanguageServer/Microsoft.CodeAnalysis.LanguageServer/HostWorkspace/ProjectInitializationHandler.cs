@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
@@ -14,9 +15,8 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export]
-[Shared]
-internal class ProjectInitializationHandler : IDisposable
+[Export, Shared]
+internal sealed class ProjectInitializationHandler : IDisposable
 {
     private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
@@ -31,11 +31,11 @@ internal class ProjectInitializationHandler : IDisposable
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler([Import("Microsoft.VisualStudio.Shell.ServiceBroker.SVsFullAccessServiceBroker")] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler([Import(ServiceBrokerContracts.SVsFullAccessServiceBroker)] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
         _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
-        _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, joinableTaskFactory: null);
+        _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);

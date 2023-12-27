@@ -73,6 +73,7 @@
     <Compile Include="..\..\Features\CSharpTest\CodeActions\AbstractCSharpCodeActionTest.cs" Link="CodeActions\AbstractCSharpCodeActionTest.cs" />
     <Compile Include="..\..\Features\CSharpTest\CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" Link="CodeActions\ExceptionInCodeAction.cs" />
     <Compile Include="..\..\Features\CSharpTest\Utilities\CodeSnippets.cs" Link="Utilities\CodeSnippets.cs" />
+    <Compile Include="..\..\VisualStudio\Core\Def\CodeCleanup\AbstractCodeCleanUpFixer_Helper.cs" Link="Formatting\AbstractCodeCleanUpFixer_Helper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Interactive\CodeActions\" />

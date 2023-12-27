@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -49,18 +50,18 @@ internal partial class SolutionAssetStorage
     /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
     /// </summary>
     public ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
-        => StoreAssetsAsync(solution.State, cancellationToken);
+        => StoreAssetsAsync(solution.CompilationState, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
     public ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
-        => StoreAssetsAsync(project.Solution.State, project.Id, cancellationToken);
+        => StoreAssetsAsync(project.Solution.CompilationState, project.Id, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public ValueTask<Scope> StoreAssetsAsync(SolutionState solution, CancellationToken cancellationToken)
+    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
         => StoreAssetsAsync(solution, projectId: null, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public async ValueTask<Scope> StoreAssetsAsync(SolutionState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
+    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
     {
         var checksum = projectId == null
             ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
@@ -115,18 +116,9 @@ internal partial class SolutionAssetStorage
             _solutionAssetStorage = solutionAssetStorage;
         }
 
-        public async ValueTask<SolutionAsset?> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<object> GetRequiredAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            foreach (var (_, scope) in _solutionAssetStorage._checksumToScope)
-            {
-                var data = await scope.GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-                if (data != null)
-                {
-                    return data;
-                }
-            }
-
-            return null;
+            return await _solutionAssetStorage._checksumToScope.Single().Value.GetTestAccessor().GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
         }
 
         public bool IsPinned(Checksum checksum)

@@ -14,13 +14,13 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
@@ -993,6 +993,8 @@ class C
 
             Assert.Equal(3, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
 
@@ -1006,6 +1008,8 @@ class C
             Assert.Equal(results.Length, results2.Length);
 
             Assert.Equal(results[0].Diagnostics, results2[0].Diagnostics);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results2[0].Diagnostics.Single().Tags);
             Assert.Equal(results[1].Diagnostics, results2[1].Diagnostics);
             Assert.Equal(results[2].Diagnostics, results2[2].Diagnostics);
 
@@ -1037,6 +1041,8 @@ class C
 
             Assert.Equal(3, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should *not* be considered a build-error, since it was produced by the live workspace results.
+            Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
 
@@ -1109,15 +1115,16 @@ class A {
         }
 
         [Theory]
-        [InlineData("1", VSDiagnosticRank.Low, false)]
-        [InlineData("1", VSDiagnosticRank.Low, true)]
-        [InlineData("2", VSDiagnosticRank.Default, false)]
-        [InlineData("2", VSDiagnosticRank.Default, true)]
-        [InlineData("3", VSDiagnosticRank.High, false)]
-        [InlineData("3", VSDiagnosticRank.High, true)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, false)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, true)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, false)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, true)]
+        [InlineData("3", (int)VSDiagnosticRank.High, false)]
+        [InlineData("3", (int)VSDiagnosticRank.High, true)]
         public async Task TestWorkspaceTodoForClosedFilesWithFSAOffAndTodoOn_Priorities(
-            string priString, VSDiagnosticRank rank, bool mutatingLspWorkspace)
+            string priString, int intRank, bool mutatingLspWorkspace)
         {
+            var rank = (VSDiagnosticRank)intRank;
             var markup1 =
 @"
 // todo: goo
@@ -1321,7 +1328,7 @@ class A {
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
                 markups: Array.Empty<string>(), mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: [markup1, markup2]));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1905,15 +1912,15 @@ class A {";
         }
 
         [Theory, CombinatorialData]
-        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspTextChanges(bool mutatingLspWorkspace)
+        public async Task TestWorkspaceDiagnosticsWaitsForLspTextChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1929,15 +1936,15 @@ class A {";
         }
 
         [Theory, CombinatorialData]
-        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspSolutionChanges(bool mutatingLspWorkspace)
+        public async Task TestWorkspaceDiagnosticsWaitsForLspSolutionChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));

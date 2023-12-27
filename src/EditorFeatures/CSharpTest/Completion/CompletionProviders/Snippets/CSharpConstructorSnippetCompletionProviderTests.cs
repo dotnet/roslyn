@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -96,9 +92,71 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """
                 abstract class MyClass
                 {
-                    public MyClass()
+                    protected MyClass()
                     {
                         $$
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
+        {
+            var markupBeforeCommit =
+                """
+                partial class MyClass
+                {
+                    $$
+                }
+
+                abstract partial class MyClass
+                {
+                }
+                """;
+
+            var expectedCodeAfterCommit =
+                """
+                partial class MyClass
+                {
+                    protected MyClass()
+                    {
+                        $$
+                    }
+                }
+                
+                abstract partial class MyClass
+                {
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInNestedAbstractClassTest()
+        {
+            var markupBeforeCommit =
+                """
+                class MyClass
+                {
+                    abstract class NestedClass
+                    {
+                        $$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit =
+                """
+                class MyClass
+                {
+                    abstract class NestedClass
+                    {
+                        protected NestedClass()
+                        {
+                            $$
+                        }
                     }
                 }
                 """;

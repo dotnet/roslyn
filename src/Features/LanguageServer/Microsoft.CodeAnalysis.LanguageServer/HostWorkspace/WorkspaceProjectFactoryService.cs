@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
@@ -19,15 +20,17 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler;
+    private readonly ILogger _logger;
 
 #pragma warning disable RS0030 // Do not use banned APIs (Required to match 'ExportBrokeredService')
     [ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler)
+    public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler, ILoggerFactory loggerFactory)
     {
         _workspaceFactory = workspaceFactory;
         _projectInitializationHandler = projectInitializationHandler;
+        _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     }
 
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
@@ -39,6 +42,8 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
+        _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
+
         if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
         {
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;

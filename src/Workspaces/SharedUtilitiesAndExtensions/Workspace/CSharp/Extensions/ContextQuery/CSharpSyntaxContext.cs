@@ -472,10 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 foreach (var node in leftToken.GetAncestors<SyntaxNode>())
                 {
-                    if (node.IsAnyLambdaOrAnonymousMethod())
-                    {
+                    if (node is AnonymousFunctionExpressionSyntax)
                         return true;
-                    }
 
                     if (node.IsKind(SyntaxKind.QueryExpression))
                     {

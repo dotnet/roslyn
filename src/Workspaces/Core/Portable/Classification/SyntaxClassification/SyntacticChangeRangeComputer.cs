@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -36,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </remarks>
     internal static class SyntacticChangeRangeComputer
     {
-        private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_pool = new(() => new());
+        private static readonly ObjectPool<Stack<ChildSyntaxList.Enumerator>> s_enumeratorPool = new(() => new());
+        private static readonly ObjectPool<Stack<ChildSyntaxList.Reversed.Enumerator>> s_reversedEnumeratorPool = new(() => new());
 
         public static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
@@ -116,46 +116,47 @@ namespace Microsoft.CodeAnalysis.Classification
 
             int? ComputeCommonLeftWidth()
             {
-                using var leftOldStack = s_pool.GetPooledObject();
-                using var leftNewStack = s_pool.GetPooledObject();
+                if (oldRoot.IsIncrementallyIdenticalTo(newRoot))
+                    return null;
+
+                using var leftOldStack = s_enumeratorPool.GetPooledObject();
+                using var leftNewStack = s_enumeratorPool.GetPooledObject();
 
                 var oldStack = leftOldStack.Object;
                 var newStack = leftNewStack.Object;
 
-                oldStack.Push(oldRoot);
-                newStack.Push(newRoot);
+                oldStack.Push(oldRoot.ChildNodesAndTokens().GetEnumerator());
+                newStack.Push(newRoot.ChildNodesAndTokens().GetEnumerator());
 
                 while (oldStack.Count > 0 && newStack.Count > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var currentOld = oldStack.Pop();
-                    var currentNew = newStack.Pop();
-                    Contract.ThrowIfFalse(currentOld.FullSpan.Start == currentNew.FullSpan.Start);
 
-                    // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew))
-                        continue;
+                    if (TryGetStackTopNodeOrToken(oldStack, out var currentOld)
+                        && TryGetStackTopNodeOrToken(newStack, out var currentNew))
+                    {
+                        Contract.ThrowIfFalse(currentOld.FullSpan.Start == currentNew.FullSpan.Start);
 
-                    // if we reached a token for either of these, then we can't break things down any further, and we hit
-                    // the furthest point they are common.
-                    if (currentOld.IsToken || currentNew.IsToken)
-                        return currentOld.FullSpan.Start;
+                        // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
+                        if (currentOld.IsIncrementallyIdenticalTo(currentNew))
+                            continue;
 
-                    // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
-                    // we could be.  But the caller wants the results asap.
-                    if (stopwatch.Elapsed > timeout)
-                        return currentOld.FullSpan.Start;
+                        // if we reached a token for either of these, then we can't break things down any further, and we hit
+                        // the furthest point they are common.
+                        if (currentOld.IsToken || currentNew.IsToken)
+                            return currentOld.FullSpan.Start;
 
-                    // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                    // class, the class node would be new, but there might be many member nodes that were the same that we'd
-                    // want to see and skip.  Crumble the node and deal with its left side.
-                    //
-                    // Reverse so that we process the leftmost child first and walk left to right.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens().Reverse())
-                        oldStack.Push(nodeOrToken);
+                        // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
+                        // we could be.  But the caller wants the results asap.
+                        if (stopwatch.Elapsed > timeout)
+                            return currentOld.FullSpan.Start;
 
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens().Reverse())
-                        newStack.Push(nodeOrToken);
+                        // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
+                        // class, the class node would be new, but there might be many member nodes that were the same that we'd
+                        // want to see and skip.  Crumble the node and deal with its left side.
+                        oldStack.Push(currentOld.AsNode()!.ChildNodesAndTokens().GetEnumerator());
+                        newStack.Push(currentNew.AsNode()!.ChildNodesAndTokens().GetEnumerator());
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -172,60 +173,58 @@ namespace Microsoft.CodeAnalysis.Classification
 
             int ComputeCommonRightWidth()
             {
-                using var rightOldStack = s_pool.GetPooledObject();
-                using var rightNewStack = s_pool.GetPooledObject();
+                using var rightOldStack = s_reversedEnumeratorPool.GetPooledObject();
+                using var rightNewStack = s_reversedEnumeratorPool.GetPooledObject();
 
                 var oldStack = rightOldStack.Object;
                 var newStack = rightNewStack.Object;
+                Contract.ThrowIfTrue(oldRoot.IsIncrementallyIdenticalTo(newRoot));
 
-                oldStack.Push(oldRoot);
-                newStack.Push(newRoot);
+                oldStack.Push(oldRoot.ChildNodesAndTokens().Reverse().GetEnumerator());
+                newStack.Push(newRoot.ChildNodesAndTokens().Reverse().GetEnumerator());
 
                 while (oldStack.Count > 0 && newStack.Count > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var currentOld = oldStack.Pop();
-                    var currentNew = newStack.Pop();
-
-                    // The width on the right we've moved past on both old/new should be the same.
-                    Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOld.FullSpan.End) ==
-                                          (newRoot.FullSpan.End - currentNew.FullSpan.End));
-
-                    // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
-                    // Critically though, we can only skip past if this wasn't already something we consumed when determining
-                    // the common left width.  If this was common the left side, we can't consider it common to the right,
-                    // otherwise we could end up with overlapping regions of commonality.
-                    //
-                    // This can occur in incremental settings when the similar tokens are written successsively.
-                    // Because the parser can reuse underlying token data, it may end up with many incrementally
-                    // identical tokens in a row.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew) &&
-                        currentOld.FullSpan.Start >= commonLeftWidth &&
-                        currentNew.FullSpan.Start >= commonLeftWidth)
+                    if (TryGetStackTopNodeOrToken(oldStack, out var currentOld)
+                        && TryGetStackTopNodeOrToken(newStack, out var currentNew))
                     {
-                        continue;
+                        // The width on the right we've moved past on both old/new should be the same.
+                        Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOld.FullSpan.End) ==
+                                              (newRoot.FullSpan.End - currentNew.FullSpan.End));
+
+                        // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
+                        // Critically though, we can only skip past if this wasn't already something we consumed when determining
+                        // the common left width.  If this was common the left side, we can't consider it common to the right,
+                        // otherwise we could end up with overlapping regions of commonality.
+                        //
+                        // This can occur in incremental settings when the similar tokens are written successively.
+                        // Because the parser can reuse underlying token data, it may end up with many incrementally
+                        // identical tokens in a row.
+                        if (currentOld.IsIncrementallyIdenticalTo(currentNew) &&
+                            currentOld.FullSpan.Start >= commonLeftWidth &&
+                            currentNew.FullSpan.Start >= commonLeftWidth)
+                        {
+                            continue;
+                        }
+
+                        // if we reached a token for either of these, then we can't break things down any further, and we hit
+                        // the furthest point they are common.
+                        if (currentOld.IsToken || currentNew.IsToken)
+                            return oldRoot.FullSpan.End - currentOld.FullSpan.End;
+
+                        // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
+                        // we could be.  But the caller wants the results asap.
+                        if (stopwatch.Elapsed > timeout)
+                            return oldRoot.FullSpan.End - currentOld.FullSpan.End;
+
+                        // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
+                        // class, the class node would be new, but there might be many member nodes following the edited node
+                        // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
+                        // Reverse the enumerator to visit the right child first
+                        oldStack.Push(currentOld.AsNode()!.ChildNodesAndTokens().Reverse().GetEnumerator());
+                        newStack.Push(currentNew.AsNode()!.ChildNodesAndTokens().Reverse().GetEnumerator());
                     }
-
-                    // if we reached a token for either of these, then we can't break things down any further, and we hit
-                    // the furthest point they are common.
-                    if (currentOld.IsToken || currentNew.IsToken)
-                        return oldRoot.FullSpan.End - currentOld.FullSpan.End;
-
-                    // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
-                    // we could be.  But the caller wants the results asap.
-                    if (stopwatch.Elapsed > timeout)
-                        return oldRoot.FullSpan.End - currentOld.FullSpan.End;
-
-                    // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                    // class, the class node would be new, but there might be many member nodes following the edited node
-                    // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
-                    //
-                    // Do not reverse the children.  We want to process the rightmost child first and walk right to left.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens())
-                        oldStack.Push(nodeOrToken);
-
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens())
-                        newStack.Push(nodeOrToken);
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -241,6 +240,42 @@ namespace Microsoft.CodeAnalysis.Classification
                 // consumed everything and already bailed out.
                 throw ExceptionUtilities.Unreachable();
             }
+        }
+
+        private static bool TryGetStackTopNodeOrToken(Stack<ChildSyntaxList.Enumerator> stack, out SyntaxNodeOrToken syntaxNodeOrToken)
+        {
+            while (stack.Count > 0)
+            {
+                var topEnumerator = stack.Pop();
+                if (topEnumerator.MoveNext())
+                {
+                    syntaxNodeOrToken = topEnumerator.Current;
+                    // Enumerator is struct, and it is using an int to track the index of the current item. So pop & push to update the enumerator
+                    stack.Push(topEnumerator);
+                    return true;
+                }
+            }
+
+            syntaxNodeOrToken = default;
+            return false;
+        }
+
+        private static bool TryGetStackTopNodeOrToken(Stack<ChildSyntaxList.Reversed.Enumerator> stack, out SyntaxNodeOrToken syntaxNodeOrToken)
+        {
+            while (stack.Count > 0)
+            {
+                var topEnumerator = stack.Pop();
+                if (topEnumerator.MoveNext())
+                {
+                    syntaxNodeOrToken = topEnumerator.Current;
+                    // Enumerator is struct, and it is using an int to track the index of the current item. So pop & push to update the enumerator
+                    stack.Push(topEnumerator);
+                    return true;
+                }
+            }
+
+            syntaxNodeOrToken = default;
+            return false;
         }
     }
 }

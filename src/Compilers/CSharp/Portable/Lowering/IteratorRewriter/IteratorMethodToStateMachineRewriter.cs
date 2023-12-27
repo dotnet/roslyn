@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol current,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
+            if (slotAllocator?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
             }

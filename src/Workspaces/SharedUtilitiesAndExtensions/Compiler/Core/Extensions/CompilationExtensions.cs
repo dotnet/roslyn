@@ -83,5 +83,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return null;
         }
+
+        public static INamedTypeSymbol? TryGetCallingConventionSymbol(this Compilation compilation, string callingConvention)
+            => compilation.GetBestTypeByMetadataName($"System.Runtime.CompilerServices.CallConv{callingConvention}");
     }
 }

@@ -1,9 +1,0 @@
-﻿[$RootKey$\AutoLoadPackages\{adfc4e64-0397-11d1-9f4e-00a0c911004f}]
-"{d02dac01-ddd0-4ecc-8687-79a554852b14}"=dword:00000002
-
-[$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]
-"{d02dac01-ddd0-4ecc-8687-79a554852b14}"=dword:00000002
-
-[$RootKey$\Menus]
-"{d02dac01-ddd0-4ecc-8687-79a554852b14}"=", Menus.ctmenu, 1"
-
