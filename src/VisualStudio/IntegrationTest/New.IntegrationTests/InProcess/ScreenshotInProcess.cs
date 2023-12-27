@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -161,6 +162,7 @@ internal partial class ScreenshotInProcess
 
                 // Make sure the frames are processed in order of their timestamps
                 Array.Sort(frames, (x, y) => x.elapsed.CompareTo(y.elapsed));
+                var croppedFrames = DetectChangedRegions(frames);
 
                 using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
                 {
@@ -168,8 +170,8 @@ internal partial class ScreenshotInProcess
                     var buffer = s_pool.Rent(4096);
                     try
                     {
-                        var firstFrame = BitmapFrame.Create(frames[0].image);
-                        var firstEncoded = EncodeFrame(firstFrame);
+                        var firstFrame = croppedFrames[0];
+                        var firstEncoded = EncodeFrame(firstFrame.image);
 
                         // PNG Signature (8 bytes)
                         WritePngSignature(fileStream, buffer);
@@ -178,10 +180,10 @@ internal partial class ScreenshotInProcess
                         Write(fileStream, buffer, crc: null, firstEncoded.ihdr.Span);
 
                         // acTL
-                        WriteActl(fileStream, buffer, crc, frames.Length, playCount: 1);
+                        WriteActl(fileStream, buffer, crc, croppedFrames.Length, playCount: 1);
 
                         // Write the first frame data as IDAT
-                        WriteFctl(fileStream, buffer, crc, sequenceNumber: 0, firstFrame, offset: Size.Empty, delay: TimeSpan.Zero, ApngDisposeOp.None, ApngBlendOp.Source);
+                        WriteFctl(fileStream, buffer, crc, sequenceNumber: 0, size: new Size(firstFrame.image.PixelWidth, firstFrame.image.PixelHeight), offset: firstFrame.offset, delay: TimeSpan.Zero, ApngDisposeOp.None, ApngBlendOp.Source);
                         foreach (var idat in firstEncoded.idat)
                         {
                             Write(fileStream, buffer, crc: null, idat.Span);
@@ -189,10 +191,10 @@ internal partial class ScreenshotInProcess
 
                         // Write the remaining frames as fDAT
                         var sequenceNumber = 1;
-                        for (var i = 1; i < frames.Length; i++)
+                        for (var i = 1; i < croppedFrames.Length; i++)
                         {
-                            var elapsed = frames[i].elapsed - frames[i - 1].elapsed;
-                            WriteFrame(fileStream, buffer, crc, ref sequenceNumber, BitmapFrame.Create(frames[i].image), elapsed);
+                            var elapsed = croppedFrames[i].elapsed - croppedFrames[i - 1].elapsed;
+                            WriteFrame(fileStream, buffer, crc, ref sequenceNumber, croppedFrames[i].image, croppedFrames[i].offset, elapsed);
                         }
 
                         WriteIend(fileStream, buffer, crc);
@@ -205,6 +207,103 @@ internal partial class ScreenshotInProcess
             },
             "",
             "apng");
+    }
+
+    private static (TimeSpan elapsed, BitmapSource image, Size offset)[] DetectChangedRegions((TimeSpan elapsed, BitmapSource image)[] frames)
+    {
+        var width = frames[0].image.PixelWidth;
+        var height = frames[0].image.PixelHeight;
+
+        const int BytesPerPixel = 4;
+        var stride = width * BytesPerPixel;
+        var totalImagePixels = width * height;
+        var totalImageBytes = totalImagePixels * BytesPerPixel;
+
+        List<(TimeSpan elapsed, BitmapSource image, Size offset)> resultFrames = new(frames.Length);
+        const int BufferFrameCount = 2;
+        var imageBuffer = Marshal.AllocHGlobal(BufferFrameCount * totalImageBytes);
+        try
+        {
+            // Even frame indexes go into the first half of the image buffer. Odd frame indexes go into the second half.
+            Contract.ThrowIfFalse(frames[0].image.Format.BitsPerPixel == BytesPerPixel * 8);
+            frames[0].image.CopyPixels(Int32Rect.Empty, imageBuffer, totalImageBytes, stride);
+            resultFrames.Add((frames[0].elapsed, frames[0].image, offset: Size.Empty));
+
+            for (var i = 1; i < frames.Length; i++)
+            {
+                Contract.ThrowIfFalse(frames[i].image.PixelWidth == width);
+                Contract.ThrowIfFalse(frames[i].image.PixelHeight == height);
+                Contract.ThrowIfFalse(frames[i].image.Format.BitsPerPixel == BytesPerPixel * 8);
+
+                var previousFrameBufferOffset = ((i - 1) % 2) * totalImageBytes;
+                var currentFrameBufferOffset = (i % 2) * totalImageBytes;
+                frames[i].image.CopyPixels(Int32Rect.Empty, IntPtr.Add(imageBuffer, currentFrameBufferOffset), totalImageBytes, stride);
+
+                ReadOnlySpan<uint> previousImageData;
+                ReadOnlySpan<uint> currentImageData;
+                unsafe
+                {
+                    previousImageData = new ReadOnlySpan<uint>((void*)IntPtr.Add(imageBuffer, previousFrameBufferOffset), totalImagePixels);
+                    currentImageData = new ReadOnlySpan<uint>((void*)IntPtr.Add(imageBuffer, currentFrameBufferOffset), totalImagePixels);
+                }
+
+                var firstChangedLine = -1;
+                var lastChangedLine = -1;
+                var firstChangedColumn = -1;
+                var lastChangedColumn = -1;
+                for (var line = 0; line < height; line++)
+                {
+                    var previousFrameLine = previousImageData.Slice(line * width, width);
+                    var currentFrameLine = currentImageData.Slice(line * width, width);
+                    for (var column = 0; column < previousFrameLine.Length; column++)
+                    {
+                        if (previousFrameLine[column] != currentFrameLine[column])
+                        {
+                            if (firstChangedLine == -1)
+                                firstChangedLine = line;
+
+                            lastChangedLine = line;
+                            if (firstChangedColumn == -1 || column < firstChangedColumn)
+                                firstChangedColumn = column;
+                            lastChangedColumn = Math.Max(lastChangedColumn, column);
+                            break;
+                        }
+                    }
+
+                    for (var column = previousFrameLine.Length - 1; column > lastChangedColumn; column--)
+                    {
+                        if (previousFrameLine[column] != currentFrameLine[column])
+                        {
+                            lastChangedColumn = column;
+                            break;
+                        }
+                    }
+                }
+
+                if (firstChangedLine == -1)
+                {
+                    // This image is identical to the previous one and can be skipped
+                    continue;
+                }
+                else if (firstChangedLine == 0 && firstChangedColumn == 0 && lastChangedLine == height - 1 && lastChangedColumn == width - 1)
+                {
+                    // This image does not need to be cropped
+                    resultFrames.Add((frames[i].elapsed, frames[i].image, Size.Empty));
+                }
+                else
+                {
+                    var offset = new Size(firstChangedColumn, firstChangedLine);
+                    var croppedSource = new CroppedBitmap(frames[i].image, new Int32Rect(firstChangedColumn, firstChangedLine, lastChangedColumn - firstChangedColumn + 1, lastChangedLine - firstChangedLine + 1));
+                    resultFrames.Add((frames[i].elapsed, croppedSource, offset));
+                }
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(imageBuffer);
+        }
+
+        return resultFrames.ToArray();
     }
 
     private static void WritePngSignature(Stream stream, byte[] buffer)
@@ -235,9 +334,9 @@ internal partial class ScreenshotInProcess
         WriteCrc(stream, buffer, crc);
     }
 
-    private static void WriteFrame(Stream stream, byte[] buffer, Crc32 crc, ref int sequenceNumber, BitmapFrame frame, TimeSpan delay)
+    private static void WriteFrame(Stream stream, byte[] buffer, Crc32 crc, ref int sequenceNumber, BitmapSource frame, Size offset, TimeSpan delay)
     {
-        WriteFctl(stream, buffer, crc, sequenceNumber++, frame, offset: Size.Empty, delay, ApngDisposeOp.None, ApngBlendOp.Source);
+        WriteFctl(stream, buffer, crc, sequenceNumber++, size: new Size(frame.PixelWidth, frame.PixelHeight), offset: offset, delay, ApngDisposeOp.None, ApngBlendOp.Source);
 
         var (_, _, idats, _) = EncodeFrame(frame);
         foreach (var idat in idats)
@@ -275,12 +374,12 @@ internal partial class ScreenshotInProcess
         WritePngUInt32(stream, buffer, crc: null, crc.GetCurrentHashAsUInt32());
     }
 
-    private static (ReadOnlyMemory<byte> signature, ReadOnlyMemory<byte> ihdr, ImmutableArray<ReadOnlyMemory<byte>> idat, ReadOnlyMemory<byte> iend) EncodeFrame(BitmapFrame frame)
+    private static (ReadOnlyMemory<byte> signature, ReadOnlyMemory<byte> ihdr, ImmutableArray<ReadOnlyMemory<byte>> idat, ReadOnlyMemory<byte> iend) EncodeFrame(BitmapSource frame)
     {
         using var stream = new MemoryStream();
 
         var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(frame);
+        encoder.Frames.Add(BitmapFrame.Create(frame));
         encoder.Save(stream);
 
         var memory = stream.GetBuffer().AsMemory()[..(int)stream.Length];
@@ -342,7 +441,7 @@ internal partial class ScreenshotInProcess
         }
     }
 
-    private static void WriteFctl(Stream stream, byte[] buffer, Crc32 crc, int sequenceNumber, BitmapFrame frame, Size offset, TimeSpan delay, ApngDisposeOp disposeOp, ApngBlendOp blendOp)
+    private static void WriteFctl(Stream stream, byte[] buffer, Crc32 crc, int sequenceNumber, Size size, Size offset, TimeSpan delay, ApngDisposeOp disposeOp, ApngBlendOp blendOp)
     {
         crc.Reset();
 
@@ -351,9 +450,9 @@ internal partial class ScreenshotInProcess
         // sequence_number (4 bytes)
         WritePngUInt32(stream, buffer, crc, checked((uint)sequenceNumber));
         // width (4 bytes)
-        WritePngUInt32(stream, buffer, crc, checked((uint)frame.PixelWidth));
+        WritePngUInt32(stream, buffer, crc, checked((uint)size.Width));
         // height (4 bytes)
-        WritePngUInt32(stream, buffer, crc, checked((uint)frame.PixelHeight));
+        WritePngUInt32(stream, buffer, crc, checked((uint)size.Height));
         // x_offset (4 bytes)
         WritePngUInt32(stream, buffer, crc, checked((uint)offset.Width));
         // y_offset (4 bytes)
