@@ -65,20 +65,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <CompilationOptions ReportDiagnostic = ""Error"" />
-            <Document FilePath = ""Test.cs"" >
-                class Program
-                {
-                    void Test()
-                    {
-                        int a = 5;
-                    }
-                }
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <CompilationOptions ReportDiagnostic = "Error" />
+                            <Document FilePath = "Test.cs" >
+                                class Program
+                                {
+                                    void Test()
+                                    {
+                                        int a = 5;
+                                    }
+                                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml);
 
@@ -92,26 +94,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-// System is used - rest are unused.
-using System.Collections;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                // System is used - rest are unused.
+                using System.Collections;
+                using System;
+                using System.Diagnostics;
+                using System.Collections.Generic;
 
-class Program
-{
-    void Test()
-    {
-        Int32 x = 2; // Int32 can be simplified.
-        x += 1;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program
+                {
+                    void Test()
+                    {
+                        Int32 x = 2; // Int32 can be simplified.
+                        x += 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
@@ -153,6 +157,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
+            AssertEx.NotNull(first.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
             Assert.Equal(40, first.Span.Start);
             Assert.Equal(25, first.Span.Length);
@@ -166,6 +171,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
+            AssertEx.NotNull(second.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent);
             Assert.Equal(82, second.Span.Start);
             Assert.Equal(60, second.Span.Length);
@@ -179,6 +185,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, "messageFormat")));
 
             Assert.Equal(PredefinedErrorTypeNames.Warning, third.Tag.ErrorType);
+            AssertEx.NotNull(third.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, third.Tag.ToolTipContent);
             Assert.Equal(152, third.Span.Start);
             Assert.Equal(7, third.Span.Length);
@@ -192,6 +199,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)));
 
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, fourth.Tag.ErrorType);
+            AssertEx.NotNull(fourth.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, fourth.Tag.ToolTipContent);
             Assert.Equal(196, fourth.Span.Start);
             Assert.Equal(5, fourth.Span.Length);
@@ -225,6 +233,7 @@ class Program
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, firstDiagnostic.Message)));
 
+            AssertEx.NotNull(firstSpan.Tag.ToolTipContent);
             ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
         }
 
@@ -293,15 +302,17 @@ class Program
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 
@@ -327,15 +338,17 @@ class Program
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
 

@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -68,7 +67,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);
-    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
 
     /// <summary>
     /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -81,15 +80,15 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        using var taggers = TemporaryArray<ITagger<TTag>>.Empty;
+        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
         {
-            var innerTagger = taggerProvider.CreateTagger<TTag>(buffer);
+            var innerTagger = taggerProvider.CreateTagger(buffer);
             if (innerTagger != null)
                 taggers.Add(innerTagger);
         }
 
-        var tagger = new AggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        var tagger = new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();

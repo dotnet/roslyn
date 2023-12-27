@@ -22,18 +22,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
     /// Contains analyses of the latest observed document versions.
     /// </summary>
-    internal sealed class EditAndContinueDocumentAnalysesCache
+    internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
     {
         private readonly object _guard = new();
         private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = new();
-        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements;
-        private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities;
-
-        public EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
-        {
-            _baseActiveStatements = baseActiveStatements;
-            _capabilities = capabilities;
-        }
+        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
+        private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
 
         public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
             CommittedSolution oldSolution,

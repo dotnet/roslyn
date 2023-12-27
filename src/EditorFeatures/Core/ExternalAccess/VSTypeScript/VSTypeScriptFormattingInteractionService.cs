@@ -19,14 +19,11 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IFormattingInteractionService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptFormattingInteractionService : IFormattingInteractionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptFormattingInteractionService(IVSTypeScriptFormattingInteractionService implementation) : IFormattingInteractionService
     {
-        private readonly IVSTypeScriptFormattingInteractionService _implementation;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptFormattingInteractionService(IVSTypeScriptFormattingInteractionService implementation)
-            => _implementation = implementation;
+        private readonly IVSTypeScriptFormattingInteractionService _implementation = implementation;
 
         public bool SupportsFormatDocument => _implementation.SupportsFormatDocument;
         public bool SupportsFormatSelection => _implementation.SupportsFormatSelection;

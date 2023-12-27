@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 context.RegisterSymbolStartAction(context =>
                 {
+                    if (!ShouldAnalyze(context, (INamedTypeSymbol)context.Symbol))
+                        return;
+
                     context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
 
                     // Can't allow changing the fields to readonly if the struct overwrites itself.  e.g. `this = default;`
@@ -86,7 +89,11 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Local functions.
                 void AnalyzeFieldSymbol(SymbolAnalysisContext symbolContext)
                 {
-                    _ = TryGetOrInitializeFieldState((IFieldSymbol)symbolContext.Symbol, symbolContext.Options, symbolContext.CancellationToken);
+                    var field = (IFieldSymbol)symbolContext.Symbol;
+                    if (!symbolContext.ShouldAnalyzeLocation(GetDiagnosticLocation(field)))
+                        return;
+
+                    _ = TryGetOrInitializeFieldState(field, symbolContext.Options, symbolContext.CancellationToken);
                 }
 
                 void AnalyzeOperation(OperationAnalysisContext operationContext)
@@ -116,17 +123,38 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                             var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
-                                var option = GetCodeStyleOption(field, symbolEndContext.Options);
+                                var option = GetCodeStyleOption(field, symbolEndContext.Options, out var location);
                                 var diagnostic = DiagnosticHelper.Create(
                                     Descriptor,
-                                    field.Locations[0],
-                                    option.Notification.Severity,
+                                    location,
+                                    option.Notification,
                                     additionalLocations: null,
                                     properties: null);
                                 symbolEndContext.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
+                }
+
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+                {
+                    // Check if we have at least one candidate field in analysis scope.
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        if (member is IFieldSymbol field
+                            && IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute)
+                            && GetDiagnosticLocation(field) is { } location
+                            && context.ShouldAnalyzeLocation(location))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                    if (namedType.ContainingType is { } containingType)
+                        return ShouldAnalyze(context, containingType);
+
+                    return false;
                 }
 
                 static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
@@ -181,7 +209,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(
+                (bool isCandidate, bool written) ComputeInitialFieldState(
                     IFieldSymbol field,
                     AnalyzerOptions options,
                     INamedTypeSymbol? threadStaticAttribute,
@@ -191,8 +219,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
-                    var option = GetCodeStyleOption(field, options);
-                    if (option == null || !option.Value)
+                    var option = GetCodeStyleOption(field, options, out var location);
+                    if (option == null
+                        || !option.Value
+                        || ShouldSkipAnalysis(location.SourceTree!, options, context.Compilation.Options, option.Notification, cancellationToken))
                     {
                         return default;
                     }
@@ -201,6 +231,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
             });
         }
+
+        private static Location GetDiagnosticLocation(IFieldSymbol field)
+            => field.Locations[0];
 
         private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
@@ -258,7 +291,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
-        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
-            => options.GetAnalyzerOptions(field.Locations[0].SourceTree!).PreferReadonly;
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
+        {
+            diagnosticLocation = GetDiagnosticLocation(field);
+            return options.GetAnalyzerOptions(diagnosticLocation.SourceTree!).PreferReadonly;
+        }
     }
 }

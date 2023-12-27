@@ -105,16 +105,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)
             => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
 
-        private sealed class CombinedAnalyzerConfigOptions : StructuredAnalyzerConfigOptions
+        private sealed class CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData) : StructuredAnalyzerConfigOptions
         {
-            private readonly AnalyzerConfigData _fileDirectoryConfigData;
-            private readonly AnalyzerConfigData? _projectDirectoryConfigData;
-
-            public CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData)
-            {
-                _fileDirectoryConfigData = fileDirectoryConfigData;
-                _projectDirectoryConfigData = projectDirectoryConfigData;
-            }
+            private readonly AnalyzerConfigData _fileDirectoryConfigData = fileDirectoryConfigData;
+            private readonly AnalyzerConfigData? _projectDirectoryConfigData = projectDirectoryConfigData;
 
             public override NamingStylePreferences GetNamingStylePreferences()
             {

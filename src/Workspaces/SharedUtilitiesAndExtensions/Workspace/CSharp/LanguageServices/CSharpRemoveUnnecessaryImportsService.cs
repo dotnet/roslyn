@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             }
         }
 
-        private void AddFormattingSpans(
+        private static void AddFormattingSpans(
             CompilationUnitSyntax compilationUnit,
             List<TextSpan> spans,
             CancellationToken cancellationToken)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 AddFormattingSpans(@namespace, spans, cancellationToken);
         }
 
-        private void AddFormattingSpans(
+        private static void AddFormattingSpans(
             BaseNamespaceDeclarationSyntax namespaceMember,
             List<TextSpan> spans,
             CancellationToken cancellationToken)

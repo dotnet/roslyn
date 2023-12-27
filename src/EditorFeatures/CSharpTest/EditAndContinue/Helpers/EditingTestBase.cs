@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -45,6 +47,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static string GetResource(string keyword, string symbolDisplayName)
             => string.Format(FeaturesResources.member_kind_and_name, TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword), symbolDisplayName);
 
+        public static string GetResource(string keyword, string symbolDisplayName, string containerKeyword, string containerDisplayName)
+            => string.Format(
+                FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
+                TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword),
+                symbolDisplayName,
+                TryGetResource(containerKeyword) ?? throw ExceptionUtilities.UnexpectedValue(containerKeyword),
+                containerDisplayName);
+
         public static string GetResource(string keyword)
             => TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword);
 
@@ -52,6 +62,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             => keyword switch
             {
                 "enum" => FeaturesResources.enum_,
+                "enum value" => FeaturesResources.enum_value,
                 "class" => FeaturesResources.class_,
                 "interface" => FeaturesResources.interface_,
                 "delegate" => FeaturesResources.delegate_,
@@ -61,9 +72,15 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "static constructor" => FeaturesResources.static_constructor,
                 "constructor" => FeaturesResources.constructor,
                 "field" => FeaturesResources.field,
+                "const field" => FeaturesResources.const_field,
                 "method" => FeaturesResources.method,
                 "property" => FeaturesResources.property_,
+                "property getter" => CSharpFeaturesResources.property_getter,
+                "property setter" => CSharpFeaturesResources.property_setter,
                 "auto-property" => FeaturesResources.auto_property,
+                "event" => FeaturesResources.event_,
+                "event field" => CSharpFeaturesResources.event_field,
+                "event accessor" => FeaturesResources.event_accessor,
                 "indexer" => CSharpFeaturesResources.indexer,
                 "indexer getter" => CSharpFeaturesResources.indexer_getter,
                 "indexer setter" => CSharpFeaturesResources.indexer_setter,
@@ -74,6 +91,9 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "where clause" => CSharpFeaturesResources.where_clause,
                 "select clause" => CSharpFeaturesResources.select_clause,
                 "groupby clause" => CSharpFeaturesResources.groupby_clause,
+                "top-level statement" => CSharpFeaturesResources.top_level_statement,
+                "top-level code" => CSharpFeaturesResources.top_level_code,
+                "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
                 _ => null
             };
 
@@ -82,11 +102,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
             => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap, string? partialType = null)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
+        internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, (int displayLine, int displayColumn) position, params string[] arguments)
+            => new(marker, rudeEditKind, new LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments);
+
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<(TextSpan, TextSpan)>? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, rudeEdits, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false, Func<Compilation, ISymbol>? deletedSymbolContainerProvider = null)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables, deletedSymbolContainerProvider);
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, rudeEdits: null, preserveLocalVariables, deletedSymbolContainerProvider);
 
         internal static string DeletedSymbolDisplay(string kind, string displayName)
             => string.Format(FeaturesResources.member_kind_and_name, kind, displayName);
@@ -102,8 +125,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
 
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
-                ActiveStatementsDescription.ClearTags(markedSource),
-                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                SourceMarkers.Clear(markedSource),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                 path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
@@ -140,11 +163,11 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var m1 = MakeMethodBody(src1, kind);
             var m2 = MakeMethodBody(src2, kind);
 
-            var analyzer = CreateAnalyzer();
-            var match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>());
+            var match = m1.ComputeSingleRootMatch(m2, knownMatches: null);
+            Contract.ThrowIfNull(match);
 
-            var stateMachineInfo1 = analyzer.GetStateMachineInfo(m1);
-            var stateMachineInfo2 = analyzer.GetStateMachineInfo(m2);
+            var stateMachineInfo1 = m1.GetStateMachineInfo();
+            var stateMachineInfo2 = m2.GetStateMachineInfo();
             var needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints && stateMachineInfo2.HasSuspensionPoints;
 
             Assert.Equal(kind is not MethodKind.Regular and not MethodKind.ConstructorWithParameters, needsSyntaxMap);
@@ -164,9 +187,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
             => EditAndContinueTestHelpers.ToMatchingPairs(matches);
 
-#nullable disable
-
-        internal static BlockSyntax MakeMethodBody(
+        internal static MemberBody MakeMethodBody(
             string bodySource,
             MethodKind kind = MethodKind.Regular)
         {
@@ -179,14 +200,20 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
 
             var declaration = (BaseMethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)root).Members[0]).Members[0];
 
-            // We need to preserve the parent node to allow detection of state machine methods in the analyzer.
-            // If we are not testing a state machine method we only use the body to avoid updating positions in all existing tests.
-            if (kind != MethodKind.Regular)
+            if (kind == MethodKind.ConstructorWithParameters)
             {
-                return ((BaseMethodDeclarationSyntax)SyntaxFactory.SyntaxTree(declaration).GetRoot()).Body;
+                var body = SyntaxUtilities.TryGetDeclarationBody(declaration, symbol: null);
+                Contract.ThrowIfNull(body);
+                return body;
             }
 
-            return (BlockSyntax)SyntaxFactory.SyntaxTree(declaration.Body).GetRoot();
+            // We need to preserve the parent node to allow detection of state machine methods in the analyzer.
+            // If we are not testing a state machine method we only use the body to avoid updating positions in all existing tests.
+            var bodyNode = (kind != MethodKind.Regular)
+                ? ((BaseMethodDeclarationSyntax)SyntaxFactory.SyntaxTree(declaration).GetRoot()).Body
+                : (BlockSyntax)SyntaxFactory.SyntaxTree(declaration.Body!).GetRoot();
+
+            return SyntaxUtilities.CreateSimpleBody(bodyNode)!;
         }
 
         internal static string WrapMethodBodyWithClass(string bodySource, MethodKind kind = MethodKind.Regular)
@@ -198,7 +225,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, int documentIndex = 0)
+        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[]? flags = null, int documentIndex = 0)
             => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
@@ -207,16 +234,17 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
         {
             var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
-            var oldBody = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(oldDeclaration).GetRoot()).Body;
+            var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration, symbol: null);
+            Contract.ThrowIfNull(oldBody);
 
             var newDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.NewRoot).Members[0]).Members[0];
-            var newBody = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(newDeclaration).GetRoot()).Body;
+            var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration, symbol: null);
+            Contract.ThrowIfNull(newBody);
 
-            var analyzer = CreateAnalyzer();
-            _ = analyzer.ComputeBodyMatch(oldBody, newBody, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>());
+            _ = oldBody.ComputeMap(newBody, knownMatches: null);
 
-            var oldStateMachineInfo = analyzer.GetStateMachineInfo(oldBody);
-            var newStateMachineInfo = analyzer.GetStateMachineInfo(newBody);
+            var oldStateMachineInfo = oldBody.GetStateMachineInfo();
+            var newStateMachineInfo = newBody.GetStateMachineInfo();
             var needsSyntaxMap = oldStateMachineInfo.HasSuspensionPoints && newStateMachineInfo.HasSuspensionPoints;
 
             // Active methods are detected to preserve local variables for variable mapping and

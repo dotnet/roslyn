@@ -11,10 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
-                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
-                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+                ? ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath)
+                : ProtocolConversions.CreateAbsoluteUri(document.FilePath);
         }
 
         /// <summary>
@@ -42,32 +44,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             Contract.ThrowIfNull(directoryName);
             var path = Path.Combine(directoryName, document.Name);
-            return ProtocolConversions.GetUriFromFilePath(path);
+            return ProtocolConversions.CreateAbsoluteUri(path);
         }
 
-        public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
-            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
+        public static Uri CreateUriForDocumentWithoutFilePath(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfNull(document.Project.FilePath);
+
+            var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(projectDirectoryName);
+
+            using var _ = ArrayBuilder<string>.GetInstance(capacity: 2 + document.Folders.Count, out var pathBuilder);
+            pathBuilder.Add(projectDirectoryName);
+            pathBuilder.AddRange(document.Folders);
+            pathBuilder.Add(document.Name);
+
+            var path = Path.Combine(pathBuilder.ToArray());
+            return ProtocolConversions.CreateAbsoluteUri(path);
+        }
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+            => GetDocuments(solution, ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, string documentPath)
         {
-            var documentIds = GetDocumentIds(solution, documentUri);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentPath);
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
             return documents;
         }
 
-        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
+        /// <summary>
+        /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
+        /// </summary>
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
         {
-            // TODO: we need to normalize this. but for now, we check both absolute and local path
-            //       right now, based on who calls this, solution might has "/" or "\\" as directory
-            //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
-            if (documentIds.Any())
-                return documentIds;
+            var documentIds = GetDocumentIds(solution, documentUri);
 
-            return solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+            var documents = documentIds
+                .Select(solution.GetDocument)
+                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .WhereNotNull()
+                .ToImmutableArray();
+            return documents;
         }
+
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
+            => solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
@@ -143,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
         }
 

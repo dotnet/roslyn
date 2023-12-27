@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider, IOnInitialized
+    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _serverKind = serverKind;
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
+            _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
 
             // This spins up the queue and ensure the LSP is ready to start receiving requests
             Initialize();
@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
             JsonRpc jsonRpc,
-            IClientCapabilitiesProvider clientCapabilitiesProvider,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
             HostServices hostServices,
             WellKnownLspServerKinds serverKind,
@@ -69,14 +68,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
-            AddBaseService<ILspServiceLogger>(logger);
-            AddBaseService<IClientCapabilitiesProvider>(clientCapabilitiesProvider);
+            AddBaseService<AbstractLspLogger>(logger);
             AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
-            AddBaseService<IClientCapabilitiesManager>(new ClientCapabilitiesManager());
+            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
+            AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
             AddBaseService<IOnInitialized>(this);
@@ -102,16 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public ClientCapabilities GetClientCapabilities()
-        {
-            var lspServices = GetLspServices();
-            var clientCapabilitiesManager = lspServices.GetRequiredService<IClientCapabilitiesManager>();
-            var clientCapabilities = clientCapabilitiesManager.GetClientCapabilities();
-
-            return clientCapabilities;
-        }
-
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             OnInitialized();
             return Task.CompletedTask;

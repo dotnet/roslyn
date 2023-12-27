@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
             /// <summary>
             /// it is a helper class that encapsulates logic on holding onto last classification result
             /// </summary>
-            private class LastLineCache
+            private class LastLineCache(IThreadingContext threadingContext)
             {
                 // this helper class is primarily to improve active typing perf. don't bother to cache
                 // something very big. 
@@ -27,12 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // mutating state
                 private SnapshotSpan _span;
                 private readonly SegmentedList<ClassifiedSpan> _classifications = new();
-                private readonly IThreadingContext _threadingContext;
-
-                public LastLineCache(IThreadingContext threadingContext)
-                {
-                    _threadingContext = threadingContext;
-                }
+                private readonly IThreadingContext _threadingContext = threadingContext;
 
                 private void Clear()
                 {

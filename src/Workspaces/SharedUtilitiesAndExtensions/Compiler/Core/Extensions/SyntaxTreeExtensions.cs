@@ -241,5 +241,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return GeneratedCodeUtilities.IsGeneratedCode(
                 syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
         }
+
+        /// <summary>
+        /// Finds the node in the given <paramref name="syntaxTree"/> corresponding to the given <paramref name="span"/>.
+        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the root node of the tree.
+        /// </summary>
+        public static SyntaxNode FindNode(this SyntaxTree syntaxTree, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+        {
+            var root = syntaxTree.GetRoot(cancellationToken);
+            return root.FindNode(span, findInTrivia, getInnermostNodeForTie);
+        }
     }
 }

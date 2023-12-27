@@ -12,31 +12,23 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private readonly struct SearchResult
+        private readonly struct SearchResult(string? desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
         {
-            public readonly IReadOnlyList<string> NameParts;
+            public readonly IReadOnlyList<string> NameParts = nameParts;
 
             // How good a match this was.  0 means it was a perfect match.  Larger numbers are less 
             // and less good.
-            public readonly double Weight;
+            public readonly double Weight = weight;
 
             // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
-            public readonly string? DesiredName;
+            public readonly string? DesiredName = desiredName;
 
             // The node to convert to the desired name
-            public readonly TSimpleNameSyntax NameNode;
+            public readonly TSimpleNameSyntax NameNode = nameNode;
 
             public SearchResult(SymbolResult<INamespaceOrTypeSymbol> result)
                 : this(result.DesiredName, result.NameNode, INamespaceOrTypeSymbolExtensions.GetNameParts(result.Symbol), result.Weight)
             {
-            }
-
-            public SearchResult(string? desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
-            {
-                DesiredName = desiredName;
-                Weight = weight;
-                NameNode = nameNode;
-                NameParts = nameParts;
             }
 
             public bool DesiredNameDiffersFromSourceName()
@@ -75,28 +67,20 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private readonly struct SymbolResult<T> where T : ISymbol
+        private readonly struct SymbolResult<T>(string desiredName, TSimpleNameSyntax nameNode, T symbol, double weight) where T : ISymbol
         {
             // The symbol that matched the string being searched for.
-            public readonly T Symbol;
+            public readonly T Symbol = symbol;
 
             // How good a match this was.  0 means it was a perfect match.  Larger numbers are less 
             // and less good.
-            public readonly double Weight;
+            public readonly double Weight = weight;
 
             // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
-            public readonly string DesiredName;
+            public readonly string DesiredName = desiredName;
 
             // The node to convert to the desired name
-            public readonly TSimpleNameSyntax NameNode;
-
-            public SymbolResult(string desiredName, TSimpleNameSyntax nameNode, T symbol, double weight)
-            {
-                DesiredName = desiredName;
-                Symbol = symbol;
-                Weight = weight;
-                NameNode = nameNode;
-            }
+            public readonly TSimpleNameSyntax NameNode = nameNode;
 
             public SymbolResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
                 => new(DesiredName, NameNode, symbol, Weight);

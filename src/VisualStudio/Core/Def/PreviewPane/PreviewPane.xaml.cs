@@ -6,23 +6,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
-using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
-    internal partial class PreviewPane : UserControl, IDisposable
+    internal partial class PreviewPane : UserControl, IDisposable, IOleCommandTarget
     {
         private const double DefaultWidth = 400;
 
@@ -35,7 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private bool _isExpanded;
         private readonly double _heightForThreeLineTitle;
+
         private readonly IReadOnlyList<PreviewWrapper> _previewContent;
+        private readonly IVsRegisterPriorityCommandTarget _registerPriorityCommandTarget;
+        private readonly uint _commandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
         public PreviewPane(
             Image severityIcon,
@@ -95,6 +101,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // Initialize preview (i.e. diff view) portion.
             _previewContent = previewContent;
             InitializePreviewElement();
+
+            _registerPriorityCommandTarget = Package.GetGlobalService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
+            Debug.Assert(_registerPriorityCommandTarget != null);
+
+            if (_registerPriorityCommandTarget != null)
+            {
+                ErrorHandler.ThrowOnFailure(
+                    _registerPriorityCommandTarget.RegisterPriorityCommandTarget(
+                        dwReserved: 0,
+                        pCmdTrgt: this,
+                        out _commandTargetCookie));
+            }
         }
 
         public FrameworkElement ParentElement
@@ -210,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             if (previewItem.Preview is DifferenceViewerPreview differenceViewerPreview)
             {
-                var viewer = (IWpfDifferenceViewer)differenceViewerPreview.Viewer;
+                var viewer = differenceViewerPreview.Viewer;
                 PreviewDockPanel.Background = viewer.InlineView.Background;
 
                 var previewElement = viewer.VisualElement;
@@ -320,12 +338,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly Guid _optionPageGuid;
         void IDisposable.Dispose()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             // VS editor will call Dispose at which point we should Close() the embedded IWpfDifferenceViewer.
             if (_previewContent is not null)
             {
                 foreach (var preview in _previewContent)
                     preview.Dispose();
             }
+
+            if (_registerPriorityCommandTarget != null && _commandTargetCookie != VSConstants.VSCOOKIE_NIL)
+            {
+                _registerPriorityCommandTarget.UnregisterPriorityCommandTarget(_commandTargetCookie);
+            }
+        }
+
+        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_previewContent is not null)
+            {
+                foreach (var preview in _previewContent)
+                {
+                    if (preview.Preview is DifferenceViewerPreview differenceViewerPreview)
+                        return differenceViewerPreview.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                }
+            }
+
+            return VSConstants.S_OK;
+        }
+
+        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_previewContent is not null)
+            {
+                foreach (var preview in _previewContent)
+                {
+                    if (preview.Preview is DifferenceViewerPreview differenceViewerPreview)
+                        return differenceViewerPreview.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                }
+            }
+
+            return (int)VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

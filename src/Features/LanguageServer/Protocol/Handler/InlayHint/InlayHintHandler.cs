@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public async Task<LSP.InlayHint[]?> HandleRequestAsync(InlayHintParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(request.Range, text);
 
             var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 if (hint.ReplacementTextChange.HasValue)
                 {
                     var textEdit = ProtocolConversions.TextChangeToTextEdit(hint.ReplacementTextChange.Value, text);
-                    textEdits = new TextEdit[] { textEdit };
+                    textEdits = [textEdit];
                 }
 
                 var inlayHint = new LSP.InlayHint

@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var unusedDiagnostics =
 #if DEBUG
-                    new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 Debug.Assert(unusedDiagnostics.DiagnosticBag is object);
 #else
                     BindingDiagnosticBag.Discarded;
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 }
 #if DEBUG
-                unusedDiagnostics.DiagnosticBag.Free();
+                unusedDiagnostics.Free();
 #endif
 
                 if (symbol.Kind == SymbolKind.Method)
@@ -933,6 +933,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (CrefParameterSyntax parameter in parameterListSyntax.Parameters)
             {
                 RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
+                if (refKind == RefKind.Ref && parameter.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword))
+                {
+                    CheckFeatureAvailability(parameter.ReadOnlyKeyword, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics, forceWarning: true);
+                    refKind = RefKind.RefReadOnlyParameter;
+                }
 
                 Debug.Assert(parameterListSyntax.Parent is object);
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
@@ -962,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation.GetBinderFactory(typeSyntax.SyntaxTree).GetBinder(typeSyntax).Flags ==
                 (parameterOrReturnTypeBinder.Flags & ~BinderFlags.SemanticModel));
 
-            var localDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), // Examined, but not reported.
-                                                            diagnostics.DependenciesBag);
+            var localDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, // Examined, but not reported.
+                                                                    withDependencies: diagnostics.AccumulatesDependencies);
             Debug.Assert(localDiagnostics.DiagnosticBag is object);
 
             TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, localDiagnostics).Type;
@@ -989,7 +994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(type.TypeKind != TypeKind.Error || typeSyntax.ContainsDiagnostics || !typeSyntax.SyntaxTree.ReportDocumentationCommentDiagnostics(), "Why wasn't there a diagnostic?");
             }
 
-            localDiagnostics.DiagnosticBag.Free();
+            diagnostics.AddDependencies(localDiagnostics);
+            localDiagnostics.Free();
 
             return type;
         }

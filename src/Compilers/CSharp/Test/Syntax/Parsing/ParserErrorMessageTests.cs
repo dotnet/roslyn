@@ -3150,12 +3150,12 @@ class C
                 // (6,21): error CS1002: ; expected
                 //         D d = (this object o) => null;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 21),
-                // (6,29): error CS1002: ; expected
+                // (6,29): error CS1003: Syntax error, ',' expected
                 //         D d = (this object o) => null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 29),
-                // (6,29): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 29),
+                // (6,34): error CS1002: ; expected
                 //         D d = (this object o) => null;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "null").WithLocation(6, 34));
         }
 
         // TODO: extra error CS1014

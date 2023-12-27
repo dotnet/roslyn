@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -76,59 +75,81 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _onProjectRemoved = onProjectRemoved;
         }
 
+        public FileTextLoader CreateFileTextLoader(string fullPath)
+            => new WorkspaceFileTextLoader(this.Workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+
         public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
         {
-            var id = ProjectId.CreateNewId(projectSystemName);
+            var projectId = ProjectId.CreateNewId(projectSystemName);
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
             // We will use the project system name as the default display name of the project
             var project = new ProjectSystemProject(
                 this,
                 hostInfo,
-                id,
+                projectId,
                 displayName: projectSystemName,
                 language,
-                assemblyName: assemblyName,
+                assemblyName,
+                creationInfo.CompilationOptions,
+                creationInfo.FilePath,
+                creationInfo.ParseOptions);
+
+            var versionStamp = creationInfo.FilePath != null
+                ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
+                : VersionStamp.Create();
+
+            var projectInfo = ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    projectId,
+                    versionStamp,
+                    name: projectSystemName,
+                    assemblyName,
+                    language,
+                    compilationOutputFilePaths: default, // will be updated when command line is set
+                    SourceHashAlgorithms.Default, // will be updated when command line is set
+                    filePath: creationInfo.FilePath,
+                    telemetryId: creationInfo.TelemetryId),
                 compilationOptions: creationInfo.CompilationOptions,
-                filePath: creationInfo.FilePath,
                 parseOptions: creationInfo.ParseOptions);
 
-            var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
-                                                             : VersionStamp.Create();
-
-            await ApplyChangeToWorkspaceAsync(w =>
+            await ApplyChangeToWorkspaceAsync(async w =>
             {
-                var projectInfo = ProjectInfo.Create(
-                    new ProjectInfo.ProjectAttributes(
-                        id,
-                        versionStamp,
-                        name: projectSystemName,
-                        assemblyName: assemblyName,
-                        language: language,
-                        checksumAlgorithm: SourceHashAlgorithms.Default, // will be updated when command line is set
-                        compilationOutputFilePaths: default, // will be updated when command line is set
-                        filePath: creationInfo.FilePath,
-                        telemetryId: creationInfo.TelemetryId),
-                    compilationOptions: creationInfo.CompilationOptions,
-                    parseOptions: creationInfo.ParseOptions);
+                await w.SetCurrentSolutionAsync(
+                    useAsync: true,
+                    oldSolution =>
+                    {
+                        // If we don't have any projects and this is our first project being added, then we'll create a
+                        // new SolutionId and count this as the solution being added so that event is raised.
+                        if (oldSolution.ProjectIds.Count == 0)
+                        {
+                            var solutionInfo = SolutionInfo.Create(
+                                SolutionId.CreateNewId(SolutionPath),
+                                VersionStamp.Create(),
+                                SolutionPath,
+                                projects: new[] { projectInfo },
+                                analyzerReferences: w.CurrentSolution.AnalyzerReferences).WithTelemetryId(SolutionTelemetryId);
+                            var newSolution = w.CreateSolution(solutionInfo);
 
-                // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
-                // and count this as the solution being added so that event is raised.
-                if (w.CurrentSolution.ProjectIds.Count == 0)
-                {
-                    w.OnSolutionAdded(
-                        SolutionInfo.Create(
-                            SolutionId.CreateNewId(SolutionPath),
-                            VersionStamp.Create(),
-                            SolutionPath,
-                            projects: new[] { projectInfo },
-                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
-                        .WithTelemetryId(SolutionTelemetryId));
-                }
-                else
-                {
-                    w.OnProjectAdded(projectInfo);
-                }
+                            foreach (var project in solutionInfo.Projects)
+                                newSolution = newSolution.AddProject(project);
+
+                            return newSolution;
+                        }
+                        else
+                        {
+                            return oldSolution.AddProject(projectInfo);
+                        }
+                    },
+                    (oldSolution, newSolution) =>
+                    {
+                        return oldSolution.ProjectIds.Count == 0
+                            ? (WorkspaceChangeKind.SolutionAdded, projectId: null, documentId: null)
+                            : (WorkspaceChangeKind.ProjectAdded, projectId, documentId: null);
+                    },
+                    onBeforeUpdate: null,
+                    onAfterUpdate: null,
+                    CancellationToken.None).ConfigureAwait(false);
             }).ConfigureAwait(false);
 
             return project;
@@ -174,11 +195,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
+        public async ValueTask ApplyChangeToWorkspaceAsync(Func<Workspace, ValueTask> action, CancellationToken cancellationToken = default)
         {
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                action(Workspace);
+                await action(Workspace).ConfigureAwait(false);
             }
         }
 

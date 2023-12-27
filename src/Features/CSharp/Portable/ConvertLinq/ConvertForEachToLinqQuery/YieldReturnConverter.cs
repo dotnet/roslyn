@@ -12,20 +12,13 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal sealed class YieldReturnConverter : AbstractConverter
+    internal sealed class YieldReturnConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        YieldStatementSyntax yieldReturnStatement,
+        YieldStatementSyntax yieldBreakStatement) : AbstractConverter(forEachInfo)
     {
-        private readonly YieldStatementSyntax _yieldReturnStatement;
-        private readonly YieldStatementSyntax _yieldBreakStatement;
-
-        public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            YieldStatementSyntax yieldReturnStatement,
-            YieldStatementSyntax yieldBreakStatement)
-            : base(forEachInfo)
-        {
-            _yieldReturnStatement = yieldReturnStatement;
-            _yieldBreakStatement = yieldBreakStatement;
-        }
+        private readonly YieldStatementSyntax _yieldReturnStatement = yieldReturnStatement;
+        private readonly YieldStatementSyntax _yieldBreakStatement = yieldBreakStatement;
 
         public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
@@ -33,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                selectExpression: _yieldReturnStatement.Expression,
                leadingTokensForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
                trailingTokensForSelect: _yieldBreakStatement != null
-                                        ? new[] { _yieldReturnStatement.SemicolonToken,
-                                                _yieldBreakStatement.YieldKeyword,
-                                                _yieldBreakStatement.ReturnOrBreakKeyword,
-                                                _yieldBreakStatement.SemicolonToken }
-                                        : new[] { _yieldReturnStatement.SemicolonToken },
+                                        ? [_yieldReturnStatement.SemicolonToken,
+                                            _yieldBreakStatement.YieldKeyword,
+                                            _yieldBreakStatement.ReturnOrBreakKeyword,
+                                            _yieldBreakStatement.SemicolonToken]
+                                        : [_yieldReturnStatement.SemicolonToken],
                convertToQuery: convertToQuery);
 
             editor.ReplaceNode(

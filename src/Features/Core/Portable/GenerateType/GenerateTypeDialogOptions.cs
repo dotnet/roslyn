@@ -6,20 +6,13 @@
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
-    internal class GenerateTypeDialogOptions
+    internal class GenerateTypeDialogOptions(
+        bool isPublicOnlyAccessibility = false,
+        TypeKindOptions typeKindOptions = TypeKindOptions.AllOptions,
+        bool isAttribute = false)
     {
-        public bool IsPublicOnlyAccessibility { get; }
-        public TypeKindOptions TypeKindOptions { get; }
-        public bool IsAttribute { get; }
-
-        public GenerateTypeDialogOptions(
-            bool isPublicOnlyAccessibility = false,
-            TypeKindOptions typeKindOptions = TypeKindOptions.AllOptions,
-            bool isAttribute = false)
-        {
-            IsPublicOnlyAccessibility = isPublicOnlyAccessibility;
-            TypeKindOptions = typeKindOptions;
-            IsAttribute = isAttribute;
-        }
+        public bool IsPublicOnlyAccessibility { get; } = isPublicOnlyAccessibility;
+        public TypeKindOptions TypeKindOptions { get; } = typeKindOptions;
+        public bool IsAttribute { get; } = isAttribute;
     }
 }

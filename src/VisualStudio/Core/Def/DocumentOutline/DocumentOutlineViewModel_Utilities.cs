@@ -8,21 +8,23 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
-    using Range = LanguageServer.Protocol.Range;
+    using Range = Roslyn.LanguageServer.Protocol.Range;
+
+    internal delegate Task<ManualInvocationResponse?> LanguageServiceBrokerCallback(
+        ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken);
 
     internal sealed partial class DocumentOutlineViewModel
     {
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public static async Task<(JToken response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
-            ILanguageServiceBroker2 languageServiceBroker,
+            LanguageServiceBrokerCallback callbackAsync,
             string textViewFilePath,
             CancellationToken cancellationToken)
         {
@@ -45,12 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     UseHierarchicalSymbols = true,
                     TextDocument = new TextDocumentIdentifier()
                     {
-                        Uri = new Uri(textViewFilePath)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath)
                     }
                 });
             }
 
-            var manualResponse = await languageServiceBroker.RequestAsync(
+            var manualResponse = await callbackAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: _ => true,
@@ -156,7 +158,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Returns whether the child symbol is in range of the parent symbol.
             static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
-                => child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
+            {
+                var parentRange = ProtocolConversions.RangeToLinePositionSpan(parent.Range);
+                var childRange = ProtocolConversions.RangeToLinePositionSpan(child.Range);
+                return childRange.Start > parentRange.Start && childRange.End <= parentRange.End;
+            }
 
             // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.
             SnapshotSpan GetSymbolRangeSpan(Range symbolRange)

@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNodeOrToken node)
         {
-            var stack = new Stack<SyntaxNodeOrToken>();
+            using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+            var stack = pooledStack.Object;
             stack.Push(node);
 
             while (!stack.IsEmpty())
@@ -24,14 +25,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (current.IsNode)
                 {
                     foreach (var child in current.ChildNodesAndTokens().Reverse())
-                    {
                         stack.Push(child);
-                    }
                 }
+            }
+        }
+
+        public static IEnumerable<SyntaxNode> DepthFirstTraversalNodes(this SyntaxNodeOrToken node)
+        {
+            foreach (var t in node.DepthFirstTraversal())
+            {
+                if (t.IsNode)
+                    yield return t.AsNode()!;
             }
         }
 
         public static SyntaxTrivia[] GetTrivia(params SyntaxNodeOrToken[] nodesOrTokens)
             => nodesOrTokens.SelectMany(nodeOrToken => nodeOrToken.GetLeadingTrivia().Concat(nodeOrToken.GetTrailingTrivia())).ToArray();
+
+        public static SyntaxNodeOrToken WithAppendedTrailingTrivia(this SyntaxNodeOrToken nodeOrToken, params SyntaxTrivia[] trivia)
+            => WithAppendedTrailingTrivia(nodeOrToken, (IEnumerable<SyntaxTrivia>)trivia);
+
+        public static SyntaxNodeOrToken WithAppendedTrailingTrivia(this SyntaxNodeOrToken nodeOrToken, IEnumerable<SyntaxTrivia> trivia)
+            => nodeOrToken.IsNode ? nodeOrToken.AsNode()!.WithAppendedTrailingTrivia(trivia) : nodeOrToken.AsToken().WithAppendedTrailingTrivia(trivia);
     }
 }

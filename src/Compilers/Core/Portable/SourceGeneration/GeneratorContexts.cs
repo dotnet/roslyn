@@ -98,7 +98,15 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
-        public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+        /// <exception cref="ArgumentException">
+        /// <paramref name="diagnostic"/> is located in a syntax tree which is not part of the compilation,
+        /// its location span is outside of the given file, or its identifier is not valid.
+        /// </exception>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
+            _diagnostics.Add(diagnostic);
+        }
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
             => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());

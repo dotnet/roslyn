@@ -11,15 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable)]
-    [Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
     internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
@@ -53,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 return;
             }
 
-            context.RegisterRefactoring(
-                new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, cancellationToken)));
+            context.RegisterRefactoring(new CustomCodeAction(
+                (purpose, progress, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, progress, cancellationToken)));
         }
 
         private static bool ShouldOfferRefactoring(Project project)
@@ -64,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
             };
 
-        private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<Solution> EnableNullableReferenceTypesAsync(
+            Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             foreach (var document in project.Documents)
@@ -254,22 +252,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             Apply,
         }
 
-        private sealed class CustomCodeAction : CodeAction.SolutionChangeAction
+        private sealed class CustomCodeAction(
+            Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
+            : CodeAction.SolutionChangeAction(
+                CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
+                (progress, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, progress, cancellationToken),
+                nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
         {
-            private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
-
-            public CustomCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
-                : base(
-                    CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
-                    cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
-                    nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
-            {
-                _createChangedSolution = createChangedSolution;
-            }
+            private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, cancellationToken).ConfigureAwait(false);
+                var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 if (changedSolution is null)
                     return Array.Empty<CodeActionOperation>();
 

@@ -111,8 +111,9 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
         async Task<ImmutableArray<ISymbol>> FindAsync(string name, bool ignoreCase, SymbolFilter filter)
         {
+            using var query = SearchQuery.Create(name, ignoreCase);
             return await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
+                project, query, filter, cancellationToken).ConfigureAwait(false);
         }
 
         ImmutableArray<SymbolResult> GetTypeSearchResults(

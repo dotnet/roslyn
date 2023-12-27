@@ -2575,6 +2575,19 @@ void Method(int i = 0)
         }
 
         [Fact]
+        public async Task Method_RefReadonly()
+        {
+            await TestInClassAsync(
+                """
+                void Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)
+                {
+                    Go$$o(in DateTime.Now, in fi, 32);
+                }
+                """,
+                MainDescription("void C.Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)"));
+        }
+
+        [Fact]
         public async Task Constructor()
         {
             await TestInClassAsync(
@@ -7259,6 +7272,35 @@ public interface ICloneable<T>
         }
 
         [Fact]
+        public async Task TestInheritdocWithTypeParamRef1()
+        {
+            var markup =
+@"
+public interface ITest
+{
+    /// <summary>
+    /// A generic method <typeparamref name=""T""/>.
+    /// </summary>
+    /// <typeparam name=""T"">A generic type.</typeparam>
+    void Foo<T>();
+}
+
+public class Test : ITest
+{
+    /// <inheritdoc/>
+    public void $$Foo<T>() { }
+}";
+
+            await TestWithOptionsAsync(TestOptions.Regular8,
+                markup,
+                MainDescription($"void Test.Foo<T>()"),
+                Documentation("A generic method T."),
+                item => Assert.Equal(
+                    item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),
+                    new[] { "Text", "Space", "TypeParameter", "Text" }));
+        }
+
+        [Fact]
         public async Task TestInheritdocCycle1()
         {
             var markup =
@@ -8754,6 +8796,40 @@ class Program
 @"using unsafe $$X = int*;";
             await TestAsync(source,
                 MainDescription($"int*"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start()
+        {
+            var source =
+"int[] x = $$[1, 2]";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Middle()
+        {
+            var source =
+"int[] x = [1 $$, 2]";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_End()
+        {
+            var source =
+"int[] x = [1, 2]$$";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start_Typeless()
+        {
+            var source =
+"var x = $$[1, 2]";
+            await TestAsync(source);
         }
     }
 }

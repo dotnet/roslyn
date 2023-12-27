@@ -68,6 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
+        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
             Debug.Assert(assembly IsNot Nothing)
@@ -122,6 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Assembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return Assembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
                 PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)
@@ -150,6 +156,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend ReadOnly Property PrimaryModule As PEModuleSymbol
             Get
                 Return DirectCast(Me.Modules(0), PEModuleSymbol)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, Nothing)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, Nothing, Nothing)
             End Get
         End Property
 
@@ -282,5 +300,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
+                    Dim experimentalData = PrimaryModule.Module.TryDecodeExperimentalAttributeData(Assembly.Handle, New MetadataDecoder(PrimaryModule))
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized)
+                End If
+
+                Return _lazyObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

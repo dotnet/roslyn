@@ -36,30 +36,23 @@ namespace Microsoft.CodeAnalysis.Formatting
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.StringCopyPaste)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class FormatCommandHandler :
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class FormatCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        IGlobalOptionService globalOptions) :
         ICommandHandler<FormatDocumentCommandArgs>,
         ICommandHandler<FormatSelectionCommandArgs>,
         IChainedCommandHandler<PasteCommandArgs>,
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<ReturnKeyCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
-        }
 
         private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {

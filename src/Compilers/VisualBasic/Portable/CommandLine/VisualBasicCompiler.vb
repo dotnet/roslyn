@@ -301,5 +301,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
         End Function
 
+        Private Protected Overrides Sub DiagnoseBadAccesses(consoleOutput As TextWriter, errorLogger As ErrorLogger, compilation As Compilation, diagnostics As ImmutableArray(Of Diagnostic))
+            Dim newDiagnostics = DiagnosticBag.GetInstance()
+
+            For Each diag In diagnostics
+                Dim symbol As Symbol
+                Select Case diag.Code
+                    Case ERRID.ERR_InaccessibleSymbol2,
+                         ERRID.ERR_InaccessibleMember3,
+                         ERRID.ERR_InAccessibleCoClass3,
+                         ERRID.ERR_CannotOverrideInAccessibleMember,
+                         ERRID.ERR_InaccessibleReturnTypeOfMember2
+
+                        Dim symbolDiagnostic = DirectCast(DirectCast(diag, DiagnosticWithInfo).Info, BadSymbolDiagnostic)
+                        symbol = symbolDiagnostic.BadSymbol
+
+                    Case Else
+                        Continue For
+                End Select
+
+                newDiagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly), diag.Location))
+            Next
+
+            ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation)
+        End Sub
+
     End Class
 End Namespace

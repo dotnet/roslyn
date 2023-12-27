@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // Already stored analysis result for this analyzer for the analyzed file.
                             continue;
                         }
-                        else if (!analysisScope.FilterSpanOpt.HasValue)
+                        else if (!analysisScope.FilterSpanOpt.HasValue && !analysisScope.OriginalFilterSpan.HasValue)
                         {
                             // We have complete analysis result for this file.
                             // Mark this file as completely analyzed for this analyzer.

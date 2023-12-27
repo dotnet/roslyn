@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public void ComputeDistance1()
+        public void ComputeDistance_Nodes()
         {
             var distance = SyntaxComparer.ComputeDistance(
                 new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
@@ -94,31 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
-        public void ComputeDistance2()
-        {
-            var distance = SyntaxComparer.ComputeDistance(
-                ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
-                ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
-
-            Assert.Equal(0.67, Math.Round(distance, 2));
-        }
-
-        [Fact]
-        public void ComputeDistance3()
+        public void ComputeDistance_Tokens()
         {
             var distance = SyntaxComparer.ComputeDistance(
                 new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },
                 new[] { SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
-
-            Assert.Equal(0.33, Math.Round(distance, 2));
-        }
-
-        [Fact]
-        public void ComputeDistance4()
-        {
-            var distance = SyntaxComparer.ComputeDistance(
-                ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
-                ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
 
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
@@ -141,18 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void ComputeDistance_Null()
         {
             var distance = SyntaxComparer.ComputeDistance(
-                default,
-                ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
-
-            Assert.Equal(1, Math.Round(distance, 2));
-
-            distance = SyntaxComparer.ComputeDistance(
-                default,
-                ImmutableArray.Create(MakeLiteral(0)));
-
-            Assert.Equal(1, Math.Round(distance, 2));
-
-            distance = SyntaxComparer.ComputeDistance(
                 null,
                 Array.Empty<SyntaxNode>());
 
@@ -175,6 +144,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 null);
 
             Assert.Equal(0, Math.Round(distance, 2));
+        }
+
+        [Fact]
+        public void ComputeDistance_LongSequences()
+        {
+            var t1 = SyntaxFactory.Token(SyntaxKind.PublicKeyword);
+            var t2 = SyntaxFactory.Token(SyntaxKind.PrivateKeyword);
+            var t3 = SyntaxFactory.Token(SyntaxKind.ProtectedKeyword);
+
+            var distance = SyntaxComparer.ComputeDistance(
+                Enumerable.Range(0, 10000).Select(i => i < 2000 ? t1 : t2),
+                Enumerable.Range(0, 10000).Select(i => i < 2000 ? t1 : t3));
+
+            // long sequences are indistinguishable if they have common prefix shorter then threshold:
+            Assert.Equal(0, distance);
         }
     }
 }

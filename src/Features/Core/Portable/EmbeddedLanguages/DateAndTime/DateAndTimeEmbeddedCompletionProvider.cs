@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal sealed partial class DateAndTimeEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -28,10 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateAndTimeEmbeddedLanguage _language;
-
-        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguage language)
-            => _language = language;
+        private readonly DateAndTimeEmbeddedLanguage _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
 
@@ -94,9 +92,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
             var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
+            using var _1 = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
 
             var embeddedContext = new EmbeddedCompletionContext(text, context, virtualChars, items);
 
@@ -105,20 +103,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (items.Count == 0)
                 return;
 
+            using var _2 = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var properties);
             foreach (var embeddedItem in items)
             {
+                properties.Clear();
+
                 var textChange = embeddedItem.Change.TextChange;
 
-                var properties = ImmutableDictionary.CreateBuilder<string, string>();
-                properties.Add(StartKey, textChange.Span.Start.ToString());
-                properties.Add(LengthKey, textChange.Span.Length.ToString());
-                properties.Add(NewTextKey, textChange.NewText!);
-                properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(new(StartKey, textChange.Span.Start.ToString()));
+                properties.Add(new(LengthKey, textChange.Span.Length.ToString()));
+                properties.Add(new(NewTextKey, textChange.NewText!));
+                properties.Add(new(DescriptionKey, embeddedItem.FullDescription));
+                properties.Add(new(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");
-                context.AddItem(CompletionItem.Create(
+                context.AddItem(CompletionItem.CreateInternal(
                     displayText: embeddedItem.DisplayText,
                     inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             // These values have always been added by us.
-            var startString = item.Properties[StartKey];
-            var lengthString = item.Properties[LengthKey];
-            var newText = item.Properties[NewTextKey];
+            var startString = item.GetProperty(StartKey);
+            var lengthString = item.GetProperty(LengthKey);
+            var newText = item.GetProperty(NewTextKey);
 
             Contract.ThrowIfNull(startString);
             Contract.ThrowIfNull(lengthString);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (!item.Properties.TryGetValue(DescriptionKey, out var description))
+            if (!item.TryGetProperty(DescriptionKey, out var description))
                 return SpecializedTasks.Null<CompletionDescription>();
 
             return Task.FromResult((CompletionDescription?)CompletionDescription.Create(

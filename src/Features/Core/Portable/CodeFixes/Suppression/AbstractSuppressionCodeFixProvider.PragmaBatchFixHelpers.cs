@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (newSuppressionFix != null)
                     {
                         var newPragmaAction = newSuppressionFix.Action as IPragmaBasedCodeAction ??
-                            newSuppressionFix.Action.NestedCodeActions.OfType<IPragmaBasedCodeAction>().SingleOrDefault();
+                            newSuppressionFix.Action.NestedActions.OfType<IPragmaBasedCodeAction>().SingleOrDefault();
                         if (newPragmaAction != null)
                         {
                             // Get the text changes with pragma suppression add/removals.
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument,
                                 includeStartTokenChange: false, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             var orderedChanges = startTokenChanges.Concat(endTokenChanges).OrderBy(change => change.Span).Distinct();
                             var newText = currentText.WithChanges(orderedChanges);
                             currentDocument = currentDocument.WithText(newText);

@@ -167,15 +167,10 @@ namespace Microsoft.CodeAnalysis.Storage
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractPersistentStorageService service)
         {
-            private readonly AbstractPersistentStorageService _service;
-
-            public TestAccessor(AbstractPersistentStorageService service)
-                => _service = service;
-
             public void Shutdown()
-                => _service.Shutdown();
+                => service.Shutdown();
         }
 
         /// <summary>
@@ -226,19 +221,19 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(ProjectKey project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(DocumentKey document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
@@ -250,19 +245,19 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(projectKey, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(documentKey, name, stream, checksum, cancellationToken);
         }
     }

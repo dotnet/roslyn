@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
             var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
-            var formattedText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var solution = formattedDocument.Project.Solution;
 
             foreach (var documentId in formattedDocument.GetLinkedDocumentIds())

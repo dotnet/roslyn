@@ -56,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private const string NugetTitle = "NuGet";
 
         private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
+        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IAsynchronousOperationListener _listener;
 
@@ -98,8 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
+            IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer,
             SVsServiceProvider serviceProvider,
-            [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
@@ -113,11 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             _operationExecutor = operationExecutor;
 
+            _brokeredServiceContainer = brokeredServiceContainer;
             _serviceProvider = serviceProvider;
-            // MEFv2 doesn't support type based contract for Import above and for this particular contract
-            // (SAsyncServiceProvider) actual type cast doesn't work. (https://github.com/microsoft/vs-mef/issues/138)
-            // workaround by getting the service as object and cast to actual interface
-            _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _packageInstaller = packageInstaller;
@@ -259,11 +256,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public async Task<bool> TryInstallPackageAsync(
             Workspace workspace,
             DocumentId documentId,
-            string source,
+            string? source,
             string packageName,
             string? version,
             bool includePrerelease,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
@@ -292,20 +289,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private async Task<bool> TryInstallPackageAsync(
-            string source,
+            string? source,
             string packageName,
             string? version,
             bool includePrerelease,
             Guid projectGuid,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
-            progressTracker.Description = description;
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
@@ -372,12 +369,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task<bool> TryUninstallPackageAsync(
             string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
-            progressTracker.Description = description;
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
@@ -500,7 +497,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // GetServiceAsync/GetProxyAsync and the cast below are all explicitly documented as being BG thread safe.
             await TaskScheduler.Default;
 
-            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceContainer = await _brokeredServiceContainer.GetValueOrNullAsync(cancellationToken).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
                 return default;

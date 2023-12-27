@@ -58,19 +58,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.ChangingCapturedVariableType,
-                RudeEditKind.AccessingCapturedVariableInLambda,
-                RudeEditKind.NotAccessingCapturedVariableInLambda,
                 RudeEditKind.RenamingCapturedVariable,
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
                 RudeEditKind.ChangingNonCustomAttribute,
+                RudeEditKind.NotCapturingPrimaryConstructorParameter,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
             {
-                RudeEditKind.InsertLambdaWithMultiScopeCapture,
-                RudeEditKind.DeleteLambdaWithMultiScopeCapture,
                 RudeEditKind.ChangingNamespace,
             };
 

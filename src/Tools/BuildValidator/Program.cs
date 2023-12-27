@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -31,35 +30,71 @@ namespace BuildValidator
         static int Main(string[] args)
         {
             System.Diagnostics.Trace.Listeners.Clear();
-            var rootCommand = new RootCommand
+
+            var assembliesPath = new CliOption<string[]>("--assembliesPath")
             {
-                new Option<string>(
-                    "--assembliesPath", BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times
-                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
-                new Option<string>(
-                    "--exclude", BuildValidatorResources.Assemblies_to_be_excluded_substring_match
-                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
-                new Option<string>(
-                    "--sourcePath", BuildValidatorResources.Path_to_sources_to_use_in_rebuild
-                ) { IsRequired = true },
-                new Option<string>(
-                    "--referencesPath", BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times
-                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
-                new Option<bool>(
-                    "--verbose", BuildValidatorResources.Output_verbose_log_information
-                ),
-                new Option<bool>(
-                    "--quiet", BuildValidatorResources.Do_not_output_log_information_to_console
-                ),
-                new Option<bool>(
-                    "--debug", BuildValidatorResources.Output_debug_info_when_rebuild_is_not_equal_to_the_original
-                ),
-                new Option<string?>(
-                    "--debugPath", BuildValidatorResources.Path_to_output_debug_info
-                )
+                Description = BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times,
+                Required = true,
+                Arity = ArgumentArity.OneOrMore,
             };
-            rootCommand.Handler = CommandHandler.Create(new Func<string[], string[]?, string, string[]?, bool, bool, bool, string, int>(HandleCommand));
-            return rootCommand.Invoke(args);
+            var exclude = new CliOption<string[]>("--exclude")
+            {
+                Description = BuildValidatorResources.Assemblies_to_be_excluded_substring_match,
+                Arity = ArgumentArity.ZeroOrMore,
+            };
+            var source = new CliOption<string>("--sourcePath")
+            {
+                Description = BuildValidatorResources.Path_to_sources_to_use_in_rebuild,
+                Required = true,
+            };
+            var referencesPath = new CliOption<string[]>("--referencesPath")
+            {
+                Description = BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times,
+                Arity = ArgumentArity.ZeroOrMore,
+            };
+            var verbose = new CliOption<bool>("--verbose")
+            {
+                Description = BuildValidatorResources.Output_verbose_log_information
+            };
+            var quiet = new CliOption<bool>("--quiet")
+            {
+                Description = BuildValidatorResources.Do_not_output_log_information_to_console
+            };
+            var debug = new CliOption<bool>("--debug")
+            {
+                Description = BuildValidatorResources.Output_debug_info_when_rebuild_is_not_equal_to_the_original
+            };
+            var debugPath = new CliOption<string?>("--debugPath")
+            {
+                Description = BuildValidatorResources.Path_to_output_debug_info
+            };
+
+            var rootCommand = new CliRootCommand
+            {
+                assembliesPath,
+                exclude,
+                source,
+                referencesPath,
+                verbose,
+                quiet,
+                debug,
+                debugPath,
+            };
+
+            rootCommand.SetAction(parseResult =>
+            {
+                return HandleCommand(
+                    assembliesPath: parseResult.GetValue(assembliesPath)!,
+                    exclude: parseResult.GetValue(exclude),
+                    sourcePath: parseResult.GetValue(source)!,
+                    referencesPath: parseResult.GetValue(referencesPath),
+                    verbose: parseResult.GetValue(verbose),
+                    quiet: parseResult.GetValue(quiet),
+                    debug: parseResult.GetValue(debug),
+                    debugPath: parseResult.GetValue(debugPath));
+            });
+
+            return rootCommand.Parse(args).Invoke();
         }
 
         static int HandleCommand(string[] assembliesPath, string[]? exclude, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)

@@ -56,10 +56,15 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
+        /// <remarks>
+        ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
+        ///    shouldn't be calculated until reverse reference information is requested. Once this information
+        ///    has been calculated, forks of this PDG will calculate their new reverse references in a non-lazy fashion.
+        /// </remarks>
         internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            reverseReferencesMap: null,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableArray<ProjectId>.Empty,
@@ -512,12 +517,8 @@ namespace Microsoft.CodeAnalysis
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(ProjectDependencyGraph instance)
         {
-            private readonly ProjectDependencyGraph _instance;
-
-            public TestAccessor(ProjectDependencyGraph instance)
-                => _instance = instance;
 
             /// <summary>
             /// Gets the list of projects that directly or transitively depend on this project, if it has already been
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentNullException(nameof(projectId));
                 }
 
-                _instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
+                instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
                 return projects;
             }
         }

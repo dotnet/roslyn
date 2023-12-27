@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Return result.ToImmutableAndFree()
         End Function
 
-        Private Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
+        Private Shared Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
             If SkipProcessing(node, result) Then
                 Return
             End If
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Next
         End Sub
 
-        Private Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
+        Private Shared Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
             If SkipProcessing(token, result) Then
                 Return
             End If
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 End Function)
         End Function
 
-        Private Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
+        Private Shared Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
             If node Is Nothing Then
                 Return Nothing
             End If

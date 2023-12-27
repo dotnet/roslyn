@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
-    internal abstract partial class AbstractStructureTaggerProvider :
-        AsynchronousTaggerProvider<IStructureTag>
+#pragma warning disable CS0618 // Type or member is obsolete
+    internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IStructureTag2>
     {
         private const string RegionDirective = "#region";
         private const string UsingDirective = "using";
@@ -174,11 +174,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<IStructureTag2> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             try
             {
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         private void ProcessSpans(
-            TaggerContext<IStructureTag> context,
+            TaggerContext<IStructureTag2> context,
             SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
@@ -220,11 +221,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             foreach (var span in spans)
             {
                 var tag = new StructureTag(this, span, snapshot);
-                context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
+                context.AddTag(new TagSpan<IStructureTag2>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
         }
 
-        protected override bool TagEquals(IStructureTag tag1, IStructureTag tag2)
+        protected override bool TagEquals(IStructureTag2 tag1, IStructureTag2 tag2)
         {
             Contract.ThrowIfFalse(tag1 is StructureTag);
             Contract.ThrowIfFalse(tag2 is StructureTag);
@@ -364,4 +365,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         #endregion
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }

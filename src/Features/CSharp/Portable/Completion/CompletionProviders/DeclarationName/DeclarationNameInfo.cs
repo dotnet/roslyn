@@ -16,7 +16,13 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 {
-    internal readonly struct NameDeclarationInfo
+    internal readonly struct NameDeclarationInfo(
+        ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
+        Accessibility? accessibility,
+        DeclarationModifiers declarationModifiers = default,
+        ITypeSymbol? type = null,
+        IAliasSymbol? alias = null,
+        ISymbol? symbol = null)
     {
         private static readonly ImmutableArray<SymbolKindOrTypeKind> s_parameterSyntaxKind =
             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter));
@@ -24,32 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
             ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property));
 
-        private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds;
+        private readonly ImmutableArray<SymbolKindOrTypeKind> _possibleSymbolKinds = possibleSymbolKinds;
 
-        public readonly DeclarationModifiers Modifiers;
-        public readonly Accessibility? DeclaredAccessibility;
+        public readonly DeclarationModifiers Modifiers = declarationModifiers;
+        public readonly Accessibility? DeclaredAccessibility = accessibility;
 
-        public readonly ITypeSymbol? Type;
-        public readonly IAliasSymbol? Alias;
-        public readonly ISymbol? Symbol;
+        public readonly ITypeSymbol? Type = type;
+        public readonly IAliasSymbol? Alias = alias;
+        public readonly ISymbol? Symbol = symbol;
 
         public ImmutableArray<SymbolKindOrTypeKind> PossibleSymbolKinds => _possibleSymbolKinds.NullToEmpty();
-
-        public NameDeclarationInfo(
-            ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
-            Accessibility? accessibility,
-            DeclarationModifiers declarationModifiers = default,
-            ITypeSymbol? type = null,
-            IAliasSymbol? alias = null,
-            ISymbol? symbol = null)
-        {
-            _possibleSymbolKinds = possibleSymbolKinds;
-            DeclaredAccessibility = accessibility;
-            Modifiers = declarationModifiers;
-            Type = type;
-            Alias = alias;
-            Symbol = symbol;
-        }
 
         public static async Task<NameDeclarationInfo> GetDeclarationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {

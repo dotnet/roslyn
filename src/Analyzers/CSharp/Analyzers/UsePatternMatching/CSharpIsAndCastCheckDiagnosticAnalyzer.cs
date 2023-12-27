@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -79,6 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 return;
             }
+
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            if (!syntaxContext.ShouldAnalyzeSpan(localDeclarationStatement.Span))
+                return;
 
             // It's of the form:
             //
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localDeclarationStatement.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations,
                 properties: null));
         }

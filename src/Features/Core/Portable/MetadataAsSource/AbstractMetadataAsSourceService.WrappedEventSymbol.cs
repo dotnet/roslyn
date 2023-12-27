@@ -9,15 +9,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedEventSymbol : AbstractWrappedSymbol, IEventSymbol
+        private class WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(eventSymbol, canImplementImplicitly, docCommentFormattingService), IEventSymbol
         {
-            private readonly IEventSymbol _symbol;
-
-            public WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(eventSymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = eventSymbol;
-            }
+            private readonly IEventSymbol _symbol = eventSymbol;
 
             public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations
             {

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
             return property.ContainingType.GetMembers(accessedMemberName).FirstOrDefault() as IFieldSymbol;
         }
 
-        private string? GetAccessedMemberName(SyntaxNode? body)
+        private static string? GetAccessedMemberName(SyntaxNode? body)
         {
             // Finally found a name.
             if (body is IdentifierNameSyntax identifierName)

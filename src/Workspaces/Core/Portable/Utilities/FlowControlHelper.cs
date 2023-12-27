@@ -12,20 +12,13 @@ namespace Roslyn.Utilities
         public static AsyncFlowControlHelper TrySuppressFlow()
             => new(ExecutionContext.IsFlowSuppressed() ? default : ExecutionContext.SuppressFlow());
 
-        public readonly struct AsyncFlowControlHelper : IDisposable
+        public readonly struct AsyncFlowControlHelper(AsyncFlowControl asyncFlowControl) : IDisposable
         {
-            private readonly AsyncFlowControl _asyncFlowControl;
-
-            public AsyncFlowControlHelper(AsyncFlowControl asyncFlowControl)
-            {
-                _asyncFlowControl = asyncFlowControl;
-            }
-
             public void Dispose()
             {
-                if (_asyncFlowControl != default)
+                if (asyncFlowControl != default)
                 {
-                    _asyncFlowControl.Dispose();
+                    asyncFlowControl.Dispose();
                 }
             }
         }

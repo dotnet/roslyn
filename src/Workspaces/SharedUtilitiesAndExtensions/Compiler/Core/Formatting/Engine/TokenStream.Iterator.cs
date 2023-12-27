@@ -10,15 +10,10 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        public readonly struct Iterator
+        public readonly struct Iterator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
         {
-            private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
-
-            public Iterator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
-                => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-
             public Enumerator GetEnumerator()
-                => new(_tokensIncludingZeroWidth);
+                => new(tokensIncludingZeroWidth);
 
             public struct Enumerator
             {

@@ -9,19 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 {
     internal sealed class WatchHotReloadService
     {
-        private sealed class DebuggerService : IManagedHotReloadService
+        private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
         {
-            private readonly ImmutableArray<string> _capabilities;
-
-            public DebuggerService(ImmutableArray<string> capabilities)
-                => _capabilities = capabilities;
+            private readonly ImmutableArray<string> _capabilities = capabilities;
 
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);

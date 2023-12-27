@@ -1741,8 +1741,13 @@ class Program
 
             var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { TestMetadata.Net40.SystemCore });
             var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
-            var diagnostics = appCompilation.GetDiagnostics();
-            Assert.False(diagnostics.Any());
+            appCompilation.VerifyDiagnostics(
+                // error CS0012: The type 'ExtensionAttribute' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                );
+
+            appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef, TestMetadata.Net40.SystemCore }, options: TestOptions.ReleaseDll);
+            appCompilation.VerifyEmitDiagnostics();
         }
 
         [ConditionalFact(typeof(DesktopOnly)), WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
@@ -2127,7 +2132,7 @@ public class C { }
 
         private static IEnumerable<CSharpAttributeData> GetAssemblyDescriptionAttributes(AssemblySymbol assembly)
         {
-            return assembly.GetAttributes().Where(data => data.IsTargetAttribute(assembly, AttributeDescription.AssemblyDescriptionAttribute));
+            return assembly.GetAttributes().Where(data => data.IsTargetAttribute(AttributeDescription.AssemblyDescriptionAttribute));
         }
 
         [Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")]
@@ -2237,10 +2242,8 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                // var list = new ArrayBuilder<AttributeData>();
-                var asm = m.ContainingAssembly;
                 var attrs = m.ContainingAssembly.GetAttributes();
-                var attrlist = attrs.Where(a => a.IsTargetAttribute(asm, AttributeDescription.AssemblyFileVersionAttribute));
+                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute));
 
                 Assert.Equal(1, attrlist.Count());
                 Assert.Equal("System.Reflection.AssemblyFileVersionAttribute(\"4.3.2.1\")", attrlist.First().ToString());
@@ -2267,6 +2270,119 @@ static class Logo
 
             var compilation = CreateCompilation(s, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void ErrorsWithAssemblyAttributesInModules_01()
+        {
+            string attribute1 = @"
+public class A1 : System.Attribute
+{
+    public A1(int a){}
+}
+";
+            var attributeDefinition1 = CreateCompilation(attribute1, options: TestOptions.ReleaseDll, assemblyName: "A1").EmitToImageReference();
+
+            string module = @"
+[assembly:A1(1)]
+";
+            var moduleWithAttribute = CreateCompilation(module, references: new[] { attributeDefinition1 }, options: TestOptions.ReleaseModule, assemblyName: "M1").EmitToImageReference();
+
+            var comp = CreateCompilation("", references: new[] { moduleWithAttribute, attributeDefinition1 }, options: TestOptions.ReleaseDll);
+
+            CompileAndVerify(comp, symbolValidator: (m) =>
+                                                    {
+                                                        var attrs = m.ContainingAssembly.GetAttributes();
+                                                        Assert.Equal(4, attrs.Length);
+                                                        AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs[0].ToString());
+                                                        AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)", attrs[1].ToString());
+                                                        AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs[2].ToString());
+                                                        AssertEx.Equal("A1(1)", attrs[3].ToString());
+                                                    }).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation("", references: new[] { moduleWithAttribute }, options: TestOptions.ReleaseDll);
+
+            comp2.VerifyEmitDiagnostics(
+                // error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A1", "A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                );
+
+            string attribute2 = @"
+public class A1 : System.Attribute
+{
+    public A1(){}
+}
+";
+            var attributeDefinition2 = CreateCompilation(attribute2, options: TestOptions.ReleaseDll, assemblyName: "A1").EmitToImageReference();
+
+            var comp3 = CreateCompilation("", references: new[] { moduleWithAttribute, attributeDefinition2 }, options: TestOptions.ReleaseDll);
+
+            comp3.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'A1..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("A1", ".ctor").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70338")]
+        public void ErrorsWithAssemblyAttributesInModules_02()
+        {
+            string c1 = @"
+public class C1
+{
+}
+";
+            var c1Definition = CreateCompilation(c1, options: TestOptions.ReleaseDll, assemblyName: "A1").EmitToImageReference();
+
+            string module1 = @"
+[assembly:A1(typeof(C1))]
+
+public class A1 : System.Attribute
+{
+    public A1(System.Type t){}
+}
+";
+            var module1WithAttribute = CreateCompilation(module1, references: new[] { c1Definition }, options: TestOptions.ReleaseModule, assemblyName: "M1").EmitToImageReference();
+
+            var comp = CreateCompilation("", references: new[] { module1WithAttribute, c1Definition }, options: TestOptions.ReleaseDll);
+
+            CompileAndVerify(comp, symbolValidator: (m) =>
+                                                    {
+                                                        var attrs = m.ContainingAssembly.GetAttributes();
+                                                        Assert.Equal(4, attrs.Length);
+                                                        AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs[0].ToString());
+                                                        AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)", attrs[1].ToString());
+                                                        AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs[2].ToString());
+                                                        AssertEx.Equal("A1(typeof(C1))", attrs[3].ToString());
+                                                    }).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation("", references: new[] { module1WithAttribute }, options: TestOptions.ReleaseDll);
+
+            comp2.VerifyEmitDiagnostics(
+                // error CS0012: The type 'C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("C1", "A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                );
+
+            string module2 = @"
+[module:A1(typeof(C1))]
+
+public class A1 : System.Attribute
+{
+    public A1(System.Type t){}
+}
+";
+            var module2WithAttribute = CreateCompilation(module2, references: new[] { c1Definition }, options: TestOptions.ReleaseModule, assemblyName: "M1").EmitToImageReference();
+            var comp3 = CreateCompilation("", references: new[] { module2WithAttribute, c1Definition }, options: TestOptions.ReleaseDll);
+
+            CompileAndVerify(comp3, symbolValidator: (m) =>
+                                                     {
+                                                         var attrs = m.ContainingAssembly.GetAttributes();
+                                                         Assert.Equal(3, attrs.Length);
+                                                         AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs[0].ToString());
+                                                         AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)", attrs[1].ToString());
+                                                         AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs[2].ToString());
+                                                     }).VerifyDiagnostics();
         }
     }
 }

@@ -930,27 +930,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 referencedSymbols.Single().Locations.IsEmpty();
         }
 
-        protected sealed class UniqueVariableNameGenerator : IDisposable
+        protected sealed class UniqueVariableNameGenerator(
+            SyntaxNode memberDeclaration,
+            SemanticModel semanticModel,
+            ISemanticFactsService semanticFacts,
+            CancellationToken cancellationToken) : IDisposable
         {
-            private readonly SyntaxNode _memberDeclaration;
-            private readonly SemanticModel _semanticModel;
-            private readonly ISemanticFactsService _semanticFacts;
-            private readonly CancellationToken _cancellationToken;
-            private readonly PooledHashSet<string> _usedNames;
-
-            public UniqueVariableNameGenerator(
-                SyntaxNode memberDeclaration,
-                SemanticModel semanticModel,
-                ISemanticFactsService semanticFacts,
-                CancellationToken cancellationToken)
-            {
-                _memberDeclaration = memberDeclaration;
-                _semanticModel = semanticModel;
-                _semanticFacts = semanticFacts;
-                _cancellationToken = cancellationToken;
-
-                _usedNames = PooledHashSet<string>.GetInstance();
-            }
+            private readonly SyntaxNode _memberDeclaration = memberDeclaration;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly ISemanticFactsService _semanticFacts = semanticFacts;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
+            private readonly PooledHashSet<string> _usedNames = PooledHashSet<string>.GetInstance();
 
             public SyntaxToken GenerateUniqueNameAtSpanStart(SyntaxNode node)
             {

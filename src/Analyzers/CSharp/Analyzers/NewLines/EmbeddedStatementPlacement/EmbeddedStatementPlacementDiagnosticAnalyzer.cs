@@ -29,18 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowEmbeddedStatementsOnSameLine;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -52,19 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             // fixer will fix up all statements, but we don't want to clutter things with lots of diagnostics on the
             // same line.
             if (node is StatementSyntax statement &&
-                CheckStatementSyntax(context, severity, statement))
+                CheckStatementSyntax(context, notificationOption, statement))
             {
                 return;
             }
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!);
+                    Recurse(context, notificationOption, child.AsNode()!);
             }
         }
 
-        private bool CheckStatementSyntax(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, StatementSyntax statement)
+        private bool CheckStatementSyntax(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, StatementSyntax statement)
         {
             if (!StatementNeedsWrapping(statement))
                 return false;
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 statement.GetFirstToken().GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations,
                 properties: null));
             return true;

@@ -24,24 +24,15 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         bool ShouldReportChanges(SolutionServices services);
 
         ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
-#if false // Not used in unit testing crawling
-        ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
-        ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
-#endif
     }
 
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
-    internal class DefaultLegacySolutionEventsAggregationService : ILegacySolutionEventsAggregationService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DefaultLegacySolutionEventsAggregationService(
+        [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices) : ILegacySolutionEventsAggregationService
     {
-        private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultLegacySolutionEventsAggregationService(
-            [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices)
-        {
-            _eventsServices = eventsServices.ToImmutableArray();
-        }
+        private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices = eventsServices.ToImmutableArray();
 
         public bool ShouldReportChanges(SolutionServices services)
         {
@@ -59,19 +50,5 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             foreach (var service in _eventsServices)
                 await service.Value.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
         }
-
-#if false // Not used in unit testing crawling
-        public async ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
-        {
-            foreach (var service in _eventsServices)
-                await service.Value.OnTextDocumentOpenedAsync(args, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
-        {
-            foreach (var service in _eventsServices)
-                await service.Value.OnTextDocumentClosedAsync(args, cancellationToken).ConfigureAwait(false);
-        }
-#endif
     }
 }

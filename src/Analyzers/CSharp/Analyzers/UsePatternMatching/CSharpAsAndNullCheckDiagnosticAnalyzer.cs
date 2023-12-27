@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
 
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverAsWithNullCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -112,6 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 return;
             }
+
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            if (!syntaxContext.ShouldAnalyzeSpan(localStatement.Span))
+                return;
 
             // Don't convert if the as is part of a using statement
             // eg using (var x = y as MyObject) { }
@@ -265,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localStatement.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations,
                 properties: null));
         }

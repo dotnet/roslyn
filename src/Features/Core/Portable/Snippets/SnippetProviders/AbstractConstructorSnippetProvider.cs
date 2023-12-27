@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -16,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
-    internal abstract class AbstractConstructorSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConstructorSnippetProvider : AbstractSingleChangeSnippetProvider
     {
         public override string Identifier => "ctor";
 
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
             => ImmutableArray<SnippetPlaceholder>.Empty;
 
-        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -36,10 +34,13 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
             var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
             Contract.ThrowIfNull(containingType);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
+            Contract.ThrowIfNull(containingTypeSymbol);
             var constructorDeclaration = generator.ConstructorDeclaration(
                 containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
-                accessibility: Accessibility.Public);
-            return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString()));
+                accessibility: containingTypeSymbol.IsAbstract ? Accessibility.Protected : Accessibility.Public);
+            return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
         }
     }
 }

@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case LookupResultKind.Viable:
                     // Case (2)
-                    var resultDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag);
+                    var resultDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                     bool wasError;
                     symbol = ResultSymbol(
                         lookupResult,
@@ -239,19 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wasError: out wasError,
                         qualifierOpt: null);
 
+                    diagnostics.AddDependencies(resultDiagnostics);
+
                     // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
                     // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
                     // it as the contextual keyword.
                     if (wasError && lookupResult.IsSingleViable)
                     {
                         // NOTE: don't report diagnostics - we're not going to use the lookup result.
-                        resultDiagnostics.DiagnosticBag.Free();
+                        resultDiagnostics.Free();
                         // Case (2)(a)(2)
                         goto default;
                     }
 
                     diagnostics.AddRange(resultDiagnostics.DiagnosticBag);
-                    resultDiagnostics.DiagnosticBag.Free();
+                    resultDiagnostics.Free();
 
                     if (lookupResult.IsSingleViable)
                     {
@@ -913,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias) ? type.ContainsPointer() : type.IsUnsafe())
+                        if (type.ContainsPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }
@@ -1521,13 +1523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        var conversions = Conversions;
-
                         foreach (var symbol in lookupResult.Symbols)
                         {
                             var method = (MethodSymbol)symbol;
-                            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
-                            if (conversion.Exists)
+                            if (method.ReduceExtensionMethod(receiverType, Compilation) is not null)
                             {
                                 haveInstanceCandidates = true;
                                 break;
@@ -1662,21 +1661,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, BindingDiagnosticBag diagnostics, out TSymbol symbol)
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, BindingDiagnosticBag diagnostics, out TSymbol symbol, bool isOptional = false)
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
             if (symbol is null)
             {
-                MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                if (!isOptional)
+                {
+                    MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
+                    diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                }
+
                 return false;
             }
 
             var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
             if (useSiteInfo.DiagnosticInfo != null)
             {
-                diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                // Report errors only for non-optional members
+                if (isOptional)
+                {
+                    var severity = useSiteInfo.DiagnosticInfo.Severity;
+
+                    // If the member is optional and bad for whatever reason ignore it
+                    if (severity == DiagnosticSeverity.Error)
+                    {
+                        symbol = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                }
             }
 
             // No need to track assemblies used by special members or types. They are coming from core library, which 
@@ -2478,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
-            if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            if (symbol is NamedTypeSymbol { IsFileLocal: true })
             {
                 return BestSymbolLocation.FromFile;
             }
@@ -2513,8 +2531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for attributes, suggest both, but not for verbatim name
             if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
             {
-                // just recurse one level, so cheat and OR verbatim name option :)
-                NotFound(where, simpleName, arity, whereText + "Attribute", diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
+                string attributeName = arity > 0 ? $"{simpleName}Attribute<>" : $"{simpleName}Attribute";
+
+                NotFound(where, simpleName, arity, attributeName, diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
             }
 
             if ((object)qualifierOpt != null)
@@ -2694,11 +2713,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
-
-        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, bool forceWarning = false)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, forceWarning: forceWarning);
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
@@ -2706,11 +2722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
 
-        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
-
-        private static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
+        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, bool forceWarning = false)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, syntax, static syntax => syntax.GetLocation(), forceWarning: forceWarning);
 
         private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);
@@ -2718,11 +2731,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="getLocation">Callback function that computes the location to report the diagnostics at
         /// <em>if</em> a diagnostic should be reported.  Should always be passed a static/cached callback to prevent
         /// allocations of the delegate.</param>
-        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation)
+        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation, bool forceWarning = false)
         {
             if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
-                diagnostics?.Add(diagInfo, getLocation(data));
+                if (forceWarning)
+                {
+                    diagnostics?.Add(ErrorCode.WRN_ErrorOverride, getLocation(data), diagInfo, (int)diagInfo.Code);
+                }
+                else
+                {
+                    diagnostics?.Add(diagInfo, getLocation(data));
+                }
+
                 return false;
             }
             return true;

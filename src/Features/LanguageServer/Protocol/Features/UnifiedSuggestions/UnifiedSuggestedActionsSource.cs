@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
             return organizedFixes;
@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // Local functions
             async Task<IUnifiedSuggestedAction> GetUnifiedSuggestedActionAsync(Solution originalSolution, CodeAction action, CodeFix fix)
             {
-                if (action.NestedCodeActions.Length > 0)
+                if (action.NestedActions.Length > 0)
                 {
-                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedCodeActions.Length, out var unifiedNestedActions);
-                    foreach (var nestedAction in action.NestedCodeActions)
+                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedActions.Length, out var unifiedNestedActions);
+                    foreach (var nestedAction in action.NestedActions)
                     {
                         var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(originalSolution, nestedAction, fix).ConfigureAwait(false);
                         unifiedNestedActions.Add(unifiedNestedAction);
@@ -181,13 +181,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
-            if (!map.ContainsKey(groupKey))
+            if (!map.TryGetValue(groupKey, out var suggestedActions))
             {
                 order.Add(groupKey);
-                map[groupKey] = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                suggestedActions = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                map[groupKey] = suggestedActions;
             }
 
-            map[groupKey].Add(suggestedAction);
+            suggestedActions.Add(suggestedAction);
             return;
 
             static CodeFixGroupKey GetGroupKey(CodeFix fix)
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <remarks>
         /// Fix groups are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
         /// Priority for all <see cref="UnifiedSuggestedActionSet"/>s containing fixes is set to <see
-        /// cref="CodeActionPriority.Medium"/> by default. The only exception is the case where a <see
+        /// cref="CodeActionPriority.Default"/> by default. The only exception is the case where a <see
         /// cref="UnifiedSuggestedActionSet"/> only contains suppression fixes - the priority of such <see
         /// cref="UnifiedSuggestedActionSet"/>s is set to <see cref="CodeActionPriority.Lowest"/> so that suppression
         /// fixes always show up last after all other fixes (and refactorings) for the selected line of code.
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            CodeActionRequestPriority? priority,
             CodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
@@ -543,10 +544,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // Local functions
             async Task<IUnifiedSuggestedAction> GetUnifiedSuggestedActionSetAsync(CodeAction codeAction, TextSpan? applicableToSpan, TextSpan selection, CancellationToken cancellationToken)
             {
-                if (codeAction.NestedCodeActions.Length > 0)
+                if (codeAction.NestedActions.Length > 0)
                 {
-                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedCodeActions.Length, out var nestedActions);
-                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedActions.Length, out var nestedActions);
+                    foreach (var nestedAction in codeAction.NestedActions)
                     {
                         var unifiedAction = await GetUnifiedSuggestedActionSetAsync(nestedAction, applicableToSpan, selection, cancellationToken).ConfigureAwait(false);
                         nestedActions.Add(unifiedAction);

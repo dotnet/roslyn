@@ -11,7 +11,7 @@ strategies that can be applied in a high performance way by the hosting layer.
 - Allow for a finer grained approach to defining a generator
 - Scale source generators to support 'Roslyn/CoreCLR' scale projects in Visual Studio
 - Exploit caching between fine grained steps to reduce duplicate work
-- Support generating more items that just source texts
+- Support generating more items than just source texts
 - Exist alongside `ISourceGenerator` based implementations
 
 ## Simple Example
@@ -390,18 +390,18 @@ public static partial class IncrementalValueSourceExtensions
 ```
 
 ```ascii
-                                          Select<TSource, TResult>
+                                               Where<TSource>
                                    .......................................
                                    .                   ┌───────────┐     .
                                    .   predicate(Item1)│           │     .
                                    . ┌────────────────►│   Item1   ├───┐ .
                                    . │                 │           │   │ .
-IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
-          ┌───────────┐            . │                                 │ .        ┌────────────┐
-          │           │            . │ predicate(Item2)                │ .        │            │
-          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
-          │           │            . │                                 │ .        │            │
-          └───────────┘            . │                                 │ .        └────────────┘
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TSource>
+          ┌───────────┐            . │                                 │ .        ┌───────────┐
+          │           │            . │ predicate(Item2)                │ .        │           │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│  TSource  │
+          │           │            . │                                 │ .        │           │
+          └───────────┘            . │                                 │ .        └───────────┘
              3 Items               . │                 ┌───────────┐   │ .           2 Items
                                    . │ predicate(Item3)│           │   │ .
                                    . └────────────────►│   Item3   ├───┘ .
@@ -901,7 +901,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
-    // ensure we forward the cancellation token to GeText
+    // ensure we forward the cancellation token to GetText
     var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```

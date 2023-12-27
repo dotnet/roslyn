@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -65,22 +66,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
 
-            GlobalOptions.OptionChanged += OnGlobalOptionChanged;
+            GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
         }
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option == NamingStyleOptions.NamingPreferences ||
-                e.Option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
-                e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
+            if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
+                GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
-                if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-                {
-                    var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                    service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
-                }
+                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
+                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
             }
         }
 
@@ -110,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void Shutdown()
         {
-            GlobalOptions.OptionChanged -= OnGlobalOptionChanged;
+            GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
 
             var stateSets = _stateManager.GetAllStateSets();
 
@@ -118,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var handleActiveFile = true;
                 using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
 
                 foreach (var stateSet in stateSets)
                 {
@@ -125,10 +121,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var projectId in projectIds)
                     {
                         stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
-                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, projectId, documentSet, handleActiveFile);
                         documentSet.Clear();
                     }
                 }
+
+                raiseEvents(argsBuilder.ToImmutableAndClear());
             });
         }
 
@@ -137,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
 
                 foreach (var stateSet in stateSets)
                 {
@@ -147,19 +146,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // PERF: don't fire events for ones that we dont have any diagnostics on
                     if (documentSet.Count > 0)
                     {
-                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile: true, raiseEvents);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, projectId, documentSet, handleActiveFile: true);
                         documentSet.Clear();
                     }
                 }
+
+                raiseEvents(argsBuilder.ToImmutableAndClear());
             });
         }
 
-        private void RaiseDiagnosticsCreated(
-            Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void AddDiagnosticsCreatedArgs(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+            Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items)
         {
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
-            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(analyzer, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
@@ -168,12 +170,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostics: items));
         }
 
-        private void RaiseDiagnosticsRemoved(
-            ProjectId projectId, Solution? solution, DiagnosticAnalyzer analyzer, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void AddDiagnosticsRemovedArgs(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+            ProjectId projectId, Solution? solution, DiagnosticAnalyzer analyzer)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
-            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(analyzer, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
@@ -181,12 +184,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 documentId: null));
         }
 
-        private void RaiseDiagnosticsCreated(
-            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void AddDiagnosticsCreatedArgs(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
         {
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
-            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(analyzer, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
@@ -195,12 +199,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 items));
         }
 
-        private void RaiseDiagnosticsRemoved(
-            DocumentId documentId, Solution? solution, DiagnosticAnalyzer analyzer, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void AddDiagnosticsRemovedArgs(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+            DocumentId documentId, Solution? solution, DiagnosticAnalyzer analyzer, AnalysisKind kind)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
-            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(analyzer, documentId, kind),
                 Workspace,
                 solution,

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -99,18 +100,22 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation)
+            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation, bool warnAsError = false)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
+                var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var warningLevelText = warnAsError ? string.Empty : @"
+            ""warningLevel"": 1,";
 
                 return @"
       ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
-          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity1 + @""",
           ""message"": """ + Descriptor1.MessageFormat + @""",
           ""locations"": [
             {
@@ -125,13 +130,13 @@ namespace Microsoft.CodeAnalysis
               }
             }
           ],
-          ""properties"": {
-            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          ""properties"": {" +
+             warningLevelText + GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
-          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity2 + @""",
           ""message"": """ + Descriptor2.MessageFormat + @""",
           ""properties"": {" +
              GetExpectedPropertiesMapText() + @"
@@ -250,19 +255,23 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
-            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation)
+            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation, bool warnAsError = false)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
+                var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
+                var warningLevelText = warnAsError ? string.Empty : @"
+            ""warningLevel"": 1,";
 
                 return
 @"      ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
           ""ruleIndex"": 0,
-          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity1 + @""",
           ""message"": {
             ""text"": """ + Descriptor1.MessageFormat + @"""
           },
@@ -281,14 +290,14 @@ namespace Microsoft.CodeAnalysis
               }
             }
           ],
-          ""properties"": {
-            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          ""properties"": {" +
+             warningLevelText + GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
           ""ruleIndex"": 1,
-          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + effectiveSeverity2 + @""",
           ""message"": {
             ""text"": """ + Descriptor2.MessageFormat + @"""
           },
@@ -371,8 +380,81 @@ namespace Microsoft.CodeAnalysis
                 return string.Empty;
             }
 
-            public static string GetExpectedV2ErrorLogRulesText(string[] suppressionKinds1 = null, string[] suppressionKinds2 = null)
+            public static string GetExpectedV2ErrorLogInvocationsText(
+                params (string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)[] overriddenEffectiveSeveritiesWithIndex)
             {
+                if (overriddenEffectiveSeveritiesWithIndex.Length == 0)
+                {
+                    return string.Empty;
+                }
+
+                var first = true;
+                var overridesContent = string.Empty;
+                foreach (var (id, index, effectiveSeverities) in overriddenEffectiveSeveritiesWithIndex)
+                {
+                    foreach (var effectiveSeverity in effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default))
+                    {
+                        if (first)
+                        {
+                            first = false;
+                        }
+                        else
+                        {
+                            overridesContent += ",";
+                        }
+
+                        overridesContent += $@"
+            {{
+              ""descriptor"": {{
+                ""id"": ""{id}"",
+                ""index"": {index}
+              }},
+              ""configuration"": {{
+                {GetConfigurationPropertyString(effectiveSeverity)}
+              }}
+            }}";
+                    }
+                }
+
+                return $@"""invocations"": [
+        {{
+          ""executionSuccessful"": true,
+          ""ruleConfigurationOverrides"": [{overridesContent}
+          ]
+        }}
+      ]";
+            }
+
+            private static string GetConfigurationPropertyString(ReportDiagnostic severity)
+            {
+                if (severity == ReportDiagnostic.Suppress)
+                    return @"""enabled"": false";
+
+                var severityString = severity switch
+                {
+                    ReportDiagnostic.Error => "error",
+                    ReportDiagnostic.Warn => "warning",
+                    ReportDiagnostic.Info or ReportDiagnostic.Hidden => "note",
+                    _ => throw ExceptionUtilities.UnexpectedValue(severity)
+                };
+
+                return $@"""level"": ""{severityString}""";
+            }
+
+            internal static string GetExpectedV2ErrorLogRulesText(
+                ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo,
+                CultureInfo culture,
+                string[] suppressionKinds1 = null,
+                string[] suppressionKinds2 = null)
+            {
+                var descriptor1Info = descriptorsWithInfo.Single(d => d.Descriptor.Id == Descriptor1.Id).Info;
+                var descriptor1ExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(descriptor1Info.ExecutionTime, culture).Trim();
+                var descriptor1ExecutionPercentage = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionPercentage(descriptor1Info.ExecutionPercentage, culture).Trim();
+
+                var descriptor2Info = descriptorsWithInfo.Single(d => d.Descriptor.Id == Descriptor2.Id).Info;
+                var descriptor2ExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(descriptor2Info.ExecutionTime, culture).Trim();
+                var descriptor2ExecutionPercentage = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionPercentage(descriptor2Info.ExecutionPercentage, culture).Trim();
+
                 return
 @"          ""rules"": [
             {
@@ -386,6 +468,8 @@ namespace Microsoft.CodeAnalysis
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
                 ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
+                ""executionTimeInSeconds"": """ + descriptor1ExecutionTime + @""",
+                ""executionTimeInPercentage"": """ + descriptor1ExecutionPercentage + @""",
                 ""tags"": [
                   " + string.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
@@ -405,6 +489,8 @@ namespace Microsoft.CodeAnalysis
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
                 ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
+                ""executionTimeInSeconds"": """ + descriptor2ExecutionTime + @""",
+                ""executionTimeInPercentage"": """ + descriptor2ExecutionPercentage + @""",
                 ""tags"": [
                   " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
@@ -995,6 +1081,30 @@ namespace Microsoft.CodeAnalysis
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, tree.GetRoot().GetLocation()));
                 }
             }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SemanticModelAnalyzerWithId : DiagnosticAnalyzer
+        {
+            public SemanticModelAnalyzerWithId(string diagnosticId)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    diagnosticId,
+                    "Description1",
+                    string.Empty,
+                    "Analysis",
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context) =>
+                context.RegisterSemanticModelAction(context =>
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(Descriptor, context.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
         }
 
         /// <summary>
@@ -2069,6 +2179,42 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForMultipleIds : DiagnosticSuppressor
+        {
+            public DiagnosticSuppressorForMultipleIds(params string[] suppressedDiagnosticIds)
+            {
+                var builder = ImmutableArray.CreateBuilder<SuppressionDescriptor>();
+                int i = 1;
+                foreach (var suppressedDiagnosticId in suppressedDiagnosticIds)
+                {
+                    var descriptor = new SuppressionDescriptor(
+                        id: $"SPR000{i++}",
+                        suppressedDiagnosticId: suppressedDiagnosticId,
+                        justification: $"Suppress {suppressedDiagnosticId}");
+                    builder.Add(descriptor);
+                }
+
+                SupportedSuppressions = builder.ToImmutable();
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; }
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    foreach (var suppressionDescriptor in SupportedSuppressions)
+                    {
+                        if (suppressionDescriptor.SuppressedDiagnosticId == diagnostic.Id)
+                        {
+                            context.ReportSuppression(Suppression.Create(suppressionDescriptor, diagnostic));
+                        }
+                    }
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorForId_ThrowsOperationCancelledException : DiagnosticSuppressor
         {
             public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
@@ -2345,16 +2491,40 @@ namespace Microsoft.CodeAnalysis
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {
             private readonly bool _throwOnAllNamedTypes;
+            private readonly DiagnosticSeverity _reportedSeverity;
+
             public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool throwOnAllNamedTypes = false)
+                : this(isEnabledByDefault, defaultSeverity, customConfigurable: false, throwOnAllNamedTypes)
             {
+            }
+
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool customConfigurable, bool throwOnAllNamedTypes)
+                : this(isEnabledByDefault, defaultSeverity, defaultSeverity, customConfigurable, throwOnAllNamedTypes)
+            {
+            }
+
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(
+                bool isEnabledByDefault,
+                DiagnosticSeverity defaultSeverity,
+                DiagnosticSeverity reportedSeverity,
+                bool customConfigurable,
+                bool throwOnAllNamedTypes)
+            {
+                var customTags = Array.Empty<string>();
+                if (customConfigurable)
+                    customTags = [WellKnownDiagnosticTags.CustomSeverityConfigurable];
+
                 Descriptor = new DiagnosticDescriptor(
                     "ID0001",
                     "Title1",
                     "Message1",
                     "Category1",
                     defaultSeverity,
-                    isEnabledByDefault);
+                    isEnabledByDefault,
+                    customTags: customTags);
+
                 _throwOnAllNamedTypes = throwOnAllNamedTypes;
+                _reportedSeverity = reportedSeverity;
             }
 
             public DiagnosticDescriptor Descriptor { get; }
@@ -2363,15 +2533,16 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterSymbolAction(context =>
+                {
+                    if (_throwOnAllNamedTypes)
                     {
-                        if (_throwOnAllNamedTypes)
-                        {
-                            throw new NotImplementedException();
-                        }
+                        throw new NotImplementedException();
+                    }
 
-                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0]));
-                    },
-                    SymbolKind.NamedType);
+                    var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.Locations[0], _reportedSeverity, additionalLocations: null, properties: null, messageArgs: null);
+                    context.ReportDiagnostic(diagnostic);
+                },
+                SymbolKind.NamedType);
             }
         }
 
@@ -2888,6 +3059,21 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public sealed class FilterSpanTestAnalyzer : DiagnosticAnalyzer
         {
+            public enum AnalysisKind
+            {
+                SyntaxTree,
+                AdditionalFile,
+                SemanticModel,
+                Symbol,
+                SymbolStart,
+                Operation,
+                OperationBlockStart,
+                OperationBlock,
+                SyntaxNode,
+                CodeBlockStart,
+                CodeBlock,
+            }
+
             private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
                     "ID0001",
                     "Title",
@@ -2896,27 +3082,163 @@ namespace Microsoft.CodeAnalysis
                     defaultSeverity: DiagnosticSeverity.Warning,
                     isEnabledByDefault: true);
 
-            private readonly bool _testSyntaxTreeAction;
+            private readonly AnalysisKind _analysisKind;
 
-            public FilterSpanTestAnalyzer(bool testSyntaxTreeAction)
+            public FilterSpanTestAnalyzer(AnalysisKind analysisKind)
             {
-                _testSyntaxTreeAction = testSyntaxTreeAction;
+                _analysisKind = analysisKind;
             }
 
             public TextSpan? CallbackFilterSpan { get; private set; }
+            public SyntaxTree CallbackFilterTree { get; private set; }
+            public AdditionalText CallbackFilterFile { get; private set; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
 
             public override void Initialize(AnalysisContext context)
             {
-                if (_testSyntaxTreeAction)
+                switch (_analysisKind)
                 {
-                    context.RegisterSyntaxTreeAction(context => CallbackFilterSpan = context.FilterSpan);
+                    case AnalysisKind.SyntaxTree:
+                        context.RegisterSyntaxTreeAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.Tree;
+                        });
+                        break;
+
+                    case AnalysisKind.AdditionalFile:
+                        context.RegisterAdditionalFileAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterFile = context.AdditionalFile;
+                        });
+                        break;
+
+                    case AnalysisKind.SemanticModel:
+                        context.RegisterSemanticModelAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    case AnalysisKind.Symbol:
+                        context.RegisterSymbolAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.SymbolStart:
+                        context.RegisterSymbolStartAction(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterSymbolEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.Operation:
+                        context.RegisterOperationAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, OperationKind.VariableDeclarationGroup);
+                        break;
+
+                    case AnalysisKind.OperationBlockStart:
+                        context.RegisterOperationBlockStartAction(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterOperationBlockEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.OperationBlock:
+                        context.RegisterOperationBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    case AnalysisKind.SyntaxNode:
+                        context.RegisterSyntaxNodeAction<SyntaxKind>(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, SyntaxKind.LocalDeclarationStatement);
+                        break;
+
+                    case AnalysisKind.CodeBlockStart:
+                        context.RegisterCodeBlockStartAction<SyntaxKind>(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterCodeBlockEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.CodeBlock:
+                        context.RegisterCodeBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_analysisKind);
                 }
-                else
-                {
-                    context.RegisterSemanticModelAction(context => CallbackFilterSpan = context.FilterSpan);
-                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class MinimumReportedSeverityAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public DiagnosticSeverity MinimumReportedSeverity { get; private set; }
+            public bool AnalyzerInvoked { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                MinimumReportedSeverity = context.MinimumReportedSeverity;
+                AnalyzerInvoked = true;
             }
         }
     }

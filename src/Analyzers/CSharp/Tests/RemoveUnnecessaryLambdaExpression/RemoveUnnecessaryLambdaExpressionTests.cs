@@ -21,18 +21,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
     public class RemoveUnnecessaryLambdaExpressionTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
+        private static async Task TestInRegularAndScriptAsync(
+            string testCode,
+            string fixedCode,
+            LanguageVersion version = LanguageVersion.CSharp12,
+            OutputKind? outputKind = null)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = version,
+                TestState =
+                {
+                    OutputKind = outputKind,
+                }
             }.RunAsync();
         }
 
-        private static Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
-            => TestInRegularAndScriptAsync(testCode, testCode, version);
+        private static Task TestMissingInRegularAndScriptAsync(
+            string testCode,
+            LanguageVersion version = LanguageVersion.CSharp12,
+            OutputKind? outputKind = null)
+            => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
         [Fact]
         public async Task TestMissingInCSharp10()
@@ -109,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }
@@ -1719,6 +1730,308 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                     internal void M3(string s) { }
 
                     private static void M2(Action<string> a) { }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestNotWithAssignmentOfInvokedExpression1()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new(v => valueSet.SetResult(v));
+                helper.Set(true);
+                valueSet = new();
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, outputKind: OutputKind.ConsoleApplication);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression1()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new([|v => |]valueSet.SetResult(v));
+                helper.Set(true);
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                TaskCompletionSource<bool> valueSet = new();
+                Helper helper = new(valueSet.SetResult);
+                helper.Set(true);
+                helper.Set(false);
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """,
+                outputKind: OutputKind.ConsoleApplication);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestNotWithAssignmentOfInvokedExpression2()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(v => valueSet.SetResult(v));
+                        helper.Set(true);
+                        valueSet = new();
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression2()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new([|v => |]valueSet.SetResult(v));
+                        helper.Set(true);
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(valueSet.SetResult);
+                        helper.Set(true);
+                        helper.Set(false);
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression3()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new([|v => |]valueSet.SetResult(v));
+                        helper.Set(true);
+                        helper.Set(false);
+
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(valueSet.SetResult);
+                        helper.Set(true);
+                        helper.Set(false);
+                
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71300")]
+        public async Task TestWithWriteInOtherMethod()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Linq;
+
+                public class Repro
+                {
+                    private readonly MethodProvider _methodProvider;
+
+                    public Repro(MethodProvider methodProvider)
+                    {
+                        // Assignment that should not block feature.
+                        _methodProvider = methodProvider;
+                    }
+
+                    public void Main()
+                    {
+                        int[] numbers = { 1, 2, 3, 4, 5 };
+                        string[] asStrings = numbers.Select([|x => |]_methodProvider.ToStr(x)).ToArray();
+                        Console.WriteLine(asStrings.Length);
+                    }
+                }
+
+                public class MethodProvider
+                {
+                    public string ToStr(int x)
+                    {
+                        return x.ToString();
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Linq;
+
+                public class Repro
+                {
+                    private readonly MethodProvider _methodProvider;
+
+                    public Repro(MethodProvider methodProvider)
+                    {
+                        // Assignment that should not block feature.
+                        _methodProvider = methodProvider;
+                    }
+
+                    public void Main()
+                    {
+                        int[] numbers = { 1, 2, 3, 4, 5 };
+                        string[] asStrings = numbers.Select(_methodProvider.ToStr).ToArray();
+                        Console.WriteLine(asStrings.Length);
+                    }
+                }
+
+                public class MethodProvider
+                {
+                    public string ToStr(int x)
+                    {
+                        return x.ToString();
+                    }
                 }
                 """);
         }

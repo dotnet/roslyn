@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -174,13 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
+            if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
             {
                 var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
                 result.Add(CodeAction.Create(
                     title,
-                    c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c),
+                    cancellationToken => UpdateDocumentAsync(document, root, lambdaNode, cancellationToken),
                     title));
             }
 
@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var title = UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle.ToString();
                 result.Add(CodeAction.Create(
                     title,
-                    c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c),
+                    cancellationToken => UpdateDocumentAsync(document, root, lambdaNode, cancellationToken),
                     title));
             }
 
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
             // as both the 'original' and 'current' declaration.
-            var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, declaration, declaration);
+            var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, declaration, declaration, cancellationToken);
 
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
             return document.WithSyntaxRoot(newRoot);

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation;
@@ -45,8 +42,9 @@ internal static class OmniSharpNavigateToSearcher
             _callback = callback;
         }
 
-        public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
         {
+            var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
             var omniSharpResult = new OmniSharpNavigateToSearchResult(
                 result.AdditionalInformation,
                 result.Kind,
@@ -56,9 +54,9 @@ internal static class OmniSharpNavigateToSearcher
                 result.NameMatchSpans,
                 result.SecondarySort,
                 result.Summary!,
-                new(result.NavigableItem.DisplayTaggedParts, result.NavigableItem.Document, result.NavigableItem.SourceSpan));
+                new OmniSharpNavigableItem(result.NavigableItem.DisplayTaggedParts, document, result.NavigableItem.SourceSpan));
 
-            return _callback(project, omniSharpResult, cancellationToken);
+            await _callback(project, omniSharpResult, cancellationToken).ConfigureAwait(false);
         }
 
         public void Done(bool isFullyLoaded)

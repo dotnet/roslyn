@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, isExpression.GetLocation(),
-                    styleOption.Notification.Severity,
+                    styleOption.Notification,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string?>.Empty));
         }
 
-        public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
+        public static (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             INamedTypeSymbol? expressionType,
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return null;
         }
 
-        private void AddMatches(
+        private static void AddMatches(
             SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
         {
             // Don't bother recursing down nodes that are before the type in the is-expression.

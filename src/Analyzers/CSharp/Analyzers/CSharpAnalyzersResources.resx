@@ -412,4 +412,7 @@
     <value>Member can be made 'readonly'</value>
     <comment>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Use_primary_constructor" xml:space="preserve">
+    <value>Use primary constructor</value>
+  </data>
 </root>

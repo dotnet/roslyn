@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     id),
                 context.Diagnostics);
 
-            foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers())
+            foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers(cancellationToken))
             {
                 id = GetCodeActionId(
                     abstractClassType.ContainingAssembly.Name,

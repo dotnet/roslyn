@@ -4,9 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -18,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class SynthesizedGlobalMethodBase
         Inherits MethodSymbol
+        Implements ISynthesizedGlobalMethodSymbol
 
         Protected ReadOnly m_privateImplType As PrivateImplementationDetails
 
@@ -204,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property ContainingPrivateImplementationDetailsType As PrivateImplementationDetails
+        Public ReadOnly Property ContainingPrivateImplementationDetailsType As PrivateImplementationDetails Implements ISynthesizedGlobalMethodSymbol.ContainingPrivateImplementationDetailsType
             Get
                 Return m_privateImplType
             End Get
@@ -351,6 +350,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
 End Namespace
