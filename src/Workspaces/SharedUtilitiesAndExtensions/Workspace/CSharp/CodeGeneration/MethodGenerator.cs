@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (!referencedTypeParameters.Contains(typeParameter))
                     continue;
 
-                TypeParameterConstraintSyntax? constraint;
+                TypeParameterConstraintSyntax constraint;
 
                 if (typeParameter.HasReferenceTypeConstraint)
                 {

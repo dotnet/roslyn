@@ -2484,7 +2484,10 @@ class D<T> : B<{passToBase}>{constraint}
 
                 abstract class Problem
                 {
-                    protected abstract void M<T>(I<T?> i) where T : C;
+                    protected abstract void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : Y
+                        where Y : Z
+                        where Z : C;
                 }
 
                 class [|Bad|] : Problem
@@ -2499,12 +2502,18 @@ class D<T> : B<{passToBase}>{constraint}
 
                 abstract class Problem
                 {
-                    protected abstract void M<T>(I<T?> i) where T : C;
+                    protected abstract void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : Y
+                        where Y : Z
+                        where Z : C;
                 }
 
                 class Bad : Problem
                 {
-                    protected override void M<T>(I<T?> i) where T : class
+                    protected override void M<X, Y, Z>(I<X?> ix, I<Y?> iy, I<Z?> iz)
+                        where X : class
+                        where Y : class
+                        where Z : class
                     {
                         throw new System.NotImplementedException();
                     }
