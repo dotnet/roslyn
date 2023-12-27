@@ -1682,6 +1682,16 @@
         <target state="translated">此工作區不支援更新 Visual Basic 編譯選項。</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="new">When types exactly match</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="new">When types loosely match</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="translated">重新命名 UI 應該顯示在何處?</target>

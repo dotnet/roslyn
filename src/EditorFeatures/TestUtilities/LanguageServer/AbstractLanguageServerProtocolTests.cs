@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -37,7 +38,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
 {
@@ -102,7 +103,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected class OrderLocations : Comparer<LSP.Location>
+        private protected class OrderLocations : Comparer<LSP.Location>
         {
             public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
         }
@@ -112,18 +113,17 @@ namespace Roslyn.Test.Utilities
         private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
             => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
-        protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
+        private protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
-        protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
+        private protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
             => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
 
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
         /// </summary>
-        /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        public static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -141,7 +141,7 @@ namespace Roslyn.Test.Utilities
         /// Assert that two location lists are equivalent.
         /// Locations are not always returned in a consistent order so they must be sorted.
         /// </summary>
-        protected static void AssertLocationsEqual(IEnumerable<LSP.Location> expectedLocations, IEnumerable<LSP.Location> actualLocations)
+        private protected static void AssertLocationsEqual(IEnumerable<LSP.Location> expectedLocations, IEnumerable<LSP.Location> actualLocations)
         {
             var orderedActualLocations = actualLocations.OrderBy(CompareLocations);
             var orderedExpectedLocations = expectedLocations.OrderBy(CompareLocations);
@@ -149,21 +149,21 @@ namespace Roslyn.Test.Utilities
             AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
         }
 
-        protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
+        private protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
         {
             var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;
         }
 
-        protected static int CompareRange(LSP.Range r1, LSP.Range r2)
+        private protected static int CompareRange(LSP.Range r1, LSP.Range r2)
         {
             var compareLine = r1.Start.Line.CompareTo(r2.Start.Line);
             var compareChar = r1.Start.Character.CompareTo(r2.Start.Character);
             return compareLine != 0 ? compareLine : compareChar;
         }
 
-        protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
+        private protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
         {
             var text = originalMarkup;
             foreach (var edit in edits)
@@ -196,7 +196,7 @@ namespace Roslyn.Test.Utilities
             return info;
         }
 
-        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+        private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
             var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
 
@@ -209,21 +209,21 @@ namespace Roslyn.Test.Utilities
             return documentIdentifier;
         }
 
-        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
+        private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
             => new LSP.TextDocumentPositionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
                 Position = caret.Range.Start
             };
 
-        protected static LSP.MarkupContent CreateMarkupContent(LSP.MarkupKind kind, string value)
+        private protected static LSP.MarkupContent CreateMarkupContent(LSP.MarkupKind kind, string value)
             => new LSP.MarkupContent()
             {
                 Kind = kind,
                 Value = value
             };
 
-        protected static LSP.CompletionParams CreateCompletionParams(
+        private protected static LSP.CompletionParams CreateCompletionParams(
             LSP.Location caret,
             LSP.VSInternalCompletionInvokeKind invokeKind,
             string triggerCharacter,
@@ -240,7 +240,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
+        private protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
             string label,
             LSP.CompletionItemKind kind,
             string[] tags,
@@ -280,7 +280,7 @@ namespace Roslyn.Test.Utilities
             };
 
             if (tags != null)
-                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement();
+                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement().ToLSPImageElement();
 
             if (commitCharacters != null)
                 item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();
@@ -288,7 +288,7 @@ namespace Roslyn.Test.Utilities
             return item;
         }
 
-        protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
+        private protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
             => new LSP.TextEdit
             {
                 NewText = newText,
@@ -441,7 +441,7 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        public static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
+        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
@@ -453,7 +453,7 @@ namespace Roslyn.Test.Utilities
                     Contract.ThrowIfNull(document.FilePath);
 
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
-                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, ProtocolConversions.CreateAbsoluteUri(document.FilePath))));
+                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, document.GetURI())));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
@@ -475,7 +475,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
+        private protected static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
         {
             var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
             return new LSP.Location

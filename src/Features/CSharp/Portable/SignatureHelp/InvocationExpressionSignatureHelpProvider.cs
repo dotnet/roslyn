@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -98,23 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
             methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 
-            if (!methods.Any())
+            if (methods.Length == 0)
                 return null;
 
             // guess the best candidate if needed and determine parameter index
-            var arguments = invocationExpression.ArgumentList.Arguments;
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            var candidates = symbolInfo.Symbol is IMethodSymbol exactMatch
-                ? ImmutableArray.Create(exactMatch)
-                : methods;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndexOverride);
+            var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+                .RefineOverloadAndPickParameter(symbolInfo, methods);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
-            {
                 methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m) ? currentSymbol : m);
-            }
 
             // present items and select
             var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
@@ -156,10 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // determine parameter index
-            var arguments = invocationExpression.ArgumentList.Arguments;
-            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(
-                arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndexOverride);
+            var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, invocationExpression.ArgumentList.Arguments)
+                .FindParameterIndexIfCompatibleMethod(currentSymbol);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();

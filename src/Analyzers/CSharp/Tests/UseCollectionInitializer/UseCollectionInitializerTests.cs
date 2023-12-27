@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer;
@@ -20,19 +17,20 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionInitializerTests
+public sealed partial class UseCollectionInitializerTests
 {
     private static async Task TestInRegularAndScriptAsync(
         string testCode,
         string fixedCode,
-        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary,
+        LanguageVersion languageVersion = LanguageVersion.CSharp11)
     {
         var test = new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
-            LanguageVersion = LanguageVersion.CSharp11,
+            LanguageVersion = languageVersion,
             TestState = { OutputKind = outputKind },
         };
 
@@ -65,7 +63,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                 }
             }
             """,
@@ -125,7 +123,7 @@ public partial class UseCollectionInitializerTests
                 void M(int[] x)
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                     c.AddRange(x);
                 }
             }
@@ -159,7 +157,7 @@ public partial class UseCollectionInitializerTests
                 void M(int[] x)
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                     foreach (var v in x)
                         c.Add(v);
                 }
@@ -195,7 +193,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                     if (b)
                         c.Add(2);
                 }
@@ -231,7 +229,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                     if (b)
                         c.Add(2);
                     else
@@ -271,7 +269,7 @@ public partial class UseCollectionInitializerTests
                 void M(bool b)
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                     if (b)
                     {
                         c.Add(2);
@@ -527,7 +525,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    c.Add(0);
+                    [|c.Add(|]0);
                     c[1] = 2;
                 }
             }
@@ -560,8 +558,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1);
-                    c.Add(2);
+                    [|c.Add(|]1);
+                    [|c.Add(|]2);
                     throw new System.Exception();
                     c.Add(3);
                     c.Add(4);
@@ -660,7 +658,7 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>(1);
-                    c.Add(1);
+                    [|c.Add(|]1);
                 }
             }
             """,
@@ -693,7 +691,7 @@ public partial class UseCollectionInitializerTests
                 {
                     List<int> c = null;
                     c = [|new|] List<int>();
-                    c.Add(1);
+                    [|c.Add(|]1);
                 }
             }
             """,
@@ -752,8 +750,8 @@ public partial class UseCollectionInitializerTests
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    array[0].Add(1);
-                    array[0].Add(2);
+                    [|array[0].Add(|]1);
+                    [|array[0].Add(|]2);
                 }
             }
             """,
@@ -807,7 +805,7 @@ public partial class UseCollectionInitializerTests
                     {
                         1
                     };
-                    c.Add(1);
+                    [|c.Add(|]1);
                 }
             }
             """,
@@ -843,7 +841,7 @@ public partial class UseCollectionInitializerTests
                     {
                         1,
                     };
-                    c.Add(1);
+                    [|c.Add(|]1);
                 }
             }
             """,
@@ -876,11 +874,11 @@ public partial class UseCollectionInitializerTests
                 void M(List<int>[] array)
                 {
                     array[0] = [|new|] List<int>();
-                    array[0].Add(1);
-                    array[0].Add(2);
+                    [|array[0].Add(|]1);
+                    [|array[0].Add(|]2);
                     array[1] = [|new|] List<int>();
-                    array[1].Add(3);
-                    array[1].Add(4);
+                    [|array[1].Add(|]3);
+                    [|array[1].Add(|]4);
                 }
             }
             """,
@@ -921,9 +919,9 @@ public partial class UseCollectionInitializerTests
                 {
                     var list1 = [|new|] Bar(() => {
                         var list2 = [|new|] List<int>();
-                        list2.Add(2);
+                        [|list2.Add(|]2);
                     });
-                    list1.Add(1);
+                    [|list1.Add(|]1);
                 }
             }
 
@@ -982,9 +980,9 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var list1 = [|new|] List<Action>();
-                    list1.Add(() => {
+                    [|list1.Add(|]() => {
                         var list2 = [|new|] List<int>();
-                        list2.Add(2);
+                        [|list2.Add(|]2);
                     });
                 }
             }
@@ -1044,8 +1042,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] List<int>();
-                    c.Add(1); // Goo
-                    c.Add(2); // Bar
+                    [|c.Add(|]1); // Goo
+                    [|c.Add(|]2); // Bar
                 }
             }
             """,
@@ -1065,8 +1063,7 @@ public partial class UseCollectionInitializerTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
     public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
     {
         await TestInRegularAndScriptAsync(
@@ -1079,10 +1076,10 @@ public partial class UseCollectionInitializerTests
                     var c = [|new|] List<int>();
 
                     // Goo
-                    c.Add(1);
+                    [|c.Add(|]1);
 
                     // Bar
-                    c.Add(2);
+                    [|c.Add(|]2);
                 }
             }
             """,
@@ -1117,8 +1114,8 @@ public partial class UseCollectionInitializerTests
                 void M()
                 {
                     var c = [|new|] Dictionary<int, string>();
-                    c.Add(1, "x");
-                    c.Add(2, "y");
+                    [|c.Add(|]1, "x");
+                    [|c.Add(|]2, "y");
                 }
             }
             """,
@@ -1154,7 +1151,7 @@ public partial class UseCollectionInitializerTests
                     var items = new List<string>();
 
                     var values = [|new|] List<string>(); // Collection initialization can be simplified
-                    values.Add(item);
+                    [|values.Add(|]item);
                     values.AddRange(items);
                 }
             }
@@ -1396,7 +1393,7 @@ public partial class UseCollectionInitializerTests
                 {
             #if true
                     var items = [|new|] List<object>();
-                    items.Add(1);
+                    [|items.Add(|]1);
             #endif
                 }
             }
@@ -1432,7 +1429,7 @@ public partial class UseCollectionInitializerTests
                 {
                     int lastItem;
                     var list = [|new|] List<int>();
-                    list.Add(lastItem = 5);
+                    [|list.Add(|]lastItem = 5);
                 }
             }
             """,
@@ -1466,7 +1463,7 @@ public partial class UseCollectionInitializerTests
                 {
                     int lastItem = 0;
                     var list = [|new|] List<int>();
-                    list.Add(lastItem += 5);
+                    [|list.Add(|]lastItem += 5);
                 }
             }
             """,
@@ -1499,7 +1496,7 @@ public partial class UseCollectionInitializerTests
                 public void Main()
                 {
                     var list = [|new|] List<int>();
-                    list.Add(1);
+                    [|list.Add(|]1);
 
                     int horse = 1;
                 }
@@ -1644,8 +1641,7 @@ public partial class UseCollectionInitializerTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
     public async Task TestInTopLevelStatements()
     {
         await TestInRegularAndScriptAsync(
@@ -1653,7 +1649,7 @@ public partial class UseCollectionInitializerTests
             using System.Collections.Generic;
 
             var list = [|new|] List<int>();
-            list.Add(1);
+            [|list.Add(|]1);
             """,
             """
             using System.Collections.Generic;
@@ -1664,5 +1660,58 @@ public partial class UseCollectionInitializerTests
             };
 
             """, OutputKind.ConsoleApplication);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    public async Task TestCollectionExpressionArgument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            var list = [|new|] List<object[]>();
+            [|list.Add(|][]);
+            """,
+            """
+            using System.Collections.Generic;
+
+            var list = new List<object[]>
+            {
+                ([])
+            };
+
+            """, OutputKind.ConsoleApplication, LanguageVersion.CSharp12);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    public async Task TestCollectionExpressionArgument2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var list = [|new|] List<object[]>();
+                    [|list.Add(|][]);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var list = new List<object[]>
+                    {
+                        ([])
+                    };
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp12);
     }
 }

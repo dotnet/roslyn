@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool PerformSort { get; init; } = true;
 
         /// <summary>
-        /// Test-only option.
+        /// Force completion APIs to produce complete results, even in cases where caches have not been pre-populated.
+        /// This is typically used for testing scenarios, and by public APIs where consumers do not have access to
+        /// other internal APIs used to control cache creation and/or wait for caches to be populated before examining
+        /// completion results.
         /// </summary>
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
 

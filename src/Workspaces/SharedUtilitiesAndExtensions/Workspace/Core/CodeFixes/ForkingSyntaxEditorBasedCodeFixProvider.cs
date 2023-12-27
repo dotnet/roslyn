@@ -25,15 +25,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     : SyntaxEditorBasedCodeFixProvider
     where TDiagnosticNode : SyntaxNode
 {
-    private readonly string _title;
-    private readonly string _equivalenceKey;
-
-    protected ForkingSyntaxEditorBasedCodeFixProvider(
-        string title, string equivalenceKey)
-    {
-        _title = title;
-        _equivalenceKey = equivalenceKey;
-    }
+    protected abstract (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context);
 
     /// <summary>
     /// Subclasses must override this to actually provide the fix for a particular diagnostic.  The implementation will
@@ -51,9 +43,14 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
 
+    protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        // Never try to fix the secondary diagnostics that were produced just to fade out code.
+        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
+
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, _title, _equivalenceKey);
+        var (title, equivalenceKey) = GetTitleAndEquivalenceKey(context);
+        RegisterCodeFix(context, title, equivalenceKey);
         return Task.CompletedTask;
     }
 

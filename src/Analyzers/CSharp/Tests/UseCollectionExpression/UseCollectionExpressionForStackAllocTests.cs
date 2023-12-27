@@ -115,7 +115,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> x = [|stackalloc|] int[] { 1, 2, 3 };
+                        ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -147,7 +147,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> x = [|stackalloc|][] { 1, 2, 3 };
+                        ReadOnlySpan<int> x = [|[|stackalloc|][]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -179,7 +179,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        Span<int> x = [|stackalloc|] int[] { 1, 2, 3 };
+                        Span<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -211,7 +211,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        Span<int> x = [|stackalloc|][] { 1, 2, 3 };
+                        Span<int> x = [|[|stackalloc|][]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -328,7 +328,7 @@ public class UseCollectionExpressionForStackAllocTests
                     void M()
                     {
                         const int size = 1;
-                        ReadOnlySpan<int> x = [|stackalloc|] int[size] { 2 };
+                        ReadOnlySpan<int> x = [|[|stackalloc|] int[size]|] { 2 };
                     }
                 }
                 """,
@@ -445,7 +445,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        Goo([|stackalloc|] int[] { 1, 2, 3 });
+                        Goo([|[|stackalloc|] int[]|] { 1, 2, 3 });
                     }
 
                     void Goo(ReadOnlySpan<int> span) { }
@@ -481,7 +481,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        Goo([|stackalloc|][] { 1, 2, 3 });
+                        Goo([|[|stackalloc|][]|] { 1, 2, 3 });
                     }
 
                     void Goo(ReadOnlySpan<int> span) { }
@@ -517,7 +517,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> r = [|stackalloc|] int[] { };
+                        ReadOnlySpan<int> r = [|[|stackalloc|] int[]|] { };
                     }
                 }
                 """,
@@ -549,7 +549,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        var r = (ReadOnlySpan<int>)[|stackalloc|] int[] { };
+                        var r = (ReadOnlySpan<int>)[|[|stackalloc|] int[]|] { };
                     }
                 }
                 """,
@@ -603,7 +603,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> r = [|stackalloc|] int[0] { };
+                        ReadOnlySpan<int> r = [|[|stackalloc|] int[0]|] { };
                     }
                 }
                 """,
@@ -656,7 +656,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M()
                     {
-                        ReadOnlySpan<int> r = [|stackalloc|] int[0];
+                        ReadOnlySpan<int> r = [|[|stackalloc|] int[0]|];
                     }
                 }
                 """,
@@ -914,7 +914,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[1];
+                        Span<int> r = [|[|stackalloc|] int[1]|];
                         r[0] = i;
                     }
                 }
@@ -947,7 +947,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[1];
+                        Span<int> r = [|[|stackalloc|] int[1]|];
                         r[0] = i;
                         r[0] = j;
                     }
@@ -982,7 +982,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[2];
+                        Span<int> r = [|[|stackalloc|] int[2]|];
                         r[0] = i;
                         r[1] = j;
                     }
@@ -1017,7 +1017,7 @@ public class UseCollectionExpressionForStackAllocTests
                     void M(int i, int j)
                     {
                         const int v = 1;
-                        Span<int> r = [|stackalloc|] int[2];
+                        Span<int> r = [|[|stackalloc|] int[2]|];
                         r[0] = i;
                         r[v] = j;
                     }
@@ -1125,7 +1125,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[2];
+                        Span<int> r = [|[|stackalloc|] int[2]|];
                         // Leading
                         r[0] = i;
                         r[1] = j; // Trailing
@@ -1165,7 +1165,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[2];
+                        Span<int> r = [|[|stackalloc|] int[2]|];
                         r[0] = i; // Trailing
                         // Leading
                         r[1] = j;
@@ -1205,7 +1205,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[]
+                        Span<int> r = [|[|stackalloc|] int[]|]
                         {
                             1, 2
                         };
@@ -1243,7 +1243,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[]
+                        Span<int> r = [|[|stackalloc|] int[]|]
                         {
                             1,
                             2
@@ -1283,7 +1283,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[] {
+                        Span<int> r = [|[|stackalloc|] int[]|] {
                             1, 2
                         };
                     }
@@ -1319,7 +1319,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[] {
+                        Span<int> r = [|[|stackalloc|] int[]|] {
                             1,
                             2
                         };
@@ -1357,7 +1357,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|][]
+                        Span<int> r = [|[|stackalloc|][]|]
                         {
                             1, 2
                         };
@@ -1395,7 +1395,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|][]
+                        Span<int> r = [|[|stackalloc|][]|]
                         {
                             1,
                             2
@@ -1435,7 +1435,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|][] {
+                        Span<int> r = [|[|stackalloc|][]|] {
                             1, 2
                         };
                     }
@@ -1471,7 +1471,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|][] {
+                        Span<int> r = [|[|stackalloc|][]|] {
                             1,
                             2
                         };
@@ -1509,7 +1509,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[1];
+                        Span<int> r = [|[|stackalloc|] int[1]|];
                         r[0] = 1 +
                             2;
                     }
@@ -1547,7 +1547,7 @@ public class UseCollectionExpressionForStackAllocTests
                 {
                     void M(int i, int j)
                     {
-                        Span<int> r = [|stackalloc|] int[2];
+                        Span<int> r = [|[|stackalloc|] int[2]|];
                         r[0] = 1 +
                             2;
                         r[1] = 3 +
@@ -1585,7 +1585,7 @@ public class UseCollectionExpressionForStackAllocTests
             TestCode = """
                 using System;
 
-                ReadOnlySpan<int> x = [|stackalloc|] int[] { 1, 2, 3 };
+                ReadOnlySpan<int> x = [|[|stackalloc|] int[]|] { 1, 2, 3 };
                 """,
             FixedCode = """
                 using System;
@@ -1609,7 +1609,7 @@ public class UseCollectionExpressionForStackAllocTests
             TestCode = """
                 using System;
 
-                Span<int> r = [|stackalloc|] int[2];
+                Span<int> r = [|[|stackalloc|] int[2]|];
                 r[0] = 1 +
                     2;
                 r[1] = 3 +
