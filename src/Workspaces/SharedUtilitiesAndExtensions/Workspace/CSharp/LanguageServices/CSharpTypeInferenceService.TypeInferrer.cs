@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var parent = node.Parent;
 
-                return InferTypesWorkerFromParent(parent, node, expression, null);
+                return InferTypesWorkerFromParent(parent, node, expression, token: null);
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 var parent = token.Parent;
 
-                return InferTypesWorkerFromParent(parent, null, null, token);
+                return InferTypesWorkerFromParent(parent, node: null, expression: null, token);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
