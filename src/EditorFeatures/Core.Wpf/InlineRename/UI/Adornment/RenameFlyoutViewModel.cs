@@ -61,19 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (smartRenameSession is not null)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
-                SmartRenameViewModel.OnCurrentIdentifierTextChanged += OnCurrentIdentifierTextChanged;
             }
 
             RegisterOleComponent();
-        }
-
-        private void OnCurrentIdentifierTextChanged(object sender, string? identifierText)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (identifierText is not null)
-            {
-                IdentifierText = identifierText;
-            }
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
@@ -326,7 +316,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.OnCurrentIdentifierTextChanged -= OnCurrentIdentifierTextChanged;
                         SmartRenameViewModel.Dispose();
                     }
 

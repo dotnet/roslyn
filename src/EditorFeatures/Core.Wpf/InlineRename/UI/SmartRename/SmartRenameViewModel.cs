@@ -21,7 +21,6 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 {
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
     private readonly ISmartRenameSessionWrapper _smartRenameSession;
-    public RenameFlyoutViewModel BaseViewModel { get; }
 #pragma warning restore CS0618
 
     private readonly IThreadingContext _threadingContext;
@@ -32,7 +31,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event EventHandler<string?>? OnCurrentIdentifierTextChanged;
+    public RenameFlyoutViewModel BaseViewModel { get; }
 
     public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
 
@@ -45,25 +44,6 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
-
-    private string currentIdentifierText;
-    public string CurrentIdentifierText
-    {
-        get
-        {
-            return currentIdentifierText;
-        }
-        set
-        {
-            if (currentIdentifierText == value)
-            {
-                return;
-            }
-            currentIdentifierText = value;
-            OnCurrentIdentifierTextChanged?.Invoke(this, value);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIdentifierText)));
-        }
-    }
 
     private string? _selectedSuggestedName;
 
@@ -79,7 +59,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             {
                 _threadingContext.ThrowIfNotOnUIThread();
                 _selectedSuggestedName = value;
-                CurrentIdentifierText = value ?? string.Empty;
+                BaseViewModel.IdentifierText = value ?? string.Empty;
             }
         }
     }
@@ -100,7 +80,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         _smartRenameSession.PropertyChanged += SessionPropertyChanged;
 
         BaseViewModel = baseViewModel;
-        this.currentIdentifierText = baseViewModel.IdentifierText;
+        this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
     }

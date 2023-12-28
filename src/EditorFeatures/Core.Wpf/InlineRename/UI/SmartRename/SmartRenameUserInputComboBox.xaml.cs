@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -113,7 +114,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void ComboBox_PreviewKeyUp(object sender, KeyEventArgs e)
     {
-        if ((e.Key == Key.Up || e.Key == Key.Down) && Items.Count > 0)
+        if ((e.Key is Key.Up or Key.Down) && Items.Count > 0)
         {
             Assumes.NotNull(_dropDownPopup);
             _dropDownPopup.IsOpen = true;
@@ -153,7 +154,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private void InnerTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         Assumes.NotNull(_dropDownPopup);
-        if ((e.Key == Key.Escape || e.Key == Key.Space || e.Key == Key.Enter) && _dropDownPopup.IsOpen)
+        if ((e.Key is Key.Escape or Key.Space or Key.Enter) && _dropDownPopup.IsOpen)
         {
             _dropDownPopup.IsOpen = false;
             SelectAllText();
@@ -161,7 +162,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         }
     }
 
-    private void SuggestedNames_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void SuggestedNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
         Focus();
     }
