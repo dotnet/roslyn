@@ -782,7 +782,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && compilation.GetWellKnownTypeMember(WellKnownMember.System_IndexOutOfRangeException__ctor) is not null
                 && compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__SetValue) is not null
                 && compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default) is not null
-                && compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals) is not null;
+                && compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals) is not null
+                && compilation.GetSpecialType(SpecialType.System_IDisposable) is not MissingMetadataTypeSymbol
+                && compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator) is not MissingMetadataTypeSymbol
+                && compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T) is not MissingMetadataTypeSymbol
+                && compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__Current) is not null
+                && compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current) is not null
+                && compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext) is not null
+                && compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Reset) is not null
+                && compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) is not null;
         }
 
         public override int Arity => 1;

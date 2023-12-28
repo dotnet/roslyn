@@ -28276,6 +28276,41 @@ partial class Program
             CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
         }
 
+        [Theory]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IEnumerator_T__Current)]
+        [InlineData((int)SpecialMember.System_Collections_IEnumerator__Current)]
+        [InlineData((int)SpecialMember.System_Collections_IEnumerator__MoveNext)]
+        [InlineData((int)SpecialMember.System_Collections_IEnumerator__Reset)]
+        public void SynthesizedReadOnlyList_Singleton_MissingSpecialMembers(int missingMember)
+        {
+            string source = """
+                            using System.Collections.Generic;
+                            
+                            IEnumerable<int> x = [0];
+                            x.Report(includeType: true);
+                            """;
+            var comp = CreateCompilation([source, s_collectionExtensions]);
+            comp.MakeMemberMissing((SpecialMember)missingMember);
+            CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
+        }
+
+        [Theory]
+        [InlineData((int)SpecialType.System_IDisposable)]
+        [InlineData((int)SpecialType.System_Collections_IEnumerator)]
+        [InlineData((int)SpecialType.System_Collections_Generic_IEnumerator_T)]
+        public void SynthesizedReadOnlyList_Singleton_MissingSpecialTypes(int missingType)
+        {
+            string source = """
+                            using System.Collections.Generic;
+
+                            IEnumerable<int> x = [0];
+                            x.Report(includeType: true);
+                            """;
+            var comp = CreateCompilation([source, s_collectionExtensions]);
+            comp.MakeTypeMissing((SpecialType)missingType);
+            CompileAndVerify(comp, expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [0], ");
+        }
+
         [CombinatorialData]
         [Theory]
         public void SynthesizedReadOnlyList_Singleton_Execution([CombinatorialValues("IEnumerable<T>", "IReadOnlyCollection<T>", "IReadOnlyList<T>")] string targetType)
