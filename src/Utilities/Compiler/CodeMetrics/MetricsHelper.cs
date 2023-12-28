@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
-            IEnumerable<ITypeSymbol> coupledTypes)
+            ImmutableHashSet<INamedTypeSymbol> coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
@@ -46,12 +46,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
-            params ITypeSymbol[] coupledTypes)
+            ITypeSymbol coupledType)
         {
-            foreach (var coupledType in coupledTypes)
-            {
-                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
-            }
+            AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
