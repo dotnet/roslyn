@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameSession _session;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IThreadingContext _threadingContext;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session = session;
             _registerOleComponent = registerOleComponent;
             _globalOptionService = globalOptionService;
-            _threadingContext = threadingContext;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
