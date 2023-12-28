@@ -553,6 +553,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+
                     return 1;
                 default:
                     return 0;
@@ -2410,6 +2414,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionImmutableArray:
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                 case ErrorCode.ERR_SpreadMissingMember:
+                case ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections:
+                case ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

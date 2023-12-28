@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         public void EmitPDBDynamicObjectVariable1()
         {
             string source = WithWindowsLineBreaks(@"
-class Helper
+partial class Helper
 {
 	int x;
 	public void goo(int y){}
@@ -40,7 +40,12 @@ class Test
 		Helper d5 = new Helper(d1); 
 		
   }
-}");
+}
+partial class Helper
+{
+	public Helper(long y){}
+}
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { CSharpRef }, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -77,6 +82,16 @@ class Test
         <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" document=""1"" />
         <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""1"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Helper"" name="".ctor"" parameterNames=""y"">
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""28"" startColumn=""2"" endLine=""28"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x7"" startLine=""28"" startColumn=""23"" endLine=""28"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x8"" startLine=""28"" startColumn=""24"" endLine=""28"" endColumn=""25"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">

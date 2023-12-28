@@ -1728,9 +1728,9 @@ class C(int X) : Base(this.X)
             var src = @"
 class Base
 {
-    public Base(int X)
-    {
-    }
+    public Base(int X) {}
+
+    public Base(long X) {}
 
     public Base() {}
 }

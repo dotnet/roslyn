@@ -1258,6 +1258,10 @@ class C
     {
         System.Action a = () => Goo(x);
     }
+
+    static void Goo(int y)
+    {
+    }
 }
 ";
             var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
@@ -1368,6 +1372,9 @@ class C
     static void Goo(int x)
     {
         M(x);
+    }
+    static void Goo(string x)
+    {
     }
 }
 ";

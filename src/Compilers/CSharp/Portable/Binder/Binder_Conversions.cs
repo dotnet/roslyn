@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
             }
 
-            var syntax = (ExpressionSyntax)node.Syntax;
+            var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
                 diagnostics.Add(node.HasSpreadElements(out _, out _)
@@ -1733,83 +1733,86 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Perform final validation of the method to be invoked.
 
-            Debug.Assert(memberSymbol.Kind != SymbolKind.Method ||
+            Debug.Assert(memberSymbol is not MethodSymbol { MethodKind: not MethodKind.Constructor } ||
                 memberSymbol.CanBeReferencedByName);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 
-            if (IsTypeOrValueExpression(receiverOpt))
+            if (receiverOpt != null || memberSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor })
             {
-                // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
-                // None of the checks below apply if the receiver can't be classified as a type or value. 
-                Debug.Assert(!invokedAsExtensionMethod);
-            }
-            else if (!memberSymbol.RequiresInstanceReceiver())
-            {
-                Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
-
-                if (invokedAsExtensionMethod)
+                if (IsTypeOrValueExpression(receiverOpt))
                 {
-                    if (IsMemberAccessedThroughType(receiverOpt))
+                    // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
+                    // None of the checks below apply if the receiver can't be classified as a type or value. 
+                    Debug.Assert(!invokedAsExtensionMethod);
+                }
+                else if (!memberSymbol.RequiresInstanceReceiver())
+                {
+                    Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
+
+                    if (invokedAsExtensionMethod)
                     {
-                        if (receiverOpt.Kind == BoundKind.QueryClause)
+                        if (IsMemberAccessedThroughType(receiverOpt))
+                        {
+                            if (receiverOpt.Kind == BoundKind.QueryClause)
+                            {
+                                RoslynDebug.Assert(receiverOpt.Type is object);
+                                // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                                diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                            }
+                            else
+                            {
+                                // An object reference is required for the non-static field, method, or property '{0}'
+                                diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                            }
+                            return true;
+                        }
+                    }
+                    else if (!WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
+                    {
+                        if (this.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, node.Location, memberSymbol);
+                        }
+                        else if (node.Kind() == SyntaxKind.AwaitExpression && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
                         {
                             RoslynDebug.Assert(receiverOpt.Type is object);
-                            // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                            diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                            diagnostics.Add(ErrorCode.ERR_BadAwaitArg, node.Location, receiverOpt.Type);
                         }
                         else
                         {
-                            // An object reference is required for the non-static field, method, or property '{0}'
-                            diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                            diagnostics.Add(ErrorCode.ERR_ObjectProhibited, node.Location, memberSymbol);
                         }
                         return true;
                     }
                 }
-                else if (!WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
+                else if (IsMemberAccessedThroughType(receiverOpt))
                 {
-                    if (this.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, node.Location, memberSymbol);
-                    }
-                    else if (node.Kind() == SyntaxKind.AwaitExpression && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
-                    {
-                        RoslynDebug.Assert(receiverOpt.Type is object);
-                        diagnostics.Add(ErrorCode.ERR_BadAwaitArg, node.Location, receiverOpt.Type);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ObjectProhibited, node.Location, memberSymbol);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
                     return true;
                 }
-            }
-            else if (IsMemberAccessedThroughType(receiverOpt))
-            {
-                diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
-                return true;
-            }
-            else if (WasImplicitReceiver(receiverOpt))
-            {
-                if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                else if (WasImplicitReceiver(receiverOpt))
                 {
-                    SyntaxNode errorNode = node;
-                    if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
+                    if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                     {
-                        errorNode = node.Parent;
+                        SyntaxNode errorNode = node;
+                        if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
+                        {
+                            errorNode = node.Parent;
+                        }
+
+                        ErrorCode code = InFieldInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
+                        diagnostics.Add(code, errorNode.Location, memberSymbol);
+                        return true;
                     }
 
-                    ErrorCode code = InFieldInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
-                    diagnostics.Add(code, errorNode.Location, memberSymbol);
-                    return true;
-                }
-
-                // If we could access the member through implicit "this" the receiver would be a BoundThisReference.
-                // If it is null it means that the instance member is inaccessible.
-                if (receiverOpt == null || ContainingMember().IsStatic)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, memberSymbol);
-                    return true;
+                    // If we could access the member through implicit "this" the receiver would be a BoundThisReference.
+                    // If it is null it means that the instance member is inaccessible.
+                    if (receiverOpt == null || ContainingMember().IsStatic)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, memberSymbol);
+                        return true;
+                    }
                 }
             }
 

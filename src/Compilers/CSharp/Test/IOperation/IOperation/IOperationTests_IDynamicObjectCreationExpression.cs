@@ -23,6 +23,9 @@ class C
     public C(int i)
     {
     }
+    public C(long i)
+    {
+    }
 
     void M(dynamic d)
     {
@@ -165,6 +168,10 @@ class C
     {
         j = 0;
     }
+    public C(ref object i, out int j, long c)
+    {
+        j = 0;
+    }
 
     void M(object d, dynamic e)
     {
@@ -202,6 +209,9 @@ class C
     public int X;
 
     public C(char c)
+    {
+    }
+    public C(long c)
     {
     }
 
@@ -299,7 +309,10 @@ class C
         /*<bind>*/new C(delegate { }, y)/*</bind>*/;
     }
 
-    public C(Action a, Action y)
+    public C(Action a, int y)
+    {
+    }
+    public C(Action a, long y)
     {
     }
 }
@@ -370,6 +383,7 @@ IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid) (Syntax: 'new C(d)
 class C1
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d)
     {
         c1 = new C1(d);
@@ -415,6 +429,7 @@ Block[B2] - Exit
 class C1
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d, bool b)
     {
         c1 = new C1(d) { I1 = 1, I2 = b ? 2 : 3 };
@@ -536,6 +551,7 @@ using System.Collections.Generic;
 class C1 : IEnumerable<int>
 {
     C1(int i) { }
+    C1(long i) { }
     /*<bind>*/void M(C1 c1, dynamic d, bool b)
     {
         c1 = new C1(d) { 1, b ? 2 : 3 };

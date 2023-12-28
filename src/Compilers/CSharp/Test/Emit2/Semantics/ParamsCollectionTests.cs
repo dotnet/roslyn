@@ -1869,5 +1869,2115 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(long, params System.ReadOnlySpan<int>)", "Program.Test(int, params long[])").WithLocation(5, 9)
                 );
         }
+
+        [Fact]
+        public void GenericInference()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        long l = 1;
+        int i = 2;
+        byte b = 3;
+        Test(i, b, l);
+    }
+
+    static void Test<T>(params IEnumerable<T> b)
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExpectedOutput(@"System.Int64")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d);
+        Test(d, 1);
+        Test(d, 2, 3);
+        Test(2, d, 3);
+        Test(2, 3, d);
+        Test(d, [3, 4]);
+
+        Test2(d, d);
+        Test2(d, 1);
+        Test2(d, 2, 3);
+        Test2(2, d, 3);
+        Test2(2, 3, d);
+
+        Test2<int>(d);
+        Test2<int>(d, d);
+        Test2<int>(d, 1);
+        Test2<int>(d, 2, 3);
+        Test2<int>(2, d, 3);
+        Test2<int>(2, 3, d);
+        Test2<int>(d, [3, 4]);
+    }
+
+    static void Test(int a, params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+
+    static void Test2<T>(int a, params T[] b)
+    {
+        System.Console.Write("Called2");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d);
+    }
+
+    static void Test(params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                //         Test(d);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_03_Warning()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d1 = System.DateTime.Now;
+        Test1(d1);                  // Called2
+        
+        dynamic d2 = new[] { 1 };
+        Test1(d2);                  // Called1
+        Test2(1, d1);               // Called3
+        Test2(1, d2);               // Called5
+        
+        int x = 1;
+        Test2(x, d1);               // Called3
+        Test2(x, d2);               // Called4
+
+        dynamic d3 = (byte)1;
+        Test3(d3, 1, 2);            // Called7
+        Test3(d3, x, x);            // Called6
+
+        dynamic d4 = x;
+        Test4((byte)d3, x, x);      // Called8
+        Test4(d3, x, x);            // Called9
+        Test4(d3, d4, d4);          // Called9
+    }
+
+    static void Test1(params IEnumerable<int> b) => System.Console.Write("Called1");
+    static void Test1(System.DateTime b) => System.Console.Write("Called2");
+
+    static void Test2(int x, System.DateTime b) => System.Console.Write("Called3");
+    static void Test2(long x, IEnumerable<int> b) => System.Console.Write("Called4");
+    static void Test2(byte x, params IEnumerable<int> b) => System.Console.Write("Called5");
+
+    static void Test3(byte x, params IEnumerable<int> b) => System.Console.Write("Called6");
+    static void Test3(byte x, byte y, byte z) => System.Console.Write("Called7");
+
+    static void Test4(byte x, params IEnumerable<int> b) => System.Console.Write("Called8");
+    static void Test4(byte x, long y, long z) => System.Console.Write("Called9");
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
+            VerifyDiagnostics(
+                // (8,9): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test1(d1);                  // Called2
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(8, 9),
+                // (11,9): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test1(d2);                  // Called1
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d2)").WithArguments("Test1").WithLocation(11, 9),
+                // (12,9): warning CS9503: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test2(1, d1);               // Called3
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d1)").WithArguments("Test2").WithLocation(12, 9),
+                // (13,9): warning CS9503: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test2(1, d2);               // Called5
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d2)").WithArguments("Test2").WithLocation(13, 9),
+                // (20,9): warning CS9503: One or more overloads of method 'Test3' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test3(d3, 1, 2);            // Called7
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test3(d3, 1, 2)").WithArguments("Test3").WithLocation(20, 9),
+                // (25,9): warning CS9503: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test4(d3, x, x);            // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, x, x)").WithArguments("Test4").WithLocation(25, 9),
+                // (26,9): warning CS9503: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         Test4(d3, d4, d4);          // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, d4, d4)").WithArguments("Test4").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_04()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d, 2);
+    }
+
+    static void Test(int a, params IEnumerable<int> b)
+    {
+        System.Console.Write("Called {0}", b is not null);
+    }
+
+    static void Test(int a, System.DateTime b)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_05()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d, 2, 3);
+    }
+
+    static void Test(params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_06_TypeArgumentInferenceError()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d, 2, 3);
+    }
+
+    static void Test<T>(params IEnumerable<T> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp1.VerifyDiagnostics(
+                // (8,9): error CS9501: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                //         Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
+                );
+
+            var src2 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test<int>(d, 2, 3);
+    }
+
+    static void Test<T>(params IEnumerable<T> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp2,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_07_TypeArgumentInferenceError()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(0, d, 2, 3);
+    }
+
+    static void Test<T>(T a, params IEnumerable<long> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp1.VerifyDiagnostics(
+                // (8,9): error CS9501: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                //         Test(0, d, 2, 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
+                );
+
+            var src2 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test<int>(0, d, 2, 3);
+    }
+
+    static void Test<T>(T a, params IEnumerable<long> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp2,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_08_HideByOverride()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C2().Test(d, 2, 3);
+    }
+}
+
+class C1
+{
+    public virtual void Test(params IEnumerable<int> b){}
+}
+
+class C2 : C1
+{
+    public override void Test(params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_09_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C2().Test<int>(d, 2, 3);
+    }
+}
+
+class C1
+{
+    public void Test<T>(params IEnumerable<T> b){}
+}
+
+class C2 : C1
+{
+    new public void Test<T>(params IEnumerable<T> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_10_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C2().Test(d, 2, 3);
+    }
+}
+
+class C0
+{
+    public virtual void Test(params IEnumerable<int> b){}
+}
+
+class C1 : C0
+{
+    public override void Test(params IEnumerable<int> b){}
+}
+
+class C2 : C1
+{
+    new public void Test(params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_11_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C3().Test(d, 2, 3);
+    }
+}
+
+class C1
+{
+    public void Test(params IEnumerable<int> b){}
+}
+
+class C2 : C1
+{
+    new public virtual void Test(params IEnumerable<int> b) {}
+}
+
+class C3 : C2
+{
+    public override void Test(params IEnumerable<int> b)
+    {
+        System.Console.Write("Called");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_12_HideByName()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+public class C1
+{
+    public void Test(params IEnumerable<int> b){}
+}
+""";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseDll);
+
+            var src2 = """
+Public Class C2
+    Inherits C1
+
+    Public Shadows Sub Test(ParamArray b As Long())
+        System.Console.Write("Called")
+    End Sub
+End Class
+""";
+
+            MetadataReference comp1Ref = comp1.EmitToImageReference();
+            var comp2 = CreateVisualBasicCompilation(src2, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp1Ref));
+
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C2().Test(d, 2, 3);
+    }
+}
+""";
+            var comp = CreateCompilation(src, references: new[] { comp1Ref, comp2.EmitToImageReference() }, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_13_DoNotHideByApplicability()
+        {
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        new C2().Test(d);
+    }
+}
+
+class C1
+{
+    public void Test(long a)
+    {
+        System.Console.Write("long");
+    }
+}
+
+class C2 : C1
+{
+    public void Test(int b)
+    {
+        System.Console.Write("int");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"long").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_14_DoNotFilterBasedOnBetterFunctionMember()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        new C1().Test(1, d, 2);
+    }
+}
+
+class C1
+{
+    public void Test(long a1, params IEnumerable<long> a2)
+    {
+        System.Console.Write("long");
+    }
+
+    public void Test(int b1, int b2, int b3)
+    {
+        System.Console.Write("int");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS9503: One or more overloads of method 'Test' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new C1().Test(1, d, 2);
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "new C1().Test(1, d, 2)").WithArguments("Test").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_OrdinaryMethod_15_Warning()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d1 = 1;
+        Test1((int)d1);
+        try
+        {
+            Test1(d1);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+        {
+            System.Console.Write("Failed");
+        }
+    }
+
+    static void Test1(params IEnumerable<int> b) => System.Console.Write("Called1");
+    static void Test1(System.DateTime b) => System.Console.Write("Called2");
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called1Failed").
+            VerifyDiagnostics(
+                // (11,13): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //             Test1(d1);
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_LocalFunction_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d);
+        Test(d, 1);
+        Test(d, 2, 3);
+        Test(2, d, 3);
+        Test(2, 3, d);
+        Test(2, [3, d]);
+
+        Test2(d);
+        Test2(d, 1);
+        Test2(d, 2, 3);
+        Test2(2, d, 3);
+        Test2(2, 3, d);
+        Test2(d, [3, 4]);
+
+        void Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+
+        void Test2(int a, params int[] b)
+        {
+            System.Console.Write("Called2");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_LocalFunction_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d);
+
+        static void Test(params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                //         Test(d);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_LocalFunction_06_TypeArgumentInferenceError()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(d, 2, 3);
+
+        void Test<T>(params IEnumerable<T> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp1.VerifyDiagnostics(
+                // (8,9): error CS9501: The type arguments for method 'Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                //         Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
+                );
+
+            var src2 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test<int>(d, 2, 3);
+
+        void Test<T>(params IEnumerable<T> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp2,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_LocalFunction_07_TypeArgumentInferenceError()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test(0, d, 2, 3);
+
+        void Test<T>(T a, params IEnumerable<long> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp1.VerifyDiagnostics(
+                // (8,9): error CS9501: The type arguments for method 'Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                //         Test(0, d, 2, 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
+                );
+
+            var src2 = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        Test<int>(0, d, 2, 3);
+
+        void Test<T>(T a, params IEnumerable<long> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp2,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Delegate_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        D test = Test;
+        dynamic d = 1;
+        test(d);
+        test(d, 1);
+        test(d, 2, 3);
+        test(2, d, 3);
+        test(2, 3, d);
+        test(2, [3, d]);
+
+        D2 test2 = Test2;
+        test2(d);
+        test2(d, d);
+        test2(d, 1);
+        test2(d, 2, 3);
+        test2(2, d, 3);
+        test2(2, 3, d);
+        test2(d, [3, 4]);
+
+        void Test(int a, IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+        void Test2(int a, int[] b)
+        {
+            System.Console.Write("Called2");
+        }
+    }
+}
+
+delegate void D(int a, params IEnumerable<int> b);
+delegate void D2(int a, params int[] b);
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Delegate_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        D test = Test;
+        dynamic d = 1;
+        test(d);
+
+        static void Test(IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+
+delegate void D(params IEnumerable<int> b);
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (9,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                //         test(d);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("D.Invoke(params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        dynamic d = 1;
+        _ = c1[d];
+        _ = c1[d, 1];
+        _ = c1[d, 2, 3];
+        _ = c1[2, d, 3];
+        _ = c1[2, 3, d];
+        _ = c1[d, [3, 4]];
+
+        var c2 = new C2();
+
+        _ = c2[d];
+        _ = c2[d, d];
+        _ = c2[d, 1];
+        _ = c2[d, 2, 3];
+        _ = c2[2, d, 3];
+        _ = c2[2, 3, d];
+        _ = c2[d, [3, 4]];
+    }
+}
+
+class C1
+{
+    public int this[int a, params IEnumerable<int> b] 
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return 0;
+        }
+    }
+}
+class C2
+{
+    public int this[int a, params int[] b] 
+    {
+        get
+        {
+            System.Console.Write("Called2");
+            return 0;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new Program()[d];
+    }
+
+    int this[params IEnumerable<int> b]
+    {
+        get 
+        {
+            System.Console.Write("Called");
+            return 0;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,27): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                //         _ = new Program()[d];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_03_Warning()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d1 = System.DateTime.Now;
+        _ = new Test1()[d1];                  // Called2
+        
+        dynamic d2 = new[] { 1 };
+        _ = new Test1()[d2];                  // Called1
+        _ = new Test2()[1, d1];               // Called3
+        _ = new Test2()[1, d2];               // Called5
+        
+        int x = 1;
+        _ = new Test2()[x, d1];               // Called3
+        _ = new Test2()[x, d2];               // Called4
+
+        dynamic d3 = (byte)1;
+        _ = new Test3()[d3, 1, 2];            // Called7
+        _ = new Test3()[d3, x, x];            // Called6
+
+        dynamic d4 = x;
+        _ = new Test4()[(byte)d3, x, x];      // Called8
+        _ = new Test4()[d3, x, x];            // Called9
+        _ = new Test4()[d3, d4, d4];          // Called9
+    }
+
+    class Test1
+    {
+        public int this[params IEnumerable<int> b] { get { System.Console.Write("Called1"); return 0; } }
+        public int this[System.DateTime b] { get { System.Console.Write("Called2"); return 0; } }
+    }
+    class Test2
+    {
+        public int this[int x, System.DateTime b] { get { System.Console.Write("Called3"); return 0; } }
+        public int this[long x, IEnumerable<int> b] { get { System.Console.Write("Called4"); return 0; } }
+        public int this[byte x, params IEnumerable<int> b] { get { System.Console.Write("Called5"); return 0; } }
+    }
+    class Test3
+    {
+        public int this[byte x, params IEnumerable<int> b] { get { System.Console.Write("Called6"); return 0; } }
+        public int this[byte x, byte y, byte z] { get { System.Console.Write("Called7"); return 0; } }
+    }
+    class Test4
+    {
+        public int this[byte x, params IEnumerable<int> b] { get { System.Console.Write("Called8"); return 0; } }
+        public int this[byte x, long y, long z] { get { System.Console.Write("Called9"); return 0; } }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
+            VerifyDiagnostics(
+                // (8,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test1()[d1];                  // Called2
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d1]").WithLocation(8, 13),
+                // (11,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test1()[d2];                  // Called1
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d2]").WithLocation(11, 13),
+                // (12,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test2()[1, d1];               // Called3
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d1]").WithLocation(12, 13),
+                // (13,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test2()[1, d2];               // Called5
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d2]").WithLocation(13, 13),
+                // (20,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test3()[d3, 1, 2];            // Called7
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test3()[d3, 1, 2]").WithLocation(20, 13),
+                // (25,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test4()[d3, x, x];            // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, x, x]").WithLocation(25, 13),
+                // (26,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new Test4()[d3, d4, d4];          // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, d4, d4]").WithLocation(26, 13)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_04()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new Program()[d, 2];
+    }
+
+    int this[int a, params IEnumerable<int> b]
+    {
+        get
+        {
+            System.Console.Write("Called {0}", b is not null);
+            return 0;
+        }
+    }
+
+    int this[int a, System.DateTime b] => 0;
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_05()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new Program()[d, 2, 3];
+    }
+
+    int this[params IEnumerable<int> b]
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return 0;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_08_HideByOverride()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new C2<int>()[d, 2, 3];
+    }
+}
+
+class C1<T>
+{
+    public virtual T this[params IEnumerable<T> b] => default;
+}
+
+class C2<T> : C1<T>
+{
+    public override T this[params IEnumerable<T> b]
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return default;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_09_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new C2<int>()[d, 2, 3];
+    }
+}
+
+class C1<T>
+{
+    public T this[params IEnumerable<T> b] => default;
+}
+
+class C2<T> : C1<T>
+{
+    new public T this[params IEnumerable<T> b]
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return default;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_10_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new C2<int>()[d, 2, 3];
+    }
+}
+
+class C0<T>
+{
+    public virtual T this[params IEnumerable<T> b] => default;
+}
+
+class C1<T> : C0<T>
+{
+    public override T this[params IEnumerable<T> b] => default;
+}
+
+class C2<T> : C1<T>
+{
+    new public T this[params IEnumerable<T> b]
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return default;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_11_HideBySignature()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new C3<int>()[d, 2, 3];
+    }
+}
+
+class C1<T>
+{
+    public T this[params IEnumerable<T> b] => default;
+}
+
+class C2<T> : C1<T>
+{
+    new public virtual T this[params IEnumerable<T> b] => default;
+}
+
+class C3<T> : C2<T>
+{
+    public override T this[params IEnumerable<T> b]
+    {
+        get
+        {
+            System.Console.Write("Called");
+            return default;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_12_HideByName()
+        {
+            var src1 = """
+using System.Collections.Generic;
+
+public class C1
+{
+    public int this[int x, params IEnumerable<int> b] => default;
+}
+""";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseDll);
+
+            var src2 = """
+Public Class C2
+    Inherits C1
+
+    Public Shadows Readonly Default Property Item(x as Integer, ParamArray b As Long()) As Integer
+        Get
+            System.Console.Write("Called")
+            Return 0
+        End Get
+    End Property
+End Class
+""";
+
+            MetadataReference comp1Ref = comp1.EmitToImageReference();
+            var comp2 = CreateVisualBasicCompilation(src2, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp1Ref));
+
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        _ = new C2()[4, d, 2, 3];
+    }
+}
+""";
+            var comp = CreateCompilation(src, references: new[] { comp1Ref, comp2.EmitToImageReference() }, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_13_DoNotHideByApplicability()
+        {
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        _ = new C2()[d];
+    }
+}
+
+class C1
+{
+    public long this[long a]
+    {
+        get
+        {
+            System.Console.Write("long");
+            return a;
+        }
+    }
+}
+
+class C2 : C1
+{
+    public int this[int b]
+    {
+        get
+        {
+            System.Console.Write("int");
+            return b;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"long").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Indexer_14_DoNotFilterBasedOnBetterFunctionMember()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        _ = new C1()[1, d, 2];
+    }
+}
+
+class C1
+{
+    public long this[long a1, params IEnumerable<long> a2]
+    {
+        get
+        {
+            System.Console.Write("long");
+            return a1;
+        }
+    }
+
+    public int this[int b1, int b2, int b3]
+    {
+        get
+        {
+            System.Console.Write("int");
+            return b1;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         _ = new C1()[1, d, 2];
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new C1()[1, d, 2]").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new Test(d);
+        new Test(d, 1);
+        new Test(d, 2, 3);
+        new Test(2, d, 3);
+        new Test(2, 3, d);
+        new Test(d, [3, 4]);
+
+        new Test2(d);
+        new Test2(d, d);
+        new Test2(d, 1);
+        new Test2(d, 2, 3);
+        new Test2(2, d, 3);
+        new Test2(2, 3, d);
+        new Test2(d, [3, 4]);
+    }
+
+    class Test
+    {
+        public Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+
+    class Test2
+    {
+        public Test2(int a, params int[] b)
+        {
+            System.Console.Write("Called2");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new Test(d);
+    }
+
+    class Test
+    {
+        public Test(params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,18): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test.Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                //         new Test(d);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_03_Warning()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d1 = System.DateTime.Now;
+        new Test1(d1);                  // Called2
+        
+        dynamic d2 = new[] { 1 };
+        new Test1(d2);                  // Called1
+        new Test2(1, d1);               // Called3
+        new Test2(1, d2);               // Called5
+        
+        int x = 1;
+        new Test2(x, d1);               // Called3
+        new Test2(x, d2);               // Called4
+
+        dynamic d3 = (byte)1;
+        new Test3(d3, 1, 2);            // Called7
+        new Test3(d3, x, x);            // Called6
+
+        dynamic d4 = x;
+        new Test4((byte)d3, x, x);      // Called8
+        new Test4(d3, x, x);            // Called9
+        new Test4(d3, d4, d4);          // Called9
+    }
+
+    class Test1
+    {
+        public Test1(params IEnumerable<int> b) => System.Console.Write("Called1");
+        public Test1(System.DateTime b) => System.Console.Write("Called2");
+    }
+
+    class Test2
+    {
+        public Test2(int x, System.DateTime b) => System.Console.Write("Called3");
+        public Test2(long x, IEnumerable<int> b) => System.Console.Write("Called4");
+        public Test2(byte x, params IEnumerable<int> b) => System.Console.Write("Called5");
+    }
+
+    class Test3
+    {
+        public Test3(byte x, params IEnumerable<int> b) => System.Console.Write("Called6");
+        public Test3(byte x, byte y, byte z) => System.Console.Write("Called7");
+    }
+
+    class Test4
+    {
+        public Test4(byte x, params IEnumerable<int> b) => System.Console.Write("Called8");
+        public Test4(byte x, long y, long z) => System.Console.Write("Called9");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
+            VerifyDiagnostics(
+                // (8,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test1(d1);                  // Called2
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d1)").WithLocation(8, 9),
+                // (11,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test1(d2);                  // Called1
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d2)").WithLocation(11, 9),
+                // (12,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test2(1, d1);               // Called3
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d1)").WithLocation(12, 9),
+                // (13,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test2(1, d2);               // Called5
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d2)").WithLocation(13, 9),
+                // (20,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test3(d3, 1, 2);            // Called7
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test3(d3, 1, 2)").WithLocation(20, 9),
+                // (25,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test4(d3, x, x);            // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, x, x)").WithLocation(25, 9),
+                // (26,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test4(d3, d4, d4);          // Called9
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, d4, d4)").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_04()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new Test(d, 2);
+    }
+
+    class Test
+    {
+        public Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called {0}", b is not null);
+        }
+
+        public Test(int a, System.DateTime b)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_05()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new Test(d, 2, 3);
+    }
+
+    class Test
+    {
+        public Test(params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_14_DoNotFilterBasedOnBetterFunctionMember()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        new Test(1, d, 2);
+    }
+}
+
+class Test
+{
+    public Test(long a1, params IEnumerable<long> a2)
+    {
+        System.Console.Write("long");
+    }
+
+    public Test(int b1, int b2, int b3)
+    {
+        System.Console.Write("int");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                //         new Test(1, d, 2);
+                Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test(1, d, 2)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_Constructor_16_Abstract()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new Test(d);
+    }
+
+    abstract class Test
+    {
+        public Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0144: Cannot create an instance of the abstract type or interface 'Program.Test'
+                //         new Test(d);
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Test(d)").WithArguments("Program.Test").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_01()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C01(d);
+        new C02(d);
+        new C03(d);
+        new C04(d);
+        new C05(d);
+        new C06(d);
+
+        new C07(d);
+        new C09(d);
+        new C10(d);
+        new C11(d);
+        new C12(d);
+        new C13(d);
+    }
+
+    class C01(dynamic d) : Test(d);
+    class C02(dynamic d) : Test(d, 1);
+    class C03(dynamic d) : Test(d, 2, 3);
+    class C04(dynamic d) : Test(2, d, 3);
+    class C05(dynamic d) : Test(2, 3, d);
+    class C06(dynamic d) : Test(d, [3, 4]);
+
+    class C07(dynamic d) : Test2(d);
+    class C09(dynamic d) : Test2(d, 1);
+    class C10(dynamic d) : Test2(d, 2, 3);
+    class C11(dynamic d) : Test2(2, d, 3);
+    class C12(dynamic d) : Test2(2, 3, d);
+    class C13(dynamic d) : Test2(d, [3, 4]);
+
+    class Test
+    {
+        public Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+
+    class Test2
+    {
+        public Test2(int a, params int[] b)
+        {
+            System.Console.Write("Called2");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_02_AmbiguousDynamicParamsArgument()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C(d);
+    }
+
+    class C(dynamic d) : Test(d);
+
+    class Test
+    {
+        public Test(params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (11,30): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C(dynamic d) : Test(d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d)").WithLocation(11, 30)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_03_MultipleCandidates()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d1 = System.DateTime.Now;
+        new C01(d1);
+        
+        dynamic d2 = new[] { 1 };
+        new C02(d2);
+        new C03(d1);
+        new C04(d2);
+        
+        int x = 1;
+        new C05(x, d1);
+        new C06(x, d2);
+
+        dynamic d3 = (byte)1;
+        new C07(d3);
+        new C08(d3, x);
+
+        dynamic d4 = x;
+        new C09(d3, x);
+        new C10(d3, x);
+        new C11(d3, d4);
+    }
+
+    class C01(dynamic d1) : Test1(d1);
+        
+    class C02(dynamic d2) : Test1(d2);
+    class C03(dynamic d1) : Test2(1, d1);
+    class C04(dynamic d2) : Test2(1, d2);
+        
+    class C05(int x, dynamic d1) : Test2(x, d1);
+    class C06(int x, dynamic d2) : Test2(x, d2);
+
+    class C07(dynamic d3) : Test3(d3, 1, 2);
+    class C08(int x, dynamic d3) : Test3(d3, x, x);            // Called6
+
+    class C09(dynamic d3, int x) : Test4((byte)d3, x, x);      // Called8
+    class C10(dynamic d3, int x) : Test4(d3, x, x);
+    class C11(dynamic d3, dynamic d4) : Test4(d3, d4, d4);
+
+    class Test1
+    {
+        public Test1(params IEnumerable<int> b) => System.Console.Write("Called1");
+        public Test1(System.DateTime b) => System.Console.Write("Called2");
+    }
+
+    class Test2
+    {
+        public Test2(int x, System.DateTime b) => System.Console.Write("Called3");
+        public Test2(long x, IEnumerable<int> b) => System.Console.Write("Called4");
+        public Test2(byte x, params IEnumerable<int> b) => System.Console.Write("Called5");
+    }
+
+    class Test3
+    {
+        public Test3(byte x, params IEnumerable<int> b) => System.Console.Write("Called6");
+        public Test3(byte x, byte y, byte z) => System.Console.Write("Called7");
+    }
+
+    class Test4
+    {
+        public Test4(byte x, params IEnumerable<int> b) => System.Console.Write("Called8");
+        public Test4(byte x, long y, long z) => System.Console.Write("Called9");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (29,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C01(dynamic d1) : Test1(d1);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d1)").WithLocation(29, 34),
+                // (31,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C02(dynamic d2) : Test1(d2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d2)").WithLocation(31, 34),
+                // (32,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C03(dynamic d1) : Test2(1, d1);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(1, d1)").WithLocation(32, 34),
+                // (33,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C04(dynamic d2) : Test2(1, d2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(1, d2)").WithLocation(33, 34),
+                // (35,41): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C05(int x, dynamic d1) : Test2(x, d1);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(x, d1)").WithLocation(35, 41),
+                // (36,41): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C06(int x, dynamic d2) : Test2(x, d2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(x, d2)").WithLocation(36, 41),
+                // (38,34): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C07(dynamic d3) : Test3(d3, 1, 2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, 1, 2)").WithLocation(38, 34),
+                // (42,41): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C10(dynamic d3, int x) : Test4(d3, x, x);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, x, x)").WithLocation(42, 41),
+                // (43,46): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                //     class C11(dynamic d3, dynamic d4) : Test4(d3, d4, d4);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(d3, d4, d4)").WithLocation(43, 46)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_04()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C(d);
+    }
+
+    class C(dynamic d) : Test(d, 2);
+
+    class Test
+    {
+        public Test(int a, params IEnumerable<int> b)
+        {
+            System.Console.Write("Called {0}", b is not null);
+        }
+
+        public Test(int a, System.DateTime b)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_05()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        new C(d);
+    }
+
+    class C(dynamic d) : Test(d, 2, 3);
+
+    class Test
+    {
+        public Test(params IEnumerable<int> b)
+        {
+            System.Console.Write("Called");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                expectedOutput: @"Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation_ConstructorInitializer_14_DoNotFilterBasedOnBetterFunctionMember()
+        {
+            var src = """
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1L;
+        new C(d);
+    }
+}
+
+class C(dynamic d) : Test(1, d, 2);
+
+class Test
+{
+    public Test(long a1, params IEnumerable<long> a2)
+    {
+        System.Console.Write("long");
+    }
+
+    public Test(int b1, int b2, int b3)
+    {
+        System.Console.Write("int");
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (12,26): error CS1975: The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.
+                // class C(dynamic d) : Test(1, d, 2);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(1, d, 2)").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ExpressionTree()
+        {
+            var src = @"
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Action> e1 = () => Test();
+        Expression<System.Action> e2 = () => Test(1);
+        Expression<System.Action> e3 = () => Test(2, 3);
+        Expression<System.Action> e4 = () => Test([]);
+    }
+
+    static void Test(params System.Collections.Generic.IEnumerable<long> a)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(ParamsCollections): report more specific error.
+            comp.VerifyDiagnostics(
+                // (8,46): error CS9175: An expression tree may not contain a collection expression.
+                //         Expression<System.Action> e1 = () => Test();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test()").WithLocation(8, 46),
+                // (9,46): error CS9175: An expression tree may not contain a collection expression.
+                //         Expression<System.Action> e2 = () => Test(1);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test(1)").WithLocation(9, 46),
+                // (10,46): error CS9175: An expression tree may not contain a collection expression.
+                //         Expression<System.Action> e3 = () => Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test(2, 3)").WithLocation(10, 46),
+                // (11,51): error CS9175: An expression tree may not contain a collection expression.
+                //         Expression<System.Action> e4 = () => Test([]);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[]").WithLocation(11, 51)
+                );
+        }
     }
 }

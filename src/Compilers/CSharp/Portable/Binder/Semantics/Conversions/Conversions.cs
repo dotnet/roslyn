@@ -284,15 +284,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo, inferWithDynamic: true,
-                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
-                    isFunctionPointerResolution: isFunctionPointer, callingConventionInfo: callingConventionInfo);
+                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
+                    options: OverloadResolution.Options.InferWithDynamic | OverloadResolution.Options.IsMethodGroupConversion |
+                             (isFunctionPointer ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
+                    returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
+                    callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
                 return resolution;
             }
             else
             {
-                return binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: true, ref useSiteInfo);
+                return binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
             }
         }
 
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments: analyzedArguments,
                 result: result,
                 useSiteInfo: ref useSiteInfo,
-                isMethodGroupConversion: true,
+                options: OverloadResolution.Options.IsMethodGroupConversion,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
             var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod.ParameterCount);

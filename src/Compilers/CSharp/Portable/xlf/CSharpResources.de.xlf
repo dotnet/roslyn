@@ -372,6 +372,11 @@
         <target state="translated">{0} kann nicht in den Typ „{1}“ konvertiert werden, da der Rückgabetyp nicht mit dem Rückgabetyp des Delegaten übereinstimmt</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
+        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
+        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">"__arglist" darf kein über "in" oder "out" übergebenes Argument umfassen.</target>
@@ -1502,6 +1507,11 @@
         <target state="translated">Das "Parameter null-checking"-Feature wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
+        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has dynamic type. Consider casting the dynamic argument.</source>
+        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has dynamic type. Consider casting the dynamic argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ParamsMustBeCollection">
         <source>The params parameter must have a valid collection type</source>
         <target state="new">The params parameter must have a valid collection type</target>
@@ -2585,6 +2595,36 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Mehrfacher Verweis auf Analysetool</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
+        <source>One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
+        <source>One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
+        <source>One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
+        <source>One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
+        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
+        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
