@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
     public sealed class CodeMetricsAnalysisContext
     {
         private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelMap;
+        private readonly Func<SyntaxTree, SemanticModel> _getSemanticModel;
 
         public CodeMetricsAnalysisContext(Compilation compilation, CancellationToken cancellationToken,
             Func<INamedTypeSymbol, bool>? isExcludedFromInheritanceCountFunc = null)
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             CancellationToken = cancellationToken;
             _semanticModelMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
             IsExcludedFromInheritanceCountFunc = isExcludedFromInheritanceCountFunc ?? (x => false); // never excluded by default
+
+            _getSemanticModel = tree => Compilation.GetSemanticModel(tree);
         }
 
         public Compilation Compilation { get; }
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         public Func<INamedTypeSymbol, bool> IsExcludedFromInheritanceCountFunc { get; }
 
         internal SemanticModel GetSemanticModel(SyntaxNode node)
-            => _semanticModelMap.GetOrAdd(node.SyntaxTree, tree => Compilation.GetSemanticModel(node.SyntaxTree));
+            => _semanticModelMap.GetOrAdd(node.SyntaxTree, _getSemanticModel);
     }
 }
 
