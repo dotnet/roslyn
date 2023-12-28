@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 throw new ArgumentNullException(nameof(context));
             }
 
+            if (context.CancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<CodeAnalysisMetricData>(context.CancellationToken);
+            }
+
             return ComputeAsync(symbol, context);
 
             static async Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
@@ -292,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
                 throw new ArgumentNullException(nameof(context));
             }
+
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             return symbol.Kind switch
             {
