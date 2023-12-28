@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests
     public class InfrastructureTests : AbstractEditorTest
     {
         public InfrastructureTests()
-            : base(nameof(InfrastructureTests))
+            : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
