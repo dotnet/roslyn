@@ -102,25 +102,77 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             static int GetNewlineCount(SyntaxTriviaList trivialList, bool leading)
             {
-                var triviaParts = trivialList.ToFullString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToImmutableArray();
-                return GetNewlineCount(triviaParts, leading);
+                var fullTrivia = trivialList.ToFullString();
+                ReadOnlySpan<char> remainingTrivia = fullTrivia.AsSpan();
 
-                static int GetNewlineCount(ImmutableArray<string> triviaParts, bool leading)
+                return GetNewlineCount(remainingTrivia, leading);
+
+                static bool TryTakeNextLine(ref ReadOnlySpan<char> remaining, out ReadOnlySpan<char> next, bool leading)
                 {
-                    var index = leading ? 0 : triviaParts.Length - 1;
-                    var loopCondition = leading ? LoopConditionForLeading : (Func<int, int, bool>)LoopConditionForTrailing;
-                    var incrementOrDecrement = leading ? 1 : -1;
-                    var count = 0;
-                    while (loopCondition(index, triviaParts.Length) && string.IsNullOrWhiteSpace(triviaParts[index]))
+                    if (remaining.IsEmpty)
                     {
-                        index += incrementOrDecrement;
+                        next = ReadOnlySpan<char>.Empty;
+                        return false;
+                    }
+
+                    if (leading)
+                    {
+                        var index = remaining.IndexOfAny('\r', '\n');
+                        if (index < 0)
+                        {
+                            next = remaining;
+                            remaining = ReadOnlySpan<char>.Empty;
+                            return false;
+                        }
+
+                        next = remaining[..index];
+                        if (remaining[index] == '\r' && remaining.Length > index + 1 && remaining[index + 1] == '\n')
+                        {
+                            remaining = remaining[(index + 2)..];
+                        }
+                        else
+                        {
+                            remaining = remaining[(index + 1)..];
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        var index = remaining.LastIndexOfAny('\r', '\n');
+                        if (index < 0)
+                        {
+                            next = remaining;
+                            remaining = ReadOnlySpan<char>.Empty;
+                            return false;
+                        }
+
+                        next = remaining[(index + 1)..];
+                        if (remaining[index] == '\n' && index > 0 && remaining[index - 1] == '\r')
+                        {
+                            remaining = remaining[..(index - 1)];
+                        }
+                        else
+                        {
+                            remaining = remaining[..index];
+                        }
+
+                        return true;
+                    }
+                }
+
+                static int GetNewlineCount(ReadOnlySpan<char> trivia, bool leading)
+                {
+                    var count = 0;
+                    while (TryTakeNextLine(ref trivia, out var next, leading))
+                    {
+                        if (!next.IsWhiteSpace())
+                            break;
+
                         count++;
                     }
 
                     return count;
-
-                    static bool LoopConditionForLeading(int index, int length) => index < length - 1;
-                    static bool LoopConditionForTrailing(int index, int _) => index > 0;
                 }
             }
         }
