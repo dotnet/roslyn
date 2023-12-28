@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = namedType.DeclaringSyntaxReferences;
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, namedType, coupledTypesBuilder, context).ConfigureAwait(false);
+                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, namedType, coupledTypesBuilder, context);
 
                 // Compat: Filter out nested types as they are children of most closest containing namespace.
                 var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 }
 
                 int depthOfInheritance = CalculateDepthOfInheritance(namedType, context.IsExcludedFromInheritanceCountFunc);
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, namedType, context).ConfigureAwait(false);
+                long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, namedType, context);
                 int maintainabilityIndex = singleEffectiveChildMaintainabilityIndex != -1 ?
                     singleEffectiveChildMaintainabilityIndex :
                     CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity, effectiveChildrenCountForComplexity);

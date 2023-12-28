@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = property.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, property, context).ConfigureAwait(false);
+                long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, property, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, property, coupledTypesBuilder, context).ConfigureAwait(false);
+                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, property, coupledTypesBuilder, context);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Parameters);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Type);
 

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
@@ -26,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<FieldMetricData> ComputeAsync(IFieldSymbol field, CodeMetricsAnalysisContext context)
+            internal static FieldMetricData Compute(IFieldSymbol field, CodeMetricsAnalysisContext context)
             {
                 var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = field.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, field, context).ConfigureAwait(false);
+                long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, field, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, field, coupledTypesBuilder, context).ConfigureAwait(false);
+                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, field, coupledTypesBuilder, context);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, field.Type);
                 int? depthOfInheritance = null;
                 int maintainabilityIndex = CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity);

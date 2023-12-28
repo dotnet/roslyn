@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                     SymbolKind.NamedType => await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, context).ConfigureAwait(false),
 
-                    SymbolKind.Method => await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Method => MethodMetricData.Compute((IMethodSymbol)symbol, context),
 
                     SymbolKind.Property => await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, context).ConfigureAwait(false),
 
-                    SymbolKind.Field => await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Field => FieldMetricData.Compute((IFieldSymbol)symbol, context),
 
                     SymbolKind.Event => await EventMetricData.ComputeAsync((IEventSymbol)symbol, context).ConfigureAwait(false),
 

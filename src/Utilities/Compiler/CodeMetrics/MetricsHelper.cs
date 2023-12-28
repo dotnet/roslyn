@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
@@ -64,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
+        internal static long GetLinesOfCode(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
         {
             long linesOfCode = 0;
             foreach (var decl in declarations)
             {
-                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, context).ConfigureAwait(false);
+                SyntaxNode declSyntax = GetTopmostSyntaxNodeForDeclaration(decl, symbol, context);
 
                 // For namespace symbols, don't count lines of code for declarations of child namespaces.
                 // For example, "namespace N1.N2 { }" is a declaration reference for N1, but the actual declaration is for N2.
@@ -126,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
+        internal static SyntaxNode GetTopmostSyntaxNodeForDeclaration(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
         {
-            var declSyntax = await declaration.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+            var declSyntax = declaration.GetSyntax(context.CancellationToken);
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
                 SemanticModel model = context.GetSemanticModel(declSyntax);
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return declSyntax;
         }
 
-        internal static async Task<(int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics)> ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(
+        internal static (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) ComputeCoupledTypesAndComplexityExcludingMemberDecls(
             ImmutableArray<SyntaxReference> declarations,
             ISymbol symbol,
             ImmutableHashSet<INamedTypeSymbol>.Builder builder,
@@ -157,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             foreach (var declaration in declarations)
             {
-                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, context).ConfigureAwait(false);
+                SyntaxNode syntax = GetTopmostSyntaxNodeForDeclaration(declaration, symbol, context);
                 nodesToProcess.Enqueue(syntax);
 
                 // Ensure we process parameter initializers and attributes.
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var parameterSyntaxRef = parameter.DeclaringSyntaxReferences.FirstOrDefault();
                     if (parameterSyntaxRef != null)
                     {
-                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+                        var parameterSyntax = parameterSyntaxRef.GetSyntax(context.CancellationToken);
                         nodesToProcess.Enqueue(parameterSyntax);
                     }
                 }
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (attribute.ApplicationSyntaxReference != null &&
                         attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
-                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+                        var attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(context.CancellationToken);
                         if (applicableAttributeNodes.Add(attributeSyntax))
                         {
                             nodesToProcess.Enqueue(attributeSyntax);
