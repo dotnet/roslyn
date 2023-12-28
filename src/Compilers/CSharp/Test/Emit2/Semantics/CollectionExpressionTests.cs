@@ -28185,59 +28185,56 @@ partial class Program
             string expectedOutput = "(<>z__ReadOnlySingletonList<System.Int32>) [1], (ReadOnlySingletonList<System.Int32>) [1], ";
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
-            var members = new[]
-            {
-                (".ctor(T)", null),
-                ("Enumerator..ctor(T)", null),
+            verify(".ctor(T)");
+            verify("Enumerator..ctor(T)");
 
-                ("Enumerator.System.Collections.Generic.IEnumerator<T>.get_Current()", "Enumerator.System.Collections.Generic.IEnumerator<T>.Current.get"),
+            verify("Enumerator.System.Collections.Generic.IEnumerator<T>.get_Current()", "Enumerator.System.Collections.Generic.IEnumerator<T>.Current.get");
 
-                ("Enumerator.System.Collections.IEnumerator.MoveNext()", null),
-                ("Enumerator.System.Collections.IEnumerator.Reset()", null),
-                ("Enumerator.System.Collections.IEnumerator.get_Current()", "Enumerator.System.Collections.IEnumerator.Current.get"),
+            verify("Enumerator.System.Collections.IEnumerator.MoveNext()");
+            verify("Enumerator.System.Collections.IEnumerator.Reset()");
+            verify("Enumerator.System.Collections.IEnumerator.get_Current()", "Enumerator.System.Collections.IEnumerator.Current.get");
 
-                ("Enumerator.System.IDisposable.Dispose()", null),
+            verify("Enumerator.System.IDisposable.Dispose()");
 
-                ("System.Collections.Generic.ICollection<T>.Add(T)", null),
-                ("System.Collections.Generic.ICollection<T>.Clear()", null),
-                ("System.Collections.Generic.ICollection<T>.Contains(T)", null),
-                ("System.Collections.Generic.ICollection<T>.CopyTo(T[], int)", null),
-                ("System.Collections.Generic.ICollection<T>.Remove(T)", null),
-                ("System.Collections.Generic.ICollection<T>.get_Count()", "System.Collections.Generic.ICollection<T>.Count.get"),
-                ("System.Collections.Generic.ICollection<T>.get_IsReadOnly()", "System.Collections.Generic.ICollection<T>.IsReadOnly.get"),
+            verify("System.Collections.Generic.ICollection<T>.Add(T)");
+            verify("System.Collections.Generic.ICollection<T>.Clear()");
+            verify("System.Collections.Generic.ICollection<T>.Contains(T)");
+            verify("System.Collections.Generic.ICollection<T>.CopyTo(T[], int)");
+            verify("System.Collections.Generic.ICollection<T>.Remove(T)");
+            verify("System.Collections.Generic.ICollection<T>.get_Count()", "System.Collections.Generic.ICollection<T>.Count.get");
+            verify("System.Collections.Generic.ICollection<T>.get_IsReadOnly()", "System.Collections.Generic.ICollection<T>.IsReadOnly.get");
 
-                ("System.Collections.Generic.IEnumerable<T>.GetEnumerator()", null),
+            verify("System.Collections.Generic.IEnumerable<T>.GetEnumerator()");
 
-                ("System.Collections.Generic.IList<T>.IndexOf(T)", null),
-                ("System.Collections.Generic.IList<T>.Insert(int, T)", null),
-                ("System.Collections.Generic.IList<T>.RemoveAt(int)", null),
-                ("System.Collections.Generic.IList<T>.get_Item(int)", "System.Collections.Generic.IList<T>.this[int].get"),
-                ("System.Collections.Generic.IList<T>.set_Item(int, T)", "System.Collections.Generic.IList<T>.this[int].set"),
+            verify("System.Collections.Generic.IList<T>.IndexOf(T)");
+            verify("System.Collections.Generic.IList<T>.Insert(int, T)");
+            verify("System.Collections.Generic.IList<T>.RemoveAt(int)");
+            verify("System.Collections.Generic.IList<T>.get_Item(int)", "System.Collections.Generic.IList<T>.this[int].get");
+            verify("System.Collections.Generic.IList<T>.set_Item(int, T)", "System.Collections.Generic.IList<T>.this[int].set");
 
-                ("System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", "System.Collections.Generic.IReadOnlyCollection<T>.Count.get"),
-                ("System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", "System.Collections.Generic.IReadOnlyList<T>.this[int].get"),
+            verify("System.Collections.Generic.IReadOnlyCollection<T>.get_Count()", "System.Collections.Generic.IReadOnlyCollection<T>.Count.get");
+            verify("System.Collections.Generic.IReadOnlyList<T>.get_Item(int)", "System.Collections.Generic.IReadOnlyList<T>.this[int].get");
 
-                ("System.Collections.ICollection.CopyTo(System.Array, int)", null),
-                ("System.Collections.ICollection.get_Count()", "System.Collections.ICollection.Count.get"),
-                ("System.Collections.ICollection.get_IsSynchronized()", "System.Collections.ICollection.IsSynchronized.get"),
-                ("System.Collections.ICollection.get_SyncRoot()", "System.Collections.ICollection.SyncRoot.get"),
+            verify("System.Collections.ICollection.CopyTo(System.Array, int)");
+            verify("System.Collections.ICollection.get_Count()", "System.Collections.ICollection.Count.get");
+            verify("System.Collections.ICollection.get_IsSynchronized()", "System.Collections.ICollection.IsSynchronized.get");
+            verify("System.Collections.ICollection.get_SyncRoot()", "System.Collections.ICollection.SyncRoot.get");
 
-                ("System.Collections.IEnumerable.GetEnumerator()", null),
+            verify("System.Collections.IEnumerable.GetEnumerator()");
 
-                ("System.Collections.IList.Add(object)", null),
-                ("System.Collections.IList.Clear()", null),
-                ("System.Collections.IList.Contains(object)", null),
-                ("System.Collections.IList.IndexOf(object)", null),
-                ("System.Collections.IList.Insert(int, object)", null),
-                ("System.Collections.IList.Remove(object)", null),
-                ("System.Collections.IList.RemoveAt(int)", null),
-                ("System.Collections.IList.get_IsFixedSize()", "System.Collections.IList.IsFixedSize.get"),
-                ("System.Collections.IList.get_IsReadOnly()", "System.Collections.IList.IsReadOnly.get"),
-                ("System.Collections.IList.get_Item(int)", "System.Collections.IList.this[int].get"),
-                ("System.Collections.IList.set_Item(int, object)", "System.Collections.IList.this[int].set"),
-            };
+            verify("System.Collections.IList.Add(object)");
+            verify("System.Collections.IList.Clear()");
+            verify("System.Collections.IList.Contains(object)");
+            verify("System.Collections.IList.IndexOf(object)");
+            verify("System.Collections.IList.Insert(int, object)");
+            verify("System.Collections.IList.Remove(object)");
+            verify("System.Collections.IList.RemoveAt(int)");
+            verify("System.Collections.IList.get_IsFixedSize()", "System.Collections.IList.IsFixedSize.get");
+            verify("System.Collections.IList.get_IsReadOnly()", "System.Collections.IList.IsReadOnly.get");
+            verify("System.Collections.IList.get_Item(int)", "System.Collections.IList.this[int].get");
+            verify("System.Collections.IList.set_Item(int, object)", "System.Collections.IList.this[int].set");
 
-            foreach (var (memberName, sourceName) in members)
+            void verify(string memberName, string sourceName = null)
             {
                 string expectedIl = verifier.VisualizeIL($"ReadOnlySingletonList<T>.{sourceName ?? memberName}")
                     .Replace("ReadOnlySingletonList<T>", "<>z__ReadOnlySingletonList<T>");
