@@ -152,8 +152,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
-            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
             foreach (var declaration in declarations)
             {
                 SyntaxNode syntax = GetTopmostSyntaxNodeForDeclaration(declaration, symbol, context);
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     }
 
                     var typeInfo = model.GetTypeInfo(node, context.CancellationToken);
-                    AddCoupledNamedTypesCore(builder, typeInfo.Type, wellKnownTypeProvider);
+                    AddCoupledNamedTypesCore(builder, typeInfo.Type, context.WellKnownTypeProvider);
 
                     var operationBlock = model.GetOperation(node, context.CancellationToken);
                     if (operationBlock != null && operationBlock.Parent == null)
@@ -248,18 +246,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                             }
 
-                            AddCoupledNamedTypesCore(builder, operation.Type, wellKnownTypeProvider);
+                            AddCoupledNamedTypesCore(builder, operation.Type, context.WellKnownTypeProvider);
 
                             // Handle static member accesses specially as there is no operation for static type off which the member is accessed.
                             if (operation is IMemberReferenceOperation memberReference &&
                                 memberReference.Member.IsStatic)
                             {
-                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, wellKnownTypeProvider);
+                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, context.WellKnownTypeProvider);
                             }
                             else if (operation is IInvocationOperation invocation &&
                                 (invocation.TargetMethod.IsStatic || invocation.TargetMethod.IsExtensionMethod))
                             {
-                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, wellKnownTypeProvider);
+                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, context.WellKnownTypeProvider);
                             }
                         }
                     }

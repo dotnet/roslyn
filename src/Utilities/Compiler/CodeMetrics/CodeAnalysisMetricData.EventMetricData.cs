@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -29,20 +28,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<EventMetricData> ComputeAsync(IEventSymbol @event, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
                 long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, @event, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
                     MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, @event, coupledTypesBuilder, context);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, @event.Type);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, @event.Type);
 
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), context).ConfigureAwait(false);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     computationalComplexityMetrics = computationalComplexityMetrics.Union(child.ComputationalComplexityMetrics);

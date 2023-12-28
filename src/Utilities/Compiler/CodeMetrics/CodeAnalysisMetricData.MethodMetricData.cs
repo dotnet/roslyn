@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -27,17 +26,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static MethodMetricData Compute(IMethodSymbol method, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = method.DeclaringSyntaxReferences;
                 long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, method, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
                     MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, method, coupledTypesBuilder, context);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, method.Parameters);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, method.Parameters);
                 if (!method.ReturnsVoid)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, method.ReturnType);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, method.ReturnType);
                 }
 
                 int? depthOfInheritance = null;

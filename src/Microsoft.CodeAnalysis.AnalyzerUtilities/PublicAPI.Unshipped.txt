@@ -19,6 +19,7 @@ Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.ExecutableLines.get ->
 Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.MaintainabilityIndex.get -> int
 Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.SourceLines.get -> long
 Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext.WellKnownTypeProvider.get -> Analyzer.Utilities.WellKnownTypeProvider!
 Microsoft.CodeAnalysis.FlowAnalysis.BranchWithInfo
 Microsoft.CodeAnalysis.FlowAnalysis.BranchWithInfo.BranchValue.get -> Microsoft.CodeAnalysis.IOperation?
 Microsoft.CodeAnalysis.FlowAnalysis.BranchWithInfo.ControlFlowConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind

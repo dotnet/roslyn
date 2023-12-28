@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -29,21 +28,19 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<PropertyMetricData> ComputeAsync(IPropertySymbol property, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = property.DeclaringSyntaxReferences;
                 long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, property, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
                     MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, property, coupledTypesBuilder, context);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Parameters);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Type);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, property.Parameters);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, property.Type);
 
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(property), context).ConfigureAwait(false);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     computationalComplexityMetrics = computationalComplexityMetrics.Union(child.ComputationalComplexityMetrics);
