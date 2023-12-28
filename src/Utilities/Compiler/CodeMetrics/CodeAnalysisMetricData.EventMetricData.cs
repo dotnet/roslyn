@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<EventMetricData> ComputeAsync(IEventSymbol @event, CodeMetricsAnalysisContext context)
+            internal static EventMetricData Compute(IEventSymbol @event, CodeMetricsAnalysisContext context)
             {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, @event, coupledTypesBuilder, context);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, @event.Type);
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), context).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(GetAccessors(@event), context);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {

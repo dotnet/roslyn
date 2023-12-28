@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<PropertyMetricData> ComputeAsync(IPropertySymbol property, CodeMetricsAnalysisContext context)
+            internal static PropertyMetricData Compute(IPropertySymbol property, CodeMetricsAnalysisContext context)
             {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = property.DeclaringSyntaxReferences;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, property.Parameters);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, property.Type);
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(property), context).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(GetAccessors(property), context);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {

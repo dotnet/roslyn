@@ -30,6 +30,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<AssemblyMetricData> ComputeAsync(IAssemblySymbol assembly, CodeMetricsAnalysisContext context)
             {
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetChildSymbols(assembly), context).ConfigureAwait(false);
+                return ComputeFromChildren(assembly, children, context);
+            }
+
+            internal static AssemblyMetricData ComputeSynchronously(IAssemblySymbol assembly, CodeMetricsAnalysisContext context)
+            {
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(GetChildSymbols(assembly), context);
+                return ComputeFromChildren(assembly, children, context);
+            }
+
+            private static AssemblyMetricData ComputeFromChildren(IAssemblySymbol assembly, ImmutableArray<CodeAnalysisMetricData> children, CodeMetricsAnalysisContext context)
+            {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 long linesOfCode = 0;
                 int maintainabilityIndexTotal = 0;
@@ -37,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 int depthOfInheritance = 0;
                 int grandChildCount = 0;
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetChildSymbols(assembly), context).ConfigureAwait(false);
                 foreach (CodeAnalysisMetricData child in children)
                 {
                     MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, child.CoupledNamedTypes);

@@ -3,6 +3,7 @@
 #if HAS_IOPERATION
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,11 +30,24 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<NamedTypeMetricData> ComputeAsync(INamedTypeSymbol namedType, CodeMetricsAnalysisContext context)
             {
-                var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
-                ImmutableArray<SyntaxReference> declarations = namedType.DeclaringSyntaxReferences;
-                (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, namedType, coupledTypesBuilder, context);
+                var members = GetMembers(namedType, context);
 
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, context).ConfigureAwait(false);
+
+                return ComputeFromChildren(namedType, children, context);
+            }
+
+            internal static NamedTypeMetricData ComputeSynchronously(INamedTypeSymbol namedType, CodeMetricsAnalysisContext context)
+            {
+                var members = GetMembers(namedType, context);
+
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(members, context);
+
+                return ComputeFromChildren(namedType, children, context);
+            }
+
+            private static IEnumerable<ISymbol> GetMembers(INamedTypeSymbol namedType, CodeMetricsAnalysisContext context)
+            {
                 // Compat: Filter out nested types as they are children of most closest containing namespace.
                 var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType);
 
@@ -45,7 +59,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);
 #endif
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, context).ConfigureAwait(false);
+                return members;
+            }
+
+            private static NamedTypeMetricData ComputeFromChildren(INamedTypeSymbol namedType, ImmutableArray<CodeAnalysisMetricData> children, CodeMetricsAnalysisContext context)
+            {
+                var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+                ImmutableArray<SyntaxReference> declarations = namedType.DeclaringSyntaxReferences;
+                (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
+                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, namedType, coupledTypesBuilder, context);
 
                 // Heuristic to prevent simple fields (no initializer or simple initializer) from skewing the complexity.
                 ImmutableHashSet<IFieldSymbol> filteredFieldsForComplexity = getFilteredFieldsForComplexity();
