@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var ifStatement = diagnostic.AdditionalLocations[0].FindNode(true, cancellationToken);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
