@@ -1460,27 +1460,29 @@ namespace Microsoft.CodeAnalysis
         private void ApplyDocumentsInfoChange(ImmutableArray<ProjectChanges> projectChanges)
         {
             using var _1 = PooledHashSet<DocumentId>.GetInstance(out var infoChangedDocumentIds);
-            using var _2 = PooledHashSet<Document>.GetInstance(out var infoChangedNewDocument);
+            using var _2 = PooledHashSet<Document>.GetInstance(out var infoChangedNewDocuments);
             foreach (var projectChange in projectChanges)
             {
                 foreach (var docId in projectChange.GetChangedDocuments())
                 {
-                    var oldSolution = projectChange.OldProject.Solution;
-                    var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
-                    var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
-                    // For linked documents, when info get changed (e.g. name/folder/filePath)
-                    // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
-                    if (oldDoc.HasInfoChanged(newDoc)
-                        && infoChangedDocumentIds.Add(docId))
+                    if (!infoChangedDocumentIds.Contains(docId))
                     {
-                        var linkedDocumentIds = oldSolution.GetRequiredDocument(docId).GetLinkedDocumentIds();
-                        infoChangedDocumentIds.AddRange(linkedDocumentIds);
-                        infoChangedNewDocument.Add(newDoc);
+                        var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
+                        var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
+                        // For linked documents, when info get changed (e.g. name/folder/filePath)
+                        // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
+                        if (oldDoc.HasInfoChanged(newDoc))
+                        {
+                            var linkedDocuments = oldDoc.GetLinkedDocumentIds();
+                            infoChangedDocumentIds.Add(docId);
+                            infoChangedDocumentIds.AddRange(linkedDocuments);
+                            infoChangedNewDocuments.Add(newDoc);
+                        }
                     }
                 }
             }
 
-            foreach (var newDoc in infoChangedNewDocument)
+            foreach (var newDoc in infoChangedNewDocuments)
             {
                 // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
                 ApplyDocumentInfoChanged(newDoc.Id,

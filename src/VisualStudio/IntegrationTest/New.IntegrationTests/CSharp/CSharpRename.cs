@@ -732,7 +732,7 @@ public class Class2
     <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-     <LangVersion>preview</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 </Project>
 ", HangMitigatingCancellationToken);
@@ -771,7 +771,7 @@ public class MyClass
         MyTestClass$$ x = new MyTestClass();
     }
 }", HangMitigatingCancellationToken);
-            // Make sure the file is renamed.
+            // Make sure the file is renamed. If the file is not found, this call would throw exception
             await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
         }
     }
