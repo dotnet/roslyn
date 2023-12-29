@@ -4371,4 +4371,68 @@ public class UseCollectionExpressionForArrayTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
 }

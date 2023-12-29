@@ -40,6 +40,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
     protected override bool AreCollectionExpressionsSupported(Compilation compilation)
         => compilation.LanguageVersion().SupportsCollectionExpressions();
 
-    protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, CancellationToken cancellationToken)
-        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken);
+    protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken, out bool changesSemantics)
+        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 }
