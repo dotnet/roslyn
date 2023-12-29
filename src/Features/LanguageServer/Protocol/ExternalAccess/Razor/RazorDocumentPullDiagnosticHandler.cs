@@ -24,7 +24,7 @@ internal class RazorDocumentPullDiagnosticHandler(
         : AbstractDocumentPullDiagnosticHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
         , ILspServiceRequestHandler<RazorDiagnosticsParams, VSInternalDiagnosticReport[]?>
 {
-    public const string RazorDiagnosticsName = "razor/diagnostics";
+    public const string RazorDiagnosticsName = "roslyn/diagnostics";
     private readonly LspWorkspaceManager _workspaceManager = workspaceManager;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
