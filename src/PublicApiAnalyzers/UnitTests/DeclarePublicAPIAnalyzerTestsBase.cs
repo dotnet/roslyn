@@ -3021,10 +3021,10 @@ C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
             await VerifyCSharpAdditionalFileFixAsync(
-                source.NormalizeLineEndings(),
+                source.ReplaceLineEndings("\r\n"),
                 shippedText,
-                unshippedText.NormalizeLineEndings(),
-                fixedUnshippedText.NormalizeLineEndings());
+                unshippedText.ReplaceLineEndings("\r\n"),
+                fixedUnshippedText.ReplaceLineEndings("\r\n"));
         }
 
         [Fact]
