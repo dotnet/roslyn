@@ -981,7 +981,6 @@ namespace Microsoft.CodeAnalysis
                     if (parent == null || parent.FullWidth != node.FullWidth) break;
                     // prefer child over compilation unit
                     if (parent == cuRoot) break;
-
                     node = parent;
                 }
             }
