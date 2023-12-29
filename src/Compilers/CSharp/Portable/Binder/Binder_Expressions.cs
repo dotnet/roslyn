@@ -5819,7 +5819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindCollectionInitializerElementAddMethod(
-            ExpressionSyntax elementInitializer,
+            SyntaxNode elementInitializer,
             ImmutableArray<BoundExpression> boundElementInitializerExpressions,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
@@ -5937,31 +5937,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal BoundNode BindCollectionExpressionElementAddMethod(
-            BoundNode element,
-            Binder collectionInitializerAddMethodBinder,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            BindingDiagnosticBag diagnostics,
-            out bool hasErrors)
-        {
-            var result = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
-                    (SpreadElementSyntax)spreadElement.Syntax,
-                    spreadElement,
-                    collectionInitializerAddMethodBinder,
-                    implicitReceiver,
-                    diagnostics) :
-                BindCollectionInitializerElementAddMethod(
-                    (ExpressionSyntax)element.Syntax,
-                    ImmutableArray.Create((BoundExpression)element),
-                    hasEnumerableInitializerType: true,
-                    collectionInitializerAddMethodBinder,
-                    diagnostics,
-                    implicitReceiver);
-            hasErrors = result.HasErrors;
-            return result;
-        }
-
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
