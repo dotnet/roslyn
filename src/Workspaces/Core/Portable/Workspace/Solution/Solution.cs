@@ -1761,7 +1761,11 @@ namespace Microsoft.CodeAnalysis
             var projectState = _state.GetRequiredProjectState(projectId);
 
             var isSubmission = projectState.IsSubmission;
-            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+
+            // Check to see if we already have a submission reference; if we have a project reference pointing to a missing project we'll have to call that
+            // not a submission project since we won't know what it originally was. This means it's possible to bypass the check here by adding multiple
+            // references to missing submission projects and then later adding those projects to the solution.
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetProjectState(p.ProjectId)?.IsSubmission ?? false);
 
             foreach (var projectReference in projectReferences)
             {

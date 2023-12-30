@@ -1431,6 +1431,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void AddProjectReferenceToMissingProjectWorksWithExistingMissingReferences()
+        {
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var solution = workspace.CurrentSolution;
+            var projectId = solution.ProjectIds.Single();
+
+            // Adding two project references to missing projects, but in separate operations
+            solution = solution.AddProjectReference(projectId, new ProjectReference(ProjectId.CreateNewId()));
+            solution = solution.AddProjectReference(projectId, new ProjectReference(ProjectId.CreateNewId()));
+
+            Assert.Equal(2, solution.GetRequiredProject(projectId).AllProjectReferences.Count);
+        }
+
+        [Fact]
         public void RemoveProjectReference()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
