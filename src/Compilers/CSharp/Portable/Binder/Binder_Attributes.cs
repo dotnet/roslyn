@@ -372,10 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructorArgumentSourceIndices.Count = lengthAfterRewriting;
                 for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
+                    Debug.Assert(!arguments[argIndex].IsParamsCollection || arguments[argIndex] is BoundArrayCreation);
+
                     int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                     constructorArgumentSourceIndices[paramIndex] =
                         defaultArguments[argIndex] ||
-                            // PROTOTYPE(ParamsCollections): Adjust?
                             (arguments[argIndex].IsParamsCollection && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
                         -1 : argIndex;
                 }

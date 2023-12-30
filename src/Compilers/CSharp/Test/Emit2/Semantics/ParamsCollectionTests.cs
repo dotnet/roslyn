@@ -129,6 +129,75 @@ Arguments(1):
         }
 
         [Fact]
+        public void Span_InAttribute()
+        {
+            var src = @"
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params System.Span<long> a) {}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(2, 2),
+                // (5,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(5, 2),
+                // (8,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(8, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsNumeric);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("System.Span<System.Int64>", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
+        }
+
+        [Fact]
         public void ReadOnlySpan()
         {
             var src = @"
@@ -169,6 +238,75 @@ class Program
 1: 1 ... 1
 2: 2 ... 3
 ")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlySpan_InAttribute()
+        {
+            var src = @"
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params System.ReadOnlySpan<long> a) {}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(2, 2),
+                // (5,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(5, 2),
+                // (8,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(8, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsNumeric);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("System.ReadOnlySpan<System.Int64>", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
         }
 
         [Fact]
@@ -220,20 +358,96 @@ class Program
         }
 
         [Fact]
+        public void String_InAttribute()
+        {
+            var src = @"
+[Test()]
+class C1;
+
+[Test('1')]
+class C2;
+
+[Test('2', '3')]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params string a) {}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (2,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test()").WithArguments("string", "0").WithLocation(2, 2),
+                // (5,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // [Test('1')]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('1')").WithArguments("string", "0").WithLocation(5, 2),
+                // (5,7): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [Test('1')]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'1'").WithArguments("string", "Add").WithLocation(5, 7),
+                // (8,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // [Test('2', '3')]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('2', '3')").WithArguments("string", "0").WithLocation(8, 2),
+                // (8,7): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [Test('2', '3')]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'2'").WithArguments("string", "Add").WithLocation(8, 7),
+                // (8,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [Test('2', '3')]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'3'").WithArguments("string", "Add").WithLocation(8, 12)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Char", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Char", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsIdentity);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("System.String", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
+        }
+
+        [Fact]
         public void CreateMethod()
         {
             var src = """
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
-class MyCollection : IEnumerable<long>
+class MyCollection
 {
     public long[] Array;
-    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
-    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public IEnumerator<long> GetEnumerator() => throw null;
 }
 class MyCollectionBuilder
 {
@@ -279,6 +493,90 @@ class Program
 ")).VerifyDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void CreateMethod_InAttribute(bool asStruct)
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+" + (asStruct ? "struct" : "class") + @" MyCollection
+{
+    public IEnumerator<long> GetEnumerator() => throw new InvalidOperationException();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => new MyCollection();
+}
+
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params MyCollection a) {}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (16,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(16, 2),
+                // (19,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(19, 2),
+                // (22,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(22, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsNumeric);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
+        }
+
         [Fact]
         public void ImplementsIEnumerableT_01()
         {
@@ -312,7 +610,7 @@ class Program
         }
         else
         {
-            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
         }
     }
 
@@ -322,16 +620,16 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
-                expectedOutput: ExpectedOutput(@"
+                expectedOutput: @"
 0
 1: 1 ... 1
 2: 2 ... 3
-")).VerifyDiagnostics();
+").VerifyDiagnostics();
         }
 
         [Fact]
@@ -372,7 +670,7 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             // PROTOTYPE(ParamsCollections): inconsistencies in compiler's behavior between expanded form and explicit collection expressions are concerning.
             comp.VerifyDiagnostics(
@@ -398,6 +696,88 @@ class Program
                 //         MyCollection x1 = ["2"];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "long").WithLocation(26, 28)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementsIEnumerableT_03_InAttribute(bool asStruct)
+        {
+            var src = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+" + (asStruct ? "struct" : "class") + @" MyCollection : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw new InvalidOperationException();
+    IEnumerator IEnumerable.GetEnumerator() => throw new InvalidOperationException();
+
+    public void Add(long l) {}
+}
+
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params MyCollection a) {}
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (14,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(14, 2),
+                // (17,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(17, 2),
+                // (20,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(20, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsNumeric);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
         }
 
         [Fact]
@@ -432,7 +812,7 @@ class Program
         }
         else
         {
-            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[^1]);
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
         }
     }
 
@@ -442,16 +822,15 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(
                 comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
-                expectedOutput: ExpectedOutput(@"
+                expectedOutput: @"
 0
 1: 1 ... 1
 2: 2 ... 3
-")).VerifyDiagnostics();
+").VerifyDiagnostics();
         }
 
         [Fact]
@@ -482,7 +861,7 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             // PROTOTYPE(ParamsCollections): inconsistencies in compiler's behavior between expanded form and explicit collection expressions are concerning.
             comp.VerifyDiagnostics(
@@ -490,6 +869,86 @@ class Program
                 //         Test("2", 3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(16, 19)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementsIEnumerable_03_InAttribute(bool asStruct)
+        {
+            var src = @"
+using System;
+using System.Collections;
+
+" + (asStruct ? "struct" : "class") + @" MyCollection : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw new InvalidOperationException();
+
+    public void Add(object l) {}
+}
+
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params MyCollection a) {}
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (12,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(12, 2),
+                // (15,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(15, 2),
+                // (18,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(18, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsBoxing);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
         }
 
         [Theory]
@@ -548,6 +1007,82 @@ class Program
 ")).VerifyDiagnostics();
         }
 
+        [Theory]
+        [InlineData("IEnumerable")]
+        [InlineData("IReadOnlyCollection")]
+        [InlineData("IReadOnlyList")]
+        [InlineData("ICollection")]
+        [InlineData("IList")]
+        public void ArrayInterfaces_InAttribute(string @interface)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+[Test()]
+class C1;
+
+[Test(1)]
+class C2;
+
+[Test(2, 3)]
+class C3;
+
+class Test : System.Attribute
+{
+    public Test(params " + @interface + @"<long> a) {}
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                // [Test()]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(4, 2),
+                // (7,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                // [Test(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(7, 2),
+                // (10,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                // [Test(2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(10, 2)
+                );
+
+            assertAttributeData("C1");
+            assertAttributeData("C2");
+            assertAttributeData("C3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(3, nodes.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (LiteralExpressionSyntax expression in nodes)
+            {
+                assertTypeInfo(expression);
+            }
+
+            void assertTypeInfo(LiteralExpressionSyntax expression)
+            {
+                var typeInfo = model.GetTypeInfo(expression);
+                Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+
+                Assert.True(model.GetConversion(expression).IsNumeric);
+            }
+
+            void assertAttributeData(string name)
+            {
+                var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
+                Assert.True(attributeData1.HasErrors);
+
+                var c1Arg = attributeData1.ConstructorArguments.Single();
+                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
+                Assert.Equal("System.Collections.Generic." + @interface + "<System.Int64>", c1Arg.Type.ToTestDisplayString());
+                Assert.Null(c1Arg.Value);
+                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+            }
+        }
+
         [Fact]
         public void IEnumerable()
         {
@@ -561,13 +1096,645 @@ class Program
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (5,22): error CS0225: The params parameter must have a valid collection type
                 //     static void Test(params IEnumerable a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 22)
                 );
+        }
+
+        [Fact]
+        public void WRN_ParamsArrayInLambdaOnly()
+        {
+            var src = """
+using System.Collections.Generic;
+
+System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (3,64): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(3, 64)
+                );
+        }
+
+        [Theory]
+        [InlineData(@"$""Literal{1}""")]
+        [InlineData(@"$""Literal"" + $""{1}""")]
+        public void ConversionInParamsArguments_InterpolatedStringHandler(string expression)
+        {
+            var code = @"
+using System;
+using System.Linq;
+
+M(" + expression + ", " + expression + @");
+
+void M(params System.ReadOnlySpan<CustomHandler> handlers)
+{
+    Console.WriteLine(string.Join(Environment.NewLine, handlers.ToArray().Select(h => h.ToString())));
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false, includeOneTimeHelpers: false) }, targetFramework: TargetFramework.Net80,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }" }
+                            : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+literal:Literal
+value:1
+alignment:0
+format:
+
+literal:Literal
+value:1
+alignment:0
+format:
+"));
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      122 (0x7a)
+  .maxstack  5
+  .locals init (<>y__InlineArray2<CustomHandler> V_0,
+                CustomHandler V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""<>y__InlineArray2<CustomHandler>""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""ref CustomHandler <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<CustomHandler>, CustomHandler>(ref <>y__InlineArray2<CustomHandler>, int)""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.1
+  IL_0014:  call       ""CustomHandler..ctor(int, int)""
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldstr      ""Literal""
+  IL_0020:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldc.i4.1
+  IL_0028:  box        ""int""
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldnull
+  IL_002f:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0034:  ldloc.1
+  IL_0035:  stobj      ""CustomHandler""
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  ldc.i4.1
+  IL_003d:  call       ""ref CustomHandler <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<CustomHandler>, CustomHandler>(ref <>y__InlineArray2<CustomHandler>, int)""
+  IL_0042:  ldloca.s   V_1
+  IL_0044:  ldc.i4.7
+  IL_0045:  ldc.i4.1
+  IL_0046:  call       ""CustomHandler..ctor(int, int)""
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  ldstr      ""Literal""
+  IL_0052:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0057:  ldloca.s   V_1
+  IL_0059:  ldc.i4.1
+  IL_005a:  box        ""int""
+  IL_005f:  ldc.i4.0
+  IL_0060:  ldnull
+  IL_0061:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0066:  ldloc.1
+  IL_0067:  stobj      ""CustomHandler""
+  IL_006c:  ldloca.s   V_0
+  IL_006e:  ldc.i4.2
+  IL_006f:  call       ""System.ReadOnlySpan<CustomHandler> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<CustomHandler>, CustomHandler>(in <>y__InlineArray2<CustomHandler>, int)""
+  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(System.ReadOnlySpan<CustomHandler>)""
+  IL_0079:  ret
+}
+");
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_01_NamedArguments()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<int>
+{
+    public MyCollection()
+    {
+        System.Console.WriteLine("Create");
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(int l)
+    {
+        System.Console.WriteLine("Add");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test(b: GetB(), c: GetC(), a: GetA());
+    }
+
+    static void Test(int a, int b, params MyCollection c)
+    {
+    }
+
+    static int GetA()
+    {
+        System.Console.WriteLine("GetA");
+        return 0;
+    }
+
+    static int GetB()
+    {
+        System.Console.WriteLine("GetB");
+        return 0;
+    }
+
+    static int GetC()
+    {
+        System.Console.WriteLine("GetC");
+        return 0;
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+GetB
+Create
+GetC
+Add
+GetA
+").VerifyDiagnostics();
+
+            // Note, the collection is created after the lexically previous argument is evaluated, 
+            // but before the lexically following argument is evaluated. This differs from params
+            // array case, which is created right before the target methos is invoked, after all
+            // arguments are evaluated in their lexical order, which can be observed in a unit-test
+            // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.NamedParamsOptimizationAndParams002​
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0,
+            MyCollection V_1)
+  IL_0000:  call       ""int Program.GetB()""
+  IL_0005:  stloc.0
+  IL_0006:  newobj     ""MyCollection..ctor()""
+  IL_000b:  dup
+  IL_000c:  call       ""int Program.GetC()""
+  IL_0011:  callvirt   ""void MyCollection.Add(int)""
+  IL_0016:  stloc.1
+  IL_0017:  call       ""int Program.GetA()""
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""void Program.Test(int, int, params MyCollection)""
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_02_CompoundAssignment()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<int>
+{
+    public MyCollection()
+    {
+        System.Console.WriteLine("Create");
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(int l)
+    {
+        System.Console.WriteLine("Add");
+    }
+}
+
+class Program
+{
+    private MyCollection _c;
+
+    static void Main()
+    {
+        System.Console.WriteLine("---Test1");
+        Test1(new Program());
+        System.Console.WriteLine("---Test2");
+        Test2(new Program());
+        System.Console.WriteLine("---Test3");
+        Test3(new Program());
+    }
+
+    static void Test1(Program p)
+    {
+        p[GetA()]++;
+    }
+
+    static void Test2(Program p)
+    {
+        p[GetA(), GetC()]++;
+    }
+
+    static void Test3(Program p)
+    {
+        p[GetA(), GetB(), GetC()]++;
+    }
+
+    int this[int a, params MyCollection c]
+    {
+        get
+        {
+            System.Console.WriteLine("Get_this {0}", c is not null);
+            _c = c;
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine("Set_this {0}", (object)_c == c);
+        }
+    }
+
+
+    static int GetA()
+    {
+        System.Console.WriteLine("GetA");
+        return 0;
+    }
+
+    static int GetB()
+    {
+        System.Console.WriteLine("GetB");
+        return 0;
+    }
+
+    static int GetC()
+    {
+        System.Console.WriteLine("GetC");
+        return 0;
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+---Test1
+GetA
+Create
+Get_this True
+Set_this True
+---Test2
+GetA
+Create
+GetC
+Add
+Get_this True
+Set_this True
+---Test3
+GetA
+Create
+GetB
+Add
+GetC
+Add
+Get_this True
+Set_this True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (int V_0,
+            MyCollection V_1,
+            int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetA()""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""MyCollection..ctor()""
+  IL_000c:  stloc.1
+  IL_000d:  dup
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  callvirt   ""int Program.this[int, params MyCollection].get""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  callvirt   ""void Program.this[int, params MyCollection].set""
+  IL_0020:  ret
+
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  5
+  .locals init (int V_0,
+            MyCollection V_1,
+            int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetA()""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""MyCollection..ctor()""
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.GetC()""
+  IL_0012:  callvirt   ""void MyCollection.Add(int)""
+  IL_0017:  stloc.1
+  IL_0018:  dup
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  callvirt   ""int Program.this[int, params MyCollection].get""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.0
+  IL_0022:  ldloc.1
+  IL_0023:  ldloc.2
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  callvirt   ""void Program.this[int, params MyCollection].set""
+  IL_002b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  5
+  .locals init (int V_0,
+            MyCollection V_1,
+            int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetA()""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""MyCollection..ctor()""
+  IL_000c:  dup
+  IL_000d:  call       ""int Program.GetB()""
+  IL_0012:  callvirt   ""void MyCollection.Add(int)""
+  IL_0017:  dup
+  IL_0018:  call       ""int Program.GetC()""
+  IL_001d:  callvirt   ""void MyCollection.Add(int)""
+  IL_0022:  stloc.1
+  IL_0023:  dup
+  IL_0024:  ldloc.0
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   ""int Program.this[int, params MyCollection].get""
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.0
+  IL_002d:  ldloc.1
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  callvirt   ""void Program.this[int, params MyCollection].set""
+  IL_0036:  ret
+}
+");
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_03_ObjectInitializer()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<int>
+{
+    public MyCollection()
+    {
+        System.Console.WriteLine("Create");
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(int l)
+    {
+        System.Console.WriteLine("Add");
+    }
+}
+
+class C1
+{
+    public int F1;
+    public int F2;
+}
+
+class Program
+{
+    private MyCollection _c;
+
+    static void Main()
+    {
+        System.Console.WriteLine("---Test1");
+        Test1();
+        System.Console.WriteLine("---Test2");
+        Test2();
+        System.Console.WriteLine("---Test3");
+        Test3();
+    }
+
+    static void Test1()
+    {
+        _ = new Program() { [GetA()] = { F1 = GetF1(), F2 = GetF2() } };
+    }
+
+    static void Test2()
+    {
+        _ = new Program() { [GetA(), GetC()] = { F1 = GetF1(), F2 = GetF2() } };
+    }
+
+    static void Test3()
+    {
+        _ = new Program() { [GetA(), GetB(), GetC()] = { F1 = GetF1(), F2 = GetF2() } };
+    }
+
+    C1 this[int a, params MyCollection c]
+    {
+        get
+        {
+            System.Console.WriteLine("Get_this {0}", c is not null && (_c is null || (object)_c == c));
+            _c = c;
+            return new C1();
+        }
+        set
+        {
+            System.Console.WriteLine("Set_this {0}", (object)_c == c);
+        }
+    }
+
+
+    static int GetA()
+    {
+        System.Console.WriteLine("GetA");
+        return 0;
+    }
+
+    static int GetB()
+    {
+        System.Console.WriteLine("GetB");
+        return 0;
+    }
+
+    static int GetC()
+    {
+        System.Console.WriteLine("GetC");
+        return 0;
+    }
+
+    static int GetF1()
+    {
+        System.Console.WriteLine("GetF1");
+        return 0;
+    }
+
+    static int GetF2()
+    {
+        System.Console.WriteLine("GetF2");
+        return 0;
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+---Test1
+GetA
+Create
+Get_this True
+GetF1
+Get_this True
+GetF2
+---Test2
+GetA
+Create
+GetC
+Add
+Get_this True
+GetF1
+Get_this True
+GetF2
+---Test3
+GetA
+Create
+GetB
+Add
+GetC
+Add
+Get_this True
+GetF1
+Get_this True
+GetF2
+").VerifyDiagnostics();
+
+            // Note, the collection is created once and that same instance is used across multiple invocation of the indexer.
+            // With params arrays, however, only individual elements are cached and each invocation of the indexer is getting
+            // a new instance of an array (with the same values inside though). This can be observed in a unit-test
+            // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.ObjectAndCollectionInitializerTests.DictionaryInitializerTestSideeffects001param
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init (int V_0,
+            MyCollection V_1)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  call       ""int Program.GetA()""
+  IL_000a:  stloc.0
+  IL_000b:  newobj     ""MyCollection..ctor()""
+  IL_0010:  stloc.1
+  IL_0011:  dup
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_0019:  call       ""int Program.GetF1()""
+  IL_001e:  stfld      ""int C1.F1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_002a:  call       ""int Program.GetF2()""
+  IL_002f:  stfld      ""int C1.F2""
+  IL_0034:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  4
+  .locals init (int V_0,
+            MyCollection V_1)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  call       ""int Program.GetA()""
+  IL_000a:  stloc.0
+  IL_000b:  newobj     ""MyCollection..ctor()""
+  IL_0010:  dup
+  IL_0011:  call       ""int Program.GetC()""
+  IL_0016:  callvirt   ""void MyCollection.Add(int)""
+  IL_001b:  stloc.1
+  IL_001c:  dup
+  IL_001d:  ldloc.0
+  IL_001e:  ldloc.1
+  IL_001f:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_0024:  call       ""int Program.GetF1()""
+  IL_0029:  stfld      ""int C1.F1""
+  IL_002e:  ldloc.0
+  IL_002f:  ldloc.1
+  IL_0030:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_0035:  call       ""int Program.GetF2()""
+  IL_003a:  stfld      ""int C1.F2""
+  IL_003f:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  .locals init (int V_0,
+            MyCollection V_1)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  call       ""int Program.GetA()""
+  IL_000a:  stloc.0
+  IL_000b:  newobj     ""MyCollection..ctor()""
+  IL_0010:  dup
+  IL_0011:  call       ""int Program.GetB()""
+  IL_0016:  callvirt   ""void MyCollection.Add(int)""
+  IL_001b:  dup
+  IL_001c:  call       ""int Program.GetC()""
+  IL_0021:  callvirt   ""void MyCollection.Add(int)""
+  IL_0026:  stloc.1
+  IL_0027:  dup
+  IL_0028:  ldloc.0
+  IL_0029:  ldloc.1
+  IL_002a:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_002f:  call       ""int Program.GetF1()""
+  IL_0034:  stfld      ""int C1.F1""
+  IL_0039:  ldloc.0
+  IL_003a:  ldloc.1
+  IL_003b:  callvirt   ""C1 Program.this[int, params MyCollection].get""
+  IL_0040:  call       ""int Program.GetF2()""
+  IL_0045:  stfld      ""int C1.F2""
+  IL_004a:  ret
+}
+");
         }
 
         [Fact]
