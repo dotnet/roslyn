@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
             }
 
-            var syntax = (ExpressionSyntax)node.Syntax;
+            var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
                 diagnostics.Add(node.HasSpreadElements(out _, out _)
