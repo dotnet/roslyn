@@ -913,10 +913,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool currentTokenFollowsAttributeNormally()
             {
                 // Look for common things that would lead us to think this is an attribute.  `[` before a top level
-                // construct/modifier is reasonable enough for us to think this is an attribute.
+                // construct/modifier is reasonable enough for us to think this is an attribute.  Similarly, `[ [...`
+                // (an incomplete attribute before an attribute).
 
                 var currentToken = this.CurrentToken;
-                return currentToken.Kind == SyntaxKind.NamespaceKeyword ||
+                return currentToken.Kind is SyntaxKind.NamespaceKeyword or SyntaxKind.OpenBracketToken ||
                     GetModifierExcludingScoped(currentToken) != DeclarationModifiers.None ||
                     IsTypeDeclarationStart();
             }
