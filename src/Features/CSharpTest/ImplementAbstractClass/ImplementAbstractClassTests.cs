@@ -2442,7 +2442,7 @@ class D<T> : B<{passToBase}>{constraint}
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
         public async Task TestRecordInheritance2()
         {
             await TestAllOptionsOffAsync(
