@@ -78,12 +78,15 @@ namespace Microsoft.CodeAnalysis
                 return CreateDeclarationId(symbol);
             }
 
-            var builder = new StringBuilder();
+            var builder = PooledStringBuilder.GetInstance();
             var generator = new ReferenceGenerator(builder, typeParameterContext: null);
             if (!generator.Visit(symbol))
+            {
+                builder.Free();
                 return null;
+            }
 
-            return builder.ToString();
+            return builder.ToStringAndFree();
         }
 
         /// <summary>
