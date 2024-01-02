@@ -5664,47 +5664,21 @@ class C {
         {
             string source = "[ => { }";
             UsingExpression(source,
-                // (1,3): error CS1001: Identifier expected
+                // (1,1): error CS1001: Identifier expected
                 // [ => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
-                // (1,3): error CS1003: Syntax error, ',' expected
-                // [ => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 3),
-                // (1,9): error CS1003: Syntax error, ']' expected
-                // [ => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 9),
-                // (1,9): error CS1001: Identifier expected
-                // [ => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1003: Syntax error, '=>' expected
-                // [ => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(1, 9),
-                // (1,9): error CS1733: Expected expression
-                // [ => { }
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "[").WithLocation(1, 1));
 
             N(SyntaxKind.SimpleLambdaExpression);
             {
-                N(SyntaxKind.AttributeList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    M(SyntaxKind.Attribute);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    M(SyntaxKind.CloseBracketToken);
-                }
                 M(SyntaxKind.Parameter);
                 {
                     M(SyntaxKind.IdentifierToken);
                 }
-                M(SyntaxKind.EqualsGreaterThanToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
