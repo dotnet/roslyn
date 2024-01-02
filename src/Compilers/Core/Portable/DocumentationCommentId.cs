@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (name.EndsWith(".this[]"))
             {
-                name = name.Substring(0, name.Length - 6) + "Item";
+                name = name[..^"this[]".Length] + "Item";
             }
 
             return name;
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (name.EndsWith(".Item"))
                 {
-                    name = name.Substring(0, name.Length - 4) + "this[]";
+                    name = name[..^"Item".Length] + "this[]";
                 }
             }
 
@@ -950,8 +950,7 @@ namespace Microsoft.CodeAnalysis
                     index++;
                     var methodTypeParameterIndex = ReadNextInteger(id, ref index);
 
-                    var methodContext = typeParameterContext as IMethodSymbol;
-                    if (methodContext != null)
+                    if (typeParameterContext is IMethodSymbol methodContext)
                     {
                         var count = methodContext.TypeParameters.Length;
                         if (count > 0 && methodTypeParameterIndex < count)
@@ -965,8 +964,9 @@ namespace Microsoft.CodeAnalysis
                     // regular type parameter
                     var typeParameterIndex = ReadNextInteger(id, ref index);
 
-                    var methodContext = typeParameterContext as IMethodSymbol;
-                    var typeContext = methodContext != null ? methodContext.ContainingType : typeParameterContext as INamedTypeSymbol;
+                    var typeContext = typeParameterContext is IMethodSymbol methodContext
+                        ? methodContext.ContainingType
+                        : typeParameterContext as INamedTypeSymbol;
 
                     if (typeContext != null && GetNthTypeParameter(typeContext, typeParameterIndex) is { } typeParameter)
                     {
@@ -1203,8 +1203,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             index = startIndex;
 
-                            var methodSymbol = symbol as IMethodSymbol;
-                            if (methodSymbol != null && methodSymbol.Arity == arity)
+                            if (symbol is IMethodSymbol methodSymbol && methodSymbol.Arity == arity)
                             {
                                 parameters.Clear();
 
@@ -1271,8 +1270,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             index = startIndex;
 
-                            var propertySymbol = symbol as IPropertySymbol;
-                            if (propertySymbol != null)
+                            if (symbol is IPropertySymbol propertySymbol)
                             {
                                 if (PeekNextChar(id, index) == '(')
                                 {
@@ -1494,12 +1492,12 @@ namespace Microsoft.CodeAnalysis
                 int delimiterOffset = id.IndexOfAny(s_nameDelimiters, index);
                 if (delimiterOffset >= 0)
                 {
-                    name = id.Substring(index, delimiterOffset - index);
+                    name = id[index..delimiterOffset];
                     index = delimiterOffset;
                 }
                 else
                 {
-                    name = id.Substring(index);
+                    name = id[index..];
                     index = id.Length;
                 }
 
