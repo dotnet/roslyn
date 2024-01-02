@@ -224,17 +224,17 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
-    <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
+    <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
     <SystemCodeDomVersion>7.0.0</SystemCodeDomVersion>
     <SystemCommandLineVersion>2.0.0-beta4.23407.1</SystemCommandLineVersion>
     <SystemComponentModelCompositionVersion>7.0.0</SystemComponentModelCompositionVersion>
     <SystemConfigurationConfigurationManagerVersion>7.0.0</SystemConfigurationConfigurationManagerVersion>
-    <SystemDrawingCommonVersion>7.0.0</SystemDrawingCommonVersion>
+    <SystemDrawingCommonVersion>8.0.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOHashingVersion>8.0.0</SystemIOHashingVersion>
     <SystemIOPipesAccessControlVersion>5.0.0</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>7.0.0</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>8.0.0</SystemIOPipelinesVersion>
     <SystemManagementVersion>7.0.0</SystemManagementVersion>
     <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
     <!--
@@ -251,9 +251,9 @@
     <SystemTextEncodingCodePagesVersion>7.0.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
-    <SystemTextJsonVersion>7.0.3</SystemTextJsonVersion>
-    <SystemThreadingChannelsVersion>7.0.0</SystemThreadingChannelsVersion>
-    <SystemThreadingTasksDataflowVersion>7.0.0</SystemThreadingTasksDataflowVersion>
+    <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>8.0.0</SystemThreadingChannelsVersion>
+    <SystemThreadingTasksDataflowVersion>8.0.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
