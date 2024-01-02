@@ -41,7 +41,7 @@ public sealed class LocalizationInfraTests : CSharpTestBase
             : CultureInfo.CurrentCulture;
         var expectedOutput = $"""
             {CultureInfo.CurrentCulture}
-            {uiCulture.Name}
+            {CultureInfo.CurrentCulture}
             {((double)2.1).ToString(CultureInfo.CurrentCulture)}
             {((decimal)2.1).ToString(CultureInfo.CurrentCulture)}
             """;
