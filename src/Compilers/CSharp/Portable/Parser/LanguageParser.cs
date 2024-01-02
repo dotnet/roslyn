@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (_termState & (TerminatorState)i)
                 {
                     case TerminatorState.IsNamespaceMemberStartOrStop when this.IsNamespaceMemberStartOrStop():
-                    case TerminatorState.IsAttributeDeclarationTerminator when this.IsAttributeDeclarationStartOrStop():
+                    case TerminatorState.IsAttributeDeclarationTerminator when this.IsAttributeDeclarationTerminator():
                     case TerminatorState.IsPossibleAggregateClauseStartOrStop when this.IsPossibleAggregateClauseStartOrStop():
                     case TerminatorState.IsPossibleMemberStartOrStop when this.IsPossibleMemberStartOrStop():
                     case TerminatorState.IsEndOfReturnType when this.IsEndOfReturnType():
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _pool.ToListAndFree(attributes);
         }
 
-        private bool IsAttributeDeclarationStartOrStop()
+        private bool IsAttributeDeclarationTerminator()
         {
             return this.CurrentToken.Kind == SyntaxKind.CloseBracketToken
                 || this.IsPossibleAttributeDeclaration(); // start of a new one...
