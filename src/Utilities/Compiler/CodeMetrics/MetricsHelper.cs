@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
-            IEnumerable<ITypeSymbol> coupledTypes)
+            ImmutableHashSet<INamedTypeSymbol> coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
@@ -47,12 +46,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
-            params ITypeSymbol[] coupledTypes)
+            ITypeSymbol coupledType)
         {
-            foreach (var coupledType in coupledTypes)
-            {
-                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
-            }
+            AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
@@ -64,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
+        internal static long GetLinesOfCode(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
         {
             long linesOfCode = 0;
             foreach (var decl in declarations)
             {
-                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, context).ConfigureAwait(false);
+                SyntaxNode declSyntax = GetTopmostSyntaxNodeForDeclaration(decl, symbol, context);
 
                 // For namespace symbols, don't count lines of code for declarations of child namespaces.
                 // For example, "namespace N1.N2 { }" is a declaration reference for N1, but the actual declaration is for N2.
@@ -103,32 +99,84 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             static int GetNewlineCount(SyntaxTriviaList trivialList, bool leading)
             {
-                var triviaParts = trivialList.ToFullString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToImmutableArray();
-                return GetNewlineCount(triviaParts, leading);
+                var fullTrivia = trivialList.ToFullString();
+                ReadOnlySpan<char> remainingTrivia = fullTrivia.AsSpan();
 
-                static int GetNewlineCount(ImmutableArray<string> triviaParts, bool leading)
+                return GetNewlineCount(remainingTrivia, leading);
+
+                static bool TryTakeNextLine(ref ReadOnlySpan<char> remaining, out ReadOnlySpan<char> next, bool leading)
                 {
-                    var index = leading ? 0 : triviaParts.Length - 1;
-                    var loopCondition = leading ? LoopConditionForLeading : (Func<int, int, bool>)LoopConditionForTrailing;
-                    var incrementOrDecrement = leading ? 1 : -1;
-                    var count = 0;
-                    while (loopCondition(index, triviaParts.Length) && string.IsNullOrWhiteSpace(triviaParts[index]))
+                    if (remaining.IsEmpty)
                     {
-                        index += incrementOrDecrement;
+                        next = ReadOnlySpan<char>.Empty;
+                        return false;
+                    }
+
+                    if (leading)
+                    {
+                        var index = remaining.IndexOfAny('\r', '\n');
+                        if (index < 0)
+                        {
+                            next = remaining;
+                            remaining = ReadOnlySpan<char>.Empty;
+                            return false;
+                        }
+
+                        next = remaining[..index];
+                        if (remaining[index] == '\r' && remaining.Length > index + 1 && remaining[index + 1] == '\n')
+                        {
+                            remaining = remaining[(index + 2)..];
+                        }
+                        else
+                        {
+                            remaining = remaining[(index + 1)..];
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        var index = remaining.LastIndexOfAny('\r', '\n');
+                        if (index < 0)
+                        {
+                            next = remaining;
+                            remaining = ReadOnlySpan<char>.Empty;
+                            return false;
+                        }
+
+                        next = remaining[(index + 1)..];
+                        if (remaining[index] == '\n' && index > 0 && remaining[index - 1] == '\r')
+                        {
+                            remaining = remaining[..(index - 1)];
+                        }
+                        else
+                        {
+                            remaining = remaining[..index];
+                        }
+
+                        return true;
+                    }
+                }
+
+                static int GetNewlineCount(ReadOnlySpan<char> trivia, bool leading)
+                {
+                    var count = 0;
+                    while (TryTakeNextLine(ref trivia, out var next, leading))
+                    {
+                        if (!next.IsWhiteSpace())
+                            break;
+
                         count++;
                     }
 
                     return count;
-
-                    static bool LoopConditionForLeading(int index, int length) => index < length - 1;
-                    static bool LoopConditionForTrailing(int index, int _) => index > 0;
                 }
             }
         }
 
-        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
+        internal static SyntaxNode GetTopmostSyntaxNodeForDeclaration(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
         {
-            var declSyntax = await declaration.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+            var declSyntax = declaration.GetSyntax(context.CancellationToken);
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
                 SemanticModel model = context.GetSemanticModel(declSyntax);
@@ -141,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return declSyntax;
         }
 
-        internal static async Task<(int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics)> ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(
+        internal static (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) ComputeCoupledTypesAndComplexityExcludingMemberDecls(
             ImmutableArray<SyntaxReference> declarations,
             ISymbol symbol,
             ImmutableHashSet<INamedTypeSymbol>.Builder builder,
@@ -153,11 +201,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
-            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
             foreach (var declaration in declarations)
             {
-                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, context).ConfigureAwait(false);
+                SyntaxNode syntax = GetTopmostSyntaxNodeForDeclaration(declaration, symbol, context);
                 nodesToProcess.Enqueue(syntax);
 
                 // Ensure we process parameter initializers and attributes.
@@ -167,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var parameterSyntaxRef = parameter.DeclaringSyntaxReferences.FirstOrDefault();
                     if (parameterSyntaxRef != null)
                     {
-                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+                        var parameterSyntax = parameterSyntaxRef.GetSyntax(context.CancellationToken);
                         nodesToProcess.Enqueue(parameterSyntax);
                     }
                 }
@@ -183,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (attribute.ApplicationSyntaxReference != null &&
                         attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
-                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
+                        var attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(context.CancellationToken);
                         if (applicableAttributeNodes.Add(attributeSyntax))
                         {
                             nodesToProcess.Enqueue(attributeSyntax);
@@ -207,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     }
 
                     var typeInfo = model.GetTypeInfo(node, context.CancellationToken);
-                    AddCoupledNamedTypesCore(builder, typeInfo.Type, wellKnownTypeProvider);
+                    AddCoupledNamedTypesCore(builder, typeInfo.Type, context.WellKnownTypeProvider);
 
                     var operationBlock = model.GetOperation(node, context.CancellationToken);
                     if (operationBlock != null && operationBlock.Parent == null)
@@ -249,18 +295,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                             }
 
-                            AddCoupledNamedTypesCore(builder, operation.Type, wellKnownTypeProvider);
+                            AddCoupledNamedTypesCore(builder, operation.Type, context.WellKnownTypeProvider);
 
                             // Handle static member accesses specially as there is no operation for static type off which the member is accessed.
                             if (operation is IMemberReferenceOperation memberReference &&
                                 memberReference.Member.IsStatic)
                             {
-                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, wellKnownTypeProvider);
+                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, context.WellKnownTypeProvider);
                             }
                             else if (operation is IInvocationOperation invocation &&
                                 (invocation.TargetMethod.IsStatic || invocation.TargetMethod.IsExtensionMethod))
                             {
-                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, wellKnownTypeProvider);
+                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, context.WellKnownTypeProvider);
                             }
                         }
                     }
@@ -344,9 +390,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     or SpecialType.System_ValueType
                     or SpecialType.System_Void => true,
                     _ => namedType.IsAnonymousType
-                        || namedType.GetAttributes().Any(a =>
+                        || namedType.GetAttributes().Any(static (a, wellKnownTypeProvider) =>
                             a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
-                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute))),
+                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)), wellKnownTypeProvider),
                 };
             }
         }

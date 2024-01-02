@@ -4,8 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
-using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -27,22 +25,20 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<EventMetricData> ComputeAsync(IEventSymbol @event, CodeMetricsAnalysisContext context)
+            internal static EventMetricData Compute(IEventSymbol @event, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, @event, context).ConfigureAwait(false);
+                long linesOfCode = MetricsHelper.GetLinesOfCode(declarations, @event, context);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, @event, coupledTypesBuilder, context).ConfigureAwait(false);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, @event.Type);
+                    MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDecls(declarations, @event, coupledTypesBuilder, context);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, @event.Type);
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), context).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(GetAccessors(@event), context);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     computationalComplexityMetrics = computationalComplexityMetrics.Union(child.ComputationalComplexityMetrics);

@@ -207,6 +207,19 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="context"/>.
+        /// </summary>
+        public static CodeAnalysisMetricData ComputeSynchronously(CodeMetricsAnalysisContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            return ComputeSynchronously(context.Compilation.Assembly, context);
+        }
+
+        /// <summary>
         /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="symbol"/> from the given <paramref name="compilation"/>.
         /// </summary>
         [Obsolete("Use ComputeAsync(ISymbol, CodeMetricsAnalysisContext) instead.")]
@@ -240,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 throw new ArgumentNullException(nameof(context));
             }
 
+            if (context.CancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<CodeAnalysisMetricData>(context.CancellationToken);
+            }
+
             return ComputeAsync(symbol, context);
 
             static async Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
@@ -252,17 +270,54 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                     SymbolKind.NamedType => await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, context).ConfigureAwait(false),
 
-                    SymbolKind.Method => await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Method => MethodMetricData.Compute((IMethodSymbol)symbol, context),
 
-                    SymbolKind.Property => await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Property => PropertyMetricData.Compute((IPropertySymbol)symbol, context),
 
-                    SymbolKind.Field => await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Field => FieldMetricData.Compute((IFieldSymbol)symbol, context),
 
-                    SymbolKind.Event => await EventMetricData.ComputeAsync((IEventSymbol)symbol, context).ConfigureAwait(false),
+                    SymbolKind.Event => EventMetricData.Compute((IEventSymbol)symbol, context),
 
                     _ => throw new NotSupportedException(),
                 };
             }
+        }
+
+        /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="symbol"/> from the given <paramref name="context"/>.
+        /// </summary>
+        public static CodeAnalysisMetricData ComputeSynchronously(ISymbol symbol, CodeMetricsAnalysisContext context)
+        {
+            if (symbol == null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            return symbol.Kind switch
+            {
+                SymbolKind.Assembly => AssemblyMetricData.ComputeSynchronously((IAssemblySymbol)symbol, context),
+
+                SymbolKind.Namespace => NamespaceMetricData.ComputeSynchronously((INamespaceSymbol)symbol, context),
+
+                SymbolKind.NamedType => NamedTypeMetricData.ComputeSynchronously((INamedTypeSymbol)symbol, context),
+
+                SymbolKind.Method => MethodMetricData.Compute((IMethodSymbol)symbol, context),
+
+                SymbolKind.Property => PropertyMetricData.Compute((IPropertySymbol)symbol, context),
+
+                SymbolKind.Field => FieldMetricData.Compute((IFieldSymbol)symbol, context),
+
+                SymbolKind.Event => EventMetricData.Compute((IEventSymbol)symbol, context),
+
+                _ => throw new NotSupportedException(),
+            };
         }
 
         internal static async Task<ImmutableArray<CodeAnalysisMetricData>> ComputeAsync(IEnumerable<ISymbol> children, CodeMetricsAnalysisContext context)
@@ -272,6 +327,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 where !child.IsImplicitlyDeclared || child is INamespaceSymbol { IsGlobalNamespace: true }
 #endif
                 select Task.Run(() => ComputeAsync(child, context))).ConfigureAwait(false)).ToImmutableArray();
+
+        internal static ImmutableArray<CodeAnalysisMetricData> ComputeSynchronously(IEnumerable<ISymbol> children, CodeMetricsAnalysisContext context)
+            => (from child in children
+#if !LEGACY_CODE_METRICS_MODE // Skip implicitly declared symbols, such as default constructor, for non-legacy mode.
+                where !child.IsImplicitlyDeclared || child is INamespaceSymbol { IsGlobalNamespace: true }
+#endif
+                select ComputeSynchronously(child, context)).ToImmutableArray();
     }
 }
 

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -30,18 +29,27 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<NamespaceMetricData> ComputeAsync(INamespaceSymbol @namespace, CodeMetricsAnalysisContext context)
             {
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetChildSymbols(@namespace), context).ConfigureAwait(false);
+                return ComputeFromChildren(@namespace, children, context);
+            }
+
+            internal static NamespaceMetricData ComputeSynchronously(INamespaceSymbol @namespace, CodeMetricsAnalysisContext context)
+            {
+                ImmutableArray<CodeAnalysisMetricData> children = ComputeSynchronously(GetChildSymbols(@namespace), context);
+                return ComputeFromChildren(@namespace, children, context);
+            }
+
+            private static NamespaceMetricData ComputeFromChildren(INamespaceSymbol @namespace, ImmutableArray<CodeAnalysisMetricData> children, CodeMetricsAnalysisContext context)
+            {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 int maintainabilityIndexTotal = 0;
                 int cyclomaticComplexity = 0;
                 int depthOfInheritance = 0;
                 long childrenLinesOfCode = 0;
 
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetChildSymbols(@namespace), context).ConfigureAwait(false);
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, context.WellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     depthOfInheritance = Math.Max(child.DepthOfInheritance.GetValueOrDefault(), depthOfInheritance);
@@ -55,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 long linesOfCode = @namespace.IsImplicitlyDeclared ?
                     childrenLinesOfCode :
-                    await MetricsHelper.GetLinesOfCodeAsync(@namespace.DeclaringSyntaxReferences, @namespace, context).ConfigureAwait(false);
+                    MetricsHelper.GetLinesOfCode(@namespace.DeclaringSyntaxReferences, @namespace, context);
                 int maintainabilityIndex = !children.IsEmpty ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
                 return new NamespaceMetricData(@namespace, maintainabilityIndex,
                     coupledTypesBuilder.ToImmutable(), linesOfCode, cyclomaticComplexity, depthOfInheritance, children);
