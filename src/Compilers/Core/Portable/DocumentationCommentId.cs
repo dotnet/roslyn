@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates an id string used by external documentation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
-        public static string CreateDeclarationId(ISymbol symbol)
+        public static string? CreateDeclarationId(ISymbol symbol)
         {
             if (symbol == null)
             {
