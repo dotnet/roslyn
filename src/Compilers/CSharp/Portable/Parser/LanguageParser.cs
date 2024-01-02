@@ -60,34 +60,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             EndOfFile = 0,
             IsNamespaceMemberStartOrStop = 1 << 0,
             IsAttributeDeclarationStartOrStop = 1 << 1,
-            IsAttributeDeclarationInExpressionContextStartOrStop = 1 << 2,
-            IsPossibleAggregateClauseStartOrStop = 1 << 3,
-            IsPossibleMemberStartOrStop = 1 << 4,
-            IsEndOfReturnType = 1 << 5,
-            IsEndOfParameterList = 1 << 6,
-            IsEndOfFieldDeclaration = 1 << 7,
-            IsPossibleEndOfVariableDeclaration = 1 << 8,
-            IsEndOfTypeArgumentList = 1 << 9,
-            IsPossibleStatementStartOrStop = 1 << 10,
-            IsEndOfFixedStatement = 1 << 11,
-            IsEndOfTryBlock = 1 << 12,
-            IsEndOfCatchClause = 1 << 13,
-            IsEndOfFilterClause = 1 << 14,
-            IsEndOfCatchBlock = 1 << 15,
-            IsEndOfDoWhileExpression = 1 << 16,
-            IsEndOfForStatementArgument = 1 << 17,
-            IsEndOfDeclarationClause = 1 << 18,
-            IsEndOfArgumentList = 1 << 19,
-            IsSwitchSectionStart = 1 << 20,
-            IsEndOfTypeParameterList = 1 << 21,
-            IsEndOfMethodSignature = 1 << 22,
-            IsEndOfNameInExplicitInterface = 1 << 23,
-            IsEndOfFunctionPointerParameterList = 1 << 24,
-            IsEndOfFunctionPointerParameterListErrored = 1 << 25,
-            IsEndOfFunctionPointerCallingConvention = 1 << 26,
-            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 27,
-            IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 28,
-            IsPatternInSwitchExpressionArm = 1 << 29,
+            IsPossibleAggregateClauseStartOrStop = 1 << 2,
+            IsPossibleMemberStartOrStop = 1 << 3,
+            IsEndOfReturnType = 1 << 4,
+            IsEndOfParameterList = 1 << 5,
+            IsEndOfFieldDeclaration = 1 << 6,
+            IsPossibleEndOfVariableDeclaration = 1 << 7,
+            IsEndOfTypeArgumentList = 1 << 8,
+            IsPossibleStatementStartOrStop = 1 << 9,
+            IsEndOfFixedStatement = 1 << 10,
+            IsEndOfTryBlock = 1 << 11,
+            IsEndOfCatchClause = 1 << 12,
+            IsEndOfFilterClause = 1 << 13,
+            IsEndOfCatchBlock = 1 << 14,
+            IsEndOfDoWhileExpression = 1 << 15,
+            IsEndOfForStatementArgument = 1 << 16,
+            IsEndOfDeclarationClause = 1 << 17,
+            IsEndOfArgumentList = 1 << 18,
+            IsSwitchSectionStart = 1 << 19,
+            IsEndOfTypeParameterList = 1 << 20,
+            IsEndOfMethodSignature = 1 << 21,
+            IsEndOfNameInExplicitInterface = 1 << 22,
+            IsEndOfFunctionPointerParameterList = 1 << 23,
+            IsEndOfFunctionPointerParameterListErrored = 1 << 24,
+            IsEndOfFunctionPointerCallingConvention = 1 << 25,
+            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
+            IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27,
+            IsPatternInSwitchExpressionArm = 1 << 28,
         }
 
         private const int LastTerminatorState = (int)TerminatorState.IsPatternInSwitchExpressionArm;
@@ -105,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     case TerminatorState.IsNamespaceMemberStartOrStop when this.IsNamespaceMemberStartOrStop():
                     case TerminatorState.IsAttributeDeclarationStartOrStop when this.IsAttributeDeclarationStartOrStop():
-                    case TerminatorState.IsAttributeDeclarationInExpressionContextStartOrStop when this.IsAttributeDeclarationInExpressionContextStartOrStop():
                     case TerminatorState.IsPossibleAggregateClauseStartOrStop when this.IsPossibleAggregateClauseStartOrStop():
                     case TerminatorState.IsPossibleMemberStartOrStop when this.IsPossibleMemberStartOrStop():
                     case TerminatorState.IsEndOfReturnType when this.IsEndOfReturnType():
@@ -878,16 +876,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool IsPossibleAttributeDeclaration(bool inExpressionContext)
+        private bool IsPossibleAttributeDeclaration()
         {
             // Have to at least start with `[` to be an attribute
             if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 return false;
-
-            // If we're not in an expr context, this is good enough.  In other words, if we see a `[` within a
-            // class/namespace, we def know we've seen enough to view this as an attribute.
-            if (!inExpressionContext)
-                return true;
 
             // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
             // expr.  Note: this heuristic can be added to in the future.
@@ -902,13 +895,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             var saveTerm = _termState;
-            var newTerm = inExpressionContext
-                ? TerminatorState.IsAttributeDeclarationInExpressionContextStartOrStop
-                : TerminatorState.IsAttributeDeclarationStartOrStop;
+            _termState |= TerminatorState.IsAttributeDeclarationStartOrStop;
 
-            _termState |= newTerm;
-
-            while (this.IsPossibleAttributeDeclaration(inExpressionContext))
+            while (this.IsPossibleAttributeDeclaration())
             {
                 var attributeDeclaration = this.TryParseAttributeDeclaration(inExpressionContext);
                 if (attributeDeclaration is null)
@@ -925,13 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsAttributeDeclarationStartOrStop()
         {
             return this.CurrentToken.Kind == SyntaxKind.CloseBracketToken
-                || this.IsPossibleAttributeDeclaration(inExpressionContext: false); // start of a new one...
-        }
-
-        private bool IsAttributeDeclarationInExpressionContextStartOrStop()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.CloseBracketToken
-                || this.IsPossibleAttributeDeclaration(inExpressionContext: true); // start of a new one...
+                || this.IsPossibleAttributeDeclaration(); // start of a new one...
         }
 
         private bool IsAttributeTargetSpecifier()
@@ -3869,7 +3852,7 @@ parse_member_name:;
         private bool IsPossibleAccessor()
         {
             return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
-                || IsPossibleAttributeDeclaration(inExpressionContext: false)
+                || IsPossibleAttributeDeclaration()
                 || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
