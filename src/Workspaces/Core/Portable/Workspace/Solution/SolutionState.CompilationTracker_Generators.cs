@@ -22,12 +22,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionState
+internal partial class SolutionCompilationState
 {
     private partial class CompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
-            SolutionState solution,
+            SolutionCompilationState solution,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -65,7 +65,7 @@ internal partial class SolutionState
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoAsync(
-            SolutionState solution,
+            SolutionCompilationState solution,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -80,17 +80,19 @@ internal partial class SolutionState
                 return result.Value;
 
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
+            var telemetryCollector = solution.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                solution, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                telemetryCollector, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
-            SolutionState solution,
+            SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
+            var solution = compilationState.Solution;
             var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
             if (options.RunSourceGeneratorsInSameProcessOnly)
                 return null;
@@ -104,12 +106,12 @@ internal partial class SolutionState
             // throughout the calls.
             var listenerProvider = solution.Services.ExportProvider.GetExports<IAsynchronousOperationListenerProvider>().First().Value;
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
-            using var _ = RemoteKeepAliveSession.Create(solution, listenerProvider.GetListener(FeatureAttribute.Workspace));
+            using var _ = RemoteKeepAliveSession.Create(compilationState, listenerProvider.GetListener(FeatureAttribute.Workspace));
 
             // First, grab the info from our external host about the generated documents it has for this project.
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
-                solution,
+                compilationState,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -154,7 +156,7 @@ internal partial class SolutionState
             // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
             // we know the contents of any new/changed files.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
-                solution,
+                compilationState,
                 (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
                     solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -213,7 +215,7 @@ internal partial class SolutionState
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo generatorInfo)> ComputeNewGeneratorInfoInCurrentProcessAsync(
-            SolutionState solution,
+            ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
@@ -275,7 +277,6 @@ internal partial class SolutionState
 
             var runResult = generatorInfo.Driver.GetRunResult();
 
-            var telemetryCollector = solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             telemetryCollector?.CollectRunResult(runResult, generatorInfo.Driver.GetTimingInfo(), ProjectState);
 
             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null

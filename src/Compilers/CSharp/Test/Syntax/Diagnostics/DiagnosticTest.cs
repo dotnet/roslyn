@@ -2972,6 +2972,8 @@ class Program
                     case ErrorCode.ERR_InterceptorArityNotCompatible:
                     case ErrorCode.ERR_InterceptorCannotBeGeneric:
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

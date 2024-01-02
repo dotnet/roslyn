@@ -143,7 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
-                CancellationToken.None,
                 hostMock.Object);
 
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
@@ -186,7 +185,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
-                CancellationToken.None,
                 hostMock.Object);
 
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
@@ -226,7 +224,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
-                CancellationToken.None,
                 hostMock.Object);
 
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
@@ -265,7 +262,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
-                CancellationToken.None,
                 hostMock.Object);
 
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);

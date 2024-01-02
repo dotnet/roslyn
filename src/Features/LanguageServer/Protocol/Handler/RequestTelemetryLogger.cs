@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -17,24 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal sealed class RequestTelemetryLogger : IDisposable, ILspService
 {
-    private const string QueuedDurationKey = "QueuedDuration";
-
     private readonly string _serverTypeName;
-
-    /// <summary>
-    /// Histogram to aggregate the time in queue metrics.
-    /// </summary>
-    private readonly HistogramLogAggregator<string> _queuedDurationLogAggregator;
-
-    /// <summary>
-    /// Histogram to aggregate total request duration metrics.
-    /// This histogram is log based as request latencies can be highly variable depending
-    /// on the request being handled.  As such, we apply the log based function
-    /// defined by ComputeLogValue to the request latencies for storing in the histogram.
-    /// This provides highly detailed buckets when duration is in MS, but less detailed
-    /// when the duration is in terms of seconds or minutes.
-    /// </summary>
-    private readonly HistogramLogAggregator<string> _requestDurationLogAggregator;
 
     /// <summary>
     /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -54,14 +36,6 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         _requestCounters = new();
         _findDocumentResults = new();
         _usedForkedSolutionCounter = new();
-
-        // Buckets queued duration into 10ms buckets with the last bucket starting at 1000ms.
-        // Queue times are relatively short and fall under 50ms, so tracking past 1000ms is not useful.
-        _queuedDurationLogAggregator = new HistogramLogAggregator<string>(bucketSize: 10, maxBucketValue: 1000);
-
-        // Since this is a log based histogram, these are appropriate bucket sizes for the log data.
-        // A bucket at 1 corresponds to ~26ms, while the max bucket value corresponds to ~17minutes
-        _requestDurationLogAggregator = new HistogramLogAggregator<string>(bucketSize: 1, maxBucketValue: 40);
     }
 
     public void UpdateFindDocumentTelemetryData(bool success, string? workspaceKind)
@@ -85,24 +59,25 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         TimeSpan requestDuration,
         Result result)
     {
-        // Find the bucket corresponding to the queued duration and update the count of durations in that bucket.
-        // This is not broken down per method as time in queue is not specific to an LSP method.
-        _queuedDurationLogAggregator.LogTime(QueuedDurationKey, queuedDuration);
-
         // Store the request time metrics per LSP method.
-        _requestDurationLogAggregator.IncreaseCount(methodName, (int)ComputeLogValue(requestDuration.TotalMilliseconds));
-        _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
-    }
+        TelemetryLogging.LogAggregated(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = _serverTypeName;
+            m[TelemetryLogging.KeyValue] = queuedDuration.Milliseconds;
+            m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
+            m["server"] = _serverTypeName;
+        }));
 
-    /// <summary>
-    /// Given an input duration in MS, this transforms it using
-    /// the log function below to put in reasonable log based buckets
-    /// from 50ms to 1 hour.  Similar transformations must be done to read
-    /// the data from kusto.
-    /// </summary>
-    private static double ComputeLogValue(double durationInMS)
-    {
-        return 10d * Math.Log10((durationInMS / 100d) + 1);
+        TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = _serverTypeName + "." + methodName;
+            m[TelemetryLogging.KeyValue] = requestDuration.Milliseconds;
+            m[TelemetryLogging.KeyMetricName] = "RequestDuration";
+            m["server"] = _serverTypeName;
+            m["method"] = methodName;
+        }));
+
+        _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
     }
 
     /// <summary>
@@ -116,23 +91,9 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             return;
         }
 
-        if (_queuedDurationLogAggregator.IsEmpty || _requestDurationLogAggregator.IsEmpty)
-        {
-            return;
-        }
-
-        var queuedDurationCounter = _queuedDurationLogAggregator.GetValue(QueuedDurationKey);
-        Logger.Log(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(LogType.Trace, m =>
-        {
-            m["server"] = _serverTypeName;
-            m["bucketsize_ms"] = queuedDurationCounter?.BucketSize;
-            m["maxbucketvalue_ms"] = queuedDurationCounter?.MaxBucketValue;
-            m["buckets"] = queuedDurationCounter?.GetBucketsAsString();
-        }));
-
         foreach (var kvp in _requestCounters)
         {
-            Logger.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
+            TelemetryLogging.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
                 m["server"] = _serverTypeName;
                 m["method"] = kvp.Key;
@@ -140,19 +101,9 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
                 m["failed"] = kvp.Value.FailedCount;
                 m["cancelled"] = kvp.Value.CancelledCount;
             }));
-
-            var requestExecutionDuration = _requestDurationLogAggregator.GetValue(kvp.Key);
-            Logger.Log(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(LogType.Trace, m =>
-            {
-                m["server"] = _serverTypeName;
-                m["method"] = kvp.Key;
-                m["bucketsize_logms"] = requestExecutionDuration?.BucketSize;
-                m["maxbucketvalue_logms"] = requestExecutionDuration?.MaxBucketValue;
-                m["bucketdata_logms"] = requestExecutionDuration?.GetBucketsAsString();
-            }));
         }
 
-        Logger.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+        TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
         {
             m["server"] = _serverTypeName;
             foreach (var kvp in _findDocumentResults)
@@ -162,7 +113,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             }
         }));
 
-        Logger.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
+        TelemetryLogging.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
         {
             m["server"] = _serverTypeName;
             foreach (var kvp in _usedForkedSolutionCounter)
@@ -171,6 +122,9 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
                 m[info] = kvp.Value.GetCount();
             }
         }));
+
+        // Flush all telemetry logged through TelemetryLogging
+        TelemetryLogging.Flush();
 
         _requestCounters.Clear();
     }

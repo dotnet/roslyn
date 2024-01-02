@@ -58,10 +58,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             if (_workItemQueue.TryTakeAnyWork(
                                     preferableProjectId,
-#if false // Not used in unit testing crawling
-                                    Processor.DependencyGraph,
-                                    Processor.DiagnosticAnalyzerService,
-#endif
                                     out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
@@ -77,11 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
-#if false // Not used in unit testing crawling
-                            return Task.WhenAll(Processor._highPriorityProcessor.Running, Processor._normalPriorityProcessor.Running);
-#else
                             return Processor._normalPriorityProcessor.Running;
-#endif
                         }
                     }
 
@@ -89,11 +81,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
-                            return
-#if false // Not used in unit testing crawling
-                                Processor._highPriorityProcessor.HasAnyWork ||
-#endif
-                                Processor._normalPriorityProcessor.HasAnyWork;
+                            return Processor._normalPriorityProcessor.HasAnyWork;
                         }
                     }
 
@@ -152,25 +140,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 if (project != null)
                                 {
                                     var reasons = workItem.InvocationReasons;
-#if false // Not used in unit testing crawling
-                                    var semanticsChanged = reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) ||
-                                                           reasons.Contains(UnitTestingPredefinedInvocationReasons.SolutionRemoved);
-#endif
 
                                     await Processor.RunAnalyzersAsync(analyzers, project, workItem,
-                                        (a, p, c) => a.AnalyzeProjectAsync(p,
-#if false // Not used in unit testing crawling
-                                                semanticsChanged,
-#endif
-                                            reasons, c), cancellationToken).ConfigureAwait(false);
+                                        (a, p, c) => a.AnalyzeProjectAsync(p, reasons, c), cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
                                     UnitTestingSolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
-
-#if false // Not used in unit testing crawling
-                                    await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
-#endif
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -200,16 +176,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             _workItemQueue.MarkWorkItemDoneFor(projectId);
                         }
                     }
-
-#if false // Not used in unit testing crawling
-                    private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-                    {
-                        foreach (var analyzer in Analyzers)
-                        {
-                            await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
-                        }
-                    }
-#endif
 
                     public override void Shutdown()
                     {

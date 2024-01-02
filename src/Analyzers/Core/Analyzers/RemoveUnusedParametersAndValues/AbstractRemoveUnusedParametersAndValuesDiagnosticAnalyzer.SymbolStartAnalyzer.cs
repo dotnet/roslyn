@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
                 var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                    option.Notification.Severity, additionalLocations: null, properties: null, message);
+                    option.Notification, additionalLocations: null, properties: null, message);
                 reportDiagnostic(diagnostic);
             }
 
