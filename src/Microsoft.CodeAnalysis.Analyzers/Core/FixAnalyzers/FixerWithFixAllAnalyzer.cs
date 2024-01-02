@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -24,11 +25,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class FixerWithFixAllAnalyzer : DiagnosticAnalyzer
     {
-        private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
         private const string EquivalenceKeyParameterName = "equivalenceKey";
-        internal const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
         internal const string GetFixAllProviderMethodName = "GetFixAllProvider";
 
         private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = CreateLocalizableResourceString(nameof(CodeActionNeedsEquivalenceKeyDescription));
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol? codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeFixProviderMetadataName);
+            INamedTypeSymbol? codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesCodeFixProvider);
             if (codeFixProviderSymbol == null)
             {
                 return;
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            INamedTypeSymbol? codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
+            INamedTypeSymbol? codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeActionsCodeAction);
             if (codeActionSymbol == null)
             {
                 return;
@@ -104,11 +103,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
+            INamedTypeSymbol? exportCodeFixProviderAttributeSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCodeFixesExportCodeFixProviderAttribute);
+            if (exportCodeFixProviderAttributeSymbol == null)
+            {
+                return;
+            }
+
             var createMethods = codeActionSymbol.GetMembers(CreateMethodName).OfType<IMethodSymbol>().ToImmutableHashSet();
 
             var analysisTypes = new AnalysisTypes(
                 CodeFixProviderType: codeFixProviderSymbol,
                 CodeActionType: codeActionSymbol,
+                ExportCodeFixProviderAttributeType: exportCodeFixProviderAttributeSymbol,
                 GetFixAllProviderMethod: getFixAllProviderMethod,
                 EquivalenceKeyProperty: equivalenceKeyProperty,
                 CreateMethods: createMethods);
@@ -131,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         private record AnalysisTypes(
             INamedTypeSymbol CodeFixProviderType,
             INamedTypeSymbol CodeActionType,
+            INamedTypeSymbol ExportCodeFixProviderAttributeType,
             IMethodSymbol GetFixAllProviderMethod,
             IPropertySymbol EquivalenceKeyProperty,
             ImmutableHashSet<IMethodSymbol> CreateMethods);
@@ -206,20 +213,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             internal void SymbolEnd(SymbolAnalysisContext context)
             {
-                if (_codeActionCreateInvocations.Count == 0 && _codeActionObjectCreations.Count == 0)
-                {
-                    // No registered fixes.
-                    return;
-                }
-
                 // Analyze the fixer if it has FixAll support.
                 // Otherwise, report RS1016 (OverrideGetFixAllProviderRule) to recommend adding FixAll support.
                 var fixer = (INamedTypeSymbol)context.Symbol;
                 if (OverridesGetFixAllProvider(fixer))
                 {
-                    AnalyzeFixerWithFixAll(fixer, context);
+                    if (_codeActionCreateInvocations.Count > 0 || _codeActionObjectCreations.Count > 0)
+                    {
+                        AnalyzeFixerWithFixAll(fixer, context);
+                    }
                 }
-                else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _analysisTypes.CodeFixProviderType))
+                else if (fixer.HasAnyAttribute(_analysisTypes.ExportCodeFixProviderAttributeType))
                 {
                     Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                     context.ReportDiagnostic(diagnostic);

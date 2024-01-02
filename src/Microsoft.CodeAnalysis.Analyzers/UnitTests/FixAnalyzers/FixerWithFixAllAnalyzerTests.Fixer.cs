@@ -22,9 +22,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -46,9 +48,11 @@ class {|RS1016:C1|} : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -82,9 +86,11 @@ class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 sealed class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -106,9 +112,11 @@ sealed class {|RS1016:C1|} : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 sealed class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -142,9 +150,11 @@ sealed class C1 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -167,6 +177,7 @@ class C1 : CodeFixProvider
     }
 }
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C2))]
 class C2 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -199,9 +210,11 @@ class C2 : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 sealed class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -219,6 +232,7 @@ sealed class {|RS1016:C1|} : CodeFixProvider
     }
 }
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C2))]
 sealed class {|RS1016:C2|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -240,9 +254,11 @@ sealed class {|RS1016:C2|} : CodeFixProvider
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C1))]
 sealed class C1 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -265,6 +281,7 @@ sealed class C1 : CodeFixProvider
     }
 }
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(C2))]
 sealed class C2 : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -295,17 +312,19 @@ sealed class C2 : CodeFixProvider
 
         #region VisualBasic tests
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23410")]
+        [Fact()]
         public async Task VisualBasic_VerifyFix_NonSealedTypeAsync()
         {
             var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
-Class C1
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
+Class {|RS1016:C1|}
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
 		Get
@@ -315,22 +334,20 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
 		Return Nothing
 	End Function
-
-    Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
-    End Function
 End Class
 ";
             var fixedSource = @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -346,7 +363,7 @@ Class C1
 	End Function
 
     Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
+        Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
 ";
@@ -360,10 +377,12 @@ End Class
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
-NotInheritable Class C1
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
+NotInheritable Class {|RS1016:C1|}
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
 		Get
@@ -373,22 +392,20 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
 		Return Nothing
 	End Function
-
-    Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
-    End Function
 End Class
 ";
             var fixedSource = @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 NotInheritable Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -404,7 +421,7 @@ NotInheritable Class C1
 	End Function
 
     Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
+        Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
 ";
@@ -418,9 +435,11 @@ End Class
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -440,6 +459,7 @@ Class C1
     End Function
 End Class
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C2))>
 Class C2
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -469,10 +489,12 @@ End Class
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
-NotInheritable Class C1
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
+NotInheritable Class {|RS1016:C1|}
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
 		Get
@@ -482,16 +504,13 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
 		Return Nothing
 	End Function
-
-    Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
-    End Function
 End Class
 
-NotInheritable Class C2
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C2))>
+NotInheritable Class {|RS1016:C2|}
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
 		Get
@@ -501,22 +520,20 @@ NotInheritable Class C2
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
 		Return Nothing
 	End Function
-
-    Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
-    End Function
 End Class
 ";
             var fixedSource = @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeActions
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C1))>
 NotInheritable Class C1
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -532,10 +549,11 @@ NotInheritable Class C1
 	End Function
 
     Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
+        Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
 
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(C2))>
 NotInheritable Class C2
 	Inherits CodeFixProvider
 	Public Overrides ReadOnly Property FixableDiagnosticIds() As ImmutableArray(Of String)
@@ -551,7 +569,7 @@ NotInheritable Class C2
 	End Function
 
     Public Overrides Function GetFixAllProvider() As FixAllProvider
-	    Return WellKnownFixAllProviders.BatchFixer
+        Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
 ";
