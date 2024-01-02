@@ -23357,8 +23357,8 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
-            // Note: we should probably not be getting a valid & collection conversion here
-            // Tracked by https://github.com/dotnet/roslyn/issues/70217
+            // Valid identity conversion matches the behavior for an ambiguous call
+            // with a switch expression argument: C.M(2 switch { _ => default });
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
             Assert.True(conversion2.IsIdentity);
@@ -23372,7 +23372,7 @@ partial class Program
                 using System.Collections;
                 using System.Collections.Generic;
 
-                int[] values = [1];
+                int[] values = new int[] { 1 };
                 C x = [..values]; // 1
                 C.M([..values]); // 2
 
@@ -23405,11 +23405,11 @@ partial class Program
             Assert.True(conversion1.IsValid);
             Assert.True(conversion1.IsCollectionExpression);
 
-            // Note: we should not be getting a collection conversion here (see test above for contrast)
-            // Tracked by https://github.com/dotnet/roslyn/issues/70217
+            // Valid identity conversion matches the behavior for an ambiguous call
+            // with a switch expression argument: C.M(2 switch { _ => default });
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
-            Assert.True(conversion2.IsCollectionExpression);
+            Assert.True(conversion2.IsIdentity);
             Assert.Null(model.GetTypeInfo(collections[1]).Type);
         }
 
