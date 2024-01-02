@@ -449,8 +449,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70074")]
-        public async Task TestNotInAttribute3()
+        public async Task TestInLocalAttribute()
         {
+            // Could be a collection-expr.  Legal to offer here.
             await VerifyAbsenceAsync("""
                 class C
                 {

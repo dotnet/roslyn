@@ -889,46 +889,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (!inExpressionContext)
                 return true;
 
-            using var _ = GetDisposableResetPoint(resetOnDispose: true);
+            // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
+            // expr.  Note: this heuristic can be added to in the future.
+            var isLiteral = SyntaxFacts.GetLiteralExpression(this.PeekToken(1).Kind) != SyntaxKind.None;
+            if (isLiteral)
+                return false;
 
-            // Skip the `[` part.
-            EatToken();
-
-            // `[` before an attribute target is enough to think this is an attribute.
-            if (IsAttributeTargetSpecifier())
-                return true;
-
-            // If we have `[Id` then it's def an attribute.
-            if (IsPossibleAttribute())
-                return true;
-
-            // At this point we have something that isn't necessarily an attribute.  It could be an attribute, or it
-            // could be a collection expression.  At this point we're down to heuristics to decide which we have.
-
-            // if we have `[ class` this is more likely an attribute
-            if (currentTokenFollowsAttributeNormally())
-                return true;
-
-            // Even if we have `[] class` we'd prefer to think of that as an attribute (that a user is currently
-            // typing), versus an empty collection expression.
-            if (this.TryEatToken(SyntaxKind.CloseBracketToken) != null)
-                return currentTokenFollowsAttributeNormally();
-
-            // Anything else we consider a collection-expr for now.  Note: this heuristic can definitely be changed if
-            // we encounter more things that we'd prefer as attributes over collection-exprs.
-            return false;
-
-            bool currentTokenFollowsAttributeNormally()
-            {
-                // Look for common things that would lead us to think this is an attribute.  `[` before a top level
-                // construct/modifier is reasonable enough for us to think this is an attribute.  Similarly, `[ [...`
-                // (an incomplete attribute before an attribute).
-
-                var currentToken = this.CurrentToken;
-                return currentToken.Kind is SyntaxKind.NamespaceKeyword or SyntaxKind.OpenBracketToken ||
-                    GetModifierExcludingScoped(currentToken) != DeclarationModifiers.None ||
-                    IsTypeDeclarationStart();
-            }
+            return true;
         }
 
         private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)

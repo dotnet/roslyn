@@ -445,11 +445,11 @@ class C
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.GlobalStatement, file.Members[0].Kind());
+            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
             Assert.Equal(3, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_UnexpectedCharacter, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SyntaxError, (ErrorCode)file.Errors()[1].Code);
-            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -6493,19 +6493,29 @@ class C
 
             Assert.Equal(text, file.ToFullString());
 
-            var globalStatement = file.ChildNodesAndTokens()[0];
-            Assert.Equal(SyntaxKind.GlobalStatement, globalStatement.Kind());
-            Assert.False(globalStatement.IsMissing);
+            var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
+            Assert.Equal(SyntaxKind.IncompleteMember, incompleteMemberDecl.Kind());
+            Assert.False(incompleteMemberDecl.IsMissing);
 
-            var exprStatement = (ExpressionStatementSyntax)globalStatement.ChildNodesAndTokens()[0];
-            Assert.Equal(SyntaxKind.ExpressionStatement, exprStatement.Kind());
-            Assert.False(exprStatement.IsMissing);
+            var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
+            Assert.Equal(SyntaxKind.AttributeList, attributeDecl.Kind());
+            Assert.False(attributeDecl.IsMissing);
 
-            var collectionExpr = exprStatement.Expression;
-            Assert.Equal(SyntaxKind.CollectionExpression, collectionExpr.Kind());
-            Assert.False(collectionExpr.IsMissing);
+            var openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
+            Assert.Equal(SyntaxKind.OpenBracketToken, openBracketToken.Kind());
+            Assert.False(openBracketToken.IsMissing);
 
-            Assert.True(exprStatement.SemicolonToken.IsMissing);
+            var attribute = attributeDecl.ChildNodesAndTokens()[1];
+            Assert.Equal(SyntaxKind.Attribute, attribute.Kind());
+            Assert.True(attribute.IsMissing);
+
+            var identifierName = attribute.ChildNodesAndTokens()[0];
+            Assert.Equal(SyntaxKind.IdentifierName, identifierName.Kind());
+            Assert.True(identifierName.IsMissing);
+
+            var identifierToken = identifierName.ChildNodesAndTokens()[0];
+            Assert.Equal(SyntaxKind.IdentifierToken, identifierToken.Kind());
+            Assert.True(identifierToken.IsMissing);
         }
 
         [WorkItem(538469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538469")]
