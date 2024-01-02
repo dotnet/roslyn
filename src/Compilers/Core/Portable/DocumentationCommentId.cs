@@ -306,16 +306,10 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
-        private sealed class DeclarationGenerator : SymbolVisitor<bool>
+        private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
         {
-            private readonly StringBuilder _builder;
-            private readonly Generator _generator;
-
-            public DeclarationGenerator(StringBuilder builder)
-            {
-                _builder = builder;
-                _generator = new Generator(builder);
-            }
+            private readonly StringBuilder _builder = builder;
+            private readonly Generator _generator = new Generator(builder);
 
             public override bool DefaultVisit(ISymbol symbol)
                 => false;
@@ -356,15 +350,10 @@ namespace Microsoft.CodeAnalysis
                 return _generator.Visit(symbol);
             }
 
-            private sealed class Generator : SymbolVisitor<bool>
+            private sealed class Generator(StringBuilder builder) : SymbolVisitor<bool>
             {
-                private readonly StringBuilder _builder;
+                private readonly StringBuilder _builder = builder;
                 private ReferenceGenerator? _referenceGenerator;
-
-                public Generator(StringBuilder builder)
-                {
-                    _builder = builder;
-                }
 
                 private ReferenceGenerator GetReferenceGenerator(ISymbol typeParameterContext)
                 {
@@ -384,7 +373,7 @@ namespace Microsoft.CodeAnalysis
                     if (!this.Visit(symbol.ContainingSymbol))
                         return false;
 
-                    _builder.Append(".");
+                    _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
                     return true;
                 }
@@ -394,7 +383,7 @@ namespace Microsoft.CodeAnalysis
                     if (!this.Visit(symbol.ContainingSymbol))
                         return false;
 
-                    _builder.Append(".");
+                    _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
                     return true;
                 }
@@ -404,7 +393,7 @@ namespace Microsoft.CodeAnalysis
                     if (!this.Visit(symbol.ContainingSymbol))
                         return false;
 
-                    _builder.Append(".");
+                    _builder.Append('.');
                     _builder.Append(EncodeName(EncodePropertyName(symbol.Name)));
 
                     AppendParameterTypes(symbol.Parameters);
@@ -417,7 +406,7 @@ namespace Microsoft.CodeAnalysis
                     if (!this.Visit(symbol.ContainingSymbol))
                         return false;
 
-                    _builder.Append(".");
+                    _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
@@ -430,7 +419,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!symbol.ReturnsVoid)
                     {
-                        _builder.Append("~");
+                        _builder.Append('~');
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
 
@@ -441,24 +430,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (parameters.Length > 0)
                     {
-                        _builder.Append("(");
+                        _builder.Append('(');
 
                         for (int i = 0, n = parameters.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             var p = parameters[i];
                             this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
-                                _builder.Append("@");
+                                _builder.Append('@');
                             }
                         }
 
-                        _builder.Append(")");
+                        _builder.Append(')');
                     }
                 }
 
@@ -471,7 +460,7 @@ namespace Microsoft.CodeAnalysis
                             if (!this.Visit(symbol.ContainingNamespace))
                                 return false;
 
-                            _builder.Append(".");
+                            _builder.Append('.');
                         }
 
                         _builder.Append(EncodeName(symbol.Name));
@@ -487,14 +476,14 @@ namespace Microsoft.CodeAnalysis
                         if (!this.Visit(symbol.ContainingSymbol))
                             return false;
 
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
