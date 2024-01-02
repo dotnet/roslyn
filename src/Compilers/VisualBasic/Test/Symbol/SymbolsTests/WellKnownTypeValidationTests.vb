@@ -809,7 +809,12 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
-                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+                         WellKnownMember.System_Span_T__ToArray,
+                         WellKnownMember.System_ReadOnlySpan_T__ToArray,
+                         WellKnownMember.System_Span_T__CopyTo_Span_T,
+                         WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
                         ' Not always available.
                         Continue For
                 End Select
@@ -1009,7 +1014,12 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
                          WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
-                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+                         WellKnownMember.System_Span_T__ToArray,
+                         WellKnownMember.System_ReadOnlySpan_T__ToArray,
+                         WellKnownMember.System_Span_T__CopyTo_Span_T,
+                         WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
                         ' Not always available.
                         Continue For
                 End Select

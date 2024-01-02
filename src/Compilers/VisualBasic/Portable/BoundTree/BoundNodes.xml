@@ -35,7 +35,7 @@
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
     <ValueType Name="BitVector" />
-    <ValueType Name="ImmutableBindingDiagnostic" />
+    <ValueType Name="ReadOnlyBindingDiagnostic" />
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -1491,7 +1491,7 @@
 
       <Field Name="LambdaSymbol" Type="LambdaSymbol" Null="disallow" />
       <Field Name="Body" Type="BoundBlock"/>
-      <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic(Of AssemblySymbol)"/> 
+      <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic(Of AssemblySymbol)"/> 
       <Field Name="LambdaBinderOpt" Type="LambdaBodyBinder" Null="allow" />
 
       <!-- 

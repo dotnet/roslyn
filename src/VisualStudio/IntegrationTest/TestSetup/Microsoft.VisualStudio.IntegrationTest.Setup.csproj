@@ -27,14 +27,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
-      <Name>Workspaces</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj">
-      <Name>VisualStudioSetup</Name>
-      <Private>False</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" Name="ExpressionEvaluatorPackage" Private="false" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" Private="false" />
+    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj" Name="VisualStudioSetup" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
