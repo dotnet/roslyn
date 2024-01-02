@@ -894,6 +894,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Skip the `[` part.
             EatToken();
 
+            // `[` before an attribute target is enough to think this is an attribute.
+            if (IsAttributeTargetSpecifier())
+                return true;
+
+            // If we have `[Id` then it's def an attribute.
+            if (IsPossibleAttribute())
+                return true;
+
+            // At this point we have something that isn't necessarily an attribute.  It could be an attribute, or it
+            // could be a collection expression.  At this point we're down to heuristics to decide which we have.
+
             // if we have `[ class` this is more likely an attribute
             if (currentTokenFollowsAttributeNormally())
                 return true;
@@ -903,12 +914,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.TryEatToken(SyntaxKind.CloseBracketToken) != null)
                 return currentTokenFollowsAttributeNormally();
 
-            // `[` before an attribute target is enough to think this is an attribute.
-            if (IsAttributeTargetSpecifier())
-                return true;
-
-            // Otherwise, it has to be `[Id`.  Anything else is a collection.
-            return IsPossibleAttribute();
+            // Anything else we consider a collection-expr for now.  Note: this heuristic can definitely be changed if
+            // we encounter more things that we'd prefer as attributes over collection-exprs.
+            return false;
 
             bool currentTokenFollowsAttributeNormally()
             {
