@@ -44,24 +44,29 @@ namespace Microsoft.CodeAnalysis
         /// Creates an id string used by external documentation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
-        public static string CreateDeclarationId(ISymbol symbol)
+        public static string? CreateDeclarationId(ISymbol symbol)
         {
             if (symbol == null)
             {
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var builder = new StringBuilder();
+            var builder = PooledStringBuilder.GetInstance();
             var generator = new DeclarationGenerator(builder);
-            generator.Visit(symbol);
-            return builder.ToString();
+            if (!generator.Visit(symbol))
+            {
+                builder.Free();
+                return null;
+            }
+
+            return builder.ToStringAndFree();
         }
 
         /// <summary>
         /// Creates an id string used to reference type symbols (not strictly declarations, includes
         /// arrays, pointers, type parameters, etc.)
         /// </summary>
-        public static string CreateReferenceId(ISymbol symbol)
+        public static string? CreateReferenceId(ISymbol symbol)
         {
             if (symbol == null)
             {
@@ -75,7 +80,9 @@ namespace Microsoft.CodeAnalysis
 
             var builder = new StringBuilder();
             var generator = new ReferenceGenerator(builder, typeParameterContext: null);
-            generator.Visit(symbol);
+            if (!generator.Visit(symbol))
+                return null;
+
             return builder.ToString();
         }
 
@@ -301,7 +308,10 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
-        private class DeclarationGenerator : SymbolVisitor
+        /// <summary>
+        /// Visitor to create xml documentation IDs.  Returns <see langword="false"/> if creation fails.
+        /// </summary>
+        private sealed class DeclarationGenerator : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder;
             private readonly Generator _generator;
@@ -312,48 +322,46 @@ namespace Microsoft.CodeAnalysis
                 _generator = new Generator(builder);
             }
 
-            public override void DefaultVisit(ISymbol symbol)
-            {
-                throw new InvalidOperationException("Cannot generated a documentation comment id for symbol.");
-            }
+            public override bool DefaultVisit(ISymbol symbol)
+                => false;
 
-            public override void VisitEvent(IEventSymbol symbol)
+            public override bool VisitEvent(IEventSymbol symbol)
             {
                 _builder.Append("E:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            public override void VisitField(IFieldSymbol symbol)
+            public override bool VisitField(IFieldSymbol symbol)
             {
                 _builder.Append("F:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            public override void VisitProperty(IPropertySymbol symbol)
+            public override bool VisitProperty(IPropertySymbol symbol)
             {
                 _builder.Append("P:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            public override void VisitMethod(IMethodSymbol symbol)
+            public override bool VisitMethod(IMethodSymbol symbol)
             {
                 _builder.Append("M:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            public override void VisitNamespace(INamespaceSymbol symbol)
+            public override bool VisitNamespace(INamespaceSymbol symbol)
             {
                 _builder.Append("N:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            public override void VisitNamedType(INamedTypeSymbol symbol)
+            public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
                 _builder.Append("T:");
-                _generator.Visit(symbol);
+                return _generator.Visit(symbol);
             }
 
-            private class Generator : SymbolVisitor<bool>
+            private sealed class Generator : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
@@ -374,9 +382,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public override bool DefaultVisit(ISymbol symbol)
-                {
-                    throw new InvalidOperationException("Cannot generated a documentation comment id for symbol.");
-                }
+                    => false;
 
                 public override bool VisitEvent(IEventSymbol symbol)
                 {
@@ -410,9 +416,7 @@ namespace Microsoft.CodeAnalysis
                     var name = EncodePropertyName(symbol.Name);
                     _builder.Append(EncodeName(name));
 
-                    AppendParameters(symbol.Parameters);
-
-                    return true;
+                    return TryAppendParameters(symbol.Parameters);
                 }
 
                 public override bool VisitMethod(IMethodSymbol symbol)
@@ -429,18 +433,20 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
-                    AppendParameters(symbol.Parameters);
+                    if (!TryAppendParameters(symbol.Parameters))
+                        return false;
 
                     if (!symbol.ReturnsVoid)
                     {
                         _builder.Append("~");
-                        this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
+                        if (!this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType))
+                            return false;
                     }
 
                     return true;
                 }
 
-                private void AppendParameters(ImmutableArray<IParameterSymbol> parameters)
+                private bool TryAppendParameters(ImmutableArray<IParameterSymbol> parameters)
                 {
                     if (parameters.Length > 0)
                     {
@@ -454,7 +460,9 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             var p = parameters[i];
-                            this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
+                            if (!this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type))
+                                return false;
+
                             if (p.RefKind != RefKind.None)
                             {
                                 _builder.Append("@");
@@ -463,6 +471,8 @@ namespace Microsoft.CodeAnalysis
 
                         _builder.Append(")");
                     }
+
+                    return true;
                 }
 
                 public override bool VisitNamespace(INamespaceSymbol symbol)
@@ -501,7 +511,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class ReferenceGenerator : SymbolVisitor<bool>
+        private sealed class ReferenceGenerator : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder;
             private readonly ISymbol? _typeParameterContext;
