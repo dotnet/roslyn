@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             EndOfFile = 0,
             IsNamespaceMemberStartOrStop = 1 << 0,
-            IsAttributeDeclarationStartOrStop = 1 << 1,
+            IsAttributeDeclarationTerminator = 1 << 1,
             IsPossibleAggregateClauseStartOrStop = 1 << 2,
             IsPossibleMemberStartOrStop = 1 << 3,
             IsEndOfReturnType = 1 << 4,
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (_termState & (TerminatorState)i)
                 {
                     case TerminatorState.IsNamespaceMemberStartOrStop when this.IsNamespaceMemberStartOrStop():
-                    case TerminatorState.IsAttributeDeclarationStartOrStop when this.IsAttributeDeclarationStartOrStop():
+                    case TerminatorState.IsAttributeDeclarationTerminator when this.IsAttributeDeclarationStartOrStop():
                     case TerminatorState.IsPossibleAggregateClauseStartOrStop when this.IsPossibleAggregateClauseStartOrStop():
                     case TerminatorState.IsPossibleMemberStartOrStop when this.IsPossibleMemberStartOrStop():
                     case TerminatorState.IsEndOfReturnType when this.IsEndOfReturnType():
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsAttributeDeclarationStartOrStop;
+            _termState |= TerminatorState.IsAttributeDeclarationTerminator;
 
             while (this.IsPossibleAttributeDeclaration())
             {
