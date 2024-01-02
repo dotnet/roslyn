@@ -389,33 +389,30 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitEvent(IEventSymbol symbol)
                 {
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
-                        _builder.Append('.');
-                    }
+                    if (!this.Visit(symbol.ContainingSymbol))
+                        return false;
 
+                    _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
                     return true;
                 }
 
                 public override bool VisitField(IFieldSymbol symbol)
                 {
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
-                        _builder.Append('.');
-                    }
+                    if (!this.Visit(symbol.ContainingSymbol))
+                        return false;
 
+                    _builder.Append('.');
                     _builder.Append(EncodeName(symbol.Name));
                     return true;
                 }
 
                 public override bool VisitProperty(IPropertySymbol symbol)
                 {
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
-                        _builder.Append('.');
-                    }
+                    if (!this.Visit(symbol.ContainingSymbol))
+                        return false;
 
+                    _builder.Append('.');
                     var name = EncodePropertyName(symbol.Name);
                     _builder.Append(EncodeName(name));
 
@@ -424,11 +421,11 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitMethod(IMethodSymbol symbol)
                 {
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
-                        _builder.Append('.');
-                        _builder.Append(EncodeName(symbol.Name));
-                    }
+                    if (!this.Visit(symbol.ContainingSymbol))
+                        return false;
+
+                    _builder.Append('.');
+                    _builder.Append(EncodeName(symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
                     {
@@ -480,13 +477,11 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitNamespace(INamespaceSymbol symbol)
                 {
-                    if (symbol.IsGlobalNamespace)
+                    if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false })
                     {
-                        return false;
-                    }
+                        if (!this.Visit(symbol.ContainingSymbol))
+                            return false;
 
-                    if (this.Visit(symbol.ContainingSymbol))
-                    {
                         _builder.Append('.');
                     }
 
@@ -496,8 +491,11 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitNamedType(INamedTypeSymbol symbol)
                 {
-                    if (this.Visit(symbol.ContainingSymbol))
+                    if (symbol.ContainingSymbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
                     {
+                        if (!this.Visit(symbol.ContainingSymbol))
+                            return false;
+
                         _builder.Append('.');
                     }
 
