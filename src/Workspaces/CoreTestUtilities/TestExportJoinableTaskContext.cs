@@ -48,8 +48,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SynchronizationContext synchronizationContext;
 
             var currentContext = SynchronizationContext.Current;
-            if (currentContext != null && dispatcherTaskJoiner?.IsDispatcherSynchronizationContext(currentContext) == true)
+            if (currentContext != null)
             {
+                Contract.ThrowIfFalse(dispatcherTaskJoiner?.IsDispatcherSynchronizationContext(currentContext) == true);
+
                 // The current thread is the main thread, and provides a suitable synchronization context
                 mainThread = Thread.CurrentThread;
                 synchronizationContext = currentContext;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // synchronization context of the current thread will behave in a manner consistent with main thread
                 // synchronization contexts, so we use DenyExecutionSynchronizationContext to track any attempted
                 // use of it.
-                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(currentContext);
+                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(underlyingContext: null);
                 mainThread = denyExecutionSynchronizationContext.MainThread;
                 synchronizationContext = denyExecutionSynchronizationContext;
             }
