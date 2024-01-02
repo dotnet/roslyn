@@ -2472,7 +2472,7 @@ class D<T> : B<{passToBase}>{constraint}
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
         public async Task TestNullableGenericConstraintToSpecificReferenceType()
         {
             await TestAllOptionsOffAsync(
