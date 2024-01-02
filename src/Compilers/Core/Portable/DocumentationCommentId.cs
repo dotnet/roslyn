@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates an id string used to reference type symbols (not strictly declarations, includes
         /// arrays, pointers, type parameters, etc.)
         /// </summary>
-        public static string CreateReferenceId(ISymbol symbol)
+        public static string? CreateReferenceId(ISymbol symbol)
         {
             if (symbol == null)
             {
