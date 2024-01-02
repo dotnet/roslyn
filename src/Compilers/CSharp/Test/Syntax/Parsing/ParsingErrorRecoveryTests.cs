@@ -475,11 +475,11 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[1].Kind());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SyntaxError, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
         }
 
         [Fact]
