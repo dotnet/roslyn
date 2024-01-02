@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
             // expr.  Note: this heuristic can be added to in the future.
-            var isLiteral = SyntaxFacts.GetLiteralExpression(this.PeekToken(1).Kind) != SyntaxKind.None;
+            var isLiteral = SyntaxFacts.GetLiteralExpression(this.CurrentToken.Kind) != SyntaxKind.None;
             if (isLiteral)
                 return false;
 
