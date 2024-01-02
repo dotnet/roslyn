@@ -889,22 +889,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (!inExpressionContext)
                 return true;
 
-            // If we're in an expression context though, we want to look a little more carefully.  The `[` could also
-            // start a collection expression, and it would be better to avoid a lot of wasted work (especially in large
-            // collection expressions), trying to parse out an attribute.  This is especially true as that work will 
-            // likely cause lots of diagnostics and error recovery to have to be involved.
             using var _ = GetDisposableResetPoint(resetOnDispose: true);
 
             // Skip the `[` part.
             EatToken();
-            if (IsAttributeTargetSpecifier())
-            {
-                // Skip the `target:` part if present.
-                EatToken();
-                EatToken();
-            }
 
+            // if we have `[ class` this is more likely an attribute
+            if (currentTokenFollowsAttributeNormally())
+                return true;
+
+            // Even if we have `[] class` we'd prefer to think of that as an attribute (that a user is currently
+            // typing), versus an empty collection expression.
+            if (this.TryEatToken(SyntaxKind.CloseBracketToken) != null)
+                return currentTokenFollowsAttributeNormally();
+
+            // `[` before an attribute target is enough to think this is an attribute.
+            if (IsAttributeTargetSpecifier())
+                return true;
+
+            // Otherwise, it has to be `[Id`.  Anything else is a collection.
             return IsPossibleAttribute();
+
+            bool currentTokenFollowsAttributeNormally()
+            {
+                // Look for common things that would lead us to think this is an attribute.  `[` before a top level
+                // construct/modifier is reasonable enough for us to think this is an attribute.
+
+                var currentToken = this.CurrentToken;
+                return currentToken.Kind == SyntaxKind.NamespaceKeyword ||
+                    GetModifierExcludingScoped(currentToken) != DeclarationModifiers.None ||
+                    IsTypeDeclarationStart();
+            }
         }
 
         private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)
