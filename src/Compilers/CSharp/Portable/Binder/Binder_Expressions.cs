@@ -9259,8 +9259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && receiver.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
-                options: (allowRefOmittedArguments ? OverloadResolution.Options.AllowRefOmittedArguments : OverloadResolution.Options.None) |
-                         (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None),
+                allowRefOmittedArguments: allowRefOmittedArguments,
+                dynamicResolution: analyzedArguments.HasDynamicArgument,
                 ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
 

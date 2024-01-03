@@ -162,18 +162,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             OverloadResolutionResult<PropertySymbol> result,
-            Options options,
+            bool allowRefOmittedArguments,
+            bool dynamicResolution,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert((options & Options.DynamicResolution) == 0 || arguments.HasDynamicArgument);
-
-            options &= (Options.AllowRefOmittedArguments | Options.DynamicResolution);
+            Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
 
             ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result,
                 useSiteInfo: ref useSiteInfo,
-                options,
+                options: (allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None) |
+                         (dynamicResolution ? Options.DynamicResolution : Options.None),
                 callingConventionInfo: default);
             typeArguments.Free();
         }

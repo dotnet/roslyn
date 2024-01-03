@@ -1973,7 +1973,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
                 );
@@ -2589,7 +2589,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
                 );
@@ -2774,7 +2774,7 @@ delegate void D(params IEnumerable<int> b);
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (9,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                // (9,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("D.Invoke(params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 14)
                 );
@@ -2868,7 +2868,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,27): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                // (8,27): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         _ = new Program()[d];
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 27)
                 );
@@ -2935,25 +2935,25 @@ class Program
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(
-                // (8,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test1()[d1];                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d1]").WithLocation(8, 13),
-                // (11,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test1()[d2];                  // Called1
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d2]").WithLocation(11, 13),
-                // (12,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (12,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test2()[1, d1];               // Called3
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d1]").WithLocation(12, 13),
-                // (13,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (13,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test2()[1, d2];               // Called5
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d2]").WithLocation(13, 13),
-                // (20,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (20,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test3()[d3, 1, 2];            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test3()[d3, 1, 2]").WithLocation(20, 13),
-                // (25,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (25,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test4()[d3, x, x];            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, x, x]").WithLocation(25, 13),
-                // (26,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (26,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test4()[d3, d4, d4];          // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, d4, d4]").WithLocation(26, 13)
                 );
@@ -3319,7 +3319,7 @@ class C1
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,13): warning CS9504: One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new C1()[1, d, 2];
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new C1()[1, d, 2]").WithLocation(8, 13)
                 );
@@ -3402,7 +3402,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,18): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test.Test(params IEnumerable<int>)', the only corresponding argument has dynamic type. Consider casting the dynamic argument.
+                // (8,18): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         new Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 18)
                 );
@@ -3472,25 +3472,25 @@ class Program
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(
-                // (8,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test1(d1);                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d1)").WithLocation(8, 9),
-                // (11,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test1(d2);                  // Called1
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d2)").WithLocation(11, 9),
-                // (12,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (12,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test2(1, d1);               // Called3
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d1)").WithLocation(12, 9),
-                // (13,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (13,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test2(1, d2);               // Called5
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d2)").WithLocation(13, 9),
-                // (20,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (20,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test3(d3, 1, 2);            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test3(d3, 1, 2)").WithLocation(20, 9),
-                // (25,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (25,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test4(d3, x, x);            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, x, x)").WithLocation(25, 9),
-                // (26,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (26,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test4(d3, d4, d4);          // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, d4, d4)").WithLocation(26, 9)
                 );
@@ -3591,7 +3591,7 @@ class Test
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,9): warning CS9505: One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test(1, d, 2);
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test(1, d, 2)").WithLocation(8, 9)
                 );

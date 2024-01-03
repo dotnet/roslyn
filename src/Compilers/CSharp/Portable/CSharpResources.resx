@@ -7843,7 +7843,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</value>
   </data>
   <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
-    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has dynamic type. Consider casting the dynamic argument.</value>
+    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>
   </data>
   <data name="WRN_DynamicDispatchToParamsCollectionMethod" xml:space="preserve">
     <value>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
@@ -7852,15 +7852,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
   <data name="WRN_DynamicDispatchToParamsCollectionIndexer" xml:space="preserve">
-    <value>One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
   <data name="WRN_DynamicDispatchToParamsCollectionIndexer_Title" xml:space="preserve">
-    <value>One or more overloads of indexer having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
   <data name="WRN_DynamicDispatchToParamsCollectionConstructor" xml:space="preserve">
-    <value>One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
   <data name="WRN_DynamicDispatchToParamsCollectionConstructor_Title" xml:space="preserve">
-    <value>One or more overloads of constructor having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
 </root>
