@@ -7602,6 +7602,10 @@ static class Program
                         IEnumerable e2 = new int[] { 4 };
                         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                         c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
                     }
                 }
                 """;
@@ -7632,11 +7636,23 @@ static class Program
                     Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
                     // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47));
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
+                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
+                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
             }
             else
             {
-                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
             }
         }
 
@@ -7669,6 +7685,10 @@ static class Program
                         IEnumerable e2 = new int[] { 4 };
                         MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
                         c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
                     }
                 }
                 """;
@@ -7687,11 +7707,17 @@ static class Program
                     Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
                     // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
                     //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52));
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
             }
             else
             {
-                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
             }
         }
 
@@ -7731,6 +7757,10 @@ static class Program
                         IEnumerable e2 = new int[] { 4 };
                         MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
                         c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
                     }
                 }
                 """;
@@ -7749,15 +7779,64 @@ static class Program
                     Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
                     // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
                     //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52));
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
             }
             else
             {
                 CompileAndVerify(
                     comp,
                     verify: Verification.FailsPEVerify,
-                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], "));
+                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], [5, 6], "));
             }
+        }
+
+        [Fact]
+        public void IOperation_SpreadElementConversion_Untyped()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
+                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
         }
 
         [Fact]
