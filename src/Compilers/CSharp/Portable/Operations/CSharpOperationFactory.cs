@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
             IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(e => CreateBoundCollectionExpressionElement(e));
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
                 constructMethod,
                 elements,
@@ -1256,17 +1256,17 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation CreateBoundCollectionExpressionElement(BoundNode element)
+        private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
             return element is BoundCollectionExpressionSpreadElement spreadElement ?
-                CreateBoundCollectionExpressionSpreadElement(spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element));
+                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
+                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element) ?? element);
         }
 
-        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
+        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
         {
             var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
-            var iteratorItem = iteratorBody is null ? null : Binder.GetUnderlyingCollectionExpressionElement(iteratorBody);
+            var iteratorItem = Binder.GetUnderlyingCollectionExpressionElement(expr, iteratorBody);
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
