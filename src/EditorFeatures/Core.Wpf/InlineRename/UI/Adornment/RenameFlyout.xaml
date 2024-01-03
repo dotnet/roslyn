@@ -92,7 +92,7 @@
                 <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
                 <TextBlock Grid.Column="1" Text="{Binding StatusText}" />
             </Grid>
-            
+
             <TextBlock 
                 Text="{Binding SearchText}" 
                 Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"

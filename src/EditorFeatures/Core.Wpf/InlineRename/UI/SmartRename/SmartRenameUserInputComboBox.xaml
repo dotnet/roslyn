@@ -18,7 +18,7 @@
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}">
     <ComboBox.Resources>
         <ResourceDictionary>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <vsui:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter"/>
             <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
 
             <Style x:Key="ComboBoxEditableTextBox" TargetType="{x:Type TextBox}">
@@ -36,6 +36,21 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <Style x:Key="GetSuggestionButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
+                <Setter Property="Padding" Value="4,3,2,1"/>
+                <Setter Property="MinHeight" Value="0"/>
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="true">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderHoverBrushKey}}"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="true">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </ComboBox.Resources>
@@ -99,12 +114,8 @@
                                  PreviewKeyDown="InnerTextBox_PreviewKeyDown"/>
                         <Button x:Name="GetSuggestionsButton"
                                 Grid.Column="1"
-                                MinWidth="0"
-                                MinHeight="0"
-                                Background="Transparent"
-                                BorderBrush="Transparent"
-                                Style="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}"
-                                Padding="4,3,2,1"
+                                Style="{StaticResource GetSuggestionButtonStyle}"
+                                ToolTip="{Binding GetSuggestionsTooltip}"
                                 Command="{Binding GetSuggestionsCommand}">
                             <Button.Content>
                                 <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -148,8 +159,9 @@
                 </Border>
                 <ProgressBar x:Name="ProgressBar"
                              Grid.Row="1"
+                             Margin="{TemplateBinding BorderThickness}"
                              IsIndeterminate="{Binding IsInProgress}"
-                             Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
+                             Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
                              Foreground="{StaticResource copilotBranding}"
                              Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
             </Grid>
@@ -161,12 +173,10 @@
                     <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedTextBrushKey}}" />
                     <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedBackgroundBrushKey}}" />
                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedBorderBrushKey}}" />
-                    <Setter TargetName="GetSuggestionsButton" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedButtonSeparatorBrushKey}}" />
                     <Setter TargetName="GetSuggestionsButton" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedButtonBackgroundBrushKey}}" />
                     <Setter TargetName="GetSuggestionsButton" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedGlyphBrushKey}}" />
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="GetSuggestionsButton" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxButtonMouseOverSeparatorBrushKey}}" />
                     <Setter TargetName="GetSuggestionsButton" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxButtonMouseOverBackgroundBrushKey}}" />
                     <Setter TargetName="GetSuggestionsButton" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverGlyphBrushKey}}" />
                     <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}" />
