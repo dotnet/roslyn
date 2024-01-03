@@ -273,6 +273,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             applicableRange: nestedActionSet.ApplicableToSpan.HasValue
                                 ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
                             nestedSetNumber, codeActionPath, ref currentHighestSetNumber));
+
+                        // Once CodeActions at this nesting have been added, remove the last element from the code action path
+                        // so that the next nested action can be added to the correct path.
+                        codeActionPath.RemoveAt(codeActionPath.Count - 1);
                     }
                 }
 
