@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "resultFile";
 
-        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo, SourceReferenceResolver? resolver)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteArrayEnd();
             }
 
-            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
+            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations, resolver);
             WriteResultProperties(diagnostic);
 
             _writer.WriteObjectEnd(); // result
         }
 
-        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
+        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations, SourceReferenceResolver? resolver)
         {
             if (HasPath(location))
             {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteObjectStart(); // location
                 _writer.WriteKey(PrimaryLocationPropertyName);
 
-                WritePhysicalLocation(location);
+                WritePhysicalLocation(location, resolver);
 
                 _writer.WriteObjectEnd(); // location
                 _writer.WriteArrayEnd(); // locations
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
                         _writer.WriteObjectStart(); // annotatedCodeLocation
                         _writer.WriteKey("physicalLocation");
 
-                        WritePhysicalLocation(additionalLocation);
+                        WritePhysicalLocation(additionalLocation, resolver);
 
                         _writer.WriteObjectEnd(); // annotatedCodeLocation
                     }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
             // We log all analyzer descriptors only in SARIF v2+ format.
         }
 
-        protected override void WritePhysicalLocation(Location location)
+        protected override void WritePhysicalLocation(Location location, SourceReferenceResolver? resolver)
         {
             Debug.Assert(HasPath(location));
 

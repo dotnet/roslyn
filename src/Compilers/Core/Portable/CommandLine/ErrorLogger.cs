@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class ErrorLogger
     {
-        public abstract void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo);
+        public abstract void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo, SourceReferenceResolver? resolver);
         public abstract void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime);
     }
 

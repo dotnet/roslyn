@@ -94,6 +94,40 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
+        protected void SimpleCompilerDiagnosticsPathMapImpl()
+        {
+            var source = @"
+public class C
+{
+    private int x;
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var sourceDir = Path.GetDirectoryName(sourceFile);
+            var mappedPath = $"""D:\mypath\{Path.GetFileName(sourceFile)}""";
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}", $"/pathmap:{sourceDir}=D:/mypath" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("CS0169", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var expectedOutput = GetExpectedOutputForSimpleCompilerDiagnostics(cmd, mappedPath);
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
         protected void SimpleCompilerDiagnosticsSuppressedImpl()
         {
             var source = @"

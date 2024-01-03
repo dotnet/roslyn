@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "physicalLocation";
 
-        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo, SourceReferenceResolver? resolver)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteArrayEnd();
             }
 
-            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
+            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations, resolver);
 
             WriteResultProperties(diagnostic);
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             _totalAnalyzerExecutionTime = ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(totalAnalyzerExecutionTime, _culture).Trim();
         }
 
-        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
+        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations, SourceReferenceResolver? resolver)
         {
             if (HasPath(location))
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteObjectStart(); // location
                 _writer.WriteKey(PrimaryLocationPropertyName);
 
-                WritePhysicalLocation(location);
+                WritePhysicalLocation(location, resolver);
 
                 _writer.WriteObjectEnd(); // location
                 _writer.WriteArrayEnd(); // locations
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
                         _writer.WriteObjectStart(); // annotatedCodeLocation
                         _writer.WriteKey("physicalLocation");
 
-                        WritePhysicalLocation(additionalLocation);
+                        WritePhysicalLocation(additionalLocation, resolver);
 
                         _writer.WriteObjectEnd(); // annotatedCodeLocation
                     }
@@ -167,16 +167,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override void WritePhysicalLocation(Location diagnosticLocation)
+        protected override void WritePhysicalLocation(Location diagnosticLocation, SourceReferenceResolver? resolver)
         {
             Debug.Assert(HasPath(diagnosticLocation));
 
             FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+            var path = diagnosticLocation.SourceTree is { } tree
+                ? tree.GetDisplayPath(diagnosticLocation.SourceSpan, resolver)
+                : span.Path;
 
             _writer.WriteObjectStart(); // physicalLocation
 
             _writer.WriteObjectStart("artifactLocation");
-            _writer.Write("uri", GetUri(span.Path));
+            _writer.Write("uri", GetUri(path));
             _writer.WriteObjectEnd(); // artifactLocation
 
             WriteRegion(span);

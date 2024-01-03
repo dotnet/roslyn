@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         //
         protected abstract string PrimaryLocationPropertyName { get; }
 
-        protected abstract void WritePhysicalLocation(Location diagnosticLocation);
+        protected abstract void WritePhysicalLocation(Location diagnosticLocation, SourceReferenceResolver? resolver);
 
         public virtual void Dispose()
         {

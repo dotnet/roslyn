@@ -159,6 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnosticsPathMap()
+        {
+            SimpleCompilerDiagnosticsPathMapImpl();
+        }
+
         internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds)
         {
             string expectedOutput =
