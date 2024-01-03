@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
         <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
-        <target state="new">Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</target>
+        <target state="translated">Obnovte spouštěcí prostředí do počátečního stavu a uložte historii s možností přepnout modul runtime hostitelského procesu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
