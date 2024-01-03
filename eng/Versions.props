@@ -224,7 +224,7 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
-    <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
+    <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
     <SystemCodeDomVersion>7.0.0</SystemCodeDomVersion>
     <SystemCommandLineVersion>2.0.0-beta4.23407.1</SystemCommandLineVersion>
     <SystemComponentModelCompositionVersion>7.0.0</SystemComponentModelCompositionVersion>
@@ -234,7 +234,7 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOHashingVersion>8.0.0</SystemIOHashingVersion>
     <SystemIOPipesAccessControlVersion>5.0.0</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>8.0.0</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>7.0.0</SystemIOPipelinesVersion>
     <SystemManagementVersion>7.0.0</SystemManagementVersion>
     <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
     <!--
