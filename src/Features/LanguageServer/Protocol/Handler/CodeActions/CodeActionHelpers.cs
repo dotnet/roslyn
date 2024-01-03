@@ -155,6 +155,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     foreach (var action in actionSet.Actions)
                     {
                         nestedCodeActions.AddRange(CollectNestedActions(request, codeActionKind, diagnosticsForFix, action, codeActionPathList));
+
+                        // Need to remove the last item from the list since we are moving back up the tree.
+                        codeActionPathList.RemoveAt(codeActionPathList.Count - 1);
                     }
                 }
             }
