@@ -148,14 +148,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
-                var content = (await previews.GetPreviewsAsync())[0];
-                var diffView = content as DifferenceViewerPreview;
-                Assert.NotNull(diffView.Viewer);
-                var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                diffView.Dispose();
+                var previewResult = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var previews = await previewResult.GetPreviewsAsync();
+                try
+                {
+                    var content = previews[0];
+                    var diffView = content.Preview as DifferenceViewerPreview;
+                    Assert.NotNull(diffView.Viewer);
+                    var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
 
-                Assert.Equal(expectedPreviewContents, previewContents);
+                    Assert.Equal(expectedPreviewContents, previewContents);
+                }
+                finally
+                {
+                    if (previews is not null)
+                    {
+                        foreach (var preview in previews)
+                            preview.Dispose();
+                    }
+                }
             }
         }
 

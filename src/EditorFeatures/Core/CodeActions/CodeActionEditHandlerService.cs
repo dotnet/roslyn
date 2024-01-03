@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     currentResult = SolutionPreviewResult.Merge(currentResult,
                         new SolutionPreviewResult(_threadingContext, new SolutionPreviewItem(
                             projectId: null, documentId: null,
-                            lazyPreview: c => previewOp.GetPreviewAsync(c))));
+                            lazyPreviewAsync: previewOp.GetPreviewAsync)));
                     continue;
                 }
 

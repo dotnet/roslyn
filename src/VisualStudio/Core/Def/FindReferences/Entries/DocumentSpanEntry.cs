@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -185,17 +186,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
+            public override bool TryCreateColumnContent(string columnName, out Action? disposeCallback, [NotNullWhen(true)] out FrameworkElement? content)
             {
-                if (base.TryCreateColumnContent(columnName, out content))
+                if (base.TryCreateColumnContent(columnName, out disposeCallback, out content))
                 {
                     // this lazy tooltip causes whole solution to be kept in memory until find all reference result gets cleared.
                     // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
                     // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
                     // probably we need to dig in to see how expensvie it is to support this
                     var controlService = _excerptResult.Document.Project.Solution.Services.GetRequiredService<IContentControlService>();
-                    controlService.AttachToolTipToControl(content, () =>
-                        CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
+                    var disposable = controlService.AttachToolTipToControl(content, () =>
+                        CreateReferenceCountedDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
+
+                    // Use the += operator for delegates to combine the dispose delegate from the base implementation
+                    // (which is allowed to be null) with the dispose callback being added here.
+                    disposeCallback += () =>
+                    {
+                        try
+                        {
+                            disposable.Dispose();
+                        }
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                        {
+                        }
+                    };
 
                     return true;
                 }
@@ -218,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return base.GetValueWorker(keyName);
             }
 
-            private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
+            private ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(Document document, TextSpan sourceSpan)
             {
                 Presenter.AssertIsForeground();
 
@@ -237,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         SetHighlightSpan(_spanKind, clonedBuffer, excerpt.Value.MappedSpan);
                         SetStaticClassifications(clonedBuffer, excerpt.Value.ClassifiedSpans);
 
-                        return controlService.CreateDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                        return controlService.CreateReferenceCountedDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
                     }
                 }
 
@@ -246,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SetHighlightSpan(_spanKind, textBuffer, sourceSpan);
 
                 var contentSpan = GetRegionSpanForReference(sourceText, sourceSpan);
-                return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                return controlService.CreateReferenceCountedDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
             private static void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)

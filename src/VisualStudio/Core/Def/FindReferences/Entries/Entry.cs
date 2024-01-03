@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,8 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract object? GetValueWorker(string keyName);
 
-            public virtual bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
+            public virtual bool TryCreateColumnContent(string columnName, out Action? disposeCallback, [NotNullWhen(true)] out FrameworkElement? content)
             {
+                disposeCallback = null;
                 content = null;
                 return false;
             }

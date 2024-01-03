@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Interop;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -28,10 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private bool _hasFocus;
         private NavigationalCommandTarget? _editorCommandTarget;
 
-        public DifferenceViewerPreview(IWpfDifferenceViewer viewer, IEditorOperationsFactoryService editorOperationsFactoryService)
+        private DifferenceViewerPreview(
+            IWpfDifferenceViewer viewer,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)
         {
             Contract.ThrowIfNull(viewer);
             _viewer = viewer;
+            LeftWorkspace = leftWorkspace?.AddReference();
+            RightWorkspace = rightWorkspace?.AddReference();
 
             _viewer.VisualElement.IsKeyboardFocusWithinChanged += OnDifferenceViewerKeyboardFocusWithinChanged;
             _hasFocus = _viewer.VisualElement.IsKeyboardFocusWithin;
@@ -50,6 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
         }
 
+        public static ReferenceCountedDisposable<DifferenceViewerPreview> CreateReferenceCounted(
+            IWpfDifferenceViewer viewer,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)
+            => new(new DifferenceViewerPreview(viewer, editorOperationsFactoryService, leftWorkspace, rightWorkspace));
+
         public IWpfDifferenceViewer Viewer
         {
             get
@@ -58,6 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 return _viewer;
             }
         }
+
+        private ReferenceCountedDisposable<PreviewWorkspace>? LeftWorkspace { get; }
+        private ReferenceCountedDisposable<PreviewWorkspace>? RightWorkspace { get; }
 
         public void Dispose()
         {
@@ -75,6 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             }
 
             _viewer = null;
+
+            LeftWorkspace?.Dispose();
+            RightWorkspace?.Dispose();
+
             _editorCommandTarget = null;
         }
 

@@ -119,26 +119,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             // The changed document comes first.
             var previewObjects = await previews.GetPreviewsAsync();
             var preview = previewObjects[0];
-            Assert.NotNull(preview);
-            Assert.True(preview is DifferenceViewerPreview);
-            var diffView = preview as DifferenceViewerPreview;
+            Assert.NotNull(preview.Preview);
+            Assert.True(preview.Preview is DifferenceViewerPreview);
+            var diffView = preview.Preview as DifferenceViewerPreview;
             var text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
             Assert.Equal(ChangedDocumentText, text);
             diffView.Dispose();
 
             // Then comes the removed metadata reference.
             preview = previewObjects[1];
-            Assert.NotNull(preview);
-            Assert.True(preview is string);
-            text = preview as string;
+            Assert.NotNull(preview.Preview);
+            Assert.True(preview.Preview is string);
+            text = preview.Preview as string;
             Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
             // And finally the added project.
             preview = previewObjects[2];
-            Assert.NotNull(preview);
-            Assert.True(preview is string);
-            text = preview as string;
+            Assert.NotNull(preview.Preview);
+            Assert.True(preview.Preview is string);
+            text = preview.Preview as string;
             Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
+
+            foreach (var previewObject in previewObjects)
+            {
+                previewObject.Dispose();
+            }
         }
     }
 }

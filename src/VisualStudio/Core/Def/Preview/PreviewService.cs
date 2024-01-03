@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Solution oldSolution,
             bool showCheckBoxes = true)
         {
-            var engine = new PreviewEngine(
+            using var engine = PreviewEngine.CreateReferenceCounted(
                 ThreadingContext,
                 title,
                 helpString,
@@ -59,9 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _componentModel,
                 _imageService,
                 showCheckBoxes);
-            _previewChanges.PreviewChanges(engine);
-            engine.CloseWorkspace();
-            return engine.FinalSolution;
+            _previewChanges.PreviewChanges(engine.Target);
+            return engine.Target.FinalSolution;
         }
     }
 }

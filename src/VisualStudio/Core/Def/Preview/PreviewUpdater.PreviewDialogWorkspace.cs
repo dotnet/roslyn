@@ -18,9 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         // internal for testing
         internal class PreviewDialogWorkspace : PreviewWorkspace
         {
-            public PreviewDialogWorkspace(Solution solution) : base(solution)
+            private PreviewDialogWorkspace(Solution solution)
+                : base(solution)
             {
             }
+
+            public static new ReferenceCountedDisposable<PreviewDialogWorkspace> CreateReferenceCounted(Solution solution)
+                => new(new PreviewDialogWorkspace(solution));
 
             public void CloseDocument(TextDocument document, SourceText text)
             {

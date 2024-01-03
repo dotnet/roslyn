@@ -98,10 +98,7 @@ namespace Microsoft.CodeAnalysis.Host
                     var rawAccessor = RunWithCompactingGCFallback(
                         static info =>
                         {
-                            using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
-                            if (memoryMappedFile is null)
-                                throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
-
+                            using var memoryMappedFile = info._memoryMappedFile.AddReference();
                             return memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read);
                         },
                         this);
@@ -122,10 +119,7 @@ namespace Microsoft.CodeAnalysis.Host
                 return RunWithCompactingGCFallback(
                     static info =>
                     {
-                        using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
-                        if (memoryMappedFile is null)
-                            throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
-
+                        using var memoryMappedFile = info._memoryMappedFile.AddReference();
                         return memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write);
                     },
                     this);

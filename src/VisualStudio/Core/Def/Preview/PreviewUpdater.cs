@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -15,14 +16,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
-    internal partial class PreviewUpdater : ForegroundThreadAffinitizedObject
+    internal partial class PreviewUpdater : ForegroundThreadAffinitizedObject, IDisposable
     {
-        private PreviewDialogWorkspace? _previewWorkspace;
+        private ReferenceCountedDisposable<PreviewDialogWorkspace>? _previewWorkspace;
         private readonly ITextView _textView;
         private DocumentId? _currentDocumentId;
         private readonly PreviewTagger _tagger;
 
-        public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
+        private PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
             : base(threadingContext)
         {
             _textView = textView;
@@ -30,7 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _textView.Properties[typeof(PreviewTagger)] = _tagger;
         }
 
-        public void CloseWorkspace()
+        public static ReferenceCountedDisposable<PreviewUpdater> CreateReferenceCounted(IThreadingContext threadingContext, ITextView textView)
+            => new(new PreviewUpdater(threadingContext, textView));
+
+        public void Dispose()
         {
             _previewWorkspace?.Dispose();
         }
@@ -53,10 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             // you can check and uncheck the individual edits and we show the result. In that case, we're getting new
             // snapshots each time of the same document.
 
+            using var previewWorkspace = _previewWorkspace?.TryAddReference();
+
             if (document.Id == _currentDocumentId)
             {
-                Contract.ThrowIfNull(_previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
-                var existingDocument = _previewWorkspace.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
+                Contract.ThrowIfNull(previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
+                var existingDocument = previewWorkspace.Target.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
                 if (existingDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
                 {
                     // The contents of the buffer matches what we'd update it to, so no reason to change.
@@ -66,17 +72,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             if (_currentDocumentId != null)
             {
-                Contract.ThrowIfNull(_previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
-                var currentDocument = _previewWorkspace.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
+                Contract.ThrowIfNull(previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
+                var currentDocument = previewWorkspace.Target.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
                 var currentDocumentText = currentDocument.GetTextSynchronously(CancellationToken.None);
-                _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
+                previewWorkspace.Target.CloseDocument(currentDocument, currentDocumentText);
             }
 
-            _previewWorkspace ??= new PreviewDialogWorkspace(document.Project.Solution);
+            if (previewWorkspace is null)
+            {
+                var newWorkspace = PreviewDialogWorkspace.CreateReferenceCounted(document.Project.Solution);
+                if (Interlocked.CompareExchange(ref _previewWorkspace, newWorkspace, null) is not null)
+                    newWorkspace.Dispose();
+            }
 
+            RoslynDebug.AssertNotNull(_previewWorkspace);
+
+            using var previewWorkspace2 = _previewWorkspace.AddReference();
             _currentDocumentId = document.Id;
             ApplyDocumentToBuffer(document, out var container);
-            _previewWorkspace.OpenDocument(document.Id, container);
+            previewWorkspace2.Target.OpenDocument(document.Id, container);
         }
 
         private void ApplyDocumentToBuffer(TextDocument document, out SourceTextContainer container)

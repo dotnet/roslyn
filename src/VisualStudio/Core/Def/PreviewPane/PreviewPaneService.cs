@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData data, IReadOnlyList<object> previewContent)
+        IDisposable IPreviewPaneService.GetPreviewPane(DiagnosticData data, IReadOnlyList<PreviewWrapper> previewContent)
         {
             var title = data?.Message;
 

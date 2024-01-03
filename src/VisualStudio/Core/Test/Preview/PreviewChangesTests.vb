@@ -44,18 +44,19 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Dim previewEngine = New PreviewEngine(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
-                    componentModel)
+                    componentModel, Nothing)
 
-                Dim outChangeList As Object = Nothing
-                previewEngine.GetRootChangesList(outChangeList)
-                Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                    Dim outChangeList As Object = Nothing
+                    previewEngine2.Target.GetRootChangesList(outChangeList)
+                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                AssertTreeStructure(expectedItems, topLevelList)
+                    AssertTreeStructure(expectedItems, topLevelList)
+                End Using
             End Using
         End Sub
 
@@ -105,18 +106,20 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Dim previewEngine = New PreviewEngine(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
-                    componentModel)
+                    componentModel,
+                    Nothing)
 
-                Dim outChangeList As Object = Nothing
-                previewEngine.GetRootChangesList(outChangeList)
-                Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                    Dim outChangeList As Object = Nothing
+                    previewEngine2.Target.GetRootChangesList(outChangeList)
+                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                AssertTreeStructure(expectedItems, topLevelList)
+                    AssertTreeStructure(expectedItems, topLevelList)
+                End Using
             End Using
         End Sub
 
@@ -141,28 +144,29 @@ Class C
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Dim previewEngine = New PreviewEngine(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
-                    componentModel)
+                    componentModel,
+                    Nothing)
 
-                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
-                Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
-                Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
-                    previewEngine.SetTextView(disposableView.TextView)
+                    WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
+                    Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
+                    Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
+                        previewEngine2.Target.SetTextView(disposableView.TextView)
 
-                    Dim outChangeList As Object = Nothing
-                    previewEngine.GetRootChangesList(outChangeList)
-                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                        Dim outChangeList As Object = Nothing
+                        previewEngine2.Target.GetRootChangesList(outChangeList)
+                        Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                    SetCheckedChildren(New List(Of String)(), topLevelList)
-                    previewEngine.ApplyChanges()
-                    Dim finalText = previewEngine.FinalSolution.GetDocument(documentId).GetTextAsync().Result.ToString()
-                    Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
+                        SetCheckedChildren(New List(Of String)(), topLevelList)
+                        previewEngine2.Target.ApplyChanges()
+                        Dim finalText = previewEngine2.Target.FinalSolution.GetDocument(documentId).GetTextAsync().Result.ToString()
+                        Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
+                    End Using
                 End Using
-
             End Using
         End Sub
 
@@ -207,43 +211,45 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId1, "test4.cs", addedDocumentText)
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
-                Dim previewEngine = New PreviewEngine(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
-                    componentModel)
+                    componentModel,
+                    Nothing)
 
-                WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
-                Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
-                Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
-                    previewEngine.SetTextView(disposableView.TextView)
+                    WpfTestRunner.RequireWpfFact($"Test explicitly creates an {NameOf(IWpfTextView)}")
+                    Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
+                    Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
+                        previewEngine2.Target.SetTextView(disposableView.TextView)
 
-                    Dim outChangeList As Object = Nothing
-                    previewEngine.GetRootChangesList(outChangeList)
-                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                        Dim outChangeList As Object = Nothing
+                        previewEngine2.Target.GetRootChangesList(outChangeList)
+                        Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                    Dim checkedItems = New List(Of String) From
-                    {
-                        "test1.cs",
-                        ServicesVSResources.bracket_plus_bracket + "test4.cs",
-                        ServicesVSResources.bracket_bracket + "test2.cs"
-                    }
+                        Dim checkedItems = New List(Of String) From
+                        {
+                            "test1.cs",
+                            ServicesVSResources.bracket_plus_bracket + "test4.cs",
+                            ServicesVSResources.bracket_bracket + "test2.cs"
+                        }
 
-                    SetCheckedChildren(checkedItems, topLevelList)
-                    previewEngine.ApplyChanges()
-                    Dim finalSolution = previewEngine.FinalSolution
-                    Dim finalDocuments = finalSolution.Projects.First().Documents
-                    Assert.Equal(3, finalDocuments.Count)
+                        SetCheckedChildren(checkedItems, topLevelList)
+                        previewEngine2.Target.ApplyChanges()
+                        Dim finalSolution = previewEngine2.Target.FinalSolution
+                        Dim finalDocuments = finalSolution.Projects.First().Documents
+                        Assert.Equal(3, finalDocuments.Count)
 
-                    Dim changedDocText = finalSolution.GetDocument(docId).GetTextAsync().Result.ToString()
-                    Assert.Equal(forkedDocument.GetTextAsync().Result.ToString(), changedDocText)
+                        Dim changedDocText = finalSolution.GetDocument(docId).GetTextAsync().Result.ToString()
+                        Assert.Equal(forkedDocument.GetTextAsync().Result.ToString(), changedDocText)
 
-                    Dim finalAddedDocText = finalSolution.GetDocument(addedDocumentId1).GetTextAsync().Result.ToString()
-                    Assert.Equal(addedDocumentText, finalAddedDocText)
+                        Dim finalAddedDocText = finalSolution.GetDocument(addedDocumentId1).GetTextAsync().Result.ToString()
+                        Assert.Equal(addedDocumentText, finalAddedDocText)
 
-                    Dim finalNotRemovedDocText = finalSolution.GetDocument(removedDocumentId2).GetTextAsync().Result.ToString()
-                    Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
+                        Dim finalNotRemovedDocText = finalSolution.GetDocument(removedDocumentId2).GetTextAsync().Result.ToString()
+                        Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
+                    End Using
                 End Using
             End Using
         End Sub
@@ -288,18 +294,19 @@ End Class
 
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
-                Dim previewEngine = New PreviewEngine(
+                Using previewEngine2 = PreviewEngine.CreateReferenceCounted(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,
-                    componentModel)
+                    componentModel,
+                    Nothing)
 
-                Dim outChangeList As Object = Nothing
-                previewEngine.GetRootChangesList(outChangeList)
-                Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                    Dim outChangeList As Object = Nothing
+                    previewEngine2.Target.GetRootChangesList(outChangeList)
+                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
+                    Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                         Tuple.Create("topLevelItemName", 0),
                         Tuple.Create("C.vb", 1),
@@ -307,7 +314,8 @@ End Class
                         Tuple.Create("Sub Y()", 2)
                     }
 
-                AssertTreeStructure(expectedItems, topLevelList)
+                    AssertTreeStructure(expectedItems, topLevelList)
+                End Using
             End Using
         End Sub
 

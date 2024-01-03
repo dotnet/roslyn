@@ -9,6 +9,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// <param name="contentSpan">actual span to show in the tooptip</param>
         /// <param name="backgroundResourceKey">background of the tooltip control</param>
         /// <returns>ToolTip control with dispose method</returns>
-        DisposableToolTip CreateDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey);
+        ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey);
 
         /// <summary>
         /// get <see cref="DisposableToolTip"/> /> from the given <paramref name="textBuffer"/>
@@ -39,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// tooltip will show embedded textview with whole content from the buffer. if the buffer has associated tags
         /// in its property bag, it will be picked up by taggers associated with the tooltip
         /// </summary>
-        DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey);
+        ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey);
 
         /// <summary>
         /// attach <see cref="DisposableToolTip"/> to the given <paramref name="element"/>
         /// 
         /// this will lazily create the tooltip and dispose it properly when it goes away
         /// </summary>
-        void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip);
+        IDisposable AttachToolTipToControl(FrameworkElement element, Func<ReferenceCountedDisposable<DisposableToolTip>> createToolTip);
     }
 }

@@ -36,101 +36,101 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact]
         public void TestPreviewCreationDefault()
         {
-            using var previewWorkspace = new PreviewWorkspace();
-            Assert.NotNull(previewWorkspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(MefHostServices.DefaultHost);
+            Assert.NotNull(previewWorkspace.Target.CurrentSolution);
         }
 
         [Fact]
         public void TestPreviewCreationWithExplicitHostServices()
         {
             var hostServices = FeaturesTestCompositions.Features.GetHostServices();
-            using var previewWorkspace = new PreviewWorkspace(hostServices);
-            Assert.NotNull(previewWorkspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(hostServices);
+            Assert.NotNull(previewWorkspace.Target.CurrentSolution);
         }
 
         [Fact]
         public void TestPreviewCreationWithSolution()
         {
             using var custom = new AdhocWorkspace();
-            using var previewWorkspace = new PreviewWorkspace(custom.CurrentSolution);
-            Assert.NotNull(previewWorkspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(custom.CurrentSolution);
+            Assert.NotNull(previewWorkspace.Target.CurrentSolution);
         }
 
         [Fact]
         public void TestPreviewAddRemoveProject()
         {
-            using var previewWorkspace = new PreviewWorkspace();
-            var solution = previewWorkspace.CurrentSolution;
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(MefHostServices.DefaultHost);
+            var solution = previewWorkspace.Target.CurrentSolution;
             var project = solution.AddProject("project", "project.dll", LanguageNames.CSharp);
-            Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
+            Assert.True(previewWorkspace.Target.TryApplyChanges(project.Solution));
 
-            var newSolution = previewWorkspace.CurrentSolution.RemoveProject(project.Id);
-            Assert.True(previewWorkspace.TryApplyChanges(newSolution));
+            var newSolution = previewWorkspace.Target.CurrentSolution.RemoveProject(project.Id);
+            Assert.True(previewWorkspace.Target.TryApplyChanges(newSolution));
 
-            Assert.Equal(0, previewWorkspace.CurrentSolution.ProjectIds.Count);
+            Assert.Equal(0, previewWorkspace.Target.CurrentSolution.ProjectIds.Count);
         }
 
         [Fact]
         public void TestPreviewProjectChanges()
         {
-            using var previewWorkspace = new PreviewWorkspace();
-            var solution = previewWorkspace.CurrentSolution;
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(MefHostServices.DefaultHost);
+            var solution = previewWorkspace.Target.CurrentSolution;
             var project = solution.AddProject("project", "project.dll", LanguageNames.CSharp);
-            Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
+            Assert.True(previewWorkspace.Target.TryApplyChanges(project.Solution));
 
-            var addedSolution = previewWorkspace.CurrentSolution.Projects.First()
+            var addedSolution = previewWorkspace.Target.CurrentSolution.Projects.First()
                                                 .AddMetadataReference(TestMetadata.Net451.mscorlib)
                                                 .AddDocument("document", "").Project.Solution;
-            Assert.True(previewWorkspace.TryApplyChanges(addedSolution));
-            Assert.Equal(1, previewWorkspace.CurrentSolution.Projects.First().MetadataReferences.Count);
-            Assert.Equal(1, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
+            Assert.True(previewWorkspace.Target.TryApplyChanges(addedSolution));
+            Assert.Equal(1, previewWorkspace.Target.CurrentSolution.Projects.First().MetadataReferences.Count);
+            Assert.Equal(1, previewWorkspace.Target.CurrentSolution.Projects.First().DocumentIds.Count);
 
             var text = "class C {}";
-            var changedSolution = previewWorkspace.CurrentSolution.Projects.First().Documents.First().WithText(SourceText.From(text)).Project.Solution;
-            Assert.True(previewWorkspace.TryApplyChanges(changedSolution));
-            Assert.Equal(previewWorkspace.CurrentSolution.Projects.First().Documents.First().GetTextAsync().Result.ToString(), text);
+            var changedSolution = previewWorkspace.Target.CurrentSolution.Projects.First().Documents.First().WithText(SourceText.From(text)).Project.Solution;
+            Assert.True(previewWorkspace.Target.TryApplyChanges(changedSolution));
+            Assert.Equal(previewWorkspace.Target.CurrentSolution.Projects.First().Documents.First().GetTextAsync().Result.ToString(), text);
 
-            var removedSolution = previewWorkspace.CurrentSolution.Projects.First()
-                                                .RemoveMetadataReference(previewWorkspace.CurrentSolution.Projects.First().MetadataReferences[0])
-                                                .RemoveDocument(previewWorkspace.CurrentSolution.Projects.First().DocumentIds[0]).Solution;
+            var removedSolution = previewWorkspace.Target.CurrentSolution.Projects.First()
+                                                .RemoveMetadataReference(previewWorkspace.Target.CurrentSolution.Projects.First().MetadataReferences[0])
+                                                .RemoveDocument(previewWorkspace.Target.CurrentSolution.Projects.First().DocumentIds[0]).Solution;
 
-            Assert.True(previewWorkspace.TryApplyChanges(removedSolution));
-            Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().MetadataReferences.Count);
-            Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
+            Assert.True(previewWorkspace.Target.TryApplyChanges(removedSolution));
+            Assert.Equal(0, previewWorkspace.Target.CurrentSolution.Projects.First().MetadataReferences.Count);
+            Assert.Equal(0, previewWorkspace.Target.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         [WpfFact]
         public void TestPreviewOpenCloseFile()
         {
-            using var previewWorkspace = new PreviewWorkspace();
-            var solution = previewWorkspace.CurrentSolution;
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(MefHostServices.DefaultHost);
+            var solution = previewWorkspace.Target.CurrentSolution;
             var project = solution.AddProject("project", "project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("document", "");
             var sourceTextContainer = SourceText.From("Text").Container;
 
-            Assert.True(previewWorkspace.TryApplyChanges(document.Project.Solution));
+            Assert.True(previewWorkspace.Target.TryApplyChanges(document.Project.Solution));
 
-            previewWorkspace.OpenDocument(document.Id, sourceTextContainer);
-            Assert.Equal(1, previewWorkspace.GetOpenDocumentIds().Count());
-            Assert.True(previewWorkspace.IsDocumentOpen(document.Id));
+            previewWorkspace.Target.OpenDocument(document.Id, sourceTextContainer);
+            Assert.Equal(1, previewWorkspace.Target.GetOpenDocumentIds().Count());
+            Assert.True(previewWorkspace.Target.IsDocumentOpen(document.Id));
 
-            previewWorkspace.CloseDocument(document.Id);
-            Assert.Equal(0, previewWorkspace.GetOpenDocumentIds().Count());
-            Assert.False(previewWorkspace.IsDocumentOpen(document.Id));
+            previewWorkspace.Target.CloseDocument(document.Id);
+            Assert.Equal(0, previewWorkspace.Target.GetOpenDocumentIds().Count());
+            Assert.False(previewWorkspace.Target.IsDocumentOpen(document.Id));
         }
 
         [Fact]
         public async Task TestPreviewServices()
         {
-            using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(EditorTestCompositions.EditorFeatures.GetHostServices());
+            var service = previewWorkspace.Target.Services.GetService<ISolutionCrawlerRegistrationService>();
             var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(service);
-            Assert.False(registrationService.Register(previewWorkspace));
+            Assert.False(registrationService.Register(previewWorkspace.Target));
 
-            var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
+            var persistentService = previewWorkspace.Target.Services.SolutionServices.GetPersistentStorageService();
 
-            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
+            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.Target.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
@@ -138,15 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnosticTagger()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
-            using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
+            using var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(workspace.CurrentSolution);
 
             // preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
-            previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+            previewWorkspace.Target.TryApplyChanges(previewWorkspace.Target.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
             // enable preview diagnostics
-            previewWorkspace.EnableSolutionCrawler();
+            previewWorkspace.Target.EnableSolutionCrawler();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
@@ -176,7 +176,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-            using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
+            var solutionPreviews = previewFactoryService.GetSolutionPreviews(oldDocument.Project.Solution, newDocument.Project.Solution, CancellationToken.None);
+            AssertEx.NotNull(solutionPreviews);
+
+            var previews = await solutionPreviews.GetPreviewsAsync();
+            using var preview = Assert.Single(previews);
+
+            var diffView = (DifferenceViewerPreview)preview.Preview;
             AssertEx.NotNull(diffView);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
@@ -225,8 +231,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
 
-            var previewWorkspace = new PreviewWorkspace();
-            Assert.NotNull(previewWorkspace.CurrentSolution);
+            var previewWorkspace = PreviewWorkspace.CreateReferenceCounted(MefHostServices.DefaultHost);
+            Assert.NotNull(previewWorkspace.Target.CurrentSolution);
             var solutionObjectReference = ObjectReference.CreateFromFactory(
                 static previewWorkspace =>
                 {
@@ -234,12 +240,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                     Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
                     return previewWorkspace.CurrentSolution;
                 },
-                previewWorkspace);
+                previewWorkspace.Target);
 
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CommonDiagnosticAnalyzers.NotConfigurableDiagnosticAnalyzer());
-            ExecuteAnalyzers(previewWorkspace, analyzers);
+            ExecuteAnalyzers(previewWorkspace.Target, analyzers);
 
-            previewWorkspace.Dispose();
+            previewWorkspace.Target.Dispose();
             solutionObjectReference.AssertReleased();
         }
 
@@ -249,8 +255,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             var composition = EditorTestCompositions.EditorFeatures;
             var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+
+            // This code intentionally does not dispose of the ReferenceCountedDisposable<T> wrapper.
             var previewWorkspaceReference = ObjectReference.CreateFromFactory(
-                static composition => new PreviewWorkspace(composition.GetHostServices()),
+                static composition => PreviewWorkspace.CreateReferenceCounted(composition.GetHostServices()).Target,
                 composition);
 
             // Verify the GC can reclaim member for a workspace which has not been disposed.

@@ -2,28 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Diagnostics;
-using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     internal sealed class DisposableToolTip : IDisposable
     {
         public readonly ToolTip ToolTip;
-        private PreviewWorkspace _workspaceOpt;
+        private readonly ReferenceCountedDisposable<PreviewWorkspace>? _workspace;
 
-        public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
+        private DisposableToolTip(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
         {
             ToolTip = toolTip;
-            _workspaceOpt = workspaceOpt;
+            _workspace = workspace?.AddReference();
         }
 
+        public static ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCounted(ToolTip toolTip, ReferenceCountedDisposable<PreviewWorkspace>? workspace)
+            => new(new DisposableToolTip(toolTip, workspace));
+
         public void Dispose()
-            => Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
+            => _workspace?.Dispose();
     }
 }

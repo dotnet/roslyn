@@ -6,10 +6,12 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -18,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
         /// </summary>
-        private class LazyToolTip : ForegroundThreadAffinitizedObject
+        private class LazyToolTip : ForegroundThreadAffinitizedObject, IDisposable
         {
-            private readonly Func<DisposableToolTip> _createToolTip;
+            private readonly Func<ReferenceCountedDisposable<DisposableToolTip>> _createToolTip;
             private readonly FrameworkElement _element;
 
-            private DisposableToolTip _disposableToolTip;
+            private ReferenceCountedDisposable<DisposableToolTip> _disposableToolTip;
 
             private LazyToolTip(
                 IThreadingContext threadingContext,
                 FrameworkElement element,
-                Func<DisposableToolTip> createToolTip)
+                Func<ReferenceCountedDisposable<DisposableToolTip>> createToolTip)
                 : base(threadingContext, assertIsForeground: true)
             {
                 _element = element;
@@ -46,8 +48,20 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 element.ToolTipClosing += this.OnToolTipClosing;
             }
 
-            public static void AttachTo(FrameworkElement element, IThreadingContext threadingContext, Func<DisposableToolTip> createToolTip)
+            public static IDisposable AttachTo(FrameworkElement element, IThreadingContext threadingContext, Func<ReferenceCountedDisposable<DisposableToolTip>> createToolTip)
                 => new LazyToolTip(threadingContext, element, createToolTip);
+
+            public void Dispose()
+            {
+                try
+                {
+                    Interlocked.Exchange(ref _disposableToolTip, null)?.Dispose();
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // Avoid propagating the exception within a UI cleanup layer
+                }
+            }
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {
@@ -58,8 +72,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     Debug.Assert(_element.ToolTip == this);
                     Debug.Assert(_disposableToolTip == null);
 
-                    _disposableToolTip = _createToolTip();
-                    _element.ToolTip = _disposableToolTip.ToolTip;
+                    // We don't expect _disposableToolTip to be non-null here, but we still make sure it's not leaking
+                    if (_disposableToolTip is not null)
+                        return;
+
+                    using var disposableToolTip = _createToolTip();
+                    _disposableToolTip = disposableToolTip.AddReference();
+                    _element.ToolTip = disposableToolTip.Target.ToolTip;
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
@@ -74,11 +93,12 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     AssertIsForeground();
 
                     Debug.Assert(_disposableToolTip != null);
-                    Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
+                    Debug.Assert(_element.ToolTip == _disposableToolTip.Target.ToolTip);
 
                     _element.ToolTip = this;
 
-                    _disposableToolTip.Dispose();
+                    // Handle the case where the tool tip was disposed before calling OnToolTipClosing
+                    _disposableToolTip?.Dispose();
                     _disposableToolTip = null;
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))

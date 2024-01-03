@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -25,17 +23,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
         }
 
-        public object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContents)
+        public IDisposable GetPreviewPane(DiagnosticData? diagnostic, IReadOnlyList<PreviewWrapper>? previewContents)
         {
-            var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<object>();
+            var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<PreviewWrapper>();
 
-            foreach (var content in contents.OfType<IDisposable>())
+            foreach (var content in contents)
             {
                 content.Dispose();
             }
 
             // test only mock object
-            return new Grid();
+            return new DisposableGrid();
+        }
+
+        private sealed class DisposableGrid : Grid, IDisposable
+        {
+            public void Dispose()
+            {
+            }
         }
     }
 }

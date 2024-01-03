@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             _editorOptionsService = editorOptionsService;
         }
 
-        public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
+        public IDisposable AttachToolTipToControl(FrameworkElement element, Func<ReferenceCountedDisposable<DisposableToolTip>> createToolTip)
             => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
 
-        public DisposableToolTip CreateDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
+        public ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
         {
             var control = CreateViewHostingControl(textBuffer, contentSpan);
 
@@ -68,13 +69,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // 
             // our underlying preview tagger and mechanism to attach tagger to associated buffer of
             // opened document will light up automatically
-            var workspace = new PreviewWorkspace(document.Project.Solution);
-            workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
+            using var workspace = PreviewWorkspace.CreateReferenceCounted(document.Project.Solution);
+            workspace.Target.OpenDocument(document.Id, textBuffer.AsTextContainer());
 
-            return new DisposableToolTip(toolTip, workspace);
+            return DisposableToolTip.CreateReferenceCounted(toolTip, workspace);
         }
 
-        public DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)
+        public ReferenceCountedDisposable<DisposableToolTip> CreateReferenceCountedDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)
         {
             var control = CreateViewHostingControl(textBuffer, textBuffer.CurrentSnapshot.GetFullSpan().Span);
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             };
 
             // we have stand alone view that is not associated with roslyn solution
-            return new DisposableToolTip(toolTip, workspaceOpt: null);
+            return DisposableToolTip.CreateReferenceCounted(toolTip, workspace: null);
         }
 
         public ViewHostingControl CreateViewHostingControl(ITextBuffer textBuffer, Span contentSpan)

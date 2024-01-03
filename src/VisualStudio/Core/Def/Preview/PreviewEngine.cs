@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
-    internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChangesEngine
+    internal sealed class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChangesEngine, IDisposable
     {
         private readonly IVsEditorAdaptersFactoryService _editorFactory;
         private readonly Solution _newSolution;
@@ -38,17 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private readonly IVsImageService2 _imageService;
 
         private TopLevelChange _topLevelChange;
-        private PreviewUpdater _updater;
+        private ReferenceCountedDisposable<PreviewUpdater> _updater;
 
         public Solution FinalSolution { get; private set; }
         public bool ShowCheckBoxes { get; private set; }
 
-        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
-            : this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
-        {
-        }
-
-        public PreviewEngine(
+        private PreviewEngine(
             IThreadingContext threadingContext,
             string title,
             string helpString,
@@ -59,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Solution oldSolution,
             IComponentModel componentModel,
             IVsImageService2 imageService,
-            bool showCheckBoxes = true)
+            bool showCheckBoxes)
             : base(threadingContext)
         {
             _topLevelName = topLevelItemName;
@@ -75,9 +70,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _imageService = imageService;
         }
 
-        public void CloseWorkspace()
+        public static ReferenceCountedDisposable<PreviewEngine> CreateReferenceCounted(
+            IThreadingContext threadingContext,
+            string title,
+            string helpString,
+            string description,
+            string topLevelItemName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            IComponentModel componentModel,
+            IVsImageService2 imageService,
+            bool showCheckBoxes = true)
         {
-            _updater?.CloseWorkspace();
+            return new ReferenceCountedDisposable<PreviewEngine>(new PreviewEngine(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, imageService, showCheckBoxes));
+        }
+
+        public void Dispose()
+        {
+            _updater?.Dispose();
         }
 
         public int ApplyChanges()
@@ -218,7 +229,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var document = updatedSolution.GetTextDocument(documentId);
             if (document != null)
             {
-                _updater.UpdateView(document, spanSource);
+                Contract.ThrowIfNull(_updater);
+                using var updater = _updater.AddReference();
+
+                updater.Target.UpdateView(document, spanSource);
             }
         }
 
@@ -226,7 +240,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         // However, once they've called it once, it's always the same TextView.
         public void SetTextView(object textView)
         {
-            _updater ??= new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
+            if (_updater is not null)
+                return;
+
+            var newPreviewUpdater = PreviewUpdater.CreateReferenceCounted(ThreadingContext, EnsureTextViewIsInitialized(textView));
+            if (Interlocked.CompareExchange(ref _updater, newPreviewUpdater, null) is not null)
+            {
+                // _updater was initialized on another thread. This might not be possible, but we handle it because it's
+                // critical that PreviewUpdater gets disposed.
+                newPreviewUpdater.Dispose();
+            }
         }
 
         private ITextView EnsureTextViewIsInitialized(object previewTextView)

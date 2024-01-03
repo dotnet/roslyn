@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction?>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+        protected Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
             CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
                 // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
-                await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+                await Workspace.Services.GetRequiredService<IExtensionManager>().PerformActionAsync(
                     Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
             }
         }
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            IEnumerable<CodeActionOperation> operations = null;
+            IEnumerable<CodeActionOperation>? operations = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
                 var options = actionWithOptions.GetOptions(cancellationToken);
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private void CreateLogProperties(Dictionary<string, object> map)
+        private void CreateLogProperties(Dictionary<string, object?> map)
         {
             // set various correlation info
             if (CodeAction is AbstractFixAllCodeFixCodeAction fixSome)
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // Underscores will become an accelerator in the VS smart tag.  So we double all
                 // underscores so they actually get represented as an underscore in the UI.
-                var extensionManager = Workspace.Services.GetService<IExtensionManager>();
+                var extensionManager = Workspace.Services.GetRequiredService<IExtensionManager>();
                 var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
                 return text.Replace("_", "__");
             }
@@ -218,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public string DisplayTextSuffix => "";
 
-        protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
+        protected async Task<SolutionPreviewResult?> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -233,20 +231,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual bool HasPreview => false;
 
-        public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+        public virtual Task<object?> GetPreviewAsync(CancellationToken cancellationToken)
             => SpecializedTasks.Null<object>();
 
         public virtual bool HasActionSets => false;
 
-        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyEnumerable<SuggestedActionSet>();
+        public virtual Task<IEnumerable<SuggestedActionSet>?> GetActionSetsAsync(CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyEnumerable<SuggestedActionSet>().AsNullable();
 
-        #region not supported
-
-        void IDisposable.Dispose()
+        public virtual void Dispose()
         {
             // do nothing
         }
+
+        #region not supported
 
         // same as display text
         string ISuggestedAction.IconAutomationText => DisplayText;
@@ -277,19 +275,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         // no shortcut support
-        string ISuggestedAction.InputGestureText => null;
+        string? ISuggestedAction.InputGestureText => null;
 
         #endregion
 
         #region IEquatable<ISuggestedAction>
 
-        public bool Equals(ISuggestedAction other)
+        public bool Equals(ISuggestedAction? other)
             => Equals(other as SuggestedAction);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as SuggestedAction);
 
-        internal bool Equals(SuggestedAction otherSuggestedAction)
+        internal bool Equals(SuggestedAction? otherSuggestedAction)
         {
             if (otherSuggestedAction == null)
             {

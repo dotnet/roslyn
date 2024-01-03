@@ -95,26 +95,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()
                 Dim preview = previewObjects(0)
-                Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is DifferenceViewerPreview)
-                Dim diffView = DirectCast(preview, DifferenceViewerPreview)
+                Assert.NotNull(preview.Preview)
+                Assert.True(TypeOf preview.Preview Is DifferenceViewerPreview)
+                Dim diffView = DirectCast(preview.Preview, DifferenceViewerPreview)
                 Dim text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
                 Assert.Equal(s_changedDocumentText, text)
-                diffView.Dispose()
 
                 ' Then comes the removed metadata reference.
                 preview = previewObjects(1)
-                Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is String)
-                text = DirectCast(preview, String)
+                Assert.NotNull(preview.Preview)
+                Assert.True(TypeOf preview.Preview Is String)
+                text = DirectCast(preview.Preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' And finally the added project.
                 preview = previewObjects(2)
-                Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is String)
-                text = DirectCast(preview, String)
+                Assert.NotNull(preview.Preview)
+                Assert.True(TypeOf preview.Preview Is String)
+                text = DirectCast(preview.Preview, String)
                 Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
+
+                For Each previewObject In previewObjects
+                    previewObject.Dispose()
+                Next
             End Using
         End Function
     End Class

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
@@ -23,17 +24,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter = presenter;
             }
 
-            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
+            public override bool TryCreateColumnContent(string columnName, out Action? disposeCallback, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
                     var inlines = CreateLineTextInlines();
                     var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
 
+                    disposeCallback = null;
                     content = textBlock;
                     return true;
                 }
 
+                disposeCallback = null;
                 content = null;
                 return false;
             }

@@ -114,9 +114,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public void UpdatePreview(string text)
         {
             var service = VisualStudioMefHostServices.Create(_componentModel.GetService<ExportProvider>());
-            var workspace = new PreviewWorkspace(service);
+            using var workspace = PreviewWorkspace.CreateReferenceCounted(service);
             var fileName = "project." + (Language == "C#" ? "csproj" : "vbproj");
-            var project = workspace.CurrentSolution.AddProject(fileName, "assembly.dll", Language);
+            var project = workspace.Target.CurrentSolution.AddProject(fileName, "assembly.dll", Language);
 
             // use the mscorlib, system, and system.core that are loaded in the current process.
             string[] references =
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     "System.Core"
                 ];
 
-            var metadataService = workspace.Services.GetService<IMetadataService>();
+            var metadataService = workspace.Target.Services.GetService<IMetadataService>();
 
             var referenceAssemblies = Thread.GetDomain().GetAssemblies()
                 .Where(x => references.Contains(x.GetName(true).Name, StringComparer.OrdinalIgnoreCase))
@@ -155,13 +155,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
 
-            workspace.TryApplyChanges(document.Project.Solution);
-            workspace.OpenDocument(document.Id, container);
+            workspace.Target.TryApplyChanges(document.Project.Solution);
+            workspace.Target.OpenDocument(document.Id, container);
 
-            this.TextViewHost.Closed += (s, a) =>
+            TextViewHost.TextView.Properties.AddProperty(typeof(PreviewWorkspace), workspace.AddReference());
+
+            this.TextViewHost.TextView.Closed += static (sender, e) =>
             {
-                workspace.Dispose();
-                workspace = null;
+                var textView = (IWpfTextView)sender;
+                var textViewWorkspaceReference = (ReferenceCountedDisposable<PreviewWorkspace>)textView.Properties[typeof(PreviewWorkspace)];
+                textViewWorkspaceReference.Dispose();
             };
         }
 

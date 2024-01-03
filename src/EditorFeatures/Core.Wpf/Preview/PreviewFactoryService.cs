@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -56,8 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _differenceViewerService = differenceViewerService;
         }
 
-        protected override IDifferenceViewerPreview<IWpfDifferenceViewer> CreateDifferenceViewerPreview(IWpfDifferenceViewer viewer)
-            => new DifferenceViewerPreview(viewer, _editorOperationsFactoryService);
+        protected override IReferenceCountedDisposable<IDifferenceViewerPreview<IWpfDifferenceViewer>> CreateDifferenceViewerPreview(
+            IWpfDifferenceViewer viewer,
+            ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace,
+            ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace)
+        {
+            return DifferenceViewerPreview.CreateReferenceCounted(viewer, _editorOperationsFactoryService, leftWorkspace, rightWorkspace);
+        }
 
         protected override async Task<IWpfDifferenceViewer> CreateDifferenceViewAsync(IDifferenceBuffer diffBuffer, ITextViewRoleSet previewRoleSet, DifferenceViewMode mode, double zoomLevel, CancellationToken cancellationToken)
         {
