@@ -2349,7 +2349,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">carattere di escape stringa</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2529,22 +2529,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">L'espressione di raccolta di tipo '{0}' può comportare allocazioni heap impreviste. Provare a creare in modo esplicito una matrice, quindi a convertirla in '{0}' per rendere esplicita l'allocazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">L'espressione di raccolta potrebbe generare allocazioni heap impreviste. Provare a creare in modo esplicito una matrice, quindi a convertirla nel tipo finale per rendere esplicita l'allocazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">L'espressione di raccolta di tipo '{0}' può comportare allocazioni heap impreviste a causa dell'uso di spread '..'. Provare a creare in modo esplicito una matrice, quindi a convertirla in '{0}' per rendere esplicita l'allocazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">L'espressione di raccolta potrebbe generare allocazioni heap impreviste a causa dell'uso di spread '..'. Provare a creare in modo esplicito una matrice, quindi a convertirla nel tipo finale per rendere esplicita l'allocazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2639,12 +2639,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
