@@ -1287,9 +1287,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            var elementConversion = iteratorItem?.HasErrors == true ?
-                Conversion.NoConversion :
-                BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
                 collection,
                 elementType: elementType,

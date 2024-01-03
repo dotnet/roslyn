@@ -7797,49 +7797,6 @@ static class Program
         }
 
         [Fact]
-        public void IOperation_SpreadElementConversion_Untyped()
-        {
-            string source = """
-                using System.Collections;
-                using System.Collections.Generic;
-                class MyCollection : IEnumerable
-                {
-                    private List<object> _list = new();
-                    public void Add(int i) { _list.Add(i); }
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection x = [1];
-                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
-                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
-                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
-                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
-
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
-                  Elements(1):
-                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
-                        Operand:
-                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
-                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          (NoConversion)
-                """);
-        }
-
-        [Fact]
         public void SpreadElement_MissingList()
         {
             string source = """
