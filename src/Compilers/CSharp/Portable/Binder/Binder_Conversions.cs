@@ -767,14 +767,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundExpression GetUnderlyingCollectionExpressionElement(BoundExpression element)
+        /// <summary>
+        /// If the element is from a collection type where elements are added with collection initializers,
+        /// return the argument to the collection initializer Add method or null if the element is not a
+        /// collection initializer node. Otherwise, return the element as is.
+        /// </summary>
+        internal static BoundExpression? GetUnderlyingCollectionExpressionElement(BoundCollectionExpression expr, BoundExpression? element)
         {
-            return element switch
+            if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableT)
             {
-                BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
-                BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
-                _ => element,
-            };
+                return element switch
+                {
+                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                    _ => null,
+                };
+            }
+            return element;
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
