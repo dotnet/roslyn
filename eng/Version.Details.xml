@@ -41,6 +41,46 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>0a2bda10e81d901396c3cff95533529e3a93ad47</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Collections.Immutable" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Composition.AttributedModel" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Composition.Convention" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Composition.Hosting" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Composition.Runtime" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Composition.TypedParts" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Reflection.Metadata" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Text.Encodings.Web" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="System.Threading.Channels" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.23613.3">
