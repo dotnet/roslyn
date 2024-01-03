@@ -355,15 +355,13 @@ link text";
                 using System;
                 public class Program
                 {
-                    svm{|caret:|}
+                    {|editRange:svm|}{|caret:|}
                 }
                 """;
-
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude);
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, true);
 
-            var caret = testLspServer.GetLocations("caret").Single();
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "svm").ConfigureAwait(false);
 
             Assert.True(clientCompletionItem.VsResolveTextEditOnCommit);
@@ -375,13 +373,8 @@ link text";
             Assert.Null(results.InsertText);
             Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
 
-            var range = new LSP.Range
-            {
-                Start = new LSP.Position { Line = 3, Character = 4 },
-                End = new LSP.Position { Line = 3, Character = 7 }
-            };
-            Assert.Equal(range, results.TextEdit.Value.First.Range);
-
+            var editRange = testLspServer.GetLocations("editRange").Single().Range;
+            Assert.Equal(editRange, results.TextEdit.Value.First.Range);
         }
 
         private static async Task<LSP.CompletionItem> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem)
