@@ -5243,7 +5243,37 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <expected><![CDATA[
-DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete_ReverseOrder()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+<System.Obsolete("error", True)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
     Sub M(c As C)
                ~
 ]]></expected>)
@@ -5282,6 +5312,98 @@ BC30668: 'C' is obsolete: 'error'.
                ~
 ]]></expected>)
 
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithDeprecated()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    <AttributeUsage(
+        AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate,
+        AllowMultiple:=True)>
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+
+<Windows.Foundation.Metadata.Deprecated("DEPRECATED", Windows.Foundation.Metadata.DeprecationType.Deprecate, 0)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40000: 'C' is obsolete: 'DEPRECATED'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithDeprecated_ReverseOrder()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    <AttributeUsage(
+        AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate,
+        AllowMultiple:=True)>
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+<Windows.Foundation.Metadata.Deprecated("DEPRECATED", Windows.Foundation.Metadata.DeprecationType.Deprecate, 0)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40000: 'C' is obsolete: 'DEPRECATED'.
+    Sub M(c As C)
+               ~
+]]></expected>)
         End Sub
 
         <Fact>

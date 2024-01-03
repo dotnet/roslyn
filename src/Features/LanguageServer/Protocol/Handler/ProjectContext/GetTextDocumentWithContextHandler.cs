@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -35,19 +35,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(context.Workspace);
             Contract.ThrowIfNull(context.Solution);
 
-            // We specifically don't use context.Document here because we want multiple
-            var documents = context.Solution.GetDocuments(request.TextDocument.Uri);
+            // We specifically don't use context.Document here because we want multiple. We also don't need
+            // all of the document info, just the Id is enough
+            var documentIds = context.Solution.GetDocumentIds(request.TextDocument.Uri);
 
-            if (!documents.Any())
+            if (!documentIds.Any())
             {
                 return SpecializedTasks.Null<VSProjectContextList>();
             }
 
             var contexts = new List<VSProjectContext>();
 
-            foreach (var document in documents)
+            foreach (var documentId in documentIds)
             {
-                var project = document.Project;
+                var project = context.Solution.GetRequiredProject(documentId.ProjectId);
                 var projectContext = ProtocolConversions.ProjectToProjectContext(project);
                 contexts.Add(projectContext);
             }
@@ -57,13 +58,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // GetDocumentIdInCurrentContext will just return the same ID back, which means we're going to pick the first
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
-            var openDocument = documents.First();
-            var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
+            var openDocumentId = documentIds.First();
+            var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocumentId);
 
             return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
             {
                 ProjectContexts = contexts.ToArray(),
-                DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId)
+                DefaultIndex = documentIds.IndexOf(d => d == currentContextDocumentId)
             });
         }
     }

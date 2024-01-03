@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var testViewHost = await vsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
             var renameAdornmentLayer = testViewHost.TextView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
             var inlineRenameFlyout = (RenameFlyout)renameAdornmentLayer.Elements.Single().Adornment;
-            var actualStringInTextBox = inlineRenameFlyout.IdentifierTextBox.Text;
+            var actualStringInTextBox = inlineRenameFlyout.RenameUserInput.Text;
             Assert.Equal(expected, actualStringInTextBox);
         }
     }

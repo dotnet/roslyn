@@ -4,8 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -27,13 +29,13 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         return compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
     {
-        context.RegisterSyntaxNodeAction(AnalyzeExplicitStackAllocExpression, SyntaxKind.StackAllocArrayCreationExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeImplicitStackAllocExpression, SyntaxKind.ImplicitStackAllocArrayCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeExplicitStackAllocExpression(context, expressionType), SyntaxKind.StackAllocArrayCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeImplicitStackAllocExpression(context, expressionType), SyntaxKind.ImplicitStackAllocArrayCreationExpression);
     }
 
-    private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -42,11 +44,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
+        // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
         {
             return;
         }
@@ -55,7 +58,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -67,12 +70,12 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
-    private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -81,10 +84,11 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var matches = TryGetMatches(semanticModel, expression, cancellationToken);
+        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var matches = TryGetMatches(semanticModel, expression, expressionType, allowInterfaceConversion, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -92,7 +96,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -104,7 +108,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
@@ -112,13 +116,18 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
+        bool allowInterfaceConversion,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            expressionType,
+            allowInterfaceConversion,
             static e => e.Type,
             static e => e.Initializer,
-            cancellationToken);
+            cancellationToken,
+            out _);
     }
 }

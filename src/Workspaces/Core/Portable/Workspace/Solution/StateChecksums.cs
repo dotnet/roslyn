@@ -70,7 +70,7 @@ internal sealed class SolutionStateChecksums(
     }
 
     public async Task FindAsync(
-        SolutionState state,
+        SolutionCompilationState compilationState,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
@@ -85,28 +85,28 @@ internal sealed class SolutionStateChecksums(
             result[Checksum] = this;
 
         if (searchingChecksumsLeft.Remove(Attributes))
-            result[Attributes] = state.SolutionAttributes;
+            result[Attributes] = compilationState.Solution.SolutionAttributes;
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
         {
-            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
-            result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
+            Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentIdentity] = compilationState.FrozenSourceGeneratedDocumentState.Identity;
         }
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
         {
-            Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
-            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(compilationState.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
+            result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+        ChecksumCollection.Find(compilationState.Solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
         if (searchingChecksumsLeft.Count == 0)
             return;
 
         if (assetHint.ProjectId != null)
         {
-            var projectState = state.GetProjectState(assetHint.ProjectId);
+            var projectState = compilationState.Solution.GetProjectState(assetHint.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
@@ -121,7 +121,7 @@ internal sealed class SolutionStateChecksums(
             // This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums' instance
             // that we don't unnecessarily walk all documents looking just for those.
 
-            foreach (var (_, projectState) in state.ProjectStates)
+            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
@@ -135,7 +135,7 @@ internal sealed class SolutionStateChecksums(
 
             // Now actually do the depth first search into each project.
 
-            foreach (var (_, projectState) in state.ProjectStates)
+            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
+    public static readonly ImmutableDictionary<string, string?> ChangesSemantics =
+        ImmutableDictionary<string, string?>.Empty.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+
     protected new readonly DiagnosticDescriptor Descriptor;
     protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
 
@@ -36,11 +40,12 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
         => CreateDescriptorWithId(
             diagnosticId,
             enforceOnBuild,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: isUnnecessary);
 
-    protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context);
+    protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType);
 
     protected virtual bool IsSupported(Compilation compilation)
         => true;
@@ -63,6 +68,7 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
             // diagnostics with location outside this node. Without the containing CodeBlockStartAction, our reported
             // diagnostic would be classified as a non-local diagnostic and would not participate in lightbulb for
             // computing code fixes.
-            context.RegisterCodeBlockStartAction<SyntaxKind>(InitializeWorker);
+            var expressionType = compilation.ExpressionOfTType();
+            context.RegisterCodeBlockStartAction<SyntaxKind>(context => InitializeWorker(context, expressionType));
         });
 }

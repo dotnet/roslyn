@@ -440,9 +440,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             if (index < typeArgs.Length)
                             {
                                 var docId = typeArgs[index].GetDocumentationCommentId();
-                                var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
-                                replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
-                                typeParameterRef.ReplaceWith(replacement);
+                                if (docId != null && !docId.StartsWith("!"))
+                                {
+                                    var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
+                                    replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
+                                    typeParameterRef.ReplaceWith(replacement);
+                                }
                             }
                         }
                     }

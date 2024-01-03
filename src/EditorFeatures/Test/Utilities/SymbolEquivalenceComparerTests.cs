@@ -1116,8 +1116,8 @@ class C
             var method_v1 = type1_v1.GetMembers("M").Single();
             var method_v2 = type1_v2.GetMembers("M").Single();
 
-            var trueComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
-            var falseComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var trueComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var falseComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.False(trueComp.Equals(method_v1, method_v2));
             Assert.False(trueComp.Equals(method_v2, method_v1));
@@ -1355,8 +1355,8 @@ class T
             Assert.Equal(NullableAnnotation.Annotated, a1.NullableAnnotation);
             Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
 
-            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.True(ignoreComparer.Equals(a1, a2));
             Assert.True(ignoreComparer.Equals(b1, b2));
@@ -1416,8 +1416,8 @@ class T
             Assert.Equal(NullableAnnotation.None, a1.NullableAnnotation);
             Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
 
-            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.True(ignoreComparer.Equals(a1, a2));
             Assert.True(ignoreComparer.Equals(b1, b2));

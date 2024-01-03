@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -23,7 +23,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-        var logger = _lspServices.GetRequiredService<ILspServiceLogger>();
+        var logger = _lspServices.GetRequiredService<AbstractLspLogger>();
         var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
         if (clientCapabilities is null && queueItem.MethodName != Methods.InitializeName)

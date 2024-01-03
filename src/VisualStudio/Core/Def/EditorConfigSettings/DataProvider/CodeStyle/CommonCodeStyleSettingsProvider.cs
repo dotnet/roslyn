@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeStyle
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
             var parenthesesSettings = GetParenthesesCodeStyleOptions(options, SettingsUpdater);
             AddRange(parenthesesSettings);
+
+            AddRange(GetCollectionExpressionCodeStyleOptions(options, SettingsUpdater));
 
             var experimentalSettings = GetExperimentalCodeStyleOptions(options, SettingsUpdater);
             AddRange(experimentalSettings);
@@ -100,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: ServicesVSResources.Prefer_object_initializer, options, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionExpression, description: ServicesVSResources.Prefer_collection_expression, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: ServicesVSResources.Prefer_collection_initializer, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: ServicesVSResources.Prefer_simplified_boolean_expressions, options, updater);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, options, updater);
@@ -121,6 +123,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             yield return CodeStyleSetting.Create(CodeStyleOptions2.OtherBinaryParentheses, EditorFeaturesResources.In_other_binary_operators, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.RelationalBinaryParentheses, EditorFeaturesResources.In_relational_binary_operators, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.OtherParentheses, ServicesVSResources.In_other_operators, options, updater, enumValues, valueDescriptions);
+        }
+
+        private static IEnumerable<CodeStyleSetting> GetCollectionExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
+        {
+            var enumValues = new[] { CollectionExpressionPreference.Never, CollectionExpressionPreference.WhenTypesExactlyMatch, CollectionExpressionPreference.WhenTypesLooselyMatch };
+            var valueDescriptions = new string[] { ServicesVSResources.Never, ServicesVSResources.When_types_exactly_match, ServicesVSResources.When_types_loosely_match };
+
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionExpression, ServicesVSResources.Prefer_collection_expression, options, updater, enumValues, valueDescriptions);
         }
 
         private static IEnumerable<CodeStyleSetting> GetParameterCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

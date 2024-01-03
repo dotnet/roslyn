@@ -23,7 +23,6 @@ internal readonly struct ISmartRenameSessionFactoryWrapper
     static ISmartRenameSessionFactoryWrapper()
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
-
         s_createSmartRenameSession = LightupHelpers.CreateFunctionAccessor<object, SnapshotSpan, object?>(s_wrappedType, nameof(CreateSmartRenameSession), typeof(SnapshotSpan), SpecializedTasks.Null<object>());
     }
 
@@ -58,6 +57,6 @@ internal readonly struct ISmartRenameSessionFactoryWrapper
         if (!ISmartRenameSessionWrapper.IsInstance(session))
             return null;
 
-        return (ISmartRenameSessionWrapper)session;
+        return ISmartRenameSessionWrapper.FromInstance(session);
     }
 }
