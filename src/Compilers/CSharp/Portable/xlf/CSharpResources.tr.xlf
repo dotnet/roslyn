@@ -2349,7 +2349,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">dize kaçış karakteri</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2529,22 +2529,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">Koleksiyon türündeki koleksiyon '{0}' beklenmeyen yığın ayırmaları olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açıkça '{0}' diziye dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">Koleksiyon ifadesi beklenmeyen yığın ayırmaları içeriyor olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açık yapmak için son türe dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">'..' yayılmaları '{0}' türdeki koleksiyon ifadesi beklenmeyen yığın ayırmaları içerebilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açıkça '{0}' diziye dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">Koleksiyon ifadesi , '..' yayılmaları kullanımı nedeniyle beklenmeyen yığın ayırmaları içeriyor olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açık yapmak için son türe dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2639,12 +2639,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">'Satır içi diziler' dil özelliği, 'ref' alanı olan veya tür bağımsız değişkeni olarak geçerli olmayan türe sahip öğe alanına sahip satır içi dizi türleri için desteklenmiyor.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">'Satır içi diziler' dil özelliği, 'ref' alanı olan veya tür bağımsız değişkeni olarak geçerli olmayan türe sahip öğe alanına sahip satır içi dizi türleri için desteklenmiyor.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

@@ -2349,7 +2349,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">字串逸出字元</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2529,22 +2529,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">類型為 '{0}' 的集合運算式可能會產生未預期的堆積配置。請考慮明確地建立陣列，然後轉換為 '{0}' 以明確配置。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">集合運算式可能會產生未預期的堆積配置。請考慮明確地建立陣列，然後轉換為最終類型，使配置明確。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">類型 '{0}' 的集合運算式可能會因為使用 '..' 擴張而產生未預期的堆積配置。請考慮明確地建立陣列，然後轉換為 '{0}' 以明確配置。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">集合運算式可能會因為使用 '..' 擴張而產生未預期的堆積配置。請考慮明確地建立陣列，然後轉換為最終類型，使配置明確。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2639,12 +2639,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">元素欄位為 'ref' 欄位或具有無效類型引數的內嵌陣列類型，不支援 'Inline arrays' 語言功能。</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">元素欄位為 'ref' 欄位或具有無效類型引數的內嵌陣列類型，不支援 'Inline arrays' 語言功能。</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
