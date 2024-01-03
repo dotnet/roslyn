@@ -661,9 +661,6 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        // This method shouldn't have been called if the document has not changed.
-        Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
-
         return ForkProject(
             stateChange,
             static (stateChange, documentId) =>
