@@ -22708,6 +22708,42 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71339")]
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Test
+                {
+                    Dictionary<string, object> Config => /*<bind>*/[
+                        .. GetConfig(),
+                    ]/*</bind>*/;
+                    private Dictionary<string, object> GetConfig() => new();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
+                //         .. GetConfig(),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetConfig()").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(5, 12));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.String, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: '[ ... ]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.String, System.Object>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. GetConfig()')
+                        Operand:
+                          IInvocationOperation ( System.Collections.Generic.Dictionary<System.String, System.Object> Test.GetConfig()) (OperationKind.Invocation, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: 'GetConfig()')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsInvalid, IsImplicit) (Syntax: 'GetConfig')
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
         [Fact]
         public void Async_01()
         {
