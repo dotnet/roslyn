@@ -34,7 +34,7 @@ namespace Roslyn.Test.Utilities
         {
             // Force the UI culture to be the same as current culture. This will more fully exercise our
             // localization paths on machines that aren't en-US.
-            /// 
+            // 
             // Consider as an example our test infrastructure which runs machines in the es-ES locale. The 
             // machine setup is such that CurrentCulture is es-ES but CurrentUICUlture is en-US. That means 
             // our test infra isn't actually testing anything with respect to resource strings as they 
