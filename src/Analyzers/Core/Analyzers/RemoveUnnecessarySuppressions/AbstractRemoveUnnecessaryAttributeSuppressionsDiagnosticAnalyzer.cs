@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     RoslynDebug.Assert(targetValueOperation != null);
 
                     var properties = ImmutableDictionary<string, string?>.Empty;
-                    if (resolvedSymbols.Length == 1)
+                    if (resolvedSymbols is [var resolvedSymbol])
                     {
                         // We provide a code fix for the case where the target resolved to a single symbol.
-                        var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbols[0]);
+                        var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbol);
                         if (!string.IsNullOrEmpty(docCommentId))
                         {
                             // Suppression target has an optional "~" prefix to distinguish it from legacy FxCop suppressions.

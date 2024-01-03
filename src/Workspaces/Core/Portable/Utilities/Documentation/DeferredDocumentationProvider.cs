@@ -27,14 +27,13 @@ namespace Microsoft.CodeAnalysis
 
         protected override string? GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {
+            if (documentationMemberID is null)
+                return null;
+
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationMemberID, _compilation);
-
-            if (symbol != null)
-            {
-                return symbol.GetDocumentationCommentXml(preferredCulture, cancellationToken: cancellationToken);
-            }
-
-            return string.Empty;
+            return symbol == null
+                ? string.Empty
+                : symbol.GetDocumentationCommentXml(preferredCulture, cancellationToken: cancellationToken);
         }
 
         public override bool Equals(object? obj)
