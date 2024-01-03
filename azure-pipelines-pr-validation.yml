@@ -122,6 +122,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack
