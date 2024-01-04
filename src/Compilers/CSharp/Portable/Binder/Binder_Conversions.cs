@@ -722,7 +722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             elementConversion,
                             isCast: false,
                             conversionGroupOpt: null,
-                            wasCompilerGenerated: true,
                             destination: elementType,
                             diagnostics);
                     builder.Add(convertedElement!);
@@ -753,7 +752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementConversion,
                     isCast: false,
                     conversionGroupOpt: null,
-                    wasCompilerGenerated: true,
                     destination: elementType,
                     diagnostics);
                 return element.Update(
