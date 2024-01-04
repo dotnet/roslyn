@@ -586,6 +586,41 @@ $$
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestSelectionOfPromotedDefaultItemWithEmptyFilterText() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+using System.Text;
+public class Program
+{
+    static string Title { get; } = "";
+    static void Main(string[] args)
+    {
+        var sb = new StringBuilder();
+        sb.Append$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=True,
+                extraExportedTypes:={GetType(MockDefaultSource)}.ToList())
+
+                MockDefaultSource.Defaults = ImmutableArray.Create("Title")
+                state.SendTypeChars("(")
+
+                Dim expectedItems1 = New List(Of ValueTuple(Of String, Boolean)) From {
+                    CreateExpectedItem("★ Title", isPromoted:=True),
+                    CreateExpectedItem("Title", isPromoted:=False)
+                }
+
+                AssertCompletionItemsInRelativeOrder(state, expectedItems1)
+                Await state.AssertSelectedCompletionItem("★ Title", isHardSelected:=True)
+
+                state.SendTypeChars("""")
+                Await state.AssertLineTextAroundCaret("        sb.Append(Title""", "")
+            End Using
+        End Function
+
         <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.CSharp), [Shared], PartNotDiscoverable>
         Private Class MockCompletionServiceFactory
             Implements ILanguageServiceFactory
