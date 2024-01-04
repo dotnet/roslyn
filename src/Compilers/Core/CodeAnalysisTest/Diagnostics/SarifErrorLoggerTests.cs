@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     Location.Create(@"Relative Additional/Location.cs", span, position),
                 };
 
-                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations), suppressionInfo: null, resolver: null);
+                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations), null);
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 {
                     foreach (var descriptor in descriptors)
                     {
-                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None), suppressionInfo: null, resolver: null);
+                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None), null);
                     }
                 }
             }
@@ -121,8 +121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         isEnabledByDefault: true,
                         warningLevel: 3,
                         location: location),
-                        suppressionInfo: null,
-                        resolver: null);
+                        null);
                 }
 
                 var buffer = stream.ToArray();

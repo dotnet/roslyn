@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -661,216 +662,16 @@ class C
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         [CombinatorialData]
-        public void PathMap(SarifTestVersion version)
-        {
-            var source = @"
-public class C
-{
-    private int x;
-}";
-            var tempDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(tempDir.Path, "ErrorLog.txt");
-            var sourceFile = tempDir.CreateFile("file.cs").WriteAllText(source).Path;
-
-            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{GetErrorLogQualifier(version)}", $"/pathmap:{tempDir}=D:/mypath" };
-
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            Assert.Contains("CS0169", actualConsoleOutput);
-            Assert.Contains("CS5001", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            if (version == SarifTestVersion.V1)
-            {
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-1.0.0",
-                      "version": "1.0.0",
-                      "runs": [
-                        {
-                          "tool": {
-                            "name": "Microsoft (R) Visual C# Compiler",
-                            "version": "42.42.42.42",
-                            "fileVersion": "4.9.0-dev (<developer build>)",
-                            "semanticVersion": "42.42.42",
-                            "language": "en"
-                          },
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "level": "error",
-                              "message": "Program does not contain a static 'Main' method suitable for an entry point"
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "level": "warning",
-                              "message": "The field 'C.x' is never used",
-                              "locations": [
-                                {
-                                  "resultFile": {
-                                    "uri": "file:///D:/mypath/file.cs",
-                                    "region": {
-                                      "startLine": 4,
-                                      "startColumn": 17,
-                                      "endLine": 4,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "rules": {
-                            "CS0169": {
-                              "id": "CS0169",
-                              "shortDescription": "Field is never used",
-                              "defaultLevel": "warning",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry"
-                                ]
-                              }
-                            },
-                            "CS5001": {
-                              "id": "CS5001",
-                              "defaultLevel": "error",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry",
-                                  "NotConfigurable"
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    }
-                    """, actualOutput);
-            }
-            else
-            {
-                Assert.Equal(SarifTestVersion.V2, version);
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-2.1.0",
-                      "version": "2.1.0",
-                      "runs": [
-                        {
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "ruleIndex": 0,
-                              "level": "error",
-                              "message": {
-                                "text": "Program does not contain a static 'Main' method suitable for an entry point"
-                              }
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "ruleIndex": 1,
-                              "level": "warning",
-                              "message": {
-                                "text": "The field 'C.x' is never used"
-                              },
-                              "locations": [
-                                {
-                                  "physicalLocation": {
-                                    "artifactLocation": {
-                                      "uri": "file:///D:/mypath/file.cs"
-                                    },
-                                    "region": {
-                                      "startLine": 4,
-                                      "startColumn": 17,
-                                      "endLine": 4,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "tool": {
-                            "driver": {
-                              "name": "Microsoft (R) Visual C# Compiler",
-                              "version": "4.9.0-dev (<developer build>)",
-                              "dottedQuadFileVersion": "42.42.42.42",
-                              "semanticVersion": "42.42.42",
-                              "language": "en",
-                              "rules": [
-                                {
-                                  "id": "CS5001",
-                                  "defaultConfiguration": {
-                                    "level": "error"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry",
-                                      "NotConfigurable"
-                                    ]
-                                  }
-                                },
-                                {
-                                  "id": "CS0169",
-                                  "shortDescription": {
-                                    "text": "Field is never used"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry"
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          "columnKind": "utf16CodeUnits"
-                        }
-                      ]
-                    }
-                    """,
-                    actualOutput,
-                    message: actualOutput);
-            }
-
-            CleanupAllGeneratedFiles(sourceFile);
-            CleanupAllGeneratedFiles(errorLogFile);
-        }
-
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        [CombinatorialData]
         public void LineDirective(SarifTestVersion version)
         {
             var errorLogDir = Temp.CreateDirectory();
+            var mappedDir = Temp.CreateDirectory();
+            Assert.False(File.Exists(Path.Combine(mappedDir.Path, "otherfile.cs")));
 
             var source = $$"""
 public class C
 {
-#line 123 "D:\otherfile.cs"
+#line 123 "{{mappedDir.Path}}\otherfile.cs"
     private int x;
 }
 """;
@@ -890,385 +691,58 @@ public class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var actualObject = JObject.Parse(actualOutput);
             if (version == SarifTestVersion.V1)
             {
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-1.0.0",
-                      "version": "1.0.0",
-                      "runs": [
-                        {
-                          "tool": {
-                            "name": "Microsoft (R) Visual C# Compiler",
-                            "version": "42.42.42.42",
-                            "fileVersion": "4.9.0-dev (<developer build>)",
-                            "semanticVersion": "42.42.42",
-                            "language": "en"
-                          },
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "level": "error",
-                              "message": "Program does not contain a static 'Main' method suitable for an entry point"
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "level": "warning",
-                              "message": "The field 'C.x' is never used",
-                              "locations": [
-                                {
-                                  "resultFile": {
-                                    "uri": "file:///D:/otherfile.cs",
-                                    "region": {
-                                      "startLine": 123,
-                                      "startColumn": 17,
-                                      "endLine": 123,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "rules": {
-                            "CS0169": {
-                              "id": "CS0169",
-                              "shortDescription": "Field is never used",
-                              "defaultLevel": "warning",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry"
-                                ]
-                              }
-                            },
-                            "CS5001": {
-                              "id": "CS5001",
-                              "defaultLevel": "error",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry",
-                                  "NotConfigurable"
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    }
-                    """,
-                    actualOutput,
-                    message: actualOutput);
+                var runs = (JArray)actualObject["runs"];
+                Assert.Equal(1, runs.Count);
+
+                var results = (JArray)runs[0]["results"];
+                Assert.Equal(2, results.Count);
+
+                var results0 = results[0];
+                Assert.Equal("CS5001", (string)results0["ruleId"]);
+
+                var results1 = results[1];
+                Assert.Equal("CS0169", (string)results1["ruleId"]);
+
+                var locations = (JArray)results1["locations"];
+                Assert.Equal(1, locations.Count);
+
+                var resultFile = locations[0]["resultFile"];
+                Assert.Equal($"file:///{mappedDir.Path.Replace(@"\", "/")}/otherfile.cs", (string)resultFile["uri"]);
+
+                var region = resultFile["region"];
+                Assert.Equal(123, (int)region["startLine"]);
+                Assert.Equal(17, (int)region["startColumn"]);
+                Assert.Equal(123, (int)region["endLine"]);
+                Assert.Equal(18, (int)region["endColumn"]);
             }
             else
             {
-                Assert.Equal(SarifTestVersion.V2, version);
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-2.1.0",
-                      "version": "2.1.0",
-                      "runs": [
-                        {
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "ruleIndex": 0,
-                              "level": "error",
-                              "message": {
-                                "text": "Program does not contain a static 'Main' method suitable for an entry point"
-                              }
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "ruleIndex": 1,
-                              "level": "warning",
-                              "message": {
-                                "text": "The field 'C.x' is never used"
-                              },
-                              "locations": [
-                                {
-                                  "physicalLocation": {
-                                    "artifactLocation": {
-                                      "uri": "file:///D:/otherfile.cs"
-                                    },
-                                    "region": {
-                                      "startLine": 123,
-                                      "startColumn": 17,
-                                      "endLine": 123,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "tool": {
-                            "driver": {
-                              "name": "Microsoft (R) Visual C# Compiler",
-                              "version": "4.9.0-dev (<developer build>)",
-                              "dottedQuadFileVersion": "42.42.42.42",
-                              "semanticVersion": "42.42.42",
-                              "language": "en",
-                              "rules": [
-                                {
-                                  "id": "CS5001",
-                                  "defaultConfiguration": {
-                                    "level": "error"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry",
-                                      "NotConfigurable"
-                                    ]
-                                  }
-                                },
-                                {
-                                  "id": "CS0169",
-                                  "shortDescription": {
-                                    "text": "Field is never used"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry"
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          "columnKind": "utf16CodeUnits"
-                        }
-                      ]
-                    }
-                    """,
-                    actualOutput,
-                    message: actualOutput);
-            }
+                var runs = (JArray)actualObject["runs"];
+                Assert.Equal(1, runs.Count);
 
-            CleanupAllGeneratedFiles(sourceFile.Path);
-            CleanupAllGeneratedFiles(errorLogFile);
-        }
+                var results = (JArray)runs[0]["results"];
+                Assert.Equal(2, results.Count);
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        [CombinatorialData]
-        public void PathMapLineDirective(SarifTestVersion version)
-        {
-            var tempDir = Temp.CreateDirectory();
+                var results0 = results[0];
+                Assert.Equal("CS5001", (string)results0["ruleId"]);
 
-            var source = $$"""
-public class C
-{
-#line 123 "D:\originalpath\otherfile.cs"
-    private int x;
-}
-""";
-            var sourceFile = tempDir.CreateFile("myfile.cs").WriteAllText(source);
-            var errorLogFile = Path.Combine(tempDir.Path, "ErrorLog.txt");
+                var results1 = results[1];
+                Assert.Equal("CS0169", (string)results1["ruleId"]);
 
-            string[] arguments = new[] { "/nologo", sourceFile.Path, "/preferreduilang:en", $"/errorlog:{errorLogFile}{GetErrorLogQualifier(version)}", """/pathmap:D:\originalpath=D:\mappedpath""" };
+                var locations = (JArray)results1["locations"];
+                Assert.Equal(1, locations.Count);
 
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+                var physicalLocation = locations[0]["physicalLocation"];
+                Assert.Equal(expected: $"file:///{mappedDir.Path.Replace(@"\", "/")}/otherfile.cs", (string)physicalLocation["artifactLocation"]["uri"]);
 
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            Assert.Contains("CS0169", actualConsoleOutput);
-            Assert.Contains("CS5001", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            if (version == SarifTestVersion.V1)
-            {
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-1.0.0",
-                      "version": "1.0.0",
-                      "runs": [
-                        {
-                          "tool": {
-                            "name": "Microsoft (R) Visual C# Compiler",
-                            "version": "42.42.42.42",
-                            "fileVersion": "4.9.0-dev (<developer build>)",
-                            "semanticVersion": "42.42.42",
-                            "language": "en"
-                          },
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "level": "error",
-                              "message": "Program does not contain a static 'Main' method suitable for an entry point"
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "level": "warning",
-                              "message": "The field 'C.x' is never used",
-                              "locations": [
-                                {
-                                  "resultFile": {
-                                    "uri": "file:///D:/mappedpath/otherfile.cs",
-                                    "region": {
-                                      "startLine": 123,
-                                      "startColumn": 17,
-                                      "endLine": 123,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "rules": {
-                            "CS0169": {
-                              "id": "CS0169",
-                              "shortDescription": "Field is never used",
-                              "defaultLevel": "warning",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry"
-                                ]
-                              }
-                            },
-                            "CS5001": {
-                              "id": "CS5001",
-                              "defaultLevel": "error",
-                              "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                              "properties": {
-                                "category": "Compiler",
-                                "isEnabledByDefault": true,
-                                "tags": [
-                                  "Compiler",
-                                  "Telemetry",
-                                  "NotConfigurable"
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    }
-                    """,
-                    actualOutput,
-                    message: actualOutput);
-            }
-            else
-            {
-                Assert.Equal(SarifTestVersion.V2, version);
-                AssertEx.EqualOrDiff("""
-                    {
-                      "$schema": "http://json.schemastore.org/sarif-2.1.0",
-                      "version": "2.1.0",
-                      "runs": [
-                        {
-                          "results": [
-                            {
-                              "ruleId": "CS5001",
-                              "ruleIndex": 0,
-                              "level": "error",
-                              "message": {
-                                "text": "Program does not contain a static 'Main' method suitable for an entry point"
-                              }
-                            },
-                            {
-                              "ruleId": "CS0169",
-                              "ruleIndex": 1,
-                              "level": "warning",
-                              "message": {
-                                "text": "The field 'C.x' is never used"
-                              },
-                              "locations": [
-                                {
-                                  "physicalLocation": {
-                                    "artifactLocation": {
-                                      "uri": "file:///D:/mappedpath/otherfile.cs"
-                                    },
-                                    "region": {
-                                      "startLine": 123,
-                                      "startColumn": 17,
-                                      "endLine": 123,
-                                      "endColumn": 18
-                                    }
-                                  }
-                                }
-                              ],
-                              "properties": {
-                                "warningLevel": 3
-                              }
-                            }
-                          ],
-                          "tool": {
-                            "driver": {
-                              "name": "Microsoft (R) Visual C# Compiler",
-                              "version": "4.9.0-dev (<developer build>)",
-                              "dottedQuadFileVersion": "42.42.42.42",
-                              "semanticVersion": "42.42.42",
-                              "language": "en",
-                              "rules": [
-                                {
-                                  "id": "CS5001",
-                                  "defaultConfiguration": {
-                                    "level": "error"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry",
-                                      "NotConfigurable"
-                                    ]
-                                  }
-                                },
-                                {
-                                  "id": "CS0169",
-                                  "shortDescription": {
-                                    "text": "Field is never used"
-                                  },
-                                  "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)",
-                                  "properties": {
-                                    "category": "Compiler",
-                                    "tags": [
-                                      "Compiler",
-                                      "Telemetry"
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          "columnKind": "utf16CodeUnits"
-                        }
-                      ]
-                    }
-                    """,
-                    actualOutput,
-                    message: actualOutput);
+                var region = physicalLocation["region"];
+                Assert.Equal(123, (int)region["startLine"]);
+                Assert.Equal(17, (int)region["startColumn"]);
+                Assert.Equal(123, (int)region["endLine"]);
+                Assert.Equal(18, (int)region["endColumn"]);
             }
 
             CleanupAllGeneratedFiles(sourceFile.Path);

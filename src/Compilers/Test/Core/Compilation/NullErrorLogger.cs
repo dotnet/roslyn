@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static ErrorLogger Instance => new NullErrorLogger();
 
-        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo, SourceReferenceResolver? resolver)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
         }
 

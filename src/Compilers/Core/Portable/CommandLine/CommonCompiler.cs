@@ -524,7 +524,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
         internal bool ReportDiagnostics(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt, Compilation? compilation)
         {
-            var resolver = compilation?.Options.SourceReferenceResolver;
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
@@ -556,7 +555,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                errorLoggerOpt?.LogDiagnostic(diag, suppressionInfo, resolver);
+                errorLoggerOpt?.LogDiagnostic(diag, suppressionInfo);
 
                 // If the diagnostic was suppressed by one or more DiagnosticSuppressor(s), then we report info diagnostics for each suppression
                 // so that the suppression information is available in the binary logs and verbose build logs.

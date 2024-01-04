@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Diagnostics = diagnostics;
         }
 
-        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo, SourceReferenceResolver? resolver)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             Diagnostics.Add(diagnostic);
         }
