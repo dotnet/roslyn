@@ -1092,9 +1092,9 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            static (documentInfo, project, @this) => new AdditionalDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (documentInfo, project, services) => new AdditionalDocumentState(services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
             static (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)),
-            this);
+            this.Services);
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
