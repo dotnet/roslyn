@@ -530,10 +530,10 @@ namespace Microsoft.CodeAnalysis
 
             private void BuildDottedName(ISymbol symbol)
             {
-                if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } or INamedTypeSymbol)
+                if (symbol.ContainingSymbol is INamedTypeSymbol or  INamespaceSymbol { IsGlobalNamespace: false })
                 {
                     this.Visit(symbol.ContainingSymbol);
-                    _builder.Append(".");
+                    _builder.Append('.');
                 }
 
                 _builder.Append(EncodeName(symbol.Name));
@@ -560,24 +560,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (symbol.OriginalDefinition == symbol)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
-                        _builder.Append("{");
+                        _builder.Append('{');
 
                         for (int i = 0, n = symbol.TypeArguments.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             this.Visit(symbol.TypeArguments[i]);
                         }
 
-                        _builder.Append("}");
+                        _builder.Append('}');
                     }
                 }
             }
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.Visit(symbol.ElementType);
 
-                _builder.Append("[");
+                _builder.Append('[');
 
                 for (int i = 0, n = symbol.Rank; i < n; i++)
                 {
@@ -599,17 +599,17 @@ namespace Microsoft.CodeAnalysis
 
                     if (i > 0)
                     {
-                        _builder.Append(",");
+                        _builder.Append(',');
                     }
                 }
 
-                _builder.Append("]");
+                _builder.Append(']');
             }
 
             public override void VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
-                _builder.Append("*");
+                _builder.Append('*');
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
-                    _builder.Append(":");
+                    _builder.Append(':');
                 }
 
                 if (symbol.DeclaringMethod != null)
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
-                    _builder.Append("`");
+                    _builder.Append('`');
                     _builder.Append(b + symbol.Ordinal);
                 }
             }
