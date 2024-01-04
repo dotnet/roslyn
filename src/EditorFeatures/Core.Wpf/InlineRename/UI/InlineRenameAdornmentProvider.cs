@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IThreadingContext _threadingContext;
 
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        private readonly Lazy<ISmartRenameSessionFactoryWrapper>? _smartRenameSessionFactory;
+        private readonly Lazy<ISmartRenameSessionFactoryWrapper?>? _smartRenameSessionFactory;
 #pragma warning restore CS0618
 
         public const string AdornmentLayerName = "RoslynRenameDashboard";
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _listenerProvider = listenerProvider;
             if (smartRenameSessionFactory is not null)
             {
-                _smartRenameSessionFactory = new Lazy<ISmartRenameSessionFactoryWrapper>(() => ISmartRenameSessionFactoryWrapper.FromInstance(smartRenameSessionFactory.Value));
+                _smartRenameSessionFactory = new Lazy<ISmartRenameSessionFactoryWrapper?>(() => ISmartRenameSessionFactoryWrapper.FromInstance(smartRenameSessionFactory.Value));
             }
 
             _threadingContext = threadingContext;

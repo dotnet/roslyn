@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
+            Lazy<ISmartRenameSessionFactoryWrapper?>? smartRenameSessionFactory)
 #pragma warning restore CS0618 
         {
             _session = session;
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
-            if (smartRenameSession is not null)
+            var smartRenameSession = smartRenameSessionFactory?.Value?.CreateSmartRenameSession(_session.TriggerSpan);
+            if (smartRenameSession.HasValue)
             {
                 SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
             }
