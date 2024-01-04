@@ -117,6 +117,18 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             return false;
         }
 
+        /// <summary>
+        /// There are some edge cases when user intent is to write a member access expression,
+        /// but due to the current state of the document parser ends up parsing it as a qualified name, e.g.
+        /// <code>
+        /// ...
+        /// flag.$$
+        /// var a = 0;
+        /// ...
+        /// </code>
+        /// Here <c>flag.var</c> is parsed as a qualified name. Since we normally query for member access expressions this case requires its own handling
+        /// </summary>
+        /// <param name="expression">Left-hand side of a qualified name</param>
         private static bool TryGetInlineExpressionInQualifiedNameEdgeCases(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
         {
             var parentNode = targetToken.Parent;
