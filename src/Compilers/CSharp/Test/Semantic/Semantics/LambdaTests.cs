@@ -176,9 +176,9 @@ class C
                 // (21,52): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D1").WithLocation(21, 52),
-                // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
+                // (21,25): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-                Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x6").WithArguments("1", "ref").WithLocation(21, 25),
                 // (21,37): error CS1676: Parameter 2 must be declared with the 'out' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "y6").WithArguments("2", "out").WithLocation(21, 37),
@@ -191,9 +191,15 @@ class C
                 // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
                 //         Frob q8 = ()=>{};
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
+                // (36,19): error CS1661: Cannot convert lambda expression to type 'C.D2' because the parameter types do not match the delegate parameter types
+                //         D2 q9 = x9=>{};
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D2").WithLocation(36, 19),
                 // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
                 //         D2 q9 = x9=>{};
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
+                // (38,31): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D1").WithLocation(38, 31),
                 // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q10 = (x10,y10,z10)=>{}; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
@@ -244,7 +250,8 @@ class C
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
                 // (72,33): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
                 //         Expression<int> ex1 = ()=>1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "=>").WithArguments("int").WithLocation(72, 33));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "=>").WithArguments("int").WithLocation(72, 33)
+                );
         }
 
         [Fact] // 5368
@@ -7087,9 +7094,15 @@ public class DisplayAttribute : System.Attribute
                 // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 d1 = r1 => r1; // 1
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (9,20): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1").WithLocation(9, 20),
                 // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         M(r2 => r2); // 2
-                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11),
+                // (10,14): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1").WithLocation(10, 14)
                 );
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -8513,6 +8526,467 @@ class Program
                 // (1,19): error CS0027: Keyword 'this' is not available in the current context
                 // var lam = (params this int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_01()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t);
+                delegate T SelfReturnerRef<T>(ref T t);
+                delegate T SelfReturnerOut<T>(out T t);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t);
+                delegate T SelfReturnerScoped<T>(scoped T t);
+                delegate T SelfReturnerScopedRef<T>(scoped ref T t);
+                delegate T IndexReturnerParams<T>(params T[] t);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = (in x) => x;
+                        SelfReturnerRef<string> fref = (ref x) => x;
+                        SelfReturnerOut<string> fout = (out x) => x;
+                        SelfReturnerRefReadonly<string> frr = (ref readonly x) => x;
+                        SelfReturnerScoped<string> fs = (scoped x) => x;
+                        SelfReturnerScopedRef<string> fsr = (scoped ref x) => x;
+                        IndexReturnerParams<string> fp = (params x) => x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate T SelfReturnerScoped<T>(scoped T t);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (15,51): error CS0269: Use of unassigned out parameter 'x'
+                //         SelfReturnerOut<string> fout = (out x) => x;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(15, 51),
+                // (15,51): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> fout = (out x) => x;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "x").WithArguments("x").WithLocation(15, 51),
+                // (17,42): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerScoped<string> fs = (scoped x) => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(17, 42),
+                // (19,56): error CS0029: Cannot implicitly convert type 'string[]' to 'string'
+                //         IndexReturnerParams<string> fp = (params x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("string[]", "string").WithLocation(19, 56),
+                // (19,56): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         IndexReturnerParams<string> fp = (params x) => x;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x").WithArguments("lambda expression").WithLocation(19, 56));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.In, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.Ref, ScopedKind.None);
+            assertRefKindScoped(2, RefKind.Out, ScopedKind.ScopedRef);
+            assertRefKindScoped(3, RefKind.RefReadOnlyParameter, ScopedKind.None);
+            assertRefKindScoped(4, RefKind.None, ScopedKind.None); // the scoped keyword is interpreted as a type here
+            assertRefKindScoped(5, RefKind.Ref, ScopedKind.ScopedRef);
+
+            Assert.True(lambdas[6].Parameters[0].IsParams);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
+                Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_02()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t, int index);
+                delegate T SelfReturnerRef<T>(ref T t, int index);
+                delegate T SelfReturnerOut<T>(out T t, int index);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t, int index);
+                delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                delegate T SelfReturnerScopedRef<T>(scoped ref T t, int index);
+                delegate T IndexReturnerParams<T>(int index, params T[] t);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = (in x, index) => x;
+                        SelfReturnerRef<string> fref = (ref x, index) => x;
+                        SelfReturnerOut<string> fout = (out x, index) => x;
+                        SelfReturnerRefReadonly<string> frr = (ref readonly x, index) => x;
+                        SelfReturnerScoped<string> fs = (scoped x, index) => x;
+                        SelfReturnerScopedRef<string> fsr = (scoped ref x, index) => x;
+                        IndexReturnerParams<string> fp = (index, params x) => x[index];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (15,58): error CS0269: Use of unassigned out parameter 'x'
+                //         SelfReturnerOut<string> fout = (out x, index) => x;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(15, 58),
+                // (15,58): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> fout = (out x, index) => x;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "x").WithArguments("x").WithLocation(15, 58),
+                // (17,42): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerScoped<string> fs = (scoped x, index) => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(17, 42),
+                // (17,52): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         SelfReturnerScoped<string> fs = (scoped x, index) => x;
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "index").WithLocation(17, 52)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.In, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.Ref, ScopedKind.None);
+            assertRefKindScoped(2, RefKind.Out, ScopedKind.ScopedRef);
+            assertRefKindScoped(3, RefKind.RefReadOnlyParameter, ScopedKind.None);
+            assertRefKindScoped(4, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(5, RefKind.Ref, ScopedKind.ScopedRef);
+
+            Assert.False(lambdas[6].Parameters[0].IsParams);
+            Assert.True(lambdas[6].Parameters[1].IsParams);
+
+            Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[2].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[3].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[4].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[5].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[0].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[1].RefKind);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
+                Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_Unparenthesized()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t);
+                delegate T SelfReturnerRef<T>(ref T t);
+                delegate T SelfReturnerOut<T>(out T t);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t);
+                delegate T SelfReturnerScoped<T>(scoped T t);
+                delegate T SelfReturnerScopedRef<T>(scoped ref T t);
+                delegate T IndexReturnerParams<T>(params T[] t);
+                
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = in x => x;
+                        SelfReturnerRef<string> fref = ref x => x;
+                        SelfReturnerOut<string> fout = out x => x;
+                        SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                        SelfReturnerScoped<string> fs = scoped x => x;
+                        SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                        IndexReturnerParams<string> fp = params x => x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate T SelfReturnerScoped<T>(scoped T t);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (13,38): error CS1525: Invalid expression term 'in'
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(13, 38),
+                // (13,38): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(13, 38),
+                // (13,41): error CS1002: ; expected
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(13, 41),
+                // (13,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(13, 41),
+                // (14,33): error CS8171: Cannot initialize a by-value variable with a reference
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "fref = ref x => x").WithLocation(14, 33),
+                // (14,44): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref").WithLocation(14, 44),
+                // (14,46): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerRef<string>").WithLocation(14, 46),
+                // (15,40): error CS1525: Invalid expression term 'out'
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(15, 40),
+                // (15,40): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(15, 40),
+                // (15,44): error CS1002: ; expected
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(15, 44),
+                // (15,44): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(15, 44),
+                // (16,41): error CS8171: Cannot initialize a by-value variable with a reference
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "frr = ref ").WithLocation(16, 41),
+                // (16,51): error CS1525: Invalid expression term 'readonly'
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(16, 51),
+                // (16,51): error CS1002: ; expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(16, 51),
+                // (16,51): error CS0106: The modifier 'readonly' is not valid for this item
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(16, 51),
+                // (16,60): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(16, 60),
+                // (16,62): error CS1001: Identifier expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(16, 62),
+                // (16,62): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(16, 62),
+                // (16,65): error CS1002: ; expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(16, 65),
+                // (16,65): error CS0103: The name 'x' does not exist in the current context
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(16, 65),
+                // (16,65): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(16, 65),
+                // (17,41): error CS0103: The name 'scoped' does not exist in the current context
+                //         SelfReturnerScoped<string> fs = scoped x => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(17, 41),
+                // (17,48): error CS1002: ; expected
+                //         SelfReturnerScoped<string> fs = scoped x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(17, 48),
+                // (17,48): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerScoped<string> fs = scoped x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(17, 48),
+                // (18,45): error CS0103: The name 'scoped' does not exist in the current context
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(18, 45),
+                // (18,52): error CS1002: ; expected
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(18, 52),
+                // (18,56): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(18, 56),
+                // (18,58): error CS1001: Identifier expected
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(18, 58),
+                // (18,58): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(18, 58),
+                // (18,58): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(18, 58),
+                // (18,61): error CS1002: ; expected
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(18, 61),
+                // (18,61): error CS0103: The name 'x' does not exist in the current context
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(18, 61),
+                // (18,61): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerScopedRef<string> fsr = scoped ref x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(18, 61),
+                // (19,42): error CS1525: Invalid expression term 'params'
+                //         IndexReturnerParams<string> fp = params x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "params").WithArguments("params").WithLocation(19, 42),
+                // (19,42): error CS1003: Syntax error, ',' expected
+                //         IndexReturnerParams<string> fp = params x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "params").WithArguments(",").WithLocation(19, 42),
+                // (19,49): error CS1002: ; expected
+                //         IndexReturnerParams<string> fp = params x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(19, 49),
+                // (19,49): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         IndexReturnerParams<string> fp = params x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(19, 49)
+                );
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_Discard()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t, int index);
+                delegate T SelfReturnerRef<T>(ref T t, int index);
+                delegate T SelfReturnerOut<T>(out T t, int index);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t, int index);
+                delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                delegate T SelfReturnerScopedRef<T>(scoped ref T t, int index);
+                delegate T IndexReturnerParams<T>(int index, params T[] t);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> finImplicit = (in _, _) => string.Empty;
+                        SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                        SelfReturnerRef<string> frefImplicit = (ref _, _) => string.Empty;
+                        SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                        SelfReturnerOut<string> foutImplicit = (out _, _) => string.Empty;
+                        SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                        SelfReturnerRefReadonly<string> frrImplicit = (ref readonly _, _) => string.Empty;
+                        SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                        SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                        SelfReturnerScoped<string> fsNoModifier = (_, _) => string.Empty;
+                        SelfReturnerScopedRef<string> fsrImplicit = (scoped ref _, _) => string.Empty;
+                        SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                        IndexReturnerParams<string> fpImplicit = (_, params _) => string.Empty;
+                        IndexReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (14,49): error CS1676: Parameter 1 must be declared with the 'in' keyword
+                //         SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "in").WithLocation(14, 49),
+                // (14,55): error CS1661: Cannot convert lambda expression to type 'SelfReturnerIn<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerIn<string>").WithLocation(14, 55),
+                // (16,51): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(16, 51),
+                // (16,57): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerRef<string>").WithLocation(16, 57),
+                // (17,62): error CS0177: The out parameter '_' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> foutImplicit = (out _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "string.Empty").WithArguments("_").WithLocation(17, 62),
+                // (18,51): error CS1676: Parameter 1 must be declared with the 'out' keyword
+                //         SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "out").WithLocation(18, 51),
+                // (18,57): error CS1661: Cannot convert lambda expression to type 'SelfReturnerOut<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerOut<string>").WithLocation(18, 57),
+                // (20,58): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                //         SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref readonly").WithLocation(20, 58),
+                // (20,64): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRefReadonly<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerRefReadonly<string>").WithLocation(20, 64),
+                // (21,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(21, 50),
+                // (21,60): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "_").WithLocation(21, 60),
+                // (24,56): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(24, 56),
+                // (24,62): error CS1661: Cannot convert lambda expression to type 'SelfReturnerScopedRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "SelfReturnerScopedRef<string>").WithLocation(24, 62)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.In, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(2, RefKind.Ref, ScopedKind.None);
+            assertRefKindScoped(3, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(4, RefKind.Out, ScopedKind.ScopedRef);
+            assertRefKindScoped(5, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(6, RefKind.RefReadOnlyParameter, ScopedKind.None);
+            assertRefKindScoped(7, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(8, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(9, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(10, RefKind.Ref, ScopedKind.ScopedRef);
+            assertRefKindScoped(11, RefKind.None, ScopedKind.None);
+
+            Assert.False(lambdas[12].Parameters[0].IsParams);
+            Assert.True(lambdas[12].Parameters[1].IsParams);
+
+            Assert.False(lambdas[13].Parameters[0].IsParams);
+            Assert.False(lambdas[13].Parameters[1].IsParams);
+
+            Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[2].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[3].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[4].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[5].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[7].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[8].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[9].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[10].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[11].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[12].Parameters[0].RefKind);
+            Assert.Equal(RefKind.None, lambdas[12].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[13].Parameters[0].RefKind);
+            Assert.Equal(RefKind.None, lambdas[13].Parameters[1].RefKind);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
+                Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_InvalidParamsModifier()
+        {
+            const string source = """
+                delegate T IndexReturnerParams<T>(params T[] first, scoped ref int index, params T[] second);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IndexReturnerParams<string> d = (params _, scoped ref _, params second) => string.Empty;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,35): error CS0231: A params parameter must be the last parameter in a parameter list
+                // delegate T IndexReturnerParams<T>(params T[] first, scoped ref int index, params T[] second);
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params T[] first").WithLocation(1, 35),
+                // (7,42): error CS0231: A params parameter must be the last parameter in a parameter list
+                //         IndexReturnerParams<string> d = (params _, scoped ref _, params second) => string.Empty;
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params _").WithLocation(7, 42)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.Ref, ScopedKind.ScopedRef);
+            assertRefKindScoped(2, RefKind.None, ScopedKind.None);
+
+            Assert.True(lambdas[0].Parameters[0].IsParams);
+            Assert.False(lambdas[0].Parameters[1].IsParams);
+            Assert.True(lambdas[0].Parameters[2].IsParams);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[0].Parameters[index].RefKind);
+                Assert.Equal(scopedKind, lambdas[0].Parameters[index].EffectiveScope);
+            }
         }
     }
 }

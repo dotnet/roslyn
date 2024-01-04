@@ -2149,10 +2149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    var lambdaParameterType = anonymousFunction.ParameterType(i);
-                    if (lambdaParameterType.IsErrorType())
+                    TypeSymbol? lambdaParameterType = null;
+                    if (anonymousFunction.HasExplicitlyTypedParameterList)
                     {
-                        continue;
+                        lambdaParameterType = anonymousFunction.ParameterType(i);
+                        if (lambdaParameterType.IsErrorType())
+                        {
+                            continue;
+                        }
                     }
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
@@ -2160,15 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
-
-                        // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
-                        Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
-                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
-                    }
-                    else if (lambdaRefKind != delegateRefKind)
+                    if (lambdaRefKind != delegateRefKind)
                     {
                         if (delegateRefKind == RefKind.None)
                         {
@@ -2180,6 +2176,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Parameter {0} must be declared with the '{1}' keyword
                             Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToParameterDisplayString());
                         }
+                    }
+                    else if (lambdaParameterType is not null && !lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
+
+                        // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
+                        Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
+                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
                     }
                 }
                 return;

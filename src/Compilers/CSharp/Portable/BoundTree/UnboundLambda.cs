@@ -1519,28 +1519,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override RefKind RefKind(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
+            Debug.Assert(0 <= index);
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 
         public override ScopedKind DeclaredScope(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
+            Debug.Assert(0 <= index);
             return _parameterDeclaredScopes.IsDefault ? ScopedKind.None : _parameterDeclaredScopes[index];
         }
 
         public override ParameterSyntax ParameterSyntax(int index)
         {
-
             Debug.Assert(_parameterSyntaxList is not null && 0 <= index && index < _parameterSyntaxList.Value.Count);
             return _parameterSyntaxList.Value[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
-            Debug.Assert(this.HasExplicitlyTypedParameterList);
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterTypesWithAnnotations[index];
+            Debug.Assert(0 <= index);
+            Debug.Assert(_parameterTypesWithAnnotations.IsDefault || index < _parameterTypesWithAnnotations.Length);
+            return _parameterTypesWithAnnotations.IsDefault ? default : _parameterTypesWithAnnotations[index];
         }
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)

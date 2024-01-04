@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
-                    namesBuilder.Add(simple.Parameter.Identifier.ValueText);
+                    parameterSyntaxList = SyntaxFactory.SingletonSeparatedList(simple.Parameter);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
-                    var refKind = RefKind.None;
-                    var scope = ScopedKind.None;
+                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
 
                     if (typeSyntax == null)
                     {
@@ -177,21 +176,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
-                            parsingLambdaParams: !isAnonymousMethod,
-                            parsingAnonymousMethodParams: isAnonymousMethod);
-                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
+                    }
 
-                        var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
-                        if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
-                        {
-                            hasParamsArray = true;
+                    ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
+                        parsingLambdaParams: !isAnonymousMethod,
+                        parsingAnonymousMethodParams: isAnonymousMethod);
 
-                            ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
-                                WellKnownMember.System_ParamArrayAttribute__ctor,
-                                diagnostics,
-                                paramsKeyword.GetLocation());
-                        }
+                    var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
+                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
+                    {
+                        hasParamsArray = true;
+
+                        ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
+                            WellKnownMember.System_ParamArrayAttribute__ctor,
+                            diagnostics,
+                            paramsKeyword.GetLocation());
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
@@ -352,26 +351,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
             var data = lambda.Data;
-            if (data.HasExplicitlyTypedParameterList)
+
+            int firstDefault = -1;
+            for (int i = 0; i < lambda.ParameterCount; i++)
             {
-                int firstDefault = -1;
-                for (int i = 0; i < lambda.ParameterCount; i++)
+                var paramSyntax = lambda.ParameterSyntax(i);
+                Debug.Assert(paramSyntax is not null);
+                if (paramSyntax.Default != null && firstDefault == -1)
                 {
-                    // paramSyntax should not be null here; we should always be operating on an anonymous function which will have parameter information
-                    var paramSyntax = lambda.ParameterSyntax(i);
-                    Debug.Assert(paramSyntax is { });
-                    if (paramSyntax.Default != null && firstDefault == -1)
-                    {
-                        firstDefault = i;
-                    }
-
-                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
-                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
-
-                    // UNDONE: Where do we report improper use of pointer types?
-                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
-                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                    firstDefault = i;
                 }
+
+                ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
+                var isParams = paramsKeyword.Kind() != SyntaxKind.None;
+
+                // UNDONE: Where do we report improper use of pointer types?
+                ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
+                    lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
             }
 
             // Parser will only have accepted static/async as allowed modifiers on this construct.

@@ -779,7 +779,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 28),
             // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
             // Expression<Action<int>> e5 = (int p) => C.M(out p);
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49)
+            );
     }
 
     [Fact]
@@ -8103,57 +8104,61 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void O(out int p);
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
-            // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
-            // (8,6): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // rr = (ref int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "ref readonly int p").WithLocation(8, 6),
-            // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // rr = (in int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
-            // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-            // rr = (out int x) => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
-            // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (out int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
-            // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
-            // v = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
-            // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
-            // v = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
-            // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
-            // i = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
-            // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
-            // r = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
-            // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
-            // o = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
-            // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
-            // o = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
-            // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
-            // r = (in int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
-            // (16,5): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
-            // i = (ref int x) => throw null;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "in int p").WithLocation(16, 5),
-            // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
-            // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
-            // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-            // rr = x => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6));
+                // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // rr = (int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
+                // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+                // rr = (int x) => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
+                // (8,6): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // rr = (ref int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "ref readonly int p").WithLocation(8, 6),
+                // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // rr = (in int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
+                // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // rr = (out int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
+                // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+                // rr = (out int x) => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
+                // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
+                // v = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
+                // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
+                // v = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
+                // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
+                // i = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
+                // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
+                // r = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
+                // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
+                // o = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
+                // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
+                // o = (ref readonly int x) => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
+                // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
+                // r = (in int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
+                // (16,5): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
+                // i = (ref int x) => throw null;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "in int p").WithLocation(16, 5),
+                // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // rr = (int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
+                // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+                // rr = (int x) => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
+                // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // rr = x => throw null;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6),
+                // (19,8): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+                // rr = x => throw null;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(19, 8)
+            );
     }
 
     [Theory, CombinatorialData]
