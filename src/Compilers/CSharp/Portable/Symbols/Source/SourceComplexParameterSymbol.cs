@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
             int ordinal,
-            TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
             Location location,
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, parameterType, ordinal, refKind, scope, name, location)
+            : base(owner, ordinal, refKind, scope, name, location)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
@@ -393,9 +392,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (convertedExpression.ConstantValueOpt == null && convertedExpression.Kind == BoundKind.Conversion &&
                 ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
-                if (parameterType.Type.IsNullableType())
+                if (Type.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(Type.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
             }
@@ -1516,6 +1515,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class SourceComplexParameterSymbol : SourceComplexParameterSymbolBase
     {
+        private readonly TypeWithAnnotations _parameterType;
+
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
@@ -1527,16 +1528,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
+            _parameterType = parameterType;
         }
 
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
     }
 
     internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingRef : SourceComplexParameterSymbolBase
     {
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
+        private readonly TypeWithAnnotations _parameterType;
 
         internal SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
             Symbol owner,
@@ -1550,15 +1554,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 
+            _parameterType = parameterType;
             _refCustomModifiers = refCustomModifiers;
 
             Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);
         }
 
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
     }
 }
