@@ -1136,8 +1136,10 @@ internal sealed partial class SolutionCompilationState
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>
     /// <param name="documentInfos">The set of documents to add.</param>
-    /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
-    /// <returns></returns>
+    /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added,
+    /// and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as
+    /// well.</param>
+    /// <param name="arg">Optional argument to pass along to pass data without allocating captures.</param>
     private SolutionCompilationState AddDocumentsToMultipleProjects<T, TArg>(
         ImmutableArray<DocumentInfo> documentInfos,
         Func<DocumentInfo, ProjectState, TArg, T> createDocumentState,
