@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     scope,
                     codeActionEquivalenceKey,
                     diagnosticIds,
+                    minimumSeverity: DiagnosticSeverity.Hidden,
                     fixAllDiagnosticProvider,
                     _sharedState.CodeActionOptions),
                   CodeAnalysisProgress.None, cancellationToken);

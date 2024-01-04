@@ -59,6 +59,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public ImmutableHashSet<string> DiagnosticIds => State.DiagnosticIds;
 
         /// <summary>
+        /// Minimum diagnostic severity to fix. Diagnostics with a severity lower than this value will be excluded from
+        /// <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/>, and
+        /// <see cref="GetAllDiagnosticsAsync(Project)"/>.
+        /// </summary>
+        internal DiagnosticSeverity MinimumSeverity => State.MinimumSeverity;
+
+        /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
         public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
@@ -120,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
 #pragma warning disable RS0030 // Do not used banned APIs - It is fine to invoke the public FixAllContext constructor here.
             : this(document, diagnosticSpan: null, codeFixProvider, scope,
-                  codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+                  codeActionEquivalenceKey, diagnosticIds, minimumSeverity: DiagnosticSeverity.Hidden, fixAllDiagnosticProvider, cancellationToken)
 #pragma warning restore RS0030 // Do not used banned APIs
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -156,6 +163,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not used banned APIs - It is fine to invoke the public FixAllContext constructor here.
+            : this(document, diagnosticSpan, codeFixProvider, scope,
+                  codeActionEquivalenceKey, diagnosticIds, minimumSeverity: DiagnosticSeverity.Hidden, fixAllDiagnosticProvider, cancellationToken)
+#pragma warning restore RS0030 // Do not used banned APIs
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/> with an associated <paramref name="diagnosticSpan"/>.
+        /// Use this overload when applying fix all to a diagnostic with a source location and
+        /// a minimum severity.  When using <see cref="DiagnosticSeverity.Hidden"/> as the severity and/or not filtering
+        /// by severity, other overloads may be used.
+        /// </summary>
+        /// <param name="document">Document within which fix all occurrences was triggered.</param>
+        /// <param name="diagnosticSpan">Span for the diagnostic for which fix all occurrences was triggered.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="minimumSeverity">The minimum severity of diagnostics to fix.</param>
+        /// <param name="fixAllDiagnosticProvider">
+        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        internal FixAllContext(
+            Document document,
+            TextSpan? diagnosticSpan,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string? codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
             : this(new FixAllState(
                     fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan,
@@ -165,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     scope,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
+                    minimumSeverity,
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
                   CodeAnalysisProgress.None, cancellationToken)
@@ -192,6 +234,35 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not use banned APIs - It is fine to invoke the public FixAllContext constructor here.
+            : this(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity: DiagnosticSeverity.Hidden, fixAllDiagnosticProvider, cancellationToken)
+#pragma warning restore RS0030 // Do not use banned APIs
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/>.
+        /// Use this overload when applying fix all to a diagnostic with no source location, i.e. <see cref="Location.None"/>.
+        /// </summary>
+        /// <param name="project">Project within which fix all occurrences was triggered.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="minimumSeverity">The minimum severity of diagnostics to fix.</param>
+        /// <param name="fixAllDiagnosticProvider">
+        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        internal FixAllContext(
+            Project project,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string? codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
             : this(new FixAllState(
                     fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan: null,
@@ -201,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     scope,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
+                    minimumSeverity,
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
                   CodeAnalysisProgress.None, cancellationToken)
@@ -238,12 +310,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
-            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan: null).ConfigureAwait(false);
+            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, MinimumSeverity, filterSpan: null).ConfigureAwait(false);
         }
 
         private static async Task<ImmutableArray<Diagnostic>> GetFilteredDiagnosticsAsync(
             Task<IEnumerable<Diagnostic>> getDiagnosticsTask,
             ImmutableHashSet<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
             TextSpan? filterSpan)
         {
             if (getDiagnosticsTask != null)
@@ -252,14 +325,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostics != null)
                 {
                     return diagnostics.WhereAsArray(
-                        static (d, arg) => IsIncluded(d, arg.diagnosticIds, arg.filterSpan),
-                        (diagnosticIds, filterSpan));
+                        static (d, arg) => IsIncluded(d, arg.diagnosticIds, arg.minimumSeverity, arg.filterSpan),
+                        (diagnosticIds, minimumSeverity, filterSpan));
                 }
             }
 
             return ImmutableArray<Diagnostic>.Empty;
 
-            static bool IsIncluded(Diagnostic d, ImmutableHashSet<string> diagnosticIds, TextSpan? filterSpan)
+            static bool IsIncluded(Diagnostic d, ImmutableHashSet<string> diagnosticIds, DiagnosticSeverity minimumSeverity, TextSpan? filterSpan)
             {
                 if (d is null)
                 {
@@ -268,6 +341,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 if (!diagnosticIds.Contains(d.Id))
+                    return false;
+
+                if (d.Severity < minimumSeverity)
                     return false;
 
                 if (filterSpan is not null
@@ -298,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var getDiagnosticsTask = State.DiagnosticProvider is FixAllContext.SpanBasedDiagnosticProvider spanBasedDiagnosticProvider
                 ? spanBasedDiagnosticProvider.GetDocumentSpanDiagnosticsAsync(document, filterSpan, this.CancellationToken)
                 : State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
-            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan).ConfigureAwait(false);
+            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, MinimumSeverity, filterSpan).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -345,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var getDiagnosticsTask = includeAllDocumentDiagnostics
                 ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken)
                 : State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
-            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan: null).ConfigureAwait(false);
+            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, MinimumSeverity, filterSpan: null).ConfigureAwait(false);
         }
 
         /// <summary>

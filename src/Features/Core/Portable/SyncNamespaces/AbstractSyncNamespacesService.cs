@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                     FixAllScope.Solution,
                     codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
+                    minimumSeverity: DiagnosticSeverity.Hidden,
                     fixAllDiagnosticProvider: diagnosticProvider,
                     options),
                 progressTracker,

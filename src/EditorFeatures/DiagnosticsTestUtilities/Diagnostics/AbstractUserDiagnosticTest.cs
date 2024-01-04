@@ -222,11 +222,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var diagnostic = diagnostics.First();
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
+            var minimumSeverity = diagnostic.Severity;
             var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
-                ? new FixAllState(fixAllProvider, diagnostic.Location.SourceSpan, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
-                : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
+                ? new FixAllState(fixAllProvider, diagnostic.Location.SourceSpan, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, optionsProvider)
+                : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, optionsProvider);
         }
 
         private protected Task TestActionCountInAllFixesAsync(
