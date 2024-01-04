@@ -667,6 +667,9 @@ internal sealed partial class SolutionCompilationState
             stateChange,
             static (stateChange, documentId) =>
             {
+                // This function shouldn't have been called if the document has not changed
+                Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
+
                 var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
@@ -678,13 +681,13 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState UpdateAdditionalDocumentState(StateChange stateChange, DocumentId documentId)
     {
-        // This method shouldn't have been called if the document has not changed.cument has not changed.
-        Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
-
         return ForkProject(
             stateChange,
             static (stateChange, documentId) =>
             {
+                // This function shouldn't have been called if the document has not changed
+                Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
+
                 var oldDocument = stateChange.OldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
