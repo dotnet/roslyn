@@ -85,7 +85,7 @@ internal sealed class SolutionStateChecksums(
             result[Checksum] = this;
 
         if (searchingChecksumsLeft.Remove(Attributes))
-            result[Attributes] = compilationState.Solution.SolutionAttributes;
+            result[Attributes] = compilationState.SolutionState.SolutionAttributes;
 
         if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
         {
@@ -99,14 +99,14 @@ internal sealed class SolutionStateChecksums(
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        ChecksumCollection.Find(compilationState.Solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+        ChecksumCollection.Find(compilationState.SolutionState.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
         if (searchingChecksumsLeft.Count == 0)
             return;
 
         if (assetHint.ProjectId != null)
         {
-            var projectState = compilationState.Solution.GetProjectState(assetHint.ProjectId);
+            var projectState = compilationState.SolutionState.GetProjectState(assetHint.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
@@ -121,7 +121,7 @@ internal sealed class SolutionStateChecksums(
             // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
             // instance that we don't unnecessarily walk all documents looking just for those.
 
-            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
+            foreach (var (_, projectState) in compilationState.SolutionState.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
@@ -135,7 +135,7 @@ internal sealed class SolutionStateChecksums(
 
             // Now actually do the depth first search into each project.
 
-            foreach (var (_, projectState) in compilationState.Solution.ProjectStates)
+            foreach (var (_, projectState) in compilationState.SolutionState.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
