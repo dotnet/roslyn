@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class ReferenceGenerator : SymbolVisitor<bool>
+        private sealed class ReferenceGenerator : SymbolVisitor
         {
             private readonly StringBuilder _builder;
             private readonly ISymbol? _typeParameterContext;
@@ -512,31 +512,29 @@ namespace Microsoft.CodeAnalysis
 
             private void BuildDottedName(ISymbol symbol)
             {
-                if (this.Visit(symbol.ContainingSymbol))
+                if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } or INamedTypeSymbol)
                 {
+                    this.Visit(symbol.ContainingSymbol);
                     _builder.Append(".");
                 }
 
                 _builder.Append(EncodeName(symbol.Name));
             }
 
-            public override bool VisitAlias(IAliasSymbol symbol)
-            {
-                return symbol.Target.Accept(this);
-            }
+            public override void VisitAlias(IAliasSymbol symbol)
+                => symbol.Target.Accept(this);
 
-            public override bool VisitNamespace(INamespaceSymbol symbol)
+            public override void VisitNamespace(INamespaceSymbol symbol)
             {
                 if (symbol.IsGlobalNamespace)
                 {
-                    return false;
+                    return;
                 }
 
                 this.BuildDottedName(symbol);
-                return true;
             }
 
-            public override bool VisitNamedType(INamedTypeSymbol symbol)
+            public override void VisitNamedType(INamedTypeSymbol symbol)
             {
                 this.BuildDottedName(symbol);
 
@@ -564,18 +562,14 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("}");
                     }
                 }
-
-                return true;
             }
 
-            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
+            public override void VisitDynamicType(IDynamicTypeSymbol symbol)
             {
                 _builder.Append("System.Object");
-
-                return true;
             }
 
-            public override bool VisitArrayType(IArrayTypeSymbol symbol)
+            public override void VisitArrayType(IArrayTypeSymbol symbol)
             {
                 this.Visit(symbol.ElementType);
 
@@ -592,18 +586,15 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _builder.Append("]");
-
-                return true;
             }
 
-            public override bool VisitPointerType(IPointerTypeSymbol symbol)
+            public override void VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
                 _builder.Append("*");
-                return true;
             }
 
-            public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
+            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 if (!IsInScope(symbol))
                 {
@@ -626,8 +617,6 @@ namespace Microsoft.CodeAnalysis
                     _builder.Append("`");
                     _builder.Append(b + symbol.Ordinal);
                 }
-
-                return true;
             }
 
             private bool IsInScope(ITypeParameterSymbol typeParameterSymbol)
