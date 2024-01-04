@@ -257,10 +257,10 @@ namespace Microsoft.CodeAnalysis.Text
                     int count = 1;
                     for (int j = i + 1; j < segments.Count; j++)
                     {
-                        if (segments[j].Length <= segmentSize)
-                        {
-                            count++;
-                        }
+                        if (segments[j].Length > segmentSize)
+                            break;
+
+                        count++;
                     }
 
                     if (count > 1)
@@ -290,11 +290,11 @@ namespace Microsoft.CodeAnalysis.Text
                     int count = 1;
                     for (int j = i + 1; j < segments.Count; j++)
                     {
-                        if (segments[j].Length <= segmentSize)
-                        {
-                            count++;
-                            combinedLength += segments[j].Length;
-                        }
+                        if (segments[j].Length > segmentSize)
+                            break;
+
+                        count++;
+                        combinedLength += segments[j].Length;
                     }
 
                     // if we've got at least two, then combine them into a single text
@@ -305,15 +305,12 @@ namespace Microsoft.CodeAnalysis.Text
 
                         var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
 
-                        while (count > 0)
-                        {
-                            segments[i].Write(writer);
-                            segments.RemoveAt(i);
-                            count--;
-                        }
+                        for (int j = i; j < i + count; j++)
+                            segments[j].Write(writer);
 
-                        var newText = writer.ToSourceText();
+                        var newText = writer.ToSourceTextAndClear();
 
+                        segments.RemoveRange(i, count);
                         segments.Insert(i, newText);
                     }
                 }
@@ -369,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 segments.Clear();
-                segments.Add(writer.ToSourceText());
+                segments.Add(writer.ToSourceTextAndClear());
             }
         }
     }

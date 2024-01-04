@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Text
             _bufferSize = Math.Min(LargeText.ChunkSize, length);
         }
 
-        public override SourceText ToSourceText()
+        public override SourceText ToSourceTextAndClear()
         {
             this.Flush();
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));

@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.RemoveAt(index);
         }
 
+        public void RemoveRange(int index, int length)
+        {
+            _builder.RemoveRange(index, length);
+        }
+
         public void RemoveLast()
         {
             _builder.RemoveAt(_builder.Count - 1);

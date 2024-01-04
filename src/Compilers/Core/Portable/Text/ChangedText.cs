@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
             RoslynDebug.Assert(newText != null);
-            Debug.Assert(newText is CompositeText || newText is SubText || newText is StringText || newText is LargeText);
+            Debug.Assert(newText is CompositeText || newText is SubText || newText is StringText || newText is LargeText || newText is StringBuilderText);
             RoslynDebug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);

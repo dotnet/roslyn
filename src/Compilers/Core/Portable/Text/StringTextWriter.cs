@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal class StringTextWriter : SourceTextWriter
     {
-        private readonly StringBuilder _builder;
+        private StringBuilder _builder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
 
@@ -33,9 +33,13 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _encoding!; }
         }
 
-        public override SourceText ToSourceText()
+        public override SourceText ToSourceTextAndClear()
         {
-            return new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
+            var sourceText = new StringBuilderText(_builder, _encoding, checksumAlgorithm: _checksumAlgorithm);
+
+            _builder = new StringBuilder();
+
+            return sourceText;
         }
 
         public override void Write(char value)

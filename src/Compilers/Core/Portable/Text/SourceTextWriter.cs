@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal abstract class SourceTextWriter : TextWriter
     {
-        public abstract SourceText ToSourceText();
+        public abstract SourceText ToSourceTextAndClear();
 
         public static SourceTextWriter Create(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
