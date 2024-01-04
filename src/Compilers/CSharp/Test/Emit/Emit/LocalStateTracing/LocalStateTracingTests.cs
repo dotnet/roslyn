@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 namespace Microsoft.CodeAnalysis.Runtime
 {
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
@@ -101,10 +102,10 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         private void WL(object value, int index)
-            => WriteLine($"{M.Name}: {L(index)} = {value ?? "null"}");
+            => WriteLine($"{M.Name}: {L(index)} = {ConvertToString(value)}");
 
         private void WP(object value, int index)
-            => WriteLine($"{M.Name}: {P(index)} = {value ?? "null"}");
+            => WriteLine($"{M.Name}: {P(index)} = {ConvertToString(value)}");
 
         private string L(int index)
             => (index >= 0x10000) ? $"L'{UnmangleFieldName(M.Module.ResolveField(index - 0x10000 + 0x04000000).Name)}'" : $"L{index}";
@@ -117,6 +118,13 @@ namespace Microsoft.CodeAnalysis.Runtime
 
         private static string MemoryToString(void* address, int size)
             => "<" + BitConverter.ToString(new Span<byte>(address, size).ToArray()) + ">";
+
+        private string ConvertToString(object value) => value switch
+        {
+            IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
+            object o => o.ToString(),
+            null => "null",
+        };
 
         public void LogLocalStore(bool value, int index) => WL(value, index);
         public void LogLocalStore(byte value, int index) => WL(value, index);
@@ -428,10 +436,10 @@ class C
   IL_0013:  dup
   IL_0014:  stloc.1
   IL_0015:  ldc.i4.1
-  IL_0016:  call       0x06000017
+  IL_0016:  call       0x06000018
   IL_001b:  nop
   IL_001c:  nop
-  IL_001d:  call       0x0600002F
+  IL_001d:  call       0x06000030
   IL_0022:  nop
   IL_0023:  leave.s    IL_002e
   IL_0025:  ldloca.s   V_0
@@ -444,7 +452,7 @@ class C
   // Code size       45 (0x2d)
   .maxstack  3
   IL_0000:  ldc.i4     0x3
-  IL_0005:  ldc.i4     0x2f
+  IL_0005:  ldc.i4     0x30
   IL_000a:  call       0x06000008
   IL_000f:  stloc.0
   IL_0010:  nop
@@ -453,7 +461,7 @@ class C
   IL_0018:  dup
   IL_0019:  stloc.1
   IL_001a:  ldc.i4.1
-  IL_001b:  call       0x06000017
+  IL_001b:  call       0x06000018
   IL_0020:  nop
   IL_0021:  leave.s    IL_002c
   IL_0023:  ldloca.s   V_0
