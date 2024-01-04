@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = PooledStringBuilder.GetInstance();
-            var generator = new DeclarationGenerator(builder);
+            var generator = new PrefixAndDeclarationGenerator(builder);
             if (!generator.Visit(symbol))
             {
                 builder.Free();
@@ -320,10 +320,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see langword="bool"/> type parameter indicates if we succeeded at writing out the declaration ID or not. 
         /// </summary>
-        private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
+        private sealed class PrefixAndDeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder = builder;
-            private readonly Generator _generator = new Generator(builder);
+            private readonly DeclarationGenerator _generator = new DeclarationGenerator(builder);
 
             /// <summary>
             /// If we hit anything we don't know about, indicate failure.
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis
                 return _generator.Visit(symbol);
             }
 
-            private sealed class Generator(StringBuilder builder) : SymbolVisitor<bool>
+            private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder = builder;
                 private ReferenceGenerator? _referenceGenerator;
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
-                    var declarer = new DeclarationGenerator(_builder);
+                    var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
                     _builder.Append(":");
                 }
