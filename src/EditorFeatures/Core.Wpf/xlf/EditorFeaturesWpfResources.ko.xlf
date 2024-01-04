@@ -17,6 +17,11 @@
         <target state="translated">이름을 바꾸려면 Enter 키를, 미리 보려면 Shift+Enter 키를 누르세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
+        <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
+        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_performing_rename_0">
         <source>Error performing rename: '{0}'</source>
         <target state="translated">이름 바꾸기 수행 중 오류 발생: '{0}'</target>
@@ -30,6 +35,11 @@
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
         <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_AI_suggestions">
+        <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
+        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
