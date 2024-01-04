@@ -163,6 +163,6 @@
     <value>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</value>
   </data>
   <data name="Get_AI_suggestions" xml:space="preserve">
-    <value>Get AI-powered rename suggestions</value>
+    <value>Get AI-powered rename suggestions (Ctrl+Space)</value>
   </data>
 </root>
