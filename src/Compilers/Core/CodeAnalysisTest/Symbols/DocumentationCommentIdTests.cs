@@ -157,9 +157,8 @@ class C
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
-        [InlineData("int*")]
-        [InlineData("dynamic")]
-        public async Task TestReturnValueOnInvalidSymbol1(string type)
+        public async Task TestReturnValueOnInvalidSymbol1(
+            [CombinatorialValues("int*", "dynamic")] string type)
         {
             var text = $$"""
                 class C
@@ -182,7 +181,7 @@ class C
             var symbol = semanticModel.GetSymbolInfo(node!).Symbol;
             Assert.NotNull(symbol);
 
-            var id = DocumentationCommentId.CreateReferenceId(symbol!);
+            var id = DocumentationCommentId.CreateDeclarationId(symbol!);
             Assert.Null(id);
         }
 
