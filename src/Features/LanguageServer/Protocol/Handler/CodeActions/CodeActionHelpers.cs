@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         nestedCodeActions.AddRange(CollectNestedActions(request, codeActionKind, diagnosticsForFix, action, codeActionPathList));
 
                         // Need to remove the last item from the list since we are moving back up the tree.
-                        codeActionPathList.RemoveAt(codeActionPathList.Count - 1);
+                        codeActionPathList.RemoveLast();
                     }
                 }
             }
