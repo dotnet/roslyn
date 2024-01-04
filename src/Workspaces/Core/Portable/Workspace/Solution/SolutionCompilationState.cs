@@ -458,25 +458,25 @@ internal sealed partial class SolutionCompilationState
 
     public SolutionCompilationState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
     {
-        // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-        // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-        // all come from entrypoints that are specific to a particular project.
+        // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added from
+        // this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs all
+        // come from entrypoints that are specific to a particular project.
         return Branch(this.Solution.AddAnalyzerReferences(analyzerReferences));
     }
 
     public SolutionCompilationState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
     {
-        // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-        // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-        // all come from entrypoints that are specific to a particular project.
+        // Note: This is the codepath for removing analyzers from vsixes.  Importantly, we do not ever get SGs removed
+        // from this codepath, and as such we do not need to update the compilation trackers.  The methods that remove
+        // SGs all come from entrypoints that are specific to a particular project.
         return Branch(this.Solution.RemoveAnalyzerReference(analyzerReference));
     }
 
     public SolutionCompilationState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added
-        // from this codepath, and as such we do not need to update the compilation trackers.  The methods that add SGs
-        // all come from entrypoints that are specific to a particular project.
+        // Note: This is the codepath for updating analyzers from vsixes.  Importantly, we do not ever get SGs changed
+        // from this codepath, and as such we do not need to update the compilation trackers.  The methods that change
+        // SGs all come from entrypoints that are specific to a particular project.
         return Branch(this.Solution.WithAnalyzerReferences(analyzerReferences));
     }
 
