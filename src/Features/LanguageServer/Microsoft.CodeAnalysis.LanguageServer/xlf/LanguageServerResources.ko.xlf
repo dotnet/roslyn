@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Project_0_has_unresolved_dependencies">
         <source>Project {0} has unresolved dependencies</source>
-        <target state="new">Project {0} has unresolved dependencies</target>
+        <target state="translated">프로젝트 {0}에 확인되지 않은 종속성이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
