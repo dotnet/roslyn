@@ -8,10 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
 
-internal interface IRemoteSourceGenerationService
+internal interface IRemoteSourceGenerationService : IRemoteKeepAliveService
 {
     /// <summary>
     /// Given a particular project in the remote solution snapshot, return information about all the generated documents

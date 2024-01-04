@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -22,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Remote
         ValueTask KeepAliveAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
     }
 
-    internal sealed class RemoteKeepAliveSession : IDisposable
+    internal abstract class AbstractKeepAliveSession<TState> : IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        private RemoteKeepAliveSession(SolutionCompilationState solution, IAsynchronousOperationListener listener)
+        protected AbstractKeepAliveSession(TState solution, SolutionServices services, IAsynchronousOperationListener listener)
         {
             var cancellationToken = _cancellationTokenSource.Token;
             var token = listener.BeginAsyncOperation(nameof(RemoteKeepAliveSession));
@@ -38,20 +39,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task CreateClientAndKeepAliveAsync()
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
                 if (client is null)
                     return;
 
-                // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
-                // the cancellation token triggers.
-                var unused = client.TryInvokeAsync<IRemoteKeepAliveService>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
-                    cancellationToken).AsTask();
+                SendKeepAliveMessage(client, solution, cancellationToken);
             }
         }
 
-        ~RemoteKeepAliveSession()
+        protected abstract void SendKeepAliveMessage(RemoteHostClient client, TState state, CancellationToken cancellationToken);
+
+        ~AbstractKeepAliveSession()
         {
             if (Environment.HasShutdownStarted)
                 return;
@@ -64,6 +62,24 @@ namespace Microsoft.CodeAnalysis.Remote
             GC.SuppressFinalize(this);
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
+        }
+    }
+
+    internal sealed class RemoteKeepAliveSession : AbstractKeepAliveSession<SolutionCompilationState>
+    {
+        private RemoteKeepAliveSession(SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
+            : base(compilationState, compilationState.Services, listener)
+        {
+        }
+
+        protected override void SendKeepAliveMessage(RemoteHostClient client, SolutionCompilationState state, CancellationToken cancellationToken)
+        {
+            // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+            // the cancellation token triggers.
+            var unused = client.TryInvokeAsync<IRemoteKeepAliveService>(
+                state,
+                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+                cancellationToken).AsTask();
         }
 
         /// <summary>
@@ -86,6 +102,30 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionCompilationState solution, IAsynchronousOperationListener listener)
         {
             return new RemoteKeepAliveSession(solution, listener);
+        }
+    }
+
+    internal sealed class RemoteSourceGenerationKeepAliveSession : AbstractKeepAliveSession<SolutionState>
+    {
+        private RemoteSourceGenerationKeepAliveSession(SolutionState state, IAsynchronousOperationListener listener)
+            : base(state, state.Services, listener)
+        {
+        }
+
+        protected override void SendKeepAliveMessage(RemoteHostClient client, SolutionState state, CancellationToken cancellationToken)
+        {
+            // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+            // the cancellation token triggers.
+            var unused = client.TryInvokeOnlyToGenerateSourceAsync(
+                state,
+                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+                cancellationToken).AsTask();
+        }
+
+        public static RemoteSourceGenerationKeepAliveSession Create(
+            SolutionState solution, IAsynchronousOperationListener listener)
+        {
+            return new RemoteSourceGenerationKeepAliveSession(solution, listener);
         }
     }
 }

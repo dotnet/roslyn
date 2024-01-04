@@ -714,6 +714,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
+
+                    var solution = compilationState.Solution;
+
                     // Project is complete only if the following are all true:
                     //  1. HasAllInformation flag is set for the project
                     //  2. Either the project has non-zero metadata references OR this is the corlib project.
@@ -728,7 +731,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
                     {
-                        var referencedProject = compilationState.Solution.GetProjectState(projectReference.ProjectId);
+                        var referencedProject = solution.GetProjectState(projectReference.ProjectId);
 
                         // Even though we're creating a final compilation (vs. an in progress compilation),
                         // it's possible that the target project has been removed.
@@ -788,7 +791,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        compilationState,
+                        solution,
                         compilationWithoutGeneratedFiles,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
