@@ -1600,57 +1600,66 @@ public class UseCollectionExpressionForEmptyTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOn()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn(
+        [CombinatorialValues("IEnumerable<int>", "IReadOnlyCollection<int>", "IReadOnlyList<int>")] string type,
+        [CombinatorialValues("Array.[|Empty|]<int>()", "ImmutableArray<int>.[|Empty|]")] string expression)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
-            using System;
-            using System.Collections.Generic;
-
-            class C
-            {
-                void M()
-                {
-                    IEnumerable<int> v = Array.[|Empty|]<int>();
-                }
-            }
-            """,
-            FixedCode = """
-            using System;
-            using System.Collections.Generic;
-
-            class C
-            {
-                void M()
-                {
-                    IEnumerable<int> v = [];
-                }
-            }
-            """,
-            LanguageVersion = LanguageVersion.CSharp12,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOn_ReadWriteDestination()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
+            TestCode = $$"""
                 using System;
                 using System.Collections.Generic;
+                using System.Collections.Immutable;
 
                 class C
                 {
                     void M()
                     {
-                        IList<int> v = Array.Empty<int>();
+                        {{type}} v = {{expression}};
+                    }
+                }
+                """,
+            FixedCode = """
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Collections.Immutable;
+
+                    class C
+                    {
+                        void M()
+                        {
+                            {{type}} v = [];
+                        }
+                    }
+                    """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination(
+        [CombinatorialValues("IList<int>", "ICollection<int>")] string type,
+        [CombinatorialValues("Array.Empty<int>()", "ImmutableArray<int>.Empty")] string expression)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        {{type}} v = {{expression}};
                     }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
