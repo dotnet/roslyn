@@ -1620,19 +1620,19 @@ public class UseCollectionExpressionForEmptyTests
                     }
                 }
                 """,
-            FixedCode = """
-                    using System;
-                    using System.Collections.Generic;
-                    using System.Collections.Immutable;
+            FixedCode = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
 
-                    class C
+                class C
+                {
+                    void M()
                     {
-                        void M()
-                        {
-                            {{type}} v = [];
-                        }
+                        {{type}} v = [];
                     }
-                    """,
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
