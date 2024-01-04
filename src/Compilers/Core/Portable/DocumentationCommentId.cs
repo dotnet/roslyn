@@ -317,11 +317,17 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
+        /// <summary>
+        /// The <see langword="bool"/> type parameter indicates if we succeeded at writing out the declaration ID or not. 
+        /// </summary>
         private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder = builder;
             private readonly Generator _generator = new Generator(builder);
 
+            /// <summary>
+            /// If we hit anything we don't know about, indicate failure.
+            /// </summary>
             public override bool DefaultVisit(ISymbol symbol)
                 => false;
 
@@ -376,6 +382,9 @@ namespace Microsoft.CodeAnalysis
                     return _referenceGenerator;
                 }
 
+                /// <summary>
+                /// If we hit anything we don't know about, indicate failure.
+                /// </summary>
                 public override bool DefaultVisit(ISymbol symbol)
                     => false;
 
