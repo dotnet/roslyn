@@ -25,9 +25,7 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
     private readonly ServiceBrokerFactory _serviceBrokerFactory;
     private readonly ILogger _logger;
 
-#pragma warning disable RS0030 // Do not use banned APIs (Required to match 'ExportBrokeredService')
     [ImportingConstructor]
-#pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public BrokeredServiceBridgeManifest(ServiceBrokerFactory serviceBrokerFactory, ILoggerFactory loggerFactory)
     {

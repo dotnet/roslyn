@@ -22,9 +22,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     private readonly ProjectInitializationHandler _projectInitializationHandler;
     private readonly ILogger _logger;
 
-#pragma warning disable RS0030 // Do not use banned APIs (Required to match 'ExportBrokeredService')
     [ImportingConstructor]
-#pragma warning restore RS0030 // Do not use banned APIs
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public WorkspaceProjectFactoryService(LanguageServerWorkspaceFactory workspaceFactory, ProjectInitializationHandler projectInitializationHandler, ILoggerFactory loggerFactory)
     {
