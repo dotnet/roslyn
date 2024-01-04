@@ -77,7 +77,15 @@ namespace Microsoft.CodeAnalysis
 
             if (symbol is INamespaceSymbol)
             {
-                return CreateDeclarationId(symbol);
+                // This is very odd.  For anything other than a namespace, we defer to ReferenceGenerator, which just
+                // spits out a reference.  But for a namespace, we spit out a declaration (which means we prefix with
+                // `N:`).  None of the other paths do this.  This is likely a bug, but it appears as if it has never
+                // been noticed.
+                var result = CreateDeclarationId(symbol);
+
+                // All namespaces should succeed at being converted into a declaration ID.
+                RoslynDebug.AssertNotNull(result);
+                return result;
             }
 
             var builder = new StringBuilder();

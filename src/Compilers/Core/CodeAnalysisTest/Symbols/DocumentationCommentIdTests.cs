@@ -156,41 +156,15 @@ class C
             Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
-        public async Task TestReturnValueOnInvalidSymbol1()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
+        [InlineData("int*")]
+        [InlineData("dynamic")]
+        public async Task TestReturnValueOnInvalidSymbol1(string type)
         {
-            var text = """
+            var text = $$"""
                 class C
                 {
-                    unsafe void M(int* i)
-                    {
-                        var x = i + 1;
-                    }
-                }
-                """;
-
-            var comp = CreateCSharpCompilation(text, compilationOptions: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var semanticModel = comp.GetSemanticModel(tree);
-            var root = await tree.GetRootAsync();
-
-            var token = root.FindToken(text.IndexOf('+'));
-            var node = token.Parent;
-            Assert.NotNull(node);
-            var symbol = semanticModel.GetSymbolInfo(node!).Symbol;
-            Assert.NotNull(symbol);
-
-            var id = DocumentationCommentId.CreateReferenceId(symbol!);
-            Assert.Null(id);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
-        public async Task TestReturnValueOnInvalidSymbol2()
-        {
-            var text = """
-                class C
-                {
-                    void M(dynamic i)
+                    unsafe void M({{type}} i)
                     {
                         var x = i + 1;
                     }
