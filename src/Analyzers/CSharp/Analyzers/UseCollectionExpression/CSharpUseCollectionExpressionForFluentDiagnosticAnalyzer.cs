@@ -131,8 +131,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         if (!AnalyzeInvocation(text, state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
             return null;
 
-        if (!CanReplaceWithCollectionExpression(state.SemanticModel, invocation, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+        if (!CanReplaceWithCollectionExpression(
+                state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+        {
             return null;
+        }
 
         matchesInReverse.ReverseContents();
         return new AnalysisResult(existingInitializer, invocation, matchesInReverse.ToImmutable(), changesSemantics);

@@ -1634,6 +1634,27 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<int> v = Array.Empty<int>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
     public async Task TestInterfaceOff()
     {
         await new VerifyCS.Test

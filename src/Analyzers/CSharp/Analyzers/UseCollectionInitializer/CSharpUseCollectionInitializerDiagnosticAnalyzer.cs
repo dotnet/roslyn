@@ -41,5 +41,5 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         => compilation.LanguageVersion().SupportsCollectionExpressions();
 
     protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken, out bool changesSemantics)
-        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
+        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 }
