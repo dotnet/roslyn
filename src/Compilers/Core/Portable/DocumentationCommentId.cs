@@ -617,6 +617,9 @@ namespace Microsoft.CodeAnalysis
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
+                    //
+                    // This is very strange.  By using the PrefixAndDeclarationGenerator we will emit another `X:`
+                    // prefix, then emit a `:` after that.  For example, soemthing akin to `T:System.List<T>:`
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
                     _builder.Append(':');
