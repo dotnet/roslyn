@@ -137,10 +137,13 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(HasPath(location));
 
-            FileLinePositionSpan span = location.GetLineSpan();
+            FileLinePositionSpan span = location.GetMappedLineSpan();
+            var path = location.SourceTree is { } tree
+                ? tree.GetDisplayPath(location.SourceSpan, resolver)
+                : span.Path;
 
             _writer.WriteObjectStart();
-            _writer.Write("uri", GetUri(span.Path));
+            _writer.Write("uri", GetUri(path));
 
             WriteRegion(span);
 
