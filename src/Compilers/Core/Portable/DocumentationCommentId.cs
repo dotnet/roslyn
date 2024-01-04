@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis
         /// Creates an id string used by external documentation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="symbol"/> is <see langword="null"/>.</exception>
+        /// <returns>The documentation comment Id for this symbol, if it can be created. <see langword="null"/> if it cannot be.</returns>
         public static string? CreateDeclarationId(ISymbol symbol)
         {
             if (symbol == null)
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates an id string used to reference type symbols (not strictly declarations, includes
         /// arrays, pointers, type parameters, etc.)
         /// </summary>
-        public static string? CreateReferenceId(ISymbol symbol)
+        public static string CreateReferenceId(ISymbol symbol)
         {
             if (symbol == null)
             {
