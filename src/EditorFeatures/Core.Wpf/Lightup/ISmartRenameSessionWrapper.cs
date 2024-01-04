@@ -53,6 +53,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
+            // Editor side might change the interface, catch all exceptions when use reflection & composing linq expression so user could use the normal rename UI.
         }
     }
 
