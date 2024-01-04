@@ -1100,13 +1100,13 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
-            static (documentInfo, project, @this) => new AnalyzerConfigDocumentState(@this.Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
+            static (documentInfo, project, services) => new AnalyzerConfigDocumentState(services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
             static (oldProject, documents) =>
             {
                 var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
                 return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
             },
-            this);
+            this.Services);
     }
 
     public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
