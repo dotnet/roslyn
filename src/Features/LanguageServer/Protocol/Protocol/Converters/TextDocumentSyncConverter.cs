@@ -36,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             reader = reader ?? throw new ArgumentNullException(nameof(reader));
-            if (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer)
+            if (reader.TokenType is JsonToken.Float or JsonToken.Integer)
             {
                 // This conversion is modeled after what VS Code does, see https://github.com/Microsoft/vscode-languageserver-node/blob/master/client/src/client.ts#L1234
                 var textDocSync = new TextDocumentSyncOptions
