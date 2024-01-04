@@ -64,9 +64,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-#pragma warning disable CA1822 // Mark members as static - used in xaml
-    public string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
-#pragma warning restore CA1822 // Mark members as static
+    public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
 
     public ICommand GetSuggestionsCommand { get; }
 
