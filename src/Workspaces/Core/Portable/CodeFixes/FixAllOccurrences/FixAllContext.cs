@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -250,12 +251,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var diagnostics = await getDiagnosticsTask.ConfigureAwait(false);
                 if (diagnostics != null)
                 {
-                    return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
-                        && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan))).ToImmutableArray();
+                    return diagnostics.WhereAsArray(
+                        static (d, arg) => IsIncluded(d, arg.diagnosticIds, arg.filterSpan),
+                        (diagnosticIds, filterSpan));
                 }
             }
 
             return ImmutableArray<Diagnostic>.Empty;
+
+            static bool IsIncluded(Diagnostic d, ImmutableHashSet<string> diagnosticIds, TextSpan? filterSpan)
+            {
+                if (d is null)
+                {
+                    // This isn't allowed by contract, but the data is being provided by a public API so we check.
+                    return false;
+                }
+
+                if (!diagnosticIds.Contains(d.Id))
+                    return false;
+
+                if (filterSpan is not null
+                    && !filterSpan.Value.Contains(d.Location.SourceSpan))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
