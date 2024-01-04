@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
-        /// Creates an id string used by external documentation comment files to identify declarations
-        /// of types, namespaces, methods, properties, etc.
+        /// Creates an id string used by external documentation comment files to identify declarations of types,
+        /// namespaces, methods, properties, etc.
         /// </summary>
         /// <exception cref="ArgumentNullException">If <paramref name="symbol"/> is <see langword="null"/>.</exception>
         /// <returns>The documentation comment Id for this symbol, if it can be created. <see langword="null"/> if it cannot be.</returns>
@@ -65,9 +65,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates an id string used to reference type symbols (not strictly declarations, includes
-        /// arrays, pointers, type parameters, etc.)
+        /// Creates an id string used to reference type symbols (not strictly declarations, includes arrays, pointers,
+        /// type parameters, etc.).
         /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="symbol"/> is <see langword="null"/>.</exception>
         public static string CreateReferenceId(ISymbol symbol)
         {
             if (symbol == null)
