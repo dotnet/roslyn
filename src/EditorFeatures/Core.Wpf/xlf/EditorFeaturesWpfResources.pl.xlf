@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
-        <source>Get AI-powered rename suggestions</source>
-        <target state="new">Get AI-powered rename suggestions</target>
+        <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
+        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
