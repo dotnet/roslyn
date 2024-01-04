@@ -614,10 +614,10 @@ public class Program
                 }
 
                 AssertCompletionItemsInRelativeOrder(state, expectedItems1)
-                Await state.AssertSelectedCompletionItem("★ Title", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("★ Title", isHardSelected:=False)
 
                 state.SendTypeChars("""")
-                Await state.AssertLineTextAroundCaret("        sb.Append(Title""", "")
+                Await state.AssertLineTextAroundCaret("        sb.Append(""", "")
             End Using
         End Function
 
