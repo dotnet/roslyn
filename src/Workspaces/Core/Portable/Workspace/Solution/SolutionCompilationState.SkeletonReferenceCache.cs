@@ -183,7 +183,7 @@ internal partial class SolutionCompilationState
             // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
             // only one thread actually does the computation and the rest wait.
             var compilation = await compilationTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
-            var services = compilationState.Solution.Services;
+            var services = compilationState.SolutionState.Services;
 
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
             // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any

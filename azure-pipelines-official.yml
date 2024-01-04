@@ -138,7 +138,7 @@ stages:
         versionSpec: '4.9.2'
 
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
@@ -180,6 +180,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack
