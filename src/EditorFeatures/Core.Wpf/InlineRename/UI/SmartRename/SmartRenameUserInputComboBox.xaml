@@ -9,6 +9,7 @@
           xmlns:sr="clr-namespace:Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
           mc:Ignorable="d"
           GotKeyboardFocus="ComboBox_GotKeyboardFocus"
+          LostKeyboardFocus="ComboBox_LostKeyboardFocus"
           Unloaded="ComboBox_Unloaded"
           PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"
@@ -16,7 +17,9 @@
           ItemsSource="{Binding SuggestedNames}"
           StaysOpenOnEdit="True"
           IsEditable="True"
-          Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}">
+          Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}"
+          VirtualizingStackPanel.IsVirtualizing="True"
+          VirtualizingStackPanel.VirtualizationMode="Recycling">
     <ComboBox.Resources>
         <ResourceDictionary>
             <vsui:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter"/>
@@ -91,9 +94,11 @@
                                               RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
                                               Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
                                             <ItemsPresenter x:Name="ItemsPresenter"
+                                                            VirtualizingStackPanel.IsVirtualizing="True"
                                                             KeyboardNavigation.DirectionalNavigation="Contained"
                                                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                            PreviewMouseUp="ItemsPresenter_PreviewMouseUp"/>
+                                                            PreviewMouseUp="ItemsPresenter_PreviewMouseUp">
+                                            </ItemsPresenter>
                                         </Grid>
                                     </ScrollViewer>
                                 </Border>
@@ -201,4 +206,12 @@
             </ControlTemplate.Triggers>
         </ControlTemplate>
     </ComboBox.Template>
+    <ComboBox.ItemsPanel>
+        <ItemsPanelTemplate>
+            <VirtualizingStackPanel
+                IsItemsHost="True"
+                IsVirtualizing="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(VirtualizingStackPanel.IsVirtualizing)}"
+                VirtualizationMode="{Binding RelativeSource={RelativeSource TemplatedParent},Path=(VirtualizingStackPanel.VirtualizationMode)}" />
+        </ItemsPanelTemplate>
+    </ComboBox.ItemsPanel>
 </ComboBox>
