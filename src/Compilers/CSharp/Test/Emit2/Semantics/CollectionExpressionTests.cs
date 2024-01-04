@@ -4742,9 +4742,9 @@ static class Program
                 // (6,18): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         int* y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
-                // (7,17): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
+                // (7,23): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         var z = (int*)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("int*").WithLocation(7, 23));
         }
 
         [Fact]
@@ -4769,9 +4769,9 @@ static class Program
                 // (6,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
+                // (7,34): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("delegate*<void>").WithLocation(7, 34));
         }
 
         [Fact]
@@ -6496,9 +6496,9 @@ static class Program
                 // (8,15): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (9,24): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         object o = (S)([1, 2]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 24));
         }
 
         [Fact]
@@ -11203,9 +11203,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11234,9 +11234,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11439,9 +11439,9 @@ partial class Program
                 // (20,17): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
+                // (26,24): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         var v12 = (S2)([]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(26, 24));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -20564,6 +20564,34 @@ partial class Program
                   IL_0076:  ret
                 }
                 """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversionError()
+        {
+            string source = """
+                using System;
+
+                class C
+                {
+                    private DateTimeOffset _d = default;
+
+                    public void M()
+                    {
+                        ReadOnlySpan<DateTime> x = [_d];
+                        var y = (ReadOnlySpan<DateTime>)[_d];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,37): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                //         ReadOnlySpan<DateTime> x = [_d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "_d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(9, 37),
+                // (10,42): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                //         var y = (ReadOnlySpan<DateTime>)[_d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "_d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(10, 42));
         }
 
         [Fact]
