@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Completed_reload_of_all_projects_in_0">
         <source>Completed (re)load of all projects in {0}</source>
-        <target state="new">Completed (re)load of all projects in {0}</target>
+        <target state="translated">已完成 (重新){0} 中所有專案的負載</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debugger_attached">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Exception_thrown_while_loading_0">
         <source>Exception thrown while loading {0}</source>
-        <target state="new">Exception thrown while loading {0}</target>
+        <target state="translated">載入 {0} 時發生例外狀況</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">
         <source>Failed to run restore on {0}</source>
-        <target state="new">Failed to run restore on {0}</target>
+        <target state="translated">無法在 {0} 上執行還原</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Nothing_found_to_restore">
         <source>Nothing found to restore</source>
-        <target state="new">Nothing found to restore</target>
+        <target state="translated">找不到可還原的專案</target>
         <note />
       </trans-unit>
       <trans-unit id="Passed">
@@ -109,22 +109,22 @@
       </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
         <source>Project {0} loaded by C# Dev Kit</source>
-        <target state="new">Project {0} loaded by C# Dev Kit</target>
+        <target state="translated">專案 {0} 由 C# 開發工具組載入</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
-        <target state="new">Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</target>
+        <target state="translated">無法載入專案，因為找不到.NET Framework建置工具。請嘗試安裝Visual Studio或Visual Studio Build Tools套件，或查看記錄檔以取得詳細資料。</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
         <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
-        <target state="new">Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</target>
+        <target state="translated">無法載入專案，因為找不到 Mono。請確認已安裝 Mono 和 MSBuild，並查看記錄檔以取得詳細資料。</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore">
         <source>Restore</source>
-        <target state="new">Restore</target>
+        <target state="translated">還原</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore_complete">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Successfully_completed_load_of_0">
         <source>Successfully completed load of {0}</source>
-        <target state="new">Successfully completed load of {0}</target>
+        <target state="translated">已成功完成載入 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary">
