@@ -372,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 var originalParentConversion = originalParentConversionOperation.GetConversion();
                 if (originalParentConversion.IsImplicit)
                 {
-                    var isAcceptibleSpanConversion = originalConversionOperation.Type.IsSpan() && originalParentConversionOperation.Type.IsReadOnlySpan();
+                    var isAcceptableSpanConversion = originalConversionOperation.Type.IsSpan() && originalParentConversionOperation.Type.IsReadOnlySpan();
 
-                    if (!isAcceptibleSpanConversion)
+                    if (!isAcceptableSpanConversion)
                     {
                         if (!rewrittenConversion.IsUserDefined)
                             return false;
