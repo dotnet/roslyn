@@ -882,26 +882,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 return false;
 
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            using (this.GetDisposableResetPoint(resetOnDispose: true)) ;
+            {
+                // Eat the `[`
+                EatToken();
 
-            // Eat the `[`
-            EatToken();
+                // `[ id` is always an attribute.
+                if (this.IsTrueIdentifier())
+                    return true;
 
-            // `[ id` is always an attribute.
-            if (this.IsTrueIdentifier())
+                // `[ word: ...` could be an attribute.
+                if (IsAttributeTarget())
+                    return true;
+
+                // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
+                // expr.  Note: this heuristic can be added to in the future.
+                var isLiteral = SyntaxFacts.GetLiteralExpression(this.CurrentToken.Kind) != SyntaxKind.None;
+                if (isLiteral)
+                    return false;
+
                 return true;
-
-            // `[ word: ...` could be an attribute.
-            if (IsAttributeTarget())
-                return true;
-
-            // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
-            // expr.  Note: this heuristic can be added to in the future.
-            var isLiteral = SyntaxFacts.GetLiteralExpression(this.CurrentToken.Kind) != SyntaxKind.None;
-            if (isLiteral)
-                return false;
-
-            return true;
+            }
         }
 
         private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool inExpressionContext)
