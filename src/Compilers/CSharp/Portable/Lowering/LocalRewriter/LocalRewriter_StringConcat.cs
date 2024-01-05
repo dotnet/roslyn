@@ -138,14 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Generally we only need to recognize same node patterns that we create as a result of concatenation rewrite.
         /// </summary>
-        private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened, ArrayBuilder<LocalSymbol> previousLocalsBuilder)
+        private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened, ArrayBuilder<LocalSymbol> localsBuilder)
         {
             if (TryExtractStringConcatArgs(lowered, out var arguments, out var previousLocals))
             {
                 flattened.AddRange(arguments);
 
                 if (!previousLocals.IsDefaultOrEmpty)
-                    previousLocalsBuilder.AddRange(previousLocals);
+                    localsBuilder.AddRange(previousLocals);
             }
             else
             {
