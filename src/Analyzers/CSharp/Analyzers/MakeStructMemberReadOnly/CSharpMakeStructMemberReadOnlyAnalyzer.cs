@@ -344,6 +344,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return IsPotentiallyMutatingMethod(owningMethod, invocationOperation.Instance, invocationOperation.TargetMethod);
             }
 
+            // Converting an inline-array into a Span<T> allows the array to be written into.  As such, we have to
+            // consider this a potential future mutation of 'this'.
+            if (operation is IConversionOperation conversionOperation)
+            {
+                var conversion = conversionOperation.GetConversion();
+                if (conversion.IsInlineArray && conversionOperation.Type.IsSpan())
+                    return true;
+            }
+
             // Wasn't something that mutates this instance.  Go onto the next instance expression.
             break;
         }
