@@ -11976,11 +11976,6 @@ done:;
                 var attributeDeclarations = ParseAttributeDeclarations(inExpressionContext: true);
                 if (attributeDeclarations is [.., { CloseBracketToken.IsMissing: true }])
                     return false;
-
-                // If we didn't even end up with any attributes, then this definitely is not an attribute decl on a
-                // lambda. This is just a collection expr.
-                if (attributeDeclarations.Count == 0)
-                    return false;
             }
 
             bool seenStatic;
