@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened, ArrayBuilder<LocalSymbol> localsBuilder)
         {
-            if (TryExtractStringConcatArgs(lowered, out var arguments, out var previousLocals))
+            if (TryExtractStringConcatArgs(lowered, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<LocalSymbol> previousLocals))
             {
                 flattened.AddRange(arguments);
 
