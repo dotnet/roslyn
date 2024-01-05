@@ -13632,4 +13632,90 @@ class C
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
+    public async Task KeepRequiredCastOnCollectionExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public IEnumerable<int> M2() => (int[])[1, 2, 3, 4];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
+    public async Task KeepRequiredCastOnCollectionExpression2(
+        [CombinatorialValues("IEnumerable<int>", "IReadOnlyCollection<int>", "IReadOnlyList<int>")] string type)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public {{type}} M2() => (List<int>)[1, 2, 3, 4];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
+    public async Task RemoveUnnecessaryCastOnCollectionExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public int[] M2() => [|(int[])|][1, 2, 3, 4];
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public int[] M2() => [1, 2, 3, 4];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
+    public async Task RemoveUnnecessaryCastOnCollectionExpression2(
+        [CombinatorialValues("ICollection<int>", "IList<int>")] string type)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public {{type}} M2() => [|(List<int>)|][1, 2, 3, 4];
+                }
+                """,
+            FixedCode = $$"""
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public {{type}} M2() => [1, 2, 3, 4];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
