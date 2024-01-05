@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net6.0;net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetPrevious);$(NetCurrent);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Test.Utilities</PackageId>

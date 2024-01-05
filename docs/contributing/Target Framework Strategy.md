@@ -5,11 +5,27 @@ Target Framework Strategy
 The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are : 
 
 - Build Tools: requires us to ship compilers on `net472`
-- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net6.0`)
-- Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net8.0` and `net7.0` respectively)
-- Visual Studio: requires us to ship `net472` for base IDE components and `net6.0` for private runtime components.
+- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net8.0`)
+- Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net9.0` and `net8.0` respectively)
+- Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
+
+# Picking the right TargetFramework
+Projects in our repository should include the following values in `<TargetFramework(s)>` based on the rules below:
+
+1. `$(SourceBuildToolsetTargetFrameworks)`: code that ships in the .NET SDK for the compiler
+2. `$(SourceBuildTargetFrameworks)`: 
+    - code that is included in source build but not in category (1). 
+    - code is also expected to execute on VS Code and be source buildable
+3. `$(NetVS)`: code that needs to execute on the private runtime of Visual Studio.
+4. `$(NetVSCode)`: code that needs to execute in DevKit host
+5. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
+6. `$(NetPrevious)`: 
+    - code that needs to execute on .NET but not in any of the above categories.
+    - compiler unit tests
+
+**Note** avoid hard coding .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
 
 # Require consistent API across Target Frameworks
 It is important that our shipping APIs maintain consistent API surface area across target frameworks. That is true whether the API is `public` or `internal`.

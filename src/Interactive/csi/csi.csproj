@@ -20,11 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == 'net6.0'">
+    <None Include="csi.coreclr.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="csi.desktop.rsp" Condition="'$(TargetFramework)' != 'net6.0'">
+    <None Include="csi.desktop.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

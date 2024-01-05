@@ -4,7 +4,7 @@
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetPrevious);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
