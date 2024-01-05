@@ -159,4 +159,10 @@
   <data name="Generating_suggestions" xml:space="preserve">
     <value>Generating suggestions...</value>
   </data>
+  <data name="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion" xml:space="preserve">
+    <value>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</value>
+  </data>
+  <data name="Get_AI_suggestions" xml:space="preserve">
+    <value>Get AI-powered rename suggestions (Ctrl+Space)</value>
+  </data>
 </root>
