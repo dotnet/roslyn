@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If it's a call to 'string.Concat' (or is something which ends in '?? ""', which this method also extracts),
             // we know the result cannot be null. Otherwise return loweredOperand ?? ""
-            if (TryExtractStringConcatArgs(loweredOperand, out _, out _))
+            if (TryExtractStringConcatArgs(loweredOperand, arguments: out _, previousLocals: out _))
             {
                 return loweredOperand;
             }
