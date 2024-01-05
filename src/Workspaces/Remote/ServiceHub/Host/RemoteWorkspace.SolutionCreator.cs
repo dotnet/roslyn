@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                    var oldSolutionChecksums = await solution.CompilationState.Solution.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
