@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
