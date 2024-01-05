@@ -2701,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
-            return LocalState.ReachableStateWithNotNulls(_variables);
+            return LocalState.StateWithNotNulls(_variables, reachable: true);
         }
 
         private void EnterParameters()
@@ -3036,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Captured variables are joined with the state
             // at all the local function use sites (`localFunctionState.StartingState`)
-            // which starts as the bottom state ("not null").
+            // which starts as the bottom state ("not null", unreachable).
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
                 (slot, variables) =>
@@ -11728,14 +11728,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateReachableOrUnreachableState(variables, reachable: false);
             }
 
-            public static LocalState ReachableStateWithNotNulls(Variables variables)
+            public static LocalState StateWithNotNulls(Variables variables, bool reachable)
             {
                 var container = variables.Container is null ?
                     null :
-                    new Boxed(ReachableStateWithNotNulls(variables.Container));
+                    new Boxed(StateWithNotNulls(variables.Container, reachable: reachable));
 
                 int capacity = variables.NextAvailableIndex;
-                return new LocalState(variables.Id, container, createBitVectorWithNotNulls(capacity, reachable: true));
+                return new LocalState(variables.Id, container, createBitVectorWithNotNulls(capacity, reachable: reachable));
 
                 static BitVector createBitVectorWithNotNulls(int capacity, bool reachable)
                 {
@@ -12099,7 +12099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
+            return new LocalFunctionState(LocalState.StateWithNotNulls(variables, reachable: false));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>
