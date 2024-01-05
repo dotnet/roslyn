@@ -1824,22 +1824,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!state.Reachable)
                 return NullableFlowState.NotNull;
 
-            NormalizeIfNeeded(ref state, slot, useNotNullsAsDefault: false);
+            NormalizeIfNeeded(ref state, slot);
             return state[slot];
         }
 
-        private void SetState(ref LocalState state, int slot, NullableFlowState value, bool useNotNullsAsDefault = false)
+        private void SetState(ref LocalState state, int slot, NullableFlowState value)
         {
             if (!state.Reachable)
                 return;
 
-            NormalizeIfNeeded(ref state, slot, useNotNullsAsDefault);
+            NormalizeIfNeeded(ref state, slot);
             state[slot] = value;
         }
 
-        private void NormalizeIfNeeded(ref LocalState state, int slot, bool useNotNullsAsDefault)
+        private void NormalizeIfNeeded(ref LocalState state, int slot)
         {
-            state.NormalizeIfNeeded(slot, this, _variables, useNotNullsAsDefault);
+            state.NormalizeIfNeeded(slot, this, _variables);
         }
 
         protected override void Normalize(ref LocalState state)
@@ -2624,7 +2624,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tryState = NonMonotonicState.Value;
                 if (tryState.HasVariable(slot))
                 {
-                    SetState(ref tryState, slot, newState.Join(GetState(ref tryState, slot)), useNotNullsAsDefault: true);
+                    Debug.Assert(tryState.NormalizeToBottom);
+                    SetState(ref tryState, slot, newState.Join(GetState(ref tryState, slot)));
                     NonMonotonicState = tryState;
                 }
             }
@@ -2701,7 +2702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
-            return LocalState.ReachableStateWithNotNulls(_variables);
+            return LocalState.ReachableState(_variables, normalizeToBottom: true);
         }
 
         private void EnterParameters()
@@ -3036,8 +3037,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Captured variables are joined with the state
             // at all the local function use sites (`localFunctionState.StartingState`)
-            // which starts as the bottom state ("not null").
+            // which starts as the bottom state ("not null", unreachable).
             var startingState = localFunctionState.StartingState;
+            startingState.Normalize(this, _variables);
             startingState.ForEach(
                 (slot, variables) =>
                 {
@@ -3176,7 +3178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             var localFunctionState = GetOrCreateLocalFuncUsages(symbol);
             var state = State.GetStateForVariables(localFunctionState.StartingState.Id);
-            if (Join(ref localFunctionState.StartingState, ref state) &&
+            var oldCapacity = localFunctionState.StartingState.Capacity;
+            if ((Join(ref localFunctionState.StartingState, ref state) ||
+                oldCapacity != localFunctionState.StartingState.Capacity) &&
                 localFunctionState.Visited)
             {
                 // If the starting state of the local function has changed and we've already visited
@@ -11694,6 +11698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The representation of a state is a bit vector with two bits per slot:
             // (false, false) => NotNull, (false, true) => MaybeNull, (true, true) => MaybeDefault.
             // Slot 0 is used to represent whether the state is reachable (true) or not.
+            // Slot 1 is used to represent whether the state should normalize to bottom (true) or not.
             private BitVector _state;
 
             private LocalState(int id, Boxed? container, BitVector state)
@@ -11716,69 +11721,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Reachable => _state[0];
 
-            public bool NormalizeToBottom => false;
+            public bool NormalizeToBottom => _state[1];
 
-            public static LocalState ReachableState(Variables variables)
+            public static LocalState ReachableState(Variables variables, bool normalizeToBottom = false)
             {
-                return CreateReachableOrUnreachableState(variables, reachable: true);
+                return CreateReachableOrUnreachableState(variables, normalizeToBottom: normalizeToBottom, reachable: true);
             }
 
-            public static LocalState UnreachableState(Variables variables)
+            public static LocalState UnreachableState(Variables variables, bool normalizeToBottom = false)
             {
-                return CreateReachableOrUnreachableState(variables, reachable: false);
+                return CreateReachableOrUnreachableState(variables, normalizeToBottom: normalizeToBottom, reachable: false);
             }
 
-            public static LocalState ReachableStateWithNotNulls(Variables variables)
+            private static LocalState CreateReachableOrUnreachableState(Variables variables, bool normalizeToBottom, bool reachable)
             {
                 var container = variables.Container is null ?
                     null :
-                    new Boxed(ReachableStateWithNotNulls(variables.Container));
+                    new Boxed(CreateReachableOrUnreachableState(variables.Container, normalizeToBottom: normalizeToBottom, reachable: reachable));
 
-                int capacity = variables.NextAvailableIndex;
-                return new LocalState(variables.Id, container, createBitVectorWithNotNulls(capacity, reachable: true));
-
-                static BitVector createBitVectorWithNotNulls(int capacity, bool reachable)
-                {
-                    BitVector state = BitVector.Create(capacity * 2);
-                    state[0] = reachable;
-
-                    for (int i = 1; i < capacity; i++)
-                    {
-                        var index = i * 2;
-                        state[index] = true;
-                        state[index + 1] = true;
-                    }
-                    return state;
-                }
-            }
-
-            private static LocalState CreateReachableOrUnreachableState(Variables variables, bool reachable)
-            {
-                var container = variables.Container is null ?
-                    null :
-                    new Boxed(CreateReachableOrUnreachableState(variables.Container, reachable));
-
-                return new LocalState(variables.Id, container, CreateBitVector(reachable));
+                return new LocalState(variables.Id, container, CreateBitVector(normalizeToBottom: normalizeToBottom, reachable: reachable));
             }
 
             public LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
-                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(reachable: true));
+                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(normalizeToBottom: false, reachable: true));
             }
 
-            private static BitVector CreateBitVector(bool reachable)
+            private static BitVector CreateBitVector(bool normalizeToBottom, bool reachable)
             {
-                BitVector state = BitVector.Create(2);
+                BitVector state = BitVector.Create(3);
                 state[0] = reachable;
+                state[1] = normalizeToBottom;
                 return state;
             }
 
-            private int Capacity => _state.Capacity / 2;
+            internal int Capacity => (_state.Capacity - 1) / 2;
 
             private void EnsureCapacity(int capacity)
             {
-                _state.EnsureCapacity(capacity * 2);
+                _state.EnsureCapacity(capacity * 2 + 1);
             }
 
             public bool HasVariable(int slot)
@@ -11803,10 +11785,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public void NormalizeIfNeeded(int slot, NullableWalker walker, Variables variables, bool useNotNullsAsDefault = false)
+            public void NormalizeIfNeeded(int slot, NullableWalker walker, Variables variables)
             {
                 if (!hasValue(ref this, slot))
-                    Normalize(walker, variables, useNotNullsAsDefault);
+                    Normalize(walker, variables);
 
                 static bool hasValue(ref LocalState state, int slot)
                 {
@@ -11832,26 +11814,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public void Normalize(NullableWalker walker, Variables variables, bool useNotNullsAsDefault = false)
+            public void Normalize(NullableWalker walker, Variables variables)
             {
                 if (Id != variables.Id)
                 {
                     Debug.Assert(Id < variables.Id);
-                    Normalize(walker, variables.Container!, useNotNullsAsDefault);
+                    Normalize(walker, variables.Container!);
                 }
                 else
                 {
-                    _container?.Value.Normalize(walker, variables.Container!, useNotNullsAsDefault);
+                    _container?.Value.Normalize(walker, variables.Container!);
                     int start = Capacity;
                     EnsureCapacity(variables.NextAvailableIndex);
-                    Populate(walker, start, useNotNullsAsDefault);
+                    Populate(walker, start, useNotNullsAsDefault: NormalizeToBottom);
                 }
             }
 
             public void PopulateAll(NullableWalker walker)
             {
                 _container?.Value.PopulateAll(walker);
-                Populate(walker, start: 1, useNotNullsAsDefault: false);
+                Populate(walker, start: 1, useNotNullsAsDefault: NormalizeToBottom);
             }
 
             private void Populate(NullableWalker walker, int start, bool useNotNullsAsDefault)
@@ -11896,7 +11878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(index < Capacity);
-                index *= 2;
+                index = index * 2 + 1;
                 Debug.Assert((_state[index], _state[index + 1]) != (false, false));
 
                 var result = (_state[index], _state[index + 1]) switch
@@ -11927,7 +11909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No states should be modified in unreachable code, as there is only one unreachable state.
                 if (!this.Reachable) return;
-                index *= 2;
+                index = index * 2 + 1;
 
                 (_state[index], _state[index + 1]) = value switch
                 {
@@ -12026,9 +12008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
-                builder.Append(" ");
-                int n = Math.Min(Capacity, 8);
-                for (int i = n - 1; i >= 0; i--)
+                builder.Append(Reachable ? "reachable " : "unreachable ");
+                builder.Append(NormalizeToBottom ? "not-null " : string.Empty);
+                int n = Capacity;
+                for (int i = 1; i < n; i++)
                 {
                     var mayBeNull = GetValue(i) is NullableFlowState.MaybeNull or NullableFlowState.MaybeDefault;
                     builder.Append(mayBeNull ? '?' : '!');
@@ -12099,7 +12082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
+            return new LocalFunctionState(LocalState.ReachableState(variables, normalizeToBottom: true));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>
