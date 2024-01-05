@@ -7,6 +7,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -16,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
     public class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
     {
         protected override TestWorkspace CreateWorkspace(string markup, ParseOptions options)
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
-                Document document, int position, CancellationToken cancellationToken = default)
+                Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
             {
                 var text = (await document.GetTextAsync(cancellationToken)).ToString();
                 var braces = GetMatchingBraces(text, position);
@@ -87,168 +89,168 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnBrace()
         {
             await TestBraceHighlightingAsync(
 "$$ <@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestOnLeftOfStartBrace()
         {
             await TestBraceHighlightingAsync(
 "$$[|<@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInsideStartBrace()
         {
             await TestBraceHighlightingAsync(
 "[|<$$@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnRightOfStartBrace()
         {
             await TestBraceHighlightingAsync(
 "<@$$    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace()
         {
             await TestBraceHighlightingAsync(
 "<@    $$@>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInsideCloseBrace()
         {
             await TestBraceHighlightingAsync(
 "[|<@|]    [|@$$>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestOnRightOfCloseBrace()
         {
             await TestBraceHighlightingAsync(
 "[|<@|]    [|@>$$|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotAfterBrace()
         {
             await TestBraceHighlightingAsync(
 "<@    @> $$");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnBrace2()
         {
             await TestBraceHighlightingAsync(
 "$$ <@    @><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestOnLeftOfStartBrace2()
         {
             await TestBraceHighlightingAsync(
 "$$[|<@|]    [|@>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInsideStartBrace2()
         {
             await TestBraceHighlightingAsync(
 "[|<$$@|]    [|@>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnRightOfStartBrace2()
         {
             await TestBraceHighlightingAsync(
 "<@$$    @><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotOnLeftOfCloseBrace2()
         {
             await TestBraceHighlightingAsync(
 "<@    $$@><@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInsideCloseBrace3()
         {
             await TestBraceHighlightingAsync(
 "[|<@|]    [|@$$>|]<@    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestOnRightOfCloseBrace2()
         {
             await TestBraceHighlightingAsync(
 "[|<@|]    [|@>|]$$[|<@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInSecondBracePair()
         {
             await TestBraceHighlightingAsync(
 "<@    @>[|<$$@|]    [|@>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotAfterSecondBracePairStart()
         {
             await TestBraceHighlightingAsync(
 "<@    @><@$$    @>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotBeforeSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
 "<@    @><@    $$@>");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestInSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
 "<@    @>[|<@|]    [|@$$>|]");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestAtSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(
 "<@    @>[|<@|]    [|@>|]$$");
         }
 
-        [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
+        [WpfFact]
         public async Task TestNotAfterSecondBracePairEnd()
         {
             await TestBraceHighlightingAsync(

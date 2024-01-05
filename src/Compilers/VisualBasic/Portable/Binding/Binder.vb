@@ -503,7 +503,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
-            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+            Dim result As NamedTypeSymbol = Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
+
+            Return If(result, New MissingMetadataTypeSymbol.TopLevel(Me.ContainingModule, emittedName))
         End Function
 
         ''' <summary>
@@ -575,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = member.GetUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
-                Symbol.MergeUseSiteInfo(useSiteInfo, member.ContainingType.GetUseSiteInfo(), highestPriorityUseSiteError:=0)
+                member.MergeUseSiteInfo(useSiteInfo, member.ContainingType.GetUseSiteInfo())
             End If
 
             Return useSiteInfo
@@ -941,30 +944,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Issue an error or warning for a symbol if it is Obsolete. If there is not enough
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
-        ''' Also, check runtime support for the symbol.
+        ''' Also, check runtime/language support for the symbol.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics As BindingDiagnosticBag, symbol As Symbol, node As SyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics As BindingDiagnosticBag, symbol As Symbol, node As SyntaxNode)
             If Not Me.SuppressObsoleteDiagnostics Then
                 ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
             End If
 
-            If symbol.Kind <> SymbolKind.Property AndAlso
+            If Not IsNameOfArgument(node) AndAlso
+               symbol.Kind <> SymbolKind.Property AndAlso
                Compilation.SourceModule IsNot symbol.ContainingModule AndAlso
-               If(symbol.ContainingType?.IsInterface, False) AndAlso
-               Not Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation Then
+               If(symbol.ContainingType?.IsInterface, False) Then
 
-                If Not symbol.IsShared AndAlso
-                   Not TypeOf symbol Is TypeSymbol AndAlso
-                   Not symbol.RequiresImplementation() Then
-                    ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation)
-                Else
-                    Select Case symbol.DeclaredAccessibility
-                        Case Accessibility.Protected,
+                If symbol.IsShared AndAlso
+                   symbol.RequiresImplementation() Then
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_BadAbstractStaticMemberAccess)
+
+                ElseIf Not Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation Then
+                    If Not symbol.IsShared AndAlso
+                       Not TypeOf symbol Is TypeSymbol AndAlso
+                       Not symbol.RequiresImplementation() Then
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation)
+                    Else
+                        Select Case symbol.DeclaredAccessibility
+                            Case Accessibility.Protected,
                              Accessibility.ProtectedOrInternal,
                              Accessibility.ProtectedAndInternal
 
-                            ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember)
-                    End Select
+                                ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember)
+                        End Select
+                    End If
                 End If
             End If
         End Sub

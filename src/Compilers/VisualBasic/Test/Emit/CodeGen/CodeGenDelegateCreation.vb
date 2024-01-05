@@ -190,7 +190,6 @@ End Class
                         Assert.Equal(expectedMethodImplFlags, methodImplFlags)
                         'Assert.True(CType(endInvoke, PEMethodSymbol).IsImplicitlyDeclared) ' does not work for PEMethodSymbols
 
-
                         ' --- test FuncGenDel methods -------------------------------------------------------------------------------------------
 
                         Dim subGenDel = [module].GlobalNamespace.GetTypeMembers("C1").Single().GetTypeMembers("SubGenDel").Single()
@@ -294,8 +293,6 @@ SubDel
     ]]>)
             Next
         End Sub
-
-
 
         ''' Bug 5987 "Target parameter of a delegate instantiation is not boxed in case of a structure"
         <Fact>
@@ -2146,7 +2143,6 @@ ByRefParamArraySubOfBase returned: 23 2 3
 
         End Sub
 
-
         <Fact>
         Public Sub CaptureReceiverUsedByStub()
             Dim source =
@@ -2345,7 +2341,6 @@ Structure S1
 End Structure
         </file>
     </compilation>
-
 
             CompileAndVerify(source,
                          expectedOutput:=<![CDATA[

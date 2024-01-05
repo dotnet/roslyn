@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis
         public abstract Encoding? Encoding { get; }
 
         /// <summary>
+        /// Useful information about this tree that is stored for source-generator scenarios.  Allows the incremental
+        /// generation framework to compute and cache data once against a tree so it does not have to go back to source
+        /// for untouched trees when other trees in the compilation are modified.
+        /// </summary>
+        private SourceGeneratorSyntaxTreeInfo _sourceGeneratorInfo = SourceGeneratorSyntaxTreeInfo.NotComputedYet;
+
+        /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
         /// <remarks>
@@ -220,12 +227,24 @@ namespace Microsoft.CodeAnalysis
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
         /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
-        /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
+        /// otherwise it's <see cref="FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
-        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
+        /// A location path is considered mapped if it is preceded by a line mapping directive that
+        /// either specifies an explicit file path or is <c>#line default</c>.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns empty sequence if there are no line mapping directives in the tree.
+        /// Otherwise, returns a sequence of pairs of spans: each describing a mapping of a span of the tree between two consecutive #line directives.
+        /// If the first directive is not on the first line the first pair describes mapping of the span preceding the first directive.
+        /// The last pair of the sequence describes mapping of the span following the last #line directive.
+        /// </summary>
+        /// <returns>
+        /// Empty sequence if the tree does not contain a line mapping directive.
+        /// Otherwise a non-empty sequence of <see cref="LineMapping"/>.
+        /// </returns>
+        public abstract IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the visibility for the line at the given position.
@@ -265,12 +284,26 @@ namespace Microsoft.CodeAnalysis
         internal string GetDisplayPath(TextSpan span, SourceReferenceResolver? resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
-            if (resolver == null || mappedSpan.Path.IsEmpty())
+            if (resolver is null || mappedSpan.Path.IsEmpty())
             {
                 return mappedSpan.Path;
             }
 
             return resolver.NormalizePath(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null) ?? mappedSpan.Path;
+        }
+
+        /// <summary>
+        /// Returns the path used for emit purposes. This takes into account /pathmap arguments passed into
+        /// the compiler.
+        /// </summary>
+        internal string GetNormalizedPath(SourceReferenceResolver? resolver)
+        {
+            if (resolver is null)
+            {
+                return FilePath;
+            }
+
+            return resolver.NormalizePath(FilePath, baseFilePath: null) ?? FilePath;
         }
 
         /// <summary>
@@ -386,6 +419,27 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool SupportsLocations
         {
             get { return this.HasCompilationUnitRoot; }
+        }
+
+        internal SourceGeneratorSyntaxTreeInfo GetSourceGeneratorInfo(
+            ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+        {
+            if (_sourceGeneratorInfo is SourceGeneratorSyntaxTreeInfo.NotComputedYet)
+            {
+                var root = this.GetRoot(cancellationToken);
+
+                var result = SourceGeneratorSyntaxTreeInfo.None;
+
+                if (syntaxHelper.ContainsGlobalAliases(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
+
+                if (syntaxHelper.ContainsAttributeList(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
+
+                _sourceGeneratorInfo = result;
+            }
+
+            return _sourceGeneratorInfo;
         }
     }
 }

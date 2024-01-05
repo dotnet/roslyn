@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Build;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Roslyn.Compilers.Extension
 {
@@ -21,8 +20,8 @@ namespace Roslyn.Compilers.Extension
     {
         [ImportingConstructor]
         [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-        public SetGlobalGlobalPropertiesForCPS(IProjectCommonServices commonServices)
-            : base(commonServices)
+        public SetGlobalGlobalPropertiesForCPS(IProjectService projectService)
+            : base(projectService.Services)
         {
         }
 

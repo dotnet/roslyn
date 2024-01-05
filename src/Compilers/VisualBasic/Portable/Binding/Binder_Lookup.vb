@@ -843,7 +843,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything)
             End Function
 
-
             ''' <summary>
             ''' Lookup a member name in a submission chain.
             ''' </summary>
@@ -979,7 +978,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End While
 
             End Sub
-
 
             ' See Semantics::LookupDefaultPropertyInInterface.
             Private Shared Sub LookupDefaultPropertyInInterface(
@@ -1336,7 +1334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Include "Value" for InternalXmlHelper.Value if necessary.
                 Dim compilation = binder.Compilation
-                Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies
+                Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies
                 If container.IsOrImplementsIEnumerableOfXElement(compilation, useSiteInfo) AndAlso useSiteInfo.Diagnostics.IsNullOrEmpty Then
                     nameSet.AddSymbol(Nothing, StringConstants.ValueProperty, 0)
                 End If
@@ -1577,7 +1575,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     Next
 ExitForFor:
-
                     If ambiguityDiagnostics IsNot Nothing Then
                         lookupResult.SetFrom(New SingleLookupResult(LookupResultKind.Ambiguous, symbols.First, ambiguityDiagnostics))
                     End If
@@ -1821,8 +1818,6 @@ ExitForFor:
                 CompactAndAppend(knownSymbols, newSymbols)
                 newResult.Clear()
             End Sub
-
-
 
             ''' <summary>
             ''' first.Where(t IsNot Nothing).Concat(second.Where(t IsNot Nothing))

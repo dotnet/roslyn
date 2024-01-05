@@ -6,7 +6,7 @@
 
 namespace AnalyzerRunner
 {
-    internal struct Statistic
+    internal readonly struct Statistic
     {
         public Statistic(int numberOfNodes, int numberOfTokens, int numberOfTrivia)
         {

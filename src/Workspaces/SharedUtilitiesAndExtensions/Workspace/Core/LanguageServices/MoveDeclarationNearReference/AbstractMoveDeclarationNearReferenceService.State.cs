@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TLocalDeclarationStatementSyntax node,
                 CancellationToken cancellationToken)
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
 
                 DeclarationStatement = node;
 
@@ -72,8 +73,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                OutermostBlock = syntaxFacts.GetStatementContainer(DeclarationStatement);
-                if (!syntaxFacts.IsExecutableBlock(OutermostBlock))
+                OutermostBlock = blockFacts.GetStatementContainer(DeclarationStatement);
+                if (!blockFacts.IsExecutableBlock(OutermostBlock))
                 {
                     return false;
                 }
@@ -113,14 +114,14 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                InnermostBlock = syntaxFacts.FindInnermostCommonExecutableBlock(referencingStatements);
+                InnermostBlock = blockFacts.FindInnermostCommonExecutableBlock(referencingStatements);
                 if (InnermostBlock == null)
                 {
                     return false;
                 }
 
-                InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(InnermostBlock);
-                OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(OutermostBlock);
+                InnermostBlockStatements = blockFacts.GetExecutableBlockStatements(InnermostBlock);
+                OutermostBlockStatements = blockFacts.GetExecutableBlockStatements(OutermostBlock);
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 for (var i = originalIndexInBlock; i < firstStatementIndexAffectedInBlock; i++)
                 {
-                    if (!(InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
+                    if (InnermostBlockStatements[i] is not TLocalDeclarationStatementSyntax)
                     {
                         return false;
                     }

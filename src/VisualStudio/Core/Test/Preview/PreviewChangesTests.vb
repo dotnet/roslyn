@@ -59,7 +59,7 @@ Class C
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestListStructure_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -166,7 +166,7 @@ Class C
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestCheckedItems_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -311,7 +311,7 @@ End Class
             End Using
         End Sub
 
-        Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
+        Private Shared Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
             Dim flatteningResult = New List(Of Tuple(Of String, Integer))()
             FlattenTree(topLevelList, flatteningResult, 0)
 
@@ -322,7 +322,7 @@ End Class
             Next
         End Sub
 
-        Private Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
+        Private Shared Sub FlattenTree(list As ChangeList, result As List(Of Tuple(Of String, Integer)), depth As Integer)
             For Each change In list.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)
@@ -336,7 +336,7 @@ End Class
 
         ' Check each of the most-nested children whose names appear in checkItems.
         ' Uncheck the rest
-        Private Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
+        Private Shared Sub SetCheckedChildren(checkedItems As List(Of String), topLevelList As ChangeList)
             For Each change In topLevelList.Changes
                 Dim text As String = Nothing
                 change.GetText(Nothing, text)
@@ -357,19 +357,19 @@ End Class
             Next
         End Sub
 
-        Private Sub AssertChildCount(list As ChangeList, count As UInteger)
+        Private Shared Sub AssertChildCount(list As ChangeList, count As UInteger)
             Dim actualCount As UInteger = Nothing
             list.GetItemCount(actualCount)
             Assert.Equal(count, actualCount)
         End Sub
 
-        Private Sub AssertChildText(list As ChangeList, index As UInteger, text As String)
+        Private Shared Sub AssertChildText(list As ChangeList, index As UInteger, text As String)
             Dim actualText As String = Nothing
             list.GetText(index, Nothing, actualText)
             Assert.Equal(text, actualText)
         End Sub
 
-        Private Sub AssertSomeChild(list As ChangeList, text As String)
+        Private Shared Sub AssertSomeChild(list As ChangeList, text As String)
             Dim count As UInteger = Nothing
             list.GetItemCount(count)
             For i As UInteger = 0 To count

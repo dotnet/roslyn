@@ -173,7 +173,11 @@
                      ERRID.WRN_AttributeNotSupportedInVB,
                      ERRID.WRN_GeneratorFailedDuringInitialization,
                      ERRID.WRN_GeneratorFailedDuringGeneration,
-                     ERRID.WRN_AnalyzerReferencesFramework
+                     ERRID.WRN_AnalyzerReferencesFramework,
+                     ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
+                     ERRID.WRN_AnalyzerReferencesNewerCompiler,
+                     ERRID.WRN_DuplicateAnalyzerReference
                     Return True
                 Case Else
                     Return False

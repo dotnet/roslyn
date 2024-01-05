@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IBoundDiscardOperation : SemanticModelTestBase
     {
         [Fact]
         public void DiscardExpression_AsAssignment()

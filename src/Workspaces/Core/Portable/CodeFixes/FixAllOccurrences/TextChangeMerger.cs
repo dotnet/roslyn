@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public TextChangeMerger(Document document)
         {
             _oldDocument = document;
-            _differenceService = document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            _differenceService = document.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // WithChanges requires a ordered list of TextChanges without any overlap.
             var changesToApply = _totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
 
-            var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldText = await _oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = oldText.WithChanges(changesToApply);
 
             return newText;

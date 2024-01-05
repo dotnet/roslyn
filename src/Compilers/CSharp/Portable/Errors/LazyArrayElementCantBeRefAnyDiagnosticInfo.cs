@@ -19,6 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _possiblyRestrictedTypeSymbol = possiblyRestrictedTypeSymbol;
         }
 
+        private LazyArrayElementCantBeRefAnyDiagnosticInfo(LazyArrayElementCantBeRefAnyDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _possiblyRestrictedTypeSymbol = original._possiblyRestrictedTypeSymbol;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyArrayElementCantBeRefAnyDiagnosticInfo(this, severity);
+        }
+
         protected override DiagnosticInfo ResolveInfo()
         {
             if (_possiblyRestrictedTypeSymbol.IsRestrictedType())

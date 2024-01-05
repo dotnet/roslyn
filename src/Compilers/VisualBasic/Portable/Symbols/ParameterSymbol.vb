@@ -266,16 +266,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property IsCallerFilePath As Boolean
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        ''' <summary>
+        ''' The index of the parameter which CallerArgumentExpressionAttribute points to.
+        ''' </summary>
+        ''' <remarks>
+        ''' Returns -1 if there is no valid CallerArgumentExpressionAttribute.
+        ''' The situation is different for reduced extension method parameters, where a value
+        ''' of -2 is returned for no valid attribute, -1 for 'Me' parameter, and the reduced index (i.e, the original index minus 1) otherwise.
+        ''' </remarks>
+        Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
 
-        Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me, HighestPriorityUseSiteError).DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
+                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me).DiagnosticInfo
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -287,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind
+        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind, IParameterSymbolInternal.RefKind
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
                 ' that case?
@@ -295,7 +303,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IParameterSymbol_ScopedKind As ScopedKind Implements IParameterSymbol.ScopedKind
+            Get
+                Return ScopedKind.None
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterSymbol_Type As ITypeSymbol Implements IParameterSymbol.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IParameterSymbolInternal_Type As ITypeSymbolInternal Implements IParameterSymbolInternal.Type
             Get
                 Return Me.Type
             End Get
@@ -355,6 +375,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitParameter(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitParameter(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

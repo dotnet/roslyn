@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
 
-        public bool Equals(ISymbol x, ISymbol y)
+        public bool Equals(ISymbol? x, ISymbol? y)
         {
             // If either symbol is from source, then we must do stricter equality. Consider this:
             //
@@ -50,6 +48,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool IsInSource(ISymbol symbol)
-            => symbol.Locations.Any(l => l.IsInSource);
+            => symbol.Locations.Any(static l => l.IsInSource);
     }
 }

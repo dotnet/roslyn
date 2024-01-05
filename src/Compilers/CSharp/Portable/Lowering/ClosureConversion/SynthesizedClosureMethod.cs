@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId topLevelMethodId,
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
-            DebugId lambdaId)
+            DebugId lambdaId,
+            TypeCompilationState compilationState)
             : base(containingType,
                    originalMethod,
                    blockSyntax,
@@ -38,8 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod is LocalFunctionSymbol
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   MakeDeclarationModifiers(closureKind, originalMethod))
+                   MakeDeclarationModifiers(closureKind, originalMethod),
+                   isIterator: originalMethod.IsIterator)
         {
+            Debug.Assert(containingType.DeclaringCompilation is not null);
+
             TopLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;
@@ -100,9 +104,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+            EnsureAttributesExist(compilationState);
 
             // static local functions should be emitted as static.
             Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
+        }
+
+        private void EnsureAttributesExist(TypeCompilationState compilationState)
+        {
+            var moduleBuilder = compilationState.ModuleBuilderOpt;
+            if (moduleBuilder is null)
+            {
+                return;
+            }
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                moduleBuilder.EnsureIsReadOnlyAttributeExists();
+            }
+
+            ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
+
+            if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
+            {
+                if (ReturnType.ContainsNativeIntegerWrapperType())
+                {
+                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                }
+
+                ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+            }
+
+            ParameterHelpers.EnsureScopedRefAttributeExists(moduleBuilder, Parameters);
+
+            if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
+            {
+                if (ShouldEmitNullableContextValue(out _))
+                {
+                    moduleBuilder.EnsureNullableContextAttributeExists();
+                }
+
+                if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+                {
+                    moduleBuilder.EnsureNullableAttributeExists();
+                }
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
@@ -168,9 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ImmutableArray<TypeSymbol>.CastUp(_structEnvironments);
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
-        internal override bool InheritsBaseMethodAttributes => BaseMethod is LocalFunctionSymbol;
+        internal override bool InheritsBaseMethodAttributes => true;
         internal override bool GenerateDebugInfo => !this.IsAsync;
-        internal override bool IsExpressionBodied => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
@@ -185,5 +232,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
         public ClosureKind ClosureKind { get; }
+
+        internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

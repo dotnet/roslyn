@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportArgumentProvider(nameof(DefaultArgumentProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ContextVariableArgumentProvider))]
+    [ExtensionOrder(After = nameof(OutVariableArgumentProvider))]
     [Shared]
     internal sealed class DefaultArgumentProvider : AbstractDefaultArgumentProvider
     {

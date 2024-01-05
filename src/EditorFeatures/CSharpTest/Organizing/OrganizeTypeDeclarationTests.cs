@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         public async Task TestFieldsWithoutInitializers1(string typeKind)
         {
             var initial =
@@ -38,6 +40,30 @@ $@"{typeKind} C {{
     int A;
     int B;
     int C;
+}}";
+            await CheckAsync(initial, final);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestNestedTypes(string typeKind)
+        {
+            var initial =
+$@"class C {{
+    {typeKind} Nested1 {{ }}
+    {typeKind} Nested2 {{ }}
+    int A;
+}}";
+
+            var final =
+$@"class C {{
+    int A;
+    {typeKind} Nested1 {{ }}
+    {typeKind} Nested2 {{ }}
 }}";
             await CheckAsync(initial, final);
         }
@@ -66,6 +92,7 @@ $@"{typeKind} C {{
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record struct")]
         public async Task TestFieldsWithInitializers1(string typeKind)
         {
             var initial =
@@ -287,6 +314,7 @@ $@"{typeKind} C {{
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record struct")]
         public async Task TestAccessibility(string typeKind)
         {
             var initial =
@@ -712,8 +740,7 @@ $@"{typeKind} C {{
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods1(string typeKind)
@@ -744,8 +771,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods2(string typeKind)
@@ -778,8 +804,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods3(string typeKind)
@@ -812,8 +837,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods4(string typeKind)
@@ -848,8 +872,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods5(string typeKind)
@@ -886,8 +909,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestWhitespaceBetweenMethods6(string typeKind)
@@ -926,8 +948,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveComments1(string typeKind)
@@ -960,8 +981,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveComments2(string typeKind)
@@ -996,8 +1016,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveDocComments1(string typeKind)
@@ -1030,8 +1049,7 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestMoveDocComments2(string typeKind)
@@ -1066,11 +1084,10 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner(string typeKind)
+        public async Task TestDoNotMoveBanner(string typeKind)
         {
             var initial =
 $@"{typeKind} Program
@@ -1102,11 +1119,10 @@ $@"{typeKind} Program
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner2(string typeKind)
+        public async Task TestDoNotMoveBanner2(string typeKind)
         {
             var initial =
 $@"{typeKind} Program
@@ -1149,15 +1165,16 @@ $@"{typeKind} Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse("""
                 <Workspace>
-                    <Submission Language=""C#"" CommonReferences=""true"">  
+                    <Submission Language="C#" CommonReferences="true">
                         class C
                         {
                             object $$goo;
                         }
                     </Submission>
-                </Workspace> "),
+                </Workspace>
+                """),
                 workspaceKind: WorkspaceKind.Interactive,
                 composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
@@ -1165,7 +1182,10 @@ $@"{typeKind} Program
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new OrganizeDocumentCommandHandler(workspace.ExportProvider.GetExportedValue<IThreadingContext>());
+            var handler = new OrganizeDocumentCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GlobalOptions,
+                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

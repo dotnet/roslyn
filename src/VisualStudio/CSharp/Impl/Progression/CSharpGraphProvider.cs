@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,9 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             IThreadingContext threadingContext,
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            IProgressionPrimaryWorkspaceProvider workspaceProvider,
+            VisualStudioWorkspace workspace,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+            : base(threadingContext, glyphService, serviceProvider, workspace, streamingPresenter, listenerProvider)
         {
         }
     }

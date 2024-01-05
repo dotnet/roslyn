@@ -88,6 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                             collection.Add(item2)
                         End If
                     Next
+
                     Exit For
                 End If
             Next

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +12,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
     internal static partial class BaseTypeFinder
     {
-        public static ImmutableArray<ISymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
-            => FindBaseTypes(type).AddRange(type.AllInterfaces).CastArray<ISymbol>();
+        public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+            => FindBaseTypes(type).AddRange(type.AllInterfaces);
 
         public static async ValueTask<ImmutableArray<ISymbol>> FindOverriddenAndImplementedMembersAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)

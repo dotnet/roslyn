@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,10 +44,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             string typeName,
-            INamedTypeSymbol containingTypeOpt,
+            INamedTypeSymbol? containingType,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableDictionary<string, ISymbol> parameterToExistingMemberMap,
-            ImmutableDictionary<string, string> parameterToNewMemberMap,
+            Accessibility accessibility,
+            ImmutableDictionary<string, ISymbol>? parameterToExistingMemberMap,
+            ImmutableDictionary<string, string>? parameterToNewMemberMap,
             bool addNullChecks,
             bool preferThrowExpression,
             bool generateProperties,
@@ -63,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
-                accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
+                accessibility: accessibility,
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingMemberMap)
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
                     ? ImmutableArray<SyntaxNode>.Empty
                     : default);
 
@@ -76,21 +77,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool ShouldGenerateThisConstructorCall(
-            INamedTypeSymbol containingTypeOpt,
-            IDictionary<string, ISymbol> parameterToExistingFieldMap)
+            INamedTypeSymbol? containingType,
+            IDictionary<string, ISymbol>? parameterToExistingFieldMap)
         {
-            if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
+            if (containingType?.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
                 // to initialize all fields in the struct, not just the ones we're creating.
                 // If there is any field or auto-property not being set by a parameter, we
                 // call the default constructor.
 
-                return containingTypeOpt.GetMembers()
+                return containingType.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(field => !field.IsStatic)
                     .Select(field => field.AssociatedSymbol ?? field)
-                    .Except(parameterToExistingFieldMap.Values)
+                    .Except(parameterToExistingFieldMap?.Values ?? SpecializedCollections.EmptyEnumerable<ISymbol>())
                     .Any();
             }
 
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap, bool isContainedInUnsafeType)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap, bool isContainedInUnsafeType)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.ToImmutable();
         }
 
-        private static bool TryGetValue(IDictionary<string, string> dictionary, string key, out string value)
+        private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)
         {
             value = null;
             return
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 dictionary.TryGetValue(key, out value);
         }
 
-        private static bool TryGetValue(IDictionary<string, ISymbol> dictionary, string key, out string value)
+        private static bool TryGetValue(IDictionary<string, ISymbol>? dictionary, string key, [NotNullWhen(true)] out string? value)
         {
             value = null;
             if (dictionary != null && dictionary.TryGetValue(key, out var symbol))
@@ -173,36 +174,47 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
-            => factory.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+        {
+            var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+            Contract.ThrowIfNull(type);
+            return factory.ObjectCreationExpression(type,
                 factory.NameOfExpression(
-                    factory.IdentifierName(parameter.Name)));
+                    factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
+        }
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             IParameterSymbol parameter)
         {
-            var identifier = factory.IdentifierName(parameter.Name);
+            var condition = factory.CreateNullCheckExpression(semanticModel, parameter.Name);
+            var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
+
+            // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
+            return factory.IfStatement(
+                condition,
+                SpecializedCollections.SingletonEnumerable(throwStatement));
+        }
+
+        public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowStatement(CreateNewArgumentNullException(factory, compilation, parameter));
+
+        public static SyntaxNode CreateNullCheckExpression(this SyntaxGenerator factory, SemanticModel semanticModel, string identifierName)
+        {
+            var identifier = factory.IdentifierName(identifierName);
             var nullExpr = factory.NullLiteralExpression();
             var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
                 ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
-
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return factory.IfStatement(
-               condition,
-                SpecializedCollections.SingletonEnumerable(
-                    factory.ThrowStatement(CreateNewArgumentNullException(
-                        factory, semanticModel.Compilation, parameter))));
+            return condition;
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, ISymbol> parameterToExistingFieldMap,
-            IDictionary<string, string> parameterToNewFieldMap,
+            IDictionary<string, ISymbol>? parameterToExistingFieldMap,
+            IDictionary<string, string>? parameterToNewFieldMap,
             bool addNullChecks,
             bool preferThrowExpression)
         {
@@ -306,8 +318,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
 
-            SyntaxNode getBody;
-            SyntaxNode setBody;
+            SyntaxNode? getBody;
+            SyntaxNode? setBody;
             // Implement an abstract property by throwing not implemented in accessors.
             if (overriddenProperty.IsAbstract)
             {
@@ -338,8 +350,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp
-                    && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
-                        .Language == LanguageNames.VisualBasic)
+                    && await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false) is { Language: LanguageNames.VisualBasic })
                 {
                     var getName = overriddenProperty.GetMethod?.Name;
                     var setName = overriddenProperty.SetMethod?.Name;
@@ -399,26 +410,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Only generate a getter if the base getter is accessible.
-            IMethodSymbol accessorGet = null;
+            IMethodSymbol? accessorGet = null;
             if (overriddenProperty.GetMethod != null && overriddenProperty.GetMethod.IsAccessibleWithin(containingType))
             {
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: ImmutableArray.Create(getBody),
+                    statements: getBody != null ? ImmutableArray.Create(getBody) : ImmutableArray<SyntaxNode>.Empty,
                     modifiers: modifiers);
             }
 
             // Only generate a setter if the base setter is accessible.
-            IMethodSymbol accessorSet = null;
-            if (overriddenProperty.SetMethod != null &&
-                overriddenProperty.SetMethod.IsAccessibleWithin(containingType) &&
-                overriddenProperty.SetMethod.DeclaredAccessibility != Accessibility.Private)
+            IMethodSymbol? accessorSet = null;
+            if (overriddenProperty.SetMethod is { DeclaredAccessibility: not Accessibility.Private } &&
+                overriddenProperty.SetMethod.IsAccessibleWithin(containingType))
             {
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: ImmutableArray.Create(setBody),
+                    statements: setBody != null ? ImmutableArray.Create(setBody) : ImmutableArray<SyntaxNode>.Empty,
                     modifiers: modifiers);
             }
 
@@ -457,10 +467,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol,
             INamedTypeSymbol containingType,
             Document document,
-            DeclarationModifiers? modifiersOpt = null,
+            DeclarationModifiers extraDeclarationModifiers = default,
             CancellationToken cancellationToken = default)
         {
-            var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
+            var modifiers = GetOverrideModifiers(symbol) + extraDeclarationModifiers;
 
             if (symbol is IMethodSymbol method)
             {
@@ -478,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -496,6 +506,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Document newDocument,
             CancellationToken cancellationToken)
         {
+            // Required is not a valid modifier for methods, so clear it if the user typed it
+            modifiers = modifiers.WithIsRequired(false);
+
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {
@@ -541,17 +554,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode GenerateDelegateThroughMemberStatement(
             this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
         {
-            var through = CreateDelegateThroughExpression(generator, method, throughMember);
+            var through = generator.MemberAccessExpression(
+                CreateDelegateThroughExpression(generator, method, throughMember),
+                method.IsGenericMethod
+                    ? generator.GenericName(method.Name, method.TypeArguments)
+                    : generator.IdentifierName(method.Name));
 
-            var memberName = method.IsGenericMethod
-                ? generator.GenericName(method.Name, method.TypeArguments)
-                : generator.IdentifierName(method.Name);
-
-            through = generator.MemberAccessExpression(through, memberName);
-
-            var arguments = generator.CreateArguments(method.Parameters.As<IParameterSymbol>());
-            var invocationExpression = generator.InvocationExpression(through, arguments);
-
+            var invocationExpression = generator.InvocationExpression(through, generator.CreateArguments(method.Parameters));
             return method.ReturnsVoid
                 ? generator.ExpressionStatement(invocationExpression)
                 : generator.ReturnStatement(invocationExpression);
@@ -560,15 +569,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode CreateDelegateThroughExpression(
             this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
         {
+            var name = generator.IdentifierName(throughMember.Name);
             var through = throughMember.IsStatic
                 ? GenerateContainerName(generator, throughMember)
-                : generator.ThisExpression();
+                // If we're delegating through a primary constructor parameter, we cannot qualify the name at all.
+                : throughMember is IParameterSymbol
+                    ? null
+                    : generator.ThisExpression();
 
-            through = generator.MemberAccessExpression(
-                through, generator.IdentifierName(throughMember.Name));
+            through = through is null ? name : generator.MemberAccessExpression(through, name);
 
             var throughMemberType = throughMember.GetMemberType();
-            if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
+            if (throughMemberType != null &&
+                member.ContainingType is { TypeKind: TypeKind.Interface } interfaceBeingImplemented)
             {
                 // In the case of 'implement interface through field / property', we need to know what
                 // interface we are implementing so that we can insert casts to this interface on every
@@ -592,22 +605,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // in the Implements clause. For the purposes of inserting the above cast, we ignore the
                 // uncommon case and optimize for the common one - in other words, we only apply the cast
                 // in cases where we can unambiguously figure out which interface we are trying to implement.
-                var interfaceBeingImplemented = member.ContainingType;
                 if (!throughMemberType.Equals(interfaceBeingImplemented))
                 {
                     through = generator.CastExpression(interfaceBeingImplemented,
                         through.WithAdditionalAnnotations(Simplifier.Annotation));
                 }
-                else if (!throughMember.IsStatic &&
-                    throughMember is IPropertySymbol throughMemberProperty &&
-                    throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                else if (throughMember is IPropertySymbol { IsStatic: false, ExplicitInterfaceImplementations: [var explicitlyImplementedProperty, ..] })
                 {
                     // If we are implementing through an explicitly implemented property, we need to cast 'this' to
                     // the explicitly implemented interface type before calling the member, as in:
                     //       ((IA)this).Prop.Member();
                     //
-                    var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
-
                     var explicitImplementationCast = generator.CastExpression(
                         explicitlyImplementedProperty.ContainingType,
                         generator.ThisExpression());
@@ -634,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
             this SyntaxGenerator generator, Compilation compilation,
-            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+            IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
         {
             if (throughMember != null)
             {
@@ -646,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 
@@ -658,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
             this SyntaxGenerator generator, Compilation compilation,
-            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+            IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
         {
             if (throughMember != null)
             {
@@ -670,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 

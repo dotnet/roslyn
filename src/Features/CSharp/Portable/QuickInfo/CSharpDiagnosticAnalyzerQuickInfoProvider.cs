@@ -25,24 +25,28 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     // This provider needs to run before the semantic quick info provider, because of the SuppressMessage attribute handling
     // If it runs after it, BuildQuickInfoAsync is not called. This is not covered by a test.
     [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
-    internal class CSharpDiagnosticAnalyzerQuickInfoProvider : CommonQuickInfoProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
     {
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpDiagnosticAnalyzerQuickInfoProvider(IDiagnosticAnalyzerService diagnosticAnalyzerService)
-        {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
-        }
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+            QuickInfoContext context,
+            SyntaxToken token)
         {
+            var document = context.Document;
             return GetQuickinfoForPragmaWarning(document, token) ??
-                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
+                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, context.CancellationToken).ConfigureAwait(false));
+        }
+
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context,
+            SyntaxToken token)
+        {
+            // TODO: This provider currently needs access to Document/Project to compute applicable analyzers
+            //       and provide quick info, which is not available in CommonQuickInfoContext.
+            return Task.FromResult<QuickInfoItem?>(null);
         }
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
                 // case 0219 or 219:
                 // Take the number and add the "CS" prefix.
-                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal
+                LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression) literal
                     => int.TryParse(literal.Token.ValueText, out var errorCodeNumber)
                         ? $"CS{errorCodeNumber:0000}"
                         : literal.Token.ValueText,
@@ -129,9 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             string errorCode, TextSpan location)
         {
-            var infoCache = _diagnosticAnalyzerService.AnalyzerInfoCache;
-            var hostAnalyzers = document.Project.Solution.State.Analyzers;
-            var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, document.Project).Values;
+            var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
+            var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
             var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
             if (diagnosticDescriptor != null)

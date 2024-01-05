@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return r.CompileResult;
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
             internal readonly CompileResult CompileResult;
             internal readonly CompilationTestData TestData;
@@ -499,29 +499,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return ModuleInstance.Create(peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
-        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-            }
-        }
-
-        internal static Guid GetModuleVersionId(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.GetModuleVersionIdOrThrow();
-            }
-        }
-
-        private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
-        {
-            // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
-        }
-
         internal static void VerifyLocal<TMethodSymbol>(
             this CompilationTestData testData,
             string typeName,
@@ -597,7 +574,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([importStrings]).Build() },
                 }.ToImmutableDictionary());
             }
         }
@@ -782,9 +759,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var parameters = signature.Substring(parameterListStart + 1, signature.Length - parameterListStart - 2);
             var methodName = signature.Substring(0, parameterListStart);
-            parameterTypeNames = (parameters.Length == 0) ?
-                new string[0] :
-                parameters.Split(',');
+            parameterTypeNames = (parameters.Length == 0)
+                ? new string[0]
+                : parameters.Split(',');
             return methodName;
         }
 
@@ -841,7 +818,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         () => peStream,
                         () => pdbStream,
                         nativePdbWriterOpt: null,
-                        pdbOptionsBlobReader: null,
                         pdbPathOpt: null,
                         metadataOnly: true,
                         isDeterministic: false,

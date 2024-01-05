@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
                          "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
 
-            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
+            if (!TryEmitOptimizedReadonlySpanCreation(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
             {
                 // there are several reasons that could prevent us from emitting a wrapper
                 // in such case we just emit the operand and then invoke the conversion method 
@@ -154,9 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         default:
                             Debug.Assert(IsNumeric(fromType));
                             Debug.Assert(
-                                (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerType ||
+                                (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerWrapperType ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer ||
+                                (fromPredefTypeKind == Cci.PrimitiveTypeCode.IntPtr && conversion.Operand is BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Division })); // pointer subtraction: see LocalRewriter.RewritePointerSubtraction()
                             break;
                     }
 #endif
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // doing this or marking somewhere else that this is necessary.
 
                         // Don't need to do this for constants, however.
-                        if (conversion.Operand.ConstantValue == null)
+                        if (conversion.Operand.ConstantValueOpt == null)
                         {
                             EmitNumericConversion(conversion);
                         }
@@ -324,6 +325,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (isStatic)
             {
                 _builder.EmitNullConstant();
+
+                if (method.IsAbstract || method.IsVirtual)
+                {
+                    if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(receiver.Type, receiver.Syntax);
+                }
             }
             else
             {
@@ -339,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Metadata Spec (II.14.6):
             //   Delegates shall be declared sealed.
             //   The Invoke method shall be virtual.
-            if (method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
+            if (!method.IsStatic && method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
             {
                 // NOTE: method.IsMetadataVirtual -> receiver != null
                 _builder.EmitOpCode(ILOpCode.Dup);

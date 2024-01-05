@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private DocumentState DocumentState => (DocumentState)State;
+        internal DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -155,9 +155,11 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned syntax tree can be <see langword="null"/> if the <see
-        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>. This function will return
-        /// the same value if called multiple times.
+        /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
+        /// langword="false"/>. This function may cause computation to occur the first time it is called, but will return
+        /// a cached result every subsequent time.  <see cref="SyntaxTree"/>'s can hold onto their roots lazily. So calls 
+        /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
+        /// to occur at that point.
         /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
@@ -170,10 +172,9 @@ namespace Microsoft.CodeAnalysis
             // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
+
             // check to see if we already have the tree before actually going async
             if (TryGetSyntaxTree(out var tree))
             {
@@ -182,15 +183,11 @@ namespace Microsoft.CodeAnalysis
                 // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
                 Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
 
             // do it async for real.
-            // GetSyntaxTreeAsync returns a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-            // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask()!;
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
         }
 
         internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -283,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
@@ -310,9 +307,9 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -408,15 +405,15 @@ namespace Microsoft.CodeAnalysis
                         return tree.GetChanges(oldTree);
                     }
 
-                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -428,8 +425,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
         {
-            var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language);
+            var filteredDocumentIds = this.Project.Solution.GetRelatedDocumentIds(this.Id);
             return filteredDocumentIds.Remove(this.Id);
         }
 
@@ -440,18 +436,15 @@ namespace Microsoft.CodeAnalysis
         ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
-            var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's
-            // primary branch and there is actual background compilation going on, since w/o
+            // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (solution.BranchId == workspace.PrimaryBranchId &&
-                workspace.PartialSemanticsEnabled &&
+            if (solution.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
@@ -466,6 +459,7 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
             => this.Name;
 
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compat)
         private AsyncLazy<DocumentOptionSet>? _cachedOptions;
 
         /// <summary>
@@ -475,19 +469,12 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
-        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
-            => GetOptionsAsync(Project.Solution.Options, cancellationToken);
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", AllowCaptures = false)]
-        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet solutionOptions, CancellationToken cancellationToken)
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
         {
-            // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
-            //       this doesn't validate whether same optionset is given to invalidate the cache or not. this is not new since existing implementation
-            //       also didn't check whether Workspace.Option is same as before or not. all weird-ness come from the root cause of Solution.Options violating
-            //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions);
+                InitializeCachedOptions(Project.Solution.Options);
             }
 
             Contract.ThrowIfNull(_cachedOptions);
@@ -496,48 +483,20 @@ namespace Microsoft.CodeAnalysis
 
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
-            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+            var newAsyncLazy = AsyncLazy.Create(async cancellationToken =>
             {
-                var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
-                return new DocumentOptionSet(documentOptionSet, Project.Language);
-            }, cacheResult: true);
+                var options = await GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+                return new DocumentOptionSet(options, solutionOptions, Project.Language);
+            });
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
+#pragma warning restore
 
-        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        internal async ValueTask<StructuredAnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
         {
-            var projectFilePath = Project.FilePath;
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-            string? effectiveFilePath = null;
-
-            if (FilePath != null)
-            {
-                effectiveFilePath = FilePath;
-            }
-            else if (Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
-                }
-            }
-
-            if (effectiveFilePath != null)
-            {
-                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
-            }
-            else
-            {
-                // Really no idea where this is going, so bail
-                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
-                return Task.FromResult(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer));
-            }
+            var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
         }
     }
 }

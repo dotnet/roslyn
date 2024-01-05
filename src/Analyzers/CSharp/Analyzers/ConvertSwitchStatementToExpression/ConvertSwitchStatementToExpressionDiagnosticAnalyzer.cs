@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,50 +24,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
                 EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            => context.RegisterCompilationStartAction(context =>
+            {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp8)
+                    return;
+
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var switchStatement = context.Node;
-            if (switchStatement.ContainsDirectives)
-            {
-                return;
-            }
-
-            var syntaxTree = switchStatement.SyntaxTree;
-
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
-
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
-            if (!styleOption.Value)
+            var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
             }
 
+            var switchStatement = context.Node;
             if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }
 
-            var (nodeToGenerate, declaratorToRemoveOpt) =
-                Analyzer.Analyze(
-                    (SwitchStatementSyntax)switchStatement,
-                    context.SemanticModel,
-                    out var shouldRemoveNextStatement);
+            var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
+                (SwitchStatementSyntax)switchStatement,
+                context.SemanticModel,
+                out var shouldRemoveNextStatement);
             if (nodeToGenerate == default)
             {
                 return;
@@ -80,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
-                effectiveSeverity: styleOption.Notification.Severity,
+                notificationOption: styleOption.Notification,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
-                properties: ImmutableDictionary<string, string>.Empty
+                properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
         }

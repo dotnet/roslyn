@@ -7,60 +7,68 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentReferencesName)]
+    internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindAllReferencesHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public FindAllReferencesHandler(
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            IGlobalOptionService globalOptions)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _globalOptions = globalOptions;
         }
 
-        public override string Method => LSP.Methods.TextDocumentReferencesName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
-
-        public override async Task<LSP.VSReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
+            ReferenceParams referenceParams,
+            RequestContext context,
+            CancellationToken cancellationToken)
         {
-            Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
-
             var document = context.Document;
-            if (document == null)
-            {
-                return Array.Empty<LSP.VSReferenceItem>();
-            }
+            var workspace = context.Workspace;
+            Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<VSReferenceItem>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>[]>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new FindUsagesLSPContext(
-                progress, document, position, _metadataAsSourceFileService, cancellationToken);
+                progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
-            await findUsagesService.FindReferencesAsync(document, position, findUsagesContext).ConfigureAwait(false);
-            await findUsagesContext.OnCompletedAsync().ConfigureAwait(false);
+            await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
+            await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,23 +22,27 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
+            /// <summary>
+            /// This code action may or may not add a project reference.  If it does, it requires a non document change
+            /// (and is thus restricted in which hosts it can run).  If it doesn't, it can run anywhere.
+            /// </summary>
             public ProjectSymbolReferenceCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                : base(originalDocument,
+                       fixData,
+                       additionalTags: ShouldAddProjectReference(originalDocument, fixData) ? RequiresNonDocumentChangeTags : ImmutableArray<string>.Empty)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
             }
 
-            private bool ShouldAddProjectReference()
-                => FixData.ProjectReferenceToAdd != null && FixData.ProjectReferenceToAdd != OriginalDocument.Project.Id;
+            private static bool ShouldAddProjectReference(Document originalDocument, AddImportFixData fixData)
+                => fixData.ProjectReferenceToAdd != null && fixData.ProjectReferenceToAdd != originalDocument.Project.Id;
 
             protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
             {
-                if (!ShouldAddProjectReference())
-                {
+                if (!ShouldAddProjectReference(this.OriginalDocument, this.FixData))
                     return SpecializedTasks.Null<CodeActionOperation>();
-                }
 
                 var projectWithAddedReference = project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
                 var applyOperation = new ApplyChangesOperation(projectWithAddedReference.Solution);
@@ -48,18 +54,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
             }
 
-            private sealed class AddProjectReferenceCodeActionOperation : CodeActionOperation
+            private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
             {
-                private readonly ProjectId _referencingProject;
-                private readonly ProjectId _referencedProject;
-                private readonly ApplyChangesOperation _applyOperation;
-
-                public AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation)
-                {
-                    _referencingProject = referencingProject;
-                    _referencedProject = referencedProject;
-                    _applyOperation = applyOperation;
-                }
+                private readonly ProjectId _referencingProject = referencingProject;
+                private readonly ProjectId _referencedProject = referencedProject;
+                private readonly ApplyChangesOperation _applyOperation = applyOperation;
 
                 internal override bool ApplyDuringTests => true;
 
@@ -71,12 +70,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                     _applyOperation.Apply(workspace, cancellationToken);
                 }
 
-                internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     if (!CanApply(workspace))
-                        return false;
+                        return SpecializedTasks.False;
 
-                    return _applyOperation.TryApply(workspace, progressTracker, cancellationToken);
+                    return _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
                 }
 
                 private bool CanApply(Workspace workspace)

@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared ReadOnly VoidDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.Void)
+        Public Shared ReadOnly EmptyDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.ERR_None)
 
         Public Shared ReadOnly GetErrorInfo_ERR_WithEventsRequiresClass As Func(Of DiagnosticInfo) =
             Function() ErrorInfo(ERRID.ERR_WithEventsRequiresClass)
@@ -129,7 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Diagnostic.CompilerDiagnosticCategory
         End Function
     End Class
-
 
     ''' <summary>
     ''' Concatenates messages for a set of DiagnosticInfo.

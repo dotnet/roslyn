@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -87,6 +88,7 @@ class C
         public void TestForEachMultiDimensionalArray()
         {
             var source = @"
+using System.Globalization;
 class C
 {
     static void Main()
@@ -98,7 +100,7 @@ class C
 
         foreach (var x in values)
         {
-            System.Console.WriteLine(x);
+            System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
         }
     }
 }";
@@ -112,62 +114,67 @@ class C
 7.8
 8.9");
 
-            compilation.VerifyIL("C.Main", @"
-    {
-      // Code size       90 (0x5a)
-      .maxstack  3
-      .locals init (double[,] V_0,
-                    int V_1,
-                    int V_2,
-                    int V_3,
-                    int V_4)
-      IL_0000:  ldc.i4.2
-      IL_0001:  ldc.i4.4
-      IL_0002:  newobj     ""double[*,*]..ctor""
-      IL_0007:  dup
-      IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.B600FC1A4E79D6311C0D8211E6ADB6C750C0EDBFD2A8B9DF903CBEAFEC712F98""
-      IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-      IL_0012:  stloc.0
-      IL_0013:  ldloc.0
-      IL_0014:  ldc.i4.0
-      IL_0015:  callvirt   ""int System.Array.GetUpperBound(int)""
-      IL_001a:  stloc.1
-      IL_001b:  ldloc.0
-      IL_001c:  ldc.i4.1
-      IL_001d:  callvirt   ""int System.Array.GetUpperBound(int)""
-      IL_0022:  stloc.2
-      IL_0023:  ldloc.0
-      IL_0024:  ldc.i4.0
-      IL_0025:  callvirt   ""int System.Array.GetLowerBound(int)""
-      IL_002a:  stloc.3
-      IL_002b:  br.s       IL_0055
-      IL_002d:  ldloc.0
-      IL_002e:  ldc.i4.1
-      IL_002f:  callvirt   ""int System.Array.GetLowerBound(int)""
-      IL_0034:  stloc.s    V_4
-      IL_0036:  br.s       IL_004c
-      IL_0038:  ldloc.0
-      IL_0039:  ldloc.3
-      IL_003a:  ldloc.s    V_4
-      IL_003c:  call       ""double[*,*].Get""
-      IL_0041:  call       ""void System.Console.WriteLine(double)""
-      IL_0046:  ldloc.s    V_4
-      IL_0048:  ldc.i4.1
-      IL_0049:  add
-      IL_004a:  stloc.s    V_4
-      IL_004c:  ldloc.s    V_4
-      IL_004e:  ldloc.2
-      IL_004f:  ble.s      IL_0038
-      IL_0051:  ldloc.3
-      IL_0052:  ldc.i4.1
-      IL_0053:  add
-      IL_0054:  stloc.3
-      IL_0055:  ldloc.3
-      IL_0056:  ldloc.1
-      IL_0057:  ble.s      IL_002d
-      IL_0059:  ret
-    }
-");
+            compilation.VerifyIL("C.Main", """
+{
+  // Code size      104 (0x68)
+  .maxstack  3
+  .locals init (double[,] V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                double V_5) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  ldc.i4.4
+  IL_0002:  newobj     "double[*,*]..ctor"
+  IL_0007:  dup
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.B600FC1A4E79D6311C0D8211E6ADB6C750C0EDBFD2A8B9DF903CBEAFEC712F98"
+  IL_000d:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  callvirt   "int System.Array.GetUpperBound(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldc.i4.1
+  IL_001d:  callvirt   "int System.Array.GetUpperBound(int)"
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.0
+  IL_0025:  callvirt   "int System.Array.GetLowerBound(int)"
+  IL_002a:  stloc.3
+  IL_002b:  br.s       IL_0063
+  IL_002d:  ldloc.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  callvirt   "int System.Array.GetLowerBound(int)"
+  IL_0034:  stloc.s    V_4
+  IL_0036:  br.s       IL_005a
+  IL_0038:  ldloc.0
+  IL_0039:  ldloc.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       "double[*,*].Get"
+  IL_0041:  stloc.s    V_5
+  IL_0043:  ldloca.s   V_5
+  IL_0045:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_004a:  call       "string double.ToString(System.IFormatProvider)"
+  IL_004f:  call       "void System.Console.WriteLine(string)"
+  IL_0054:  ldloc.s    V_4
+  IL_0056:  ldc.i4.1
+  IL_0057:  add
+  IL_0058:  stloc.s    V_4
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ldloc.2
+  IL_005d:  ble.s      IL_0038
+  IL_005f:  ldloc.3
+  IL_0060:  ldc.i4.1
+  IL_0061:  add
+  IL_0062:  stloc.3
+  IL_0063:  ldloc.3
+  IL_0064:  ldloc.1
+  IL_0065:  ble.s      IL_002d
+  IL_0067:  ret
+}
+""");
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
@@ -1384,14 +1391,18 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(SpecialType.System_IDisposable);
+
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
 Done with DisposableEnumerator");
 
             // IL Should not contain any Box/unbox instructions as we're a ref struct 
-            compilation.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
@@ -1447,7 +1458,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1481,7 +1493,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1521,7 +1534,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1561,7 +1575,8 @@ static class DisposeExtension2
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1597,7 +1612,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1633,7 +1649,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1703,7 +1720,7 @@ class DisposableEnumerator
         }
 
         [Fact]
-        public void TestForEachPatternDisposableIgnoredForCSharp7_3()
+        public void TestForEachPatternDisposableReportedForCSharp7_3()
         {
             var source = @"
 class C
@@ -1729,10 +1746,19 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
-1
-2
-3");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("void DisposableEnumerator.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -3338,6 +3364,7 @@ public static class Extensions
         {
             var source = @"
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 public struct C
@@ -3346,7 +3373,7 @@ public struct C
     {
         foreach (var (a, b) in (new[] { 1, 2, 3 }, new List<decimal>{ 0.1m, 0.2m, 0.3m }))
         {
-            Console.WriteLine(a + b);
+            Console.WriteLine((a + b).ToString(CultureInfo.InvariantCulture));
         }
     }
 }
@@ -4115,7 +4142,7 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
-                    // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetEnumerator(C, __arglist)'
+                    // (7,27): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'Extensions.GetEnumerator(C, __arglist)'
                     //         foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "Extensions.GetEnumerator(C, __arglist)").WithLocation(7, 27),
                     // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -4725,7 +4752,8 @@ ref struct Enumerator
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, verify: Verification.FailsILVerify, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)

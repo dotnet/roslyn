@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -24,12 +22,13 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct TextDocumentStates<TState>
         where TState : TextDocumentState
     {
-        public static readonly TextDocumentStates<TState> Empty = new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary<DocumentId, TState>.Empty);
+        public static readonly TextDocumentStates<TState> Empty =
+            new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
 
         private readonly ImmutableList<DocumentId> _ids;
 
         /// <summary>
-        /// The entires in the map are sorted by <see cref="DocumentId.Id"/>, which yields locally deterministic order but not the order that
+        /// The entries in the map are sorted by <see cref="DocumentId.Id"/>, which yields locally deterministic order but not the order that
         /// matches the order in which documents were added. Therefore this ordering can't be used when creating compilations and it can't be 
         /// used when persisting document lists that do not preserve the GUIDs.
         /// </summary>
@@ -37,6 +36,8 @@ namespace Microsoft.CodeAnalysis
 
         private TextDocumentStates(ImmutableList<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
         {
+            Debug.Assert(map.KeyComparer == DocumentIdComparer.Instance);
+
             _ids = ids;
             _map = map;
         }
@@ -52,6 +53,9 @@ namespace Microsoft.CodeAnalysis
                    infos.ToImmutableSortedDictionary(info => info.Id, stateConstructor, DocumentIdComparer.Instance))
         {
         }
+
+        public TextDocumentStates<TState> WithCompilationOrder(ImmutableList<DocumentId> ids)
+            => new(ids, _map);
 
         public int Count
             => _map.Count;
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             => _map.TryGetValue(documentId, out var state) ? state : null;
 
         public TState GetRequiredState(DocumentId documentId)
-            => _map.TryGetValue(documentId, out var state) ? state : throw ExceptionUtilities.Unreachable;
+            => _map.TryGetValue(documentId, out var state) ? state : throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// <see cref="DocumentId"/>s in the order in which they were added to the project (the compilation order).
@@ -79,8 +83,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// States ordered by <see cref="DocumentId"/>.
         /// </summary>
-        public IEnumerable<TState> States
-            => _map.Values;
+        public ImmutableSortedDictionary<DocumentId, TState> States
+            => _map;
 
         /// <summary>
         /// Get states ordered in compilation order.
@@ -166,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!oldStates.TryGetState(id, out var oldState))
                 {
-                    // document was removed
+                    // document was added
                     continue;
                 }
 
@@ -189,24 +193,19 @@ namespace Microsoft.CodeAnalysis
         /// Returns a <see cref="DocumentId"/>s of added documents.
         /// </summary>
         public IEnumerable<DocumentId> GetAddedStateIds(TextDocumentStates<TState> oldStates)
-        {
-            foreach (var id in _ids)
-            {
-                if (!oldStates._map.ContainsKey(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(_ids, oldStates._map);
 
         /// <summary>
         /// Returns a <see cref="DocumentId"/>s of removed documents.
         /// </summary>
         public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
+            => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(oldStates._ids, _map);
+
+        private static IEnumerable<DocumentId> Except(IEnumerable<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
         {
-            foreach (var id in oldStates._ids)
+            foreach (var id in ids)
             {
-                if (!_map.ContainsKey(id))
+                if (!map.ContainsKey(id))
                 {
                     yield return id;
                 }

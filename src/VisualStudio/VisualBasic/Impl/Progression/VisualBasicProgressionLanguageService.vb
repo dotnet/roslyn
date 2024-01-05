@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
             Return GetSymbolText(symbol, includeContainingSymbol, s_labelFormat)
         End Function
 
-        Private Function GetSymbolText(symbol As ISymbol, includeContainingSymbol As Boolean, displayFormat As SymbolDisplayFormat) As String
+        Private Shared Function GetSymbolText(symbol As ISymbol, includeContainingSymbol As Boolean, displayFormat As SymbolDisplayFormat) As String
             If symbol.Kind = SymbolKind.Field AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
                 displayFormat = displayFormat.RemoveMemberOptions(SymbolDisplayMemberOptions.IncludeType)
             End If

@@ -2,56 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Serialization;
 
-namespace Microsoft.CodeAnalysis.Serialization
+internal enum WellKnownSynchronizationKind
 {
-    // TODO: Kind might not actually needed. see whether we can get rid of this
-    internal enum WellKnownSynchronizationKind
-    {
-        Null,
+    // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-        SolutionState,
-        ProjectState,
-        DocumentState,
+    SolutionState = 1,
+    ProjectState,
+    DocumentState,
 
-        Projects,
-        Documents,
-        TextDocuments,
-        AnalyzerConfigDocuments,
-        ProjectReferences,
-        MetadataReferences,
-        AnalyzerReferences,
+    ChecksumCollection,
 
-        SolutionAttributes,
-        ProjectAttributes,
-        DocumentAttributes,
+    SolutionAttributes,
+    ProjectAttributes,
+    DocumentAttributes,
+    SourceGeneratedDocumentIdentity,
 
-        CompilationOptions,
-        ParseOptions,
-        ProjectReference,
-        MetadataReference,
-        AnalyzerReference,
-        SourceText,
-        OptionSet,
+    CompilationOptions,
+    ParseOptions,
+    ProjectReference,
+    MetadataReference,
+    AnalyzerReference,
+    SourceText,
 
-        SerializableSourceText,
-        RecoverableSourceText,
-
-        //
-
-        SyntaxTreeIndex,
-        SymbolTreeInfo,
-
-        ProjectReferenceChecksumCollection,
-        MetadataReferenceChecksumCollection,
-        AnalyzerReferenceChecksumCollection,
-        TextDocumentChecksumCollection,
-        DocumentChecksumCollection,
-        AnalyzerConfigDocumentChecksumCollection,
-        ProjectChecksumCollection,
-        SolutionStateChecksums,
-        ProjectStateChecksums,
-        DocumentStateChecksums,
-    }
+    SerializableSourceText,
 }

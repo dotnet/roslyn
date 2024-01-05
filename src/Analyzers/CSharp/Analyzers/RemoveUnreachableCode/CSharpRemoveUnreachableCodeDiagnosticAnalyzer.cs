@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -17,20 +14,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    EnforceOnBuildValues.RemoveUnreachableCode,
                    option: null,
+                   fadingOption: FadingOptions.FadeOutUnreachableCode,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   // This analyzer supports fading through AdditionalLocations since it's a user-controlled option
-                   isUnnecessary: false,
                    configurable: false)
         {
         }
@@ -43,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
 
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -60,20 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
+            var diagnostics = semanticModel.GetDiagnostics(context.FilterSpan, cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (diagnostic.Id == CS0162)
                 {
-                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan, fadeCode);
+                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan);
                 }
             }
         }
 
         private void ProcessUnreachableDiagnostic(
-            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
+            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan)
         {
             var node = root.FindNode(sourceSpan);
 
@@ -118,38 +115,31 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
-            if (fadeOutCode)
-            {
-                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                    Descriptor,
-                    firstStatementLocation,
-                    ReportDiagnostic.Default,
-                    additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: additionalLocations));
-            }
-            else
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(Descriptor, firstStatementLocation, additionalLocations));
-            }
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                firstStatementLocation,
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                additionalLocations: ImmutableArray<Location>.Empty,
+                additionalUnnecessaryLocations: additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
             {
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
-                var additionalUnnecessaryLocations = ImmutableArray<Location>.Empty;
 
                 // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                if (fadeOutCode)
-                {
-                    additionalUnnecessaryLocations = ImmutableArray.Create(location);
-                }
+                var additionalUnnecessaryLocations = ImmutableArray.Create(location);
 
-                context.ReportDiagnostic(
-                    DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations, additionalUnnecessaryLocations, s_subsequentSectionProperties));
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    location,
+                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                    additionalLocations,
+                    additionalUnnecessaryLocations,
+                    s_subsequentSectionProperties));
             }
         }
     }

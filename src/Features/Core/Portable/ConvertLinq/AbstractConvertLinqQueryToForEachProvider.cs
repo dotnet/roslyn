@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var queryExpression = await FindNodeToRefactorAsync(context).ConfigureAwait(false);
             if (queryExpression == null)
@@ -42,14 +40,15 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))),
+                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root))),
+                        Title),
                     queryExpression.Span);
             }
         }
@@ -57,19 +56,13 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         /// <summary>
         /// Handles information about updating the document with the refactoring.
         /// </summary>
-        internal sealed class DocumentUpdateInfo
+        internal sealed class DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
         {
-            public readonly TStatement Source;
-            public readonly ImmutableArray<TStatement> Destinations;
+            public readonly TStatement Source = source;
+            public readonly ImmutableArray<TStatement> Destinations = ImmutableArray.CreateRange(destinations);
 
             public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, new[] { destination })
             {
-            }
-
-            public DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
-            {
-                Source = source;
-                Destinations = ImmutableArray.CreateRange(destinations);
             }
 
             /// <summary>
@@ -88,14 +81,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 {
                     return root.ReplaceNode(Source, Destinations);
                 }
-            }
-        }
-
-        protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }

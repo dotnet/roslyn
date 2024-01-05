@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var mscorlibRef = TestMetadata.Net40.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
-            Conversions c = new BuckStopsHereBinder(compilation).Conversions;
+            Conversions c = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             var types = new TypeSymbol[]
             {
             sys.ChildType("Object"),
@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // UNDONE: Conversions involving expressions: null, lambda, method group
         }
 
-
         [Fact]
         public void TestIsSameTypeIgnoringDynamic()
         {
@@ -311,7 +310,7 @@ class C
 
             Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
-            var conv = new BuckStopsHereBinder(compilation).Conversions;
+            var conv = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             // no custom modifiers to custom modifiers
@@ -1131,9 +1130,9 @@ class Convertible
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'int' is expected
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "default(Convertible)").WithArguments("int").WithLocation(8, 18)
                 );
         }
 
@@ -1161,9 +1160,9 @@ class Convertible
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'int' is expected
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "c").WithArguments("int").WithLocation(9, 18)
                 );
         }
 
@@ -1734,8 +1733,8 @@ class C<T>
 
             var forEachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var memberModel = ((CSharpSemanticModel)model).GetMemberModel(forEachSyntax);
-            var boundForEach = memberModel.GetBoundNodes(forEachSyntax).OfType<BoundForEachStatement>().Single();
-            var elementConversion = boundForEach.ElementConversion;
+            var boundForEach = memberModel.GetBoundNodes(forEachSyntax).ToArray().OfType<BoundForEachStatement>().Single();
+            var elementConversion = BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder);
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
         }
@@ -1993,15 +1992,15 @@ public class Test
             // but that's the native behavior.  We need to replicate it for back-compat, but most of the strangeness will
             // not be spec'd.
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (46,17): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
+                // (46,20): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
                 //             q = () => 1; //CS1660
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "Q"),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Q").WithLocation(46, 20),
                 // (53,17): error CS0428: Cannot convert method group 'F' to non-delegate type 'Q'. Did you intend to invoke the method?
                 //             q = F; //CS0428
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "Q"),
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "Q").WithLocation(53, 17),
                 // (60,17): error CS0029: Cannot implicitly convert type 'int' to 'R'
                 //             r = 0; //CS0029
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R").WithLocation(60, 17));
         }
 
         [Fact]

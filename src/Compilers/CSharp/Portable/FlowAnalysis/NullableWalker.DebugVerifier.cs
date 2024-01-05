@@ -40,12 +40,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotManagerOpt?.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
+                if (verifier._analyzedNullabilityMap.Count > verifier._visitedExpressions.Count)
+                {
+                    foreach (var analyzedNode in verifier._analyzedNullabilityMap.Keys)
+                    {
+                        if (!verifier._visitedExpressions.Contains(analyzedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
+                else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
+                {
+                    foreach (var verifiedNode in verifier._visitedExpressions)
+                    {
+                        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
+                if (expression.IsParamsArray)
+                {
+                    // Params array is processed element wise. 
+                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                }
+                else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
                     Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
@@ -72,6 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
+            }
+
+            public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
+            {
+                if (node.IsParamsArray)
+                {
+                    // Synthesized params array is processed element wise.
+                    this.Visit(node.InitializerOpt);
+                    return null;
+                }
+
+                return base.VisitArrayCreation(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -167,6 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
+            public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (node.LeftConversion is BoundConversion leftConversion)
+                {
+                    VerifyExpression(leftConversion);
+                }
+
+                Visit(node.Left);
+                Visit(node.Right);
+                return null;
+            }
+
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
                 VisitBinaryOperatorChildren(node);
@@ -212,13 +260,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
                 // If the constant value of a when clause is true, it can be skipped by the dag
                 // generator as an optimization. In that case, it's a value type and will be set
                 // as not nullable in the output.
-                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                if (node.WhenClause?.ConstantValueOpt != ConstantValue.True)
                 {
                     this.Visit(node.WhenClause);
                 }
@@ -226,15 +289,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
-                // We're not handling nopia object creations correctly
-                // https://github.com/dotnet/roslyn/issues/45082
-                if (node.InitializerExpressionOpt is object)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
+                // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
+                // info is exposed to consumers.
                 return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+            {
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
+                return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

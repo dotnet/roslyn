@@ -9,15 +9,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptInlineRenameReplacementWrapper
+    internal readonly struct VSTypeScriptInlineRenameReplacementWrapper(InlineRenameReplacement underlyingObject)
     {
-        private readonly InlineRenameReplacement _underlyingObject;
+        internal readonly InlineRenameReplacement UnderlyingObject = underlyingObject;
 
-        public VSTypeScriptInlineRenameReplacementWrapper(InlineRenameReplacement underlyingObject)
-            => _underlyingObject = underlyingObject;
-
-        public VSTypeScriptInlineRenameReplacementKind Kind => VSTypeScriptInlineRenameReplacementKindHelpers.ConvertFrom(_underlyingObject.Kind);
-        public TextSpan OriginalSpan => _underlyingObject.OriginalSpan;
-        public TextSpan NewSpan => _underlyingObject.NewSpan;
+        public VSTypeScriptInlineRenameReplacementKind Kind => VSTypeScriptInlineRenameReplacementKindHelpers.ConvertFrom(UnderlyingObject.Kind);
+        public TextSpan OriginalSpan => UnderlyingObject.OriginalSpan;
+        public TextSpan NewSpan => UnderlyingObject.NewSpan;
     }
 }

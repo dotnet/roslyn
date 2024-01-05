@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
+        protected override ISimplification Simplification
+            => CSharpSimplification.Instance;
 
         protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);
@@ -30,23 +30,29 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
         {
             if (node.GetAncestorOrThis<AttributeSyntax>() != null)
-            {
                 return false;
-            }
 
             if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
+                return false;
+
+            if (node.IsKind(SyntaxKind.BaseExpression))
+                return false;
+
+            if (IsInPropertyOrFieldInitialization(containingSymbol, node))
+                return false;
+
+            if (node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression), Left: var left } &&
+                left == node)
             {
                 return false;
             }
 
-            return !(node.IsKind(SyntaxKind.BaseExpression) ||
-                     node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                     IsInPropertyOrFieldInitialization(containingSymbol, node));
+            return true;
         }
 
         private static bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
         {
-            return (containingSymbol.Kind == SymbolKind.Field || containingSymbol.Kind == SymbolKind.Property) &&
+            return (containingSymbol.Kind is SymbolKind.Field or SymbolKind.Property) &&
                 containingSymbol.DeclaringSyntaxReferences
                     .Select(declaringSyntaxReferences => declaringSyntaxReferences.GetSyntax())
                     .Any(declaringSyntax => IsInPropertyInitialization(declaringSyntax, node) || IsInFieldInitialization(declaringSyntax, node));

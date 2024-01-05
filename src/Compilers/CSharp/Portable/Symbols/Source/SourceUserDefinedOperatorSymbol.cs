@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceUserDefinedOperatorSymbol CreateUserDefinedOperatorSymbol(
             SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
@@ -24,29 +25,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
+            if (SyntaxFacts.IsCheckedOperator(name))
+            {
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
+            }
+            else if (!syntax.OperatorToken.IsMissing && syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
+            {
+                diagnostics.Add(ErrorCode.ERR_OperatorCantBeChecked, syntax.CheckedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(name)));
+            }
+
+            if (name == WellKnownMemberNames.UnsignedRightShiftOperatorName)
+            {
+                MessageID.IDS_FeatureUnsignedRightShift.CheckFeatureAvailability(diagnostics, syntax.OperatorToken);
+            }
+
+            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+
+            TypeSymbol explicitInterfaceType;
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+
+            var methodKind = interfaceSpecifier == null
+                ? MethodKind.UserDefinedOperator
+                : MethodKind.ExplicitInterfaceImplementation;
+
             return new SourceUserDefinedOperatorSymbol(
-                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
+                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
         // is bound lazily using binders from a BinderFactory (which will already include an
         // UnsafeBinder, if necessary).
         private SourceUserDefinedOperatorSymbol(
+            MethodKind methodKind,
             SourceMemberContainerTypeSymbol containingType,
+            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
             base(
-                MethodKind.UserDefinedOperator,
+                methodKind,
+                explicitInterfaceType,
                 name,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(syntax, location, diagnostics),
-                hasBody: syntax.HasAnyBody(),
-                isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
+                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                hasAnyBody: syntax.HasAnyBody(),
+                isExpressionBodied: syntax.IsExpressionBodied(),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
@@ -54,16 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
-            if (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName)
+            if (IsAbstract || IsVirtual || (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName))
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
         internal OperatorDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         protected override int GetParameterCountFromSyntax()

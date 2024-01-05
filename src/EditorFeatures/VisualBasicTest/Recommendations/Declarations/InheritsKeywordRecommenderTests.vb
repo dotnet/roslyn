@@ -3,22 +3,25 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class InheritsKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Inherits RecommenderTests
+
+        <Fact>
         Public Sub InheritsAfterClassDeclarationTest()
             VerifyRecommendationsContain(<File>
 Class Goo
 |</File>, "Inherits")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InheritsAfterInterfaceDeclarationTest()
             VerifyRecommendationsContain(<File>
 Interface Goo
 |</File>, "Inherits")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InheritsAfterClassDeclarationAndBlankLineTest()
             VerifyRecommendationsContain(<File>
 Class Goo
@@ -26,7 +29,7 @@ Class Goo
 |</File>, "Inherits")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InheritsAfterInterfaceDeclarationAndBlankLineTest()
             VerifyRecommendationsContain(<File>
 Interface Goo
@@ -34,7 +37,7 @@ Interface Goo
 |</File>, "Inherits")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InheritsNotAfterImplementsTest()
             VerifyRecommendationsMissing(<File>
 Class Goo
@@ -42,15 +45,14 @@ Implements IGooable
 |</File>, "Inherits")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InheritsNotInStructureTest()
             VerifyRecommendationsMissing(<File>
 Structure Goo
 |</File>, "Inherits")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsAfterInheritsInInterfaceTest()
             VerifyRecommendationsContain(<File>
 Public Interface ITest1
@@ -61,8 +63,7 @@ Public Interface ITest2
 </File>, "Inherits")
         End Sub
 
-        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         Public Sub InheritsNotAfterInheritsInClassTest()
             VerifyRecommendationsMissing(<File>
 Public Class Goo
@@ -71,8 +72,7 @@ Public Class Goo
 </File>, "Inherits")
         End Sub
 
-        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

@@ -4,12 +4,22 @@
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
-        <target state="new">Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</target>
+        <target state="translated">La proprietà di sola inizializzazione '{0}' può essere assegnata solo da un inizializzatore di membro di oggetto oppure in 'Me', 'MyClass' o 'MyBase' in un costruttore di istanza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Impossibile accedere a un membro di interfaccia astratto o virtuale condiviso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Non è possibile ereditare da '{0}' perché contiene membri obbligatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -22,24 +32,54 @@
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene un membro non astratto. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' è riservato all'utilizzo esclusivo del compilatore.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' è riservato solo all’uso del compilatore.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">La stessa directory ('{0}') non può contenere più file di configurazione dell'analizzatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' non può soddisfare il vincolo 'New' nel parametro '{1}' nel tipo generico o nel metodo '{0}' perché '{2}' contiene membri obbligatori.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
         <source>'{0}' cannot override init-only '{1}'.</source>
-        <target state="new">'{0}' cannot override init-only '{1}'.</target>
+        <target state="translated">'{0}' non può eseguire l'override della proprietà di sola inizializzazione '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
         <source>Init-only '{0}' cannot be implemented.</source>
-        <target state="new">Init-only '{0}' cannot be implemented.</target>
+        <target state="translated">Non è possibile implementare la proprietà di sola inizializzazione '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene una nuova astrazione di un membro dell'interfaccia di base. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">Il membro obbligatorio '{0}' deve essere impostato nell'inizializzatore di oggetto o negli argomenti dell'attributo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">L'elenco dei membri obbligatori per '{0}' non è valido e non può essere interpretato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -54,12 +94,37 @@
       </trans-unit>
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
-        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <target state="translated">Gli eventi di variabili WithEvents condivise non possono essere gestiti da metodi in un tipo diverso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' è definito nell'assembly '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene '{2}' condiviso astratto o virtuale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">L'attributo 'UnmanagedCallersOnly' non è supportato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">'{0}' richiede la funzionalità del compilatore '{1}', che non è supportata da questa versione del compilatore Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Una chiamata a un metodo o a una proprietà che restituisce un riferimento non può essere usata come espressione 'With' in un metodo asincrono o iteratore, o se implicitamente di riferimento in un’espressione lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">espressione passata come argomento del chiamante</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -69,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
-        <target state="new">assigning to or passing 'ByRef' properties with init-only setters</target>
+        <target state="translated">assegnazione o passaggio di proprietà 'ByRef' con i setter di sola inizializzazione</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -206,6 +271,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -230,11 +297,14 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -245,45 +315,45 @@
         <target state="translated">                  Opzioni del compilatore Visual Basic
 
                                   - FILE DI OUTPUT -
--out:&lt;file&gt;                       Consente di specificare il nome del file di output.
+-out:&lt;file&gt;                       Specifica il nome del file di output.
 -target:exe                       Crea un'applicazione console (impostazione predefinita).
                                   Forma breve: -t
--target:winexe                    Consente di creare un'applicazione Windows.
--target:library                   Consente di creare un assembly di librerie.
--target:module                    Consente di creare un modulo che può essere aggiunto a un
-                                   assembly.
--target:appcontainerexe           Consente di creare un'applicazione Windows che viene eseguita in
+-target:winexe                    Crea un'applicazione Windows.
+-target:library                   Crea un assembly di librerie.
+-target:module                    Crea un modulo che può essere aggiunto a un
+                                  assembly.
+-target:appcontainerexe           Crea un'applicazione Windows che viene eseguita in
                                   AppContainer.
--target:winmdobj                  Consente di creare un file intermedio di metadati di Windows.
+-target:winmdobj                  Crea file intermedio di metadati di Windows
 -doc[+|-]                         Genera un file di documentazione XML.
 -doc:&lt;file&gt;                       Genera un file di documentazione XML in &lt;file&gt;.
 -refout:&lt;file&gt;                    Output dell'assembly di riferimento da generare
 
                                   - FILE DI INPUT -
--addmodule:&lt;elenco_file&gt;            Crea un riferimento ai metadati dai moduli specificati.
--link:&lt;elenco_file&gt;                 Incorpora metadati dall'assembly di interoperabilità
+-addmodule:&lt;file_list&gt;            Crea un riferimento ai metadati dai moduli specificati
+-link:&lt;file_list&gt;                 Incorpora metadati dall'assembly di interoperabilità
                                   specificato. Forma breve: -l
--recurse:&lt;caratteri_jolly&gt;               Include tutti i file presenti nella directory corrente
-                                  e nelle relative sottodirectory in base
-                                  ai caratteri jolly specificati.
--reference:&lt;elenco_file&gt;            Crea un riferimento ai metadati dall'assembly
+-recurse:&lt;wildcard&gt;               Include tutti i file presenti nella directory corrente
+                                  e nelle relative sottodirectory in base ai
+                                  caratteri jolly specificati.
+-reference:&lt;file_list&gt;            Crea un riferimento ai metadati dal file di assembly
                                   specificato. Forma breve: -r
--analyzer:&lt;elenco_file&gt;             Esegue gli analizzatori dall'assembly.
+-analyzer:&lt;file_list&gt;             Esegue gli analizzatori dall'assembly
                                   Forma breve: -a
--additionalfile:&lt;elenco file&gt;       File aggiuntivi che non influiscono
-                              direttamente sulla generazione del codice ma possono essere usati
-                              dagli analizzatori per produrre errori o avvisi.
+-additionalfile:&lt;file list&gt;       File aggiuntivi che non influiscono direttamente sulla generazione
+                                  del codice ma possono essere usati dagli analizzatori per produrre
+                                  errori o avvisi.
 
                                   - RISORSE -
--linkresource:&lt;info_risorsa&gt;           Collega il file specificato come
-                                  risorsa di assembly esterna.
-                                  resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]]
+-linkresource:&lt;resinfo&gt;           Collega il file specificato come
+                                  risorsa di assembly incorporata.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   Forma breve: -linkres
 -nowin32manifest                  Il manifesto predefinito non deve essere incorporato nella
                                   sezione manifesto del file PE di output.
--resource:&lt;info_risorsa&gt;               Aggiunge il file specificato come
+-resource:&lt;resinfo&gt;               Aggiunge il file specificato come
                                   risorsa di assembly incorporata.
-                                  resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]]
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   Forma breve: -res
 -win32icon:&lt;file&gt;                 Consente di specificare un file di icona Win32 (.ico) per le risorse
                                   Win32 predefinite.
@@ -304,43 +374,43 @@
                                   (che include GUID e timestamp della versione del modulo)
 -refonly                          Produce un assembly di riferimento al posto dell'output principale
 -instrument:TestCoverage          Produce un assembly instrumentato per raccogliere
-                                  informazioni sul code coverage
+                                  informazioni sulla copertura
 -sourcelink:&lt;file&gt;                Informazioni sul collegamento all'origine da incorporare nel file PDB.
 
                                   - ERRORI E AVVISI -
 -nowarn                           Disabilita tutti gli avvisi.
--nowarn:&lt;elenco_numeri&gt;             Disabilita un elenco di avvisi singoli.
+-nowarn:&lt;number_list&gt;             Disabilita un elenco di avvisi singoli.
 -warnaserror[+|-]                 Considera tutti gli avvisi come errori.
--warnaserror[+|-]:&lt;elenco_numeri&gt;   Considera un elenco di avvisi come errori.
+-warnaserror[+|-]:&lt;number_list&gt;   Considera un elenco di avvisi come errori.
 -ruleset:&lt;file&gt;                   Consente di specificare un file di set di regole che disabilita
                                   diagnostica specifica.
--errorlog:&lt;file&gt;[,version=&lt;versione _SARIF&gt;]         
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   Consente di specificare un file in cui registrare tutte le diagnostiche del
                                   compilatore e dell'analizzatore in formato SARIF.
-                                  versione_SARIF:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
+                                  sarif_version:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
                                   si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
                                   esempio il tempo di esecuzione.
 -skipanalyzers[+|-]               Ignora l'esecuzione degli analizzatore diagnostici.
 
                                   - LINGUAGGIO -
--define:&lt;elenco_simboli&gt;             Dichiara simboli di compilazione condizionale 
-                                  globale. elenco_simboli:nome=valore,...
+-define:&lt;symbol_list&gt;             Dichiara simboli di compilazione
+                                  condizionale. symbol_list:name=value,...
                                   Forma breve: -d
--imports:&lt;elenco_importazioni&gt;            Dichiara importazioni globali per spazi dei nomi in 
+-imports:&lt;import_list&gt;            Dichiara importazioni globali per spazi dei nomi in
                                   file di metadati a cui viene fatto riferimento.
-                                  elenco_importazioni:spazio dei nomi,...
+                                  import_list:namespace,...
 -langversion:?                    Visualizza i valori consentiti per la versione del linguaggio
--langversion:&lt;stringa&gt;         Consente di specificare la versione del linguaggio, ad esempio
-                                  `default` (ultima versione principale), o
-                                  `latest` (ultima versione che include versioni secondarie),
-                                  oppure versioni specifiche, come `14` o `15.3`
+-langversion:&lt;string&gt;             Consente di specificare la versione del linguaggio, ad esempio
+                                  'default' (ultima versione principale) o
+                                  'latest' (ultima versione che include versioni secondarie)
+                                  o versioni specifiche come '14' o '15.3'
 -optionexplicit[+|-]              Richiede la dichiarazione esplicita delle variabili.
 -optioninfer[+|-]                 Consente l'inferenza del tipo delle variabili.
--rootnamespace:&lt;stringa&gt;           Consente di specificare lo spazio dei nomi radice per tutte le dichiarazioni
-                                  di tipo.
+-rootnamespace:&lt;string&gt;           Consente di specificare lo spazio dei nomi radice per tutti i tipi
+                                  di dichiarazioni.
 -optionstrict[+|-]                Attiva la semantica del linguaggio strict.
--optionstrict:custom              Avvisa quando la semantica del linguaggio strict non 
+-optionstrict:custom              Avvisa quando la semantica del linguaggio strict non
                                   viene rispettata.
 -optioncompare:binary             Consente di specificare i confronti fra stringhe binarie.
                                   Impostazione predefinita.
@@ -352,58 +422,64 @@
 -nologo                           Non visualizza le informazioni sul copyright del compilatore.
 -quiet                            Modalità di output non interattiva.
 -verbose                          Visualizza messaggi dettagliati.
--parallel[+|-]                Compilazione simultanea.
+-parallel[+|-]                    Compilazione simultanea.
 -version                          Visualizza il numero di versione del compilatore ed esce.
 
                                   - AVANZATE -
--baseaddress:&lt;numero&gt;             Indirizzo di base di una libreria o di un modulo
+-baseaddress:&lt;number&gt;             Indirizzo di base di una libreria o di un modulo
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum 
+-checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
                                   del file di origine archiviato nel file PDB. I valori supportati sono:
                                   SHA1 o SHA256 (impostazione predefinita).
--codepage:&lt;numero&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
+-codepage:&lt;number&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
                                   di origine.
--delaysign[+|-]               Ritarda la firma dell'assembly usando solo la parte pubblica della
-                                chiave con nome sicuro.
+-delaysign[+|-]                   Ritarda la firma dell'assembly usando solo la parte pubblica della
+                                  della chiave con nome sicuro.
 -publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
-                              della chiave con nome sicuro.
--errorreport:&lt;stringa&gt;             Consente di specificare come gestire gli errori interni del compilatore.
+                                  della chiave con nome sicuro.
+-errorreport:&lt;string&gt;             Consente di specificare come gestire gli errori interni del compilatore.
                                   I valori devono essere prompt, send, none o queue
                                   (impostazione predefinita).
--filealign:&lt;numero&gt;               Consente di specificare l'allineamento usato per le sezioni del file di
-                                  output.
+-generatedfilesout:&lt;dir&gt;          Inserisce i file generati durante la compilazione nella
+                                  directory specificata.
+-filealign:&lt;number&gt;               Consente di specificare l'allineamento usato per le sezioni del
+                                  file di output.
 -highentropyva[+|-]               Abilita ASLR a entropia elevata.
--keycontainer:&lt;stringa&gt;            Consente di specificare un contenitore di chiavi con nome sicuro.
+-keycontainer:&lt;string&gt;            Consente di specificare un contenitore di chiavi con nome sicuro.
 -keyfile:&lt;file&gt;                   Consente di specificare un file di chiave con nome sicuro.
--libpath:&lt;elenco_percorsi&gt;              Elenco di directory delimitate da punti e virgola in cui cercare
-                                   riferimenti ai metadati.
--main:&lt;classe&gt;                     Consente di specificare la classe o il modulo che contiene
+-libpath:&lt;path_list&gt;              Elenco di directory in cui cercare
+                                  riferimenti ai metadati. (Delimitato da punto e virgola).
+-main:&lt;class&gt;                     Consente di specificare la classe o il modulo che contiene
                                   Sub Main. Può essere anche una classe che
                                   eredita da System.Windows.Forms.Form.
                                   Forma breve: -m
--moduleassemblyname:&lt;stringa&gt;      Nome dell'assembly di cui farà parte questo
+-moduleassemblyname:&lt;string&gt;      Nome dell'assembly di cui farà parte questo
                                   modulo.
 -netcf                            Destinato a .NET Compact Framework.
 -nostdlib                         Omette i riferimenti alle librerie standard
-                                  (system.dll e VBC.RSP file).
+                                  (file system.dll eVBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Consente di specificare un mapping per i nomi di percorso di origine
                                   visualizzati dal compilatore.
--platform:&lt;stringa&gt;                Limita le piattaforme in cui è possibile eseguire questo codice. 
-                                  Il valore deve essere x86, x64, Itanium, arm, arm64,
+-platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice.
+                                  Il valore deve essere x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred o anycpu (impostazione predefinita).
 -preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
 -nosdkpath                        Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
--sdkpath:&lt;percorso&gt;                   Percorso della directory di .NET Framework SDK 
+-reportivts[+|-]                  Restituisce informazioni su tutti i tipi di I/O concessi a questo
+                                  assembly da tutte le dipendenze e annota gli errori di accessibilità dell'assembly esterno
+                                  da cui provengono.
+-sdkpath:&lt;path&gt;                   Percorso della directory di .NET Framework SDK
                                   (mscorlib.dll).
--subsystemversion:&lt;versione&gt;       Consente di specificare la versione del sottosistema del file PE di output.
-                                  version:&lt;numero&gt;[.&lt;numero&gt;]
--utf8output[+|-]                  Crea l'output del compilatore con codifica dei caratteri 
+-subsystemversion:&lt;version&gt;       Consente di specificare la versione del sottosistema del file PE di output.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Crea l'output del compilatore con codifica dei caratteri
                                   UTF8.
-@&lt;file&gt;                           Inserisce le impostazioni della riga di comando da un file di testo.
--vbruntime[+|-|*]                 Compila con-senza il runtime di Visual Basic 
+@&lt;file&gt;                           Inserisce le impostazioni della riga di comando da un file di testo
+-vbruntime[+|-|*]                 Compila con/senza il runtime di Visual Basic
                                   predefinito.
--vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo 
+-vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo
+
                                   in &lt;file&gt;.
 </target>
         <note />
@@ -503,17 +579,55 @@
         <target state="translated">L'assembly caricato fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">L'assembly dell'analizzatore '{0}' fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
+        <note />
       </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">L'assembly dell'analizzatore fa riferimento alla versione del compilatore, che è più recente della versione attualmente in esecuzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Il riferimento '{0}' dell'analizzatore è stato specificato più volte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Riferimento analizzatore specificato più volte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non contribuirà quindi all'output ed è possibile che si verifichino errori di compilazione. Eccezione di tipo '{1}' con messaggio '{2}'.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -521,16 +635,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non contribuirà quindi all'output ed è possibile che si verifichino errori di compilazione. Eccezione di tipo '{1}' con messaggio '{2}'.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

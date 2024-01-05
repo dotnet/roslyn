@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Text
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -2915,6 +2916,7 @@ End Module
         <WorkItem(544461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544461")>
         <Fact()>
         Public Sub ValueExtensionProperty()
+            ' ILVerify: Unexpected type on the stack. { Offset = 117, Found = ref '[mscorlib]System.Collections.Generic.IEnumerable`1<T0>', Expected = ref '[mscorlib]System.Collections.Generic.IEnumerable`1<System.Xml.Linq.XElement>' }
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -2967,7 +2969,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=Net40XmlReferences)
+</compilation>, references:=Net40XmlReferences, verify:=Verification.FailsILVerify)
             compilation.VerifyIL("M.M(Of T)", <![CDATA[
 {
   // Code size      166 (0xa6)
@@ -4313,16 +4315,16 @@ End Class
             VerifyIL("scen1(Of T).goo(T)",
             <![CDATA[
 {
-  // Code size       30 (0x1e)
-  .maxstack  3
-  IL_0000:  ldarga.s   V_1
-  IL_0002:  ldstr      "moo"
-  IL_0007:  ldstr      ""
-  IL_000c:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0011:  constrained. "T"
-  IL_0017:  callvirt   "Function System.Xml.Linq.XContainer.Elements(System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
-  IL_001c:  pop
-  IL_001d:  ret
+  // Code size       28 (0x1c)
+      .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  box        "T"
+  IL_0006:  ldstr      "moo"
+  IL_000b:  ldstr      ""
+  IL_0010:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+  IL_0015:  callvirt   "Function System.Xml.Linq.XContainer.Elements(System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
+  IL_001a:  pop
+  IL_001b:  ret
 }
 ]]>)
         End Sub

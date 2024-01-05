@@ -7,6 +7,151 @@
         <target state="translated">对选定内容运行代码分析(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|MenuText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="translated">清除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="translated">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="translated">粘贴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="translated">PasteStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">堆栈跟踪资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="translated">ShowStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
+        <source>&amp;Current Document</source>
+        <target state="translated">当前文档(&amp;C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
+        <source>AnalysisScopeCurrentDocument</source>
+        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
+        <source>Current Document</source>
+        <target state="translated">当前文档</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="translated">默认值(&amp;D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
+        <source>AnalysisScopeDefault</source>
+        <target state="translated">AnalysisScopeDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="translated">默认值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
+        <source>&amp;Entire Solution</source>
+        <target state="translated">整个解决方案(&amp;E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
+        <source>AnalysisScopeEntireSolution</source>
+        <target state="translated">AnalysisScopeEntireSolution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
+        <source>Entire Solution</source>
+        <target state="translated">整个解决方案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="translated">无(&amp;N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="translated">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="translated">无</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
+        <source>&amp;Open Documents</source>
+        <target state="translated">打开文档(&amp;O)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
+        <source>AnalysisScopeOpenDocuments</source>
+        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
+        <source>Open Documents</source>
+        <target state="translated">打开文档</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
+        <source>Set Analysis Scope</source>
+        <target state="translated">设置分析范围</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
+        <source>Set Analysis Scope</source>
+        <target state="translated">设置分析范围</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
+        <source>SetAnalysisScope</source>
+        <target state="translated">SetAnalysisScope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="translated">对 using 排序(&amp;U)</target>
@@ -35,6 +180,116 @@
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
         <source>RemoveAndSort</source>
         <target state="translated">RemoveAndSort</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|ButtonText">
+        <source>Collapse All</source>
+        <target state="translated">全部折叠</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|LocCanonicalName">
+        <source>DocumentOutlineCollapseAll</source>
+        <target state="translated">DocumentOutlineCollapseAll</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|MenuText">
+        <source>Collapse All</source>
+        <target state="translated">全部折叠</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|ToolTipText">
+        <source>Collapse All</source>
+        <target state="translated">全部折叠</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|ButtonText">
+        <source>Expand All</source>
+        <target state="translated">全部展开</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|LocCanonicalName">
+        <source>DocumentOutlineExpandAll</source>
+        <target state="translated">DocumentOutlineExpandAll</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|MenuText">
+        <source>Expand All</source>
+        <target state="translated">全部展开</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|ToolTipText">
+        <source>Expand All</source>
+        <target state="translated">全部展开</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|ButtonText">
+        <source>Sort By Name</source>
+        <target state="translated">按名称排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|LocCanonicalName">
+        <source>DocumentOutlineSortByName</source>
+        <target state="translated">DocumentOutlineSortByName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|MenuText">
+        <source>Sort By Name</source>
+        <target state="translated">按名称排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|ToolTipText">
+        <source>Sort By Name</source>
+        <target state="translated">按名称排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|ButtonText">
+        <source>Sort By Order</source>
+        <target state="translated">按顺序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|LocCanonicalName">
+        <source>DocumentOutlineSortByOrder</source>
+        <target state="translated">DocumentOutlineSortByOrder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|MenuText">
+        <source>Sort By Order</source>
+        <target state="translated">按顺序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|ToolTipText">
+        <source>Sort By Order</source>
+        <target state="translated">按顺序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|ButtonText">
+        <source>Sort By Type</source>
+        <target state="translated">按类型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|LocCanonicalName">
+        <source>DocumentOutlineSortByType</source>
+        <target state="translated">DocumentOutlineSortByType</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|MenuText">
+        <source>Sort By Type</source>
+        <target state="translated">按类型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|ToolTipText">
+        <source>Sort By Type</source>
+        <target state="translated">按类型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineToolbar|ButtonText">
+        <source>Document Outline</source>
+        <target state="translated">文档大纲</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineToolbar|LocCanonicalName">
+        <source>RoslynDocumentOutlineToolbar</source>
+        <target state="translated">RoslynDocumentOutlineToolbar</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
@@ -213,18 +468,18 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
-        <source>Remove &amp;Unused References...</source>
-        <target state="new">Remove &amp;Unused References...</target>
+        <source>Remove Unused References...</source>
+        <target state="translated">删除未使用的引用…</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
         <source>RemoveUnusedReferences</source>
-        <target state="new">RemoveUnusedReferences</target>
+        <target state="translated">RemoveUnusedReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
         <source>RemoveUnusedReferences</source>
-        <target state="new">RemoveUnusedReferences</target>
+        <target state="translated">RemoveUnusedReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
@@ -420,6 +675,36 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">转到实现</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="translated">同步命名空间(&amp;N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="translated">跟踪值源</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="translated">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ShowValueTracking</source>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

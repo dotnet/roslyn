@@ -15,23 +15,23 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandler<TDiagnosticsParams, TReport[]?>
-        where TReport : DiagnosticReport
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : ILspServiceRequestHandler<TDiagnosticsParams, TReport[]?>
+        where TReport : VSInternalDiagnosticReport
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         /// <summary>
         /// Gets the progress object to stream results to.
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// <summary>
         /// Retrieve the previous results we reported.
         /// </summary>
-        protected abstract DiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract VSInternalDiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed.
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         protected abstract ImmutableArray<Document> GetDocuments(RequestContext context);
 
         /// <summary>
-        /// Creates the <see cref="DiagnosticReport"/> instance we'll report back to clients to let them know our
+        /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress. 
         /// </summary>
         protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
-        public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = context.Solution.GetDocument(previousResult.TextDocument, context.ClientName);
+                        var document = context.Solution.GetDocument(previousResult.TextDocument);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             // Go through the documents that we need to process and call XamlPullDiagnosticService to get the diagnostic report
             foreach (var document in GetDocuments(context))
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var documentId = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
 
                 // If we can get a previousId of the document, use it, 
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                             diagnosticReport.ResultId));
             }
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         /// <summary>
@@ -134,14 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Range = ProtocolConversions.TextSpanToRange(new TextSpan(d.Offset, d.Length), text),
                 Tags = ConvertTags(d),
                 Source = d.Tool,
-                Projects = new[]
-                {
-                    new ProjectAndContext
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
+                Projects =
+                [
+                    new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
+                ],
             }).ToArray();
         }
 
@@ -151,6 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 // Hidden is translated in ConvertTags to pass along appropriate _ms tags
                 // that will hide the item in a client that knows about those tags.
                 XamlDiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
+                XamlDiagnosticSeverity.HintedSuggestion => LSP.DiagnosticSeverity.Hint,
                 XamlDiagnosticSeverity.Message => LSP.DiagnosticSeverity.Information,
                 XamlDiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
                 XamlDiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
@@ -172,6 +174,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 result.Add(VSDiagnosticTags.HiddenInEditor);
                 result.Add(VSDiagnosticTags.HiddenInErrorList);
                 result.Add(VSDiagnosticTags.SuppressEditorToolTip);
+            }
+            else if (diagnostic.Severity == XamlDiagnosticSeverity.HintedSuggestion)
+            {
+                result.Add(VSDiagnosticTags.HiddenInErrorList);
             }
             else
             {

@@ -7,14 +7,54 @@
         <target state="translated">Me' を追加します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">&lt;Obsolete&gt; の追加</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_0_to_Iterator">
+        <source>Convert {0} to Iterator</source>
+        <target state="translated">{0} を反復子に変換</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_GetType_to_NameOf">
         <source>Convert 'GetType' to 'NameOf'</source>
         <target state="translated">'GetType' を 'NameOf' に変換します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">不要なインポートの削除</target>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">{0} を Async Function にします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">'{0}' を継承可能にします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">Async Function を作成する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">Async Sub にする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_Return_with_Yield">
+        <source>Replace 'Return' with 'Yield</source>
+        <target state="translated">Return' を 'Yield' に置き換える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">オブジェクトの作成を簡略化</target>
         <note />
       </trans-unit>
     </body>

@@ -26,95 +26,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public int Compare(NameSyntax? x, NameSyntax? y)
         {
-            if (x is null)
-                return y is null ? 0 : -1;
-            else if (y is null)
-                return 1;
-
             if (x == y)
-            {
                 return 0;
-            }
 
-            if (x.IsMissing && y.IsMissing)
+            return (x, y) switch
             {
-                return 0;
-            }
+                (null, null) => 0,
+                (null, _) => -1,
+                (_, null) => 1,
+                ({ IsMissing: true }, { IsMissing: true }) => 0,
+                ({ IsMissing: true }, _) => -1,
+                (_, { IsMissing: true }) => 1,
+                (IdentifierNameSyntax identifierX, IdentifierNameSyntax identifierY) => _tokenComparer.Compare(identifierX.Identifier, identifierY.Identifier),
+                (GenericNameSyntax genericX, GenericNameSyntax genericY) => Compare(genericX, genericY),
+                (IdentifierNameSyntax identifierX, GenericNameSyntax genericY) =>
+                    _tokenComparer.Compare(identifierX.Identifier, genericY.Identifier) is var diff && diff != 0
+                        ? diff
+                        : -1, // Goo goes before Goo<T>
+                (GenericNameSyntax genericX, IdentifierNameSyntax identifierY) =>
+                    _tokenComparer.Compare(genericX.Identifier, identifierY.Identifier) is var diff && diff != 0
+                        ? diff
+                        : -1, // Goo<T> goes after Goo
+                (_, _) => DecomposeCompare(x, y),
+            };
 
-            if (x.IsMissing)
+            int DecomposeCompare(NameSyntax x, NameSyntax y)
             {
-                return -1;
-            }
-            else if (y.IsMissing)
-            {
-                return 1;
-            }
+                // At this point one or both of the nodes is a dotted name or
+                // aliased name.  Break them apart into individual pieces and
+                // compare those.
 
-            // If we have a basic name, then it's simple to compare.  Just
-            // check that token versus whatever the other name has as the
-            // first token.
-            if (x is IdentifierNameSyntax && y is IdentifierNameSyntax)
-            {
-                return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-            }
-            else if (x is GenericNameSyntax && y is GenericNameSyntax)
-            {
-                // if both names are generic, then use a specialized routine
-                // that will check the names *and* the arguments.
-                return Compare((GenericNameSyntax)x, (GenericNameSyntax)y);
-            }
-            else if (x is IdentifierNameSyntax && y is GenericNameSyntax)
-            {
-                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-                if (compare != 0)
+                var xNameParts = DecomposeNameParts(x);
+                var yNameParts = DecomposeNameParts(y);
+
+                for (var i = 0; i < xNameParts.Count && i < yNameParts.Count; i++)
                 {
-                    return compare;
+                    var compare = Compare(xNameParts[i], yNameParts[i]);
+                    if (compare != 0)
+                        return compare;
                 }
 
-                // Goo goes before Goo<T>
-                return -1;
+                // they matched up to this point.  The shorter one should come
+                // first.
+                return xNameParts.Count - yNameParts.Count;
             }
-            else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
-            {
-                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-                if (compare != 0)
-                {
-                    return compare;
-                }
-
-                // Goo<T> goes after Goo
-                return 1;
-            }
-
-            // At this point one or both of the nodes is a dotted name or
-            // aliased name.  Break them apart into individual pieces and
-            // compare those.
-
-            var xNameParts = DecomposeNameParts(x);
-            var yNameParts = DecomposeNameParts(y);
-
-            for (var i = 0; i < xNameParts.Count && i < yNameParts.Count; i++)
-            {
-                var compare = Compare(xNameParts[i], yNameParts[i]);
-                if (compare != 0)
-                {
-                    return compare;
-                }
-            }
-
-            // they matched up to this point.  The shorter one should come
-            // first.
-            return xNameParts.Count - yNameParts.Count;
         }
 
-        private IList<SimpleNameSyntax> DecomposeNameParts(NameSyntax name)
+        private static IList<SimpleNameSyntax> DecomposeNameParts(NameSyntax name)
         {
             var result = new List<SimpleNameSyntax>();
             DecomposeNameParts(name, result);
             return result;
         }
 
-        private void DecomposeNameParts(NameSyntax name, List<SimpleNameSyntax> result)
+        private static void DecomposeNameParts(NameSyntax name, List<SimpleNameSyntax> result)
         {
             switch (name.Kind())
             {
@@ -141,16 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             var compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
             if (compare != 0)
-            {
                 return compare;
-            }
 
             // The one with less type params comes first.
             compare = x.Arity - y.Arity;
             if (compare != 0)
-            {
                 return compare;
-            }
 
             // Same name, same parameter count.  Compare each parameter.
             for (var i = 0; i < x.Arity; i++)
@@ -160,9 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 compare = TypeComparer.Compare(xArg, yArg);
                 if (compare != 0)
-                {
                     return compare;
-                }
             }
 
             return 0;

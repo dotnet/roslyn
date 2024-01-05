@@ -23,29 +23,26 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
 
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            var codeAction = new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c));
-#else
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
-            var codeAction = new MyCodeAction(priority, c => FixAsync(context.Document, context.Diagnostics.First(), c));
-#endif
-            context.RegisterCodeFix(
-                codeAction,
-                context.Diagnostics);
+                : CodeActionPriority.Default;
+
+            var (title, key) = diagnostic.Properties.ContainsKey(AddAccessibilityModifiersConstants.ModifiersAdded)
+                ? (AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers))
+                : (AnalyzersResources.Remove_accessibility_modifiers, nameof(AnalyzersResources.Remove_accessibility_modifiers));
+
+            RegisterCodeFix(context, title, key, priority);
+
             return Task.CompletedTask;
         }
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -53,71 +50,10 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             {
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var declarator = MapToDeclarator(declaration);
-
                 var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
                 Contract.ThrowIfNull(symbol);
-
-                var preferredAccessibility = GetPreferredAccessibility(symbol);
-
-                // Check to see if we need to add or remove
-                // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
-                editor.ReplaceNode(
-                    declaration,
-                    (currentDeclaration, _) => UpdateAccessibility(currentDeclaration, preferredAccessibility));
+                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, symbol, declaration);
             }
-
-            return;
-
-            SyntaxNode UpdateAccessibility(SyntaxNode declaration, Accessibility preferredAccessibility)
-            {
-                var generator = editor.Generator;
-
-                // If there was accessibility on the member, then remove it.  If there was no accessibility, then add
-                // the preferred accessibility for this member.
-                return generator.GetAccessibility(declaration) == Accessibility.NotApplicable
-                    ? generator.WithAccessibility(declaration, preferredAccessibility)
-                    : generator.WithAccessibility(declaration, Accessibility.NotApplicable);
-            }
-        }
-
-        private static Accessibility GetPreferredAccessibility(ISymbol symbol)
-        {
-            // If we have an overridden member, then if we're adding an accessibility modifier, use the
-            // accessibility of the member we're overriding as both should be consistent here.
-            if (symbol.GetOverriddenMember() is { DeclaredAccessibility: var accessibility })
-                return accessibility;
-
-            // Default abstract members to be protected, and virtual members to be public.  They can't be private as
-            // that's not legal.  And these are reasonable default values for them.
-            if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
-            {
-                if (symbol.IsAbstract)
-                    return Accessibility.Protected;
-
-                if (symbol.IsVirtual)
-                    return Accessibility.Public;
-            }
-
-            // Otherwise, default to whatever accessibility no-accessibility means for this member;
-            return symbol.DeclaredAccessibility;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_accessibility_modifiers, createChangedDocument, AnalyzersResources.Add_accessibility_modifiers)
-            {
-            }
-#else
-            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_accessibility_modifiers, createChangedDocument, AnalyzersResources.Add_accessibility_modifiers)
-            {
-                Priority = priority;
-            }
-
-            internal override CodeActionPriority Priority { get; }
-#endif
         }
     }
 }

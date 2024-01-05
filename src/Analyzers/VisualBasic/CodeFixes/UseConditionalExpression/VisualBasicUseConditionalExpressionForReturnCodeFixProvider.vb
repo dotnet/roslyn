@@ -5,18 +5,17 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForReturnCodeFixProvider
         Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
@@ -25,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
             ' VB does not have throw expressions
@@ -39,10 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return statement
         End Function
 
-#If CODE_STYLE Then
-        Protected Overrides Function GetSyntaxFormattingService() As ISyntaxFormattingService
-            Return VisualBasicSyntaxFormattingService.Instance
+        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
+            Return VisualBasicSyntaxFormatting.Instance
         End Function
-#End If
     End Class
 End Namespace

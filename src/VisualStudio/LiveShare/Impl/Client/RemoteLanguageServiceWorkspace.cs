@@ -15,10 +15,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
 using Microsoft.VisualStudio.LiveShare;
@@ -28,7 +29,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Workspace.VSIntegration.Contracts;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener
+    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IOpenTextBufferEventListener
     {
         /// <summary>
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+        private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
         private const string ExternalProjectName = "ExternalDocuments";
@@ -76,22 +77,23 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
-                                              IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-                                              IVsFolderWorkspaceService vsFolderWorkspaceService,
-                                              SVsServiceProvider serviceProvider,
-                                              IDiagnosticService diagnosticService,
-                                              ITableManagerProvider tableManagerProvider,
-                                              IThreadingContext threadingContext)
+        public RemoteLanguageServiceWorkspace(
+            ExportProvider exportProvider,
+            OpenTextBufferProvider openTextBufferProvider,
+            IVsFolderWorkspaceService vsFolderWorkspaceService,
+            SVsServiceProvider serviceProvider,
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
-
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
-            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
+            _openTextBufferProvider = openTextBufferProvider;
+            _openTextBufferProvider.AddListener(this);
             _threadingContext = threadingContext;
 
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
@@ -100,16 +102,21 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
+        private IGlobalOptionService GlobalOptions
+            => _remoteDiagnosticListTable.GlobalOptions;
 
-        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
+        void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
 
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+        void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
+
+        void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
             // Handled by Add/Remove
         }
 
-        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
+        void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
         {
             // Handled by Add/Remove.
         }
@@ -141,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// this means that the remote workpace roots have also changed and need to be updated.
         /// This will not be called concurrently.
         /// </summary>
-        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
+        private async Task OnActiveWorkspaceChangedAsync(object? sender, EventArgs args)
         {
             if (IsRemoteSession)
             {
@@ -181,7 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 // The local root is something like tmp\\xxx\\<workspace name>
                 // The external root should be tmp\\xxx\\~external, so replace the workspace name with ~external.
+#pragma warning disable CS8602 // Dereference of a possibly null reference. (Can localRoot be null here?)
                 var splitRoot = localRoot.TrimEnd('\\').Split('\\');
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 splitRoot[splitRoot.Length - 1] = "~external";
                 var externalPath = string.Join("\\", splitRoot) + "\\";
 
@@ -234,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public async Task RefreshAllFilesAsync()
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-            var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
+            var documents = _openTextBufferProvider.EnumerateDocumentSet();
             foreach (var (moniker, textBuffer, _) in documents)
             {
                 NotifyOnDocumentOpened(moniker, textBuffer);
@@ -298,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The protocol converter would have synced the file to disk but we the document snapshot that was in the workspace before the sync would have empty text.
             // So we need to read from disk in order to map from line\column to a textspan.
@@ -322,20 +331,31 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var project = CurrentSolution.Projects.FirstOrDefault(p => p.Name == projectName && p.Language == language);
             if (project == null)
             {
-                var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), projectName, projectName, language);
+                var projectInfo = ProjectInfo.Create(
+                    new ProjectInfo.ProjectAttributes(
+                        ProjectId.CreateNewId(),
+                        VersionStamp.Create(),
+                        name: projectName,
+                        assemblyName: projectName,
+                        language,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithms.Default));
+
                 OnProjectAdded(projectInfo);
                 project = CurrentSolution.GetRequiredProject(projectInfo.Id);
             }
 
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(project.Id),
-                                                  name: Path.GetFileName(filePath),
-                                                  loader: new FileTextLoader(filePath, null),
-                                                  filePath: filePath);
+            var docInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id),
+                name: Path.GetFileName(filePath),
+                loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null),
+                filePath: filePath);
+
             OnDocumentAdded(docInfo);
-            return CurrentSolution.GetDocument(docInfo.Id)!;
+            return CurrentSolution.GetRequiredDocument(docInfo.Id);
         }
 
-        private string? GetLanguage(string filePath)
+        private static string? GetLanguage(string filePath)
         {
             var fileExtension = Path.GetExtension(filePath).ToLower();
 
@@ -343,7 +363,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return LanguageNames.CSharp;
             }
-            else if (fileExtension == ".ts" || fileExtension == ".js")
+            else if (fileExtension is ".ts" or ".js")
             {
                 return StringConstants.TypeScriptLanguageName;
             }
@@ -363,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null));
+                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(Services.SolutionServices, moniker, defaultEncoding: null));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }
@@ -386,9 +406,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     return;
                 }
+
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
+#pragma warning disable CS8604 // Possible null reference argument. (Can ConvertLocalPathToSharedUri return null here?)
                     await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
+#pragma warning restore CS8604 // Possible null reference argument.
                 });
 
                 var logicalView = Guid.Empty;
@@ -409,7 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         frame.ShowNoActivate();
                     }
 
-                    if (_runningDocumentTableEventTracker.IsFileOpen(doc.FilePath) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(doc.FilePath, out var buffer))
+                    if (_openTextBufferProvider.IsFileOpen(doc.FilePath) && _openTextBufferProvider.TryGetBufferFromFilePath(doc.FilePath, out var buffer))
                     {
                         NotifyOnDocumentOpened(doc.FilePath, buffer);
                     }
@@ -435,7 +458,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void AddOpenedDocument(string filePath, DocumentId docId)
         {
-            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
+            if (_openTextBufferProvider.IsFileOpen(filePath))
             {
                 _openedDocs = _openedDocs.SetItem(filePath, docId);
             }
@@ -444,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void RemoveOpenedDocument(string filePath)
         {
-            if (_runningDocumentTableEventTracker.IsFileOpen(filePath))
+            if (_openTextBufferProvider.IsFileOpen(filePath))
             {
                 _openedDocs = _openedDocs.Remove(filePath);
             }
@@ -469,12 +492,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 if (_openedDocs.Values.Contains(documentId) || IsDocumentOpen(documentId))
                 {
-                    var textBuffer = _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-                        var textContainer = sourceText.Container;
-                        return textContainer.TryGetTextBuffer();
-                    });
+                    var sourceText = document.GetTextSynchronously(CancellationToken.None);
+                    var textContainer = sourceText.Container;
+                    var textBuffer = textContainer.TryGetTextBuffer();
 
                     if (textBuffer == null)
                     {
@@ -516,7 +536,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+        {
+            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                DiagnosticProvider.Enable(this);
+        }
 
         private void StopSolutionCrawler()
             => DiagnosticProvider.Disable(this);

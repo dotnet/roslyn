@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
             Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new string[0]));
-            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "" }));
-            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { " " }));
-            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "1" }));
-            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "[]", "2", "3" }));
-            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "", "", "" }));
+            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [""]));
+            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [" "]));
+            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["1"]));
+            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["[]", "2", "3"]));
+            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["", "", ""]));
         }
 
         [Fact]
@@ -247,7 +247,7 @@ class C
             Assert.Equal("a  +  b, ac, raw", root.FullName);
         }
 
-        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
         public void Keywords_Root()
         {
             var source = @"
@@ -908,6 +908,100 @@ namespace @namespace
                 EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             Verify(GetChildren(children.Single()),
                 EvalResult("x", "0", "int", fullName: null));
+        }
+
+        [Fact]
+        public void MangledName_SimplifySynthesizedLocalName()
+        {
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            // The synthesized locals name should just become an empty string since it's compiler generated.
+            Assert.Equal(string.Empty, fullNameProvider.GetClrNameForLocalVariable(inspectionContext, null, default, default, new DkmClrLocalVariable("CS$<>8__locals0")));
+        }
+
+        [Fact]
+        public void MangledName_SimplifyThisProxyField()
+        {
+            var il = @"
+.class public C
+{
+  .field public object '<>4__this'
+}
+";
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var fieldToken = assembly.GetType("C").GetFields().First().MetadataToken;
+
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            // The stashed <>4__this should just become an empty string since it's compiler generated.
+            Assert.Equal(string.Empty, fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+        }
+
+        [Fact]
+        public void MangledName_SimplifyHoistedLocal()
+        {
+            var il = @"
+.class public C
+{
+  .field public object '<myClass>5__1'
+}
+";
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var fieldToken = assembly.GetType("C").GetFields().First().MetadataToken;
+
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("myClass", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+        }
+
+        [Fact]
+        public void MangledName_SimplifyBackingField_01()
+        {
+            var il = @"
+.class public C
+{
+  .field public object '<StringProperty>k__BackingField'
+}
+";
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var fieldToken = assembly.GetType("C").GetFields().First().MetadataToken;
+
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("StringProperty", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+        }
+
+        [Fact]
+        public void MangledName_SimplifyBackingField_02()
+        {
+            var il = @"
+.class public C
+{
+  .field public object '<StringParameter>P'
+}
+";
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var fieldToken = assembly.GetType("C").GetFields().First().MetadataToken;
+
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("<StringParameter>P", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
     }
 }

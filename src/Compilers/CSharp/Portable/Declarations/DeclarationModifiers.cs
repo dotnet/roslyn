@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -37,11 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
+        Required = 1 << 22, // Used only for properties and fields
+        Scoped = 1 << 23,
+        File = 1 << 24, // used only for types
 
-        Data = 1 << 22,
-
-        All = (1 << 23) - 1, // all modifiers
-        Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
+        All = (1 << 25) - 1, // all modifiers
+        Unset = 1 << 25, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
     }

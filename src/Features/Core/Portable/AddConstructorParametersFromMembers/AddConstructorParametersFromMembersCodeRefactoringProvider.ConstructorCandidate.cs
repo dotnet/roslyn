@@ -2,26 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private readonly struct ConstructorCandidate
+        private readonly struct ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
         {
-            public readonly IMethodSymbol Constructor;
-            public readonly ImmutableArray<ISymbol> MissingMembers;
-            public readonly ImmutableArray<IParameterSymbol> MissingParameters;
-
-            public ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
-            {
-                Constructor = constructor;
-                MissingMembers = missingMembers;
-                MissingParameters = missingParameters;
-            }
+            public readonly IMethodSymbol Constructor = constructor;
+            public readonly ImmutableArray<ISymbol> MissingMembers = missingMembers;
+            public readonly ImmutableArray<IParameterSymbol> MissingParameters = missingParameters;
         }
     }
 }

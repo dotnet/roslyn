@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => null;
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -89,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override bool HasDeclaredRequiredMembers => throw new NotImplementedException();
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return _children.AsImmutable();
@@ -123,17 +128,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return (from sym in _children
-                    where sym is NamedTypeSymbol && sym.Name == name && ((NamedTypeSymbol)sym).Arity == arity
+                    where sym is NamedTypeSymbol namedType && sym.Name.AsSpan().SequenceEqual(name.Span) && namedType.Arity == arity
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return (from sym in _children
-                    where sym is NamedTypeSymbol && sym.Name == name
+                    where sym is NamedTypeSymbol && sym.Name.AsSpan().SequenceEqual(name.Span)
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
@@ -224,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -320,11 +325,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return AttributeUsageInfo.Null;
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
+        internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
     }
 }

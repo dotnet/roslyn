@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
+                    argument.Parent?.Parent is ObjectCreationExpressionSyntax objectCreationExpression)
                 {
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))
@@ -308,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             // No duplicate names allowed
                             return false;
                         }
+
                         found = true;
                     }
                 }
@@ -502,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                                 }
+
                                 break;
 
                             case SyntaxKind.QualifiedName:
@@ -592,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         // if the user already used the Attribute suffix in the attribute, we'll maintain it.
                         if (identifier.ValueText == name && name.EndsWith("Attribute", StringComparison.Ordinal))
                         {
-                            identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+                            identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
                         }
 
                         identifier = identifier.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(identifier.LeadingTrivia, name, name, identifier.TrailingTrivia));
@@ -642,8 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a namespace or type name, fully qualify it.
-                if (symbol.Kind == SymbolKind.NamedType ||
-                    symbol.Kind == SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or
+                    SymbolKind.Namespace)
                 {
                     var replacement = FullyQualifyIdentifierName(
                         (INamespaceOrTypeSymbol)symbol,
@@ -660,9 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a member access, we're fully qualifying the left side and make it a member access.
-                if (symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Field ||
-                    symbol.Kind == SymbolKind.Property)
+                if (symbol.Kind is SymbolKind.Method or
+                    SymbolKind.Field or
+                    SymbolKind.Property)
                 {
                     if (symbol.IsStatic ||
                         originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -721,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     foreach (var candidateToken in leftTokens)
                     {
-                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -741,13 +743,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
                     {
                         var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                        if (!typeArguments.Any(t => t.ContainsAnonymousType()))
+                        if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                         {
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,
                                             SyntaxFactory.TypeArgumentList(
                                                 SyntaxFactory.SeparatedList(
-                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayParts(s_typeNameFormatWithGenerics).ToDisplayString())))))
+                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics))))))
                                             .WithLeadingTrivia(newNode.GetLeadingTrivia())
                                             .WithTrailingTrivia(newNode.GetTrailingTrivia())
                                             .WithAdditionalAnnotations(Simplifier.Annotation);
@@ -807,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            private bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
+            private static bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
             {
                 if (Equals(symbol, symbol.OriginalDefinition))
                 {
@@ -828,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            private void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
+            private static void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
             {
                 if (symbol == null || symbol.IsNamespace())
                 {
@@ -867,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 while (parent != null)
                 {
-                    if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
+                    if (parent.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
                     {
                         return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
@@ -906,8 +908,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // only if this symbol has a containing type or namespace there is work for us to do.
                 if (replaceNode || symbol.ContainingType != null || symbol.ContainingNamespace != null)
                 {
-                    ImmutableArray<SymbolDisplayPart> displayParts;
-
                     // we either need to create an AliasQualifiedName if the symbol is directly contained in the global namespace,
                     // otherwise it a QualifiedName.
                     if (!replaceNode && symbol.ContainingType == null && symbol.ContainingNamespace.IsGlobalNamespace)
@@ -919,10 +919,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithLeadingTrivia(rewrittenNode.GetLeadingTrivia()));
                     }
 
-                    displayParts = replaceNode
-                        ? symbol.ToDisplayParts(s_typeNameFormatWithGenerics)
-                        : (symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace).ToDisplayParts(s_typeNameFormatWithGenerics);
-
                     rewrittenNode = TryAddTypeArgumentToIdentifierName(rewrittenNode, symbol);
 
                     // Replaces the '<' token with the '{' token since we are inside crefs
@@ -931,7 +927,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     if (!omitLeftHandSide)
                     {
-                        ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayParts.ToDisplayString());
+                        var displaySymbol = replaceNode
+                            ? symbol
+                            : (symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace);
+
+                        var displayString = displaySymbol.ToDisplayString(s_typeNameFormatWithGenerics);
+
+                        ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayString);
 
                         // Replaces the '<' token with the '{' token since we are inside crefs
                         left = TryReplaceAngleBracesWithCurlyBraces(left, isInsideCref);
@@ -1039,13 +1041,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
-                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                if (_semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
                 {
                     return originalNode;
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                if (originalNode.Expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess)
                 {
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 

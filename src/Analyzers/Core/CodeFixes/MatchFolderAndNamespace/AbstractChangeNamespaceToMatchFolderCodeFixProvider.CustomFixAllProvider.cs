@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
     /// Custom fix all provider for namespace sync. Does fix all on per document level. Since
     /// multiple documents may be updated when changing a single namespace, it happens 
     /// on a sequential level instead of batch fixing and merging the changes. This prevents
-    /// collissions that the batch fixer won't handle correctly but is slower.
+    /// collisions that the batch fixer won't handle correctly but is slower.
     /// </summary>
     internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider
     {
@@ -39,13 +38,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 if (diagnostics.IsDefaultOrEmpty)
                     return null;
 
-                return new MyCodeAction(
-                    FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext),
+                var title = fixAllContext.GetDefaultFixAllTitle();
+                return CodeAction.Create(
+                    title,
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
-                        fixAllContext.GetProgressTracker(),
-                        cancellationToken));
+                        fixAllContext.Progress,
+#if CODE_STYLE
+                        CodeActionOptions.DefaultProvider,
+#else
+                        fixAllContext.State.CodeActionOptionsProvider,
+#endif
+                        cancellationToken),
+                    title);
 
                 static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
                 {
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
                     foreach (var project in fixAllContext.Solution.Projects)
                     {
-                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
+                        var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                         diagnostics.AddRange(projectDiagnostics);
                     }
 
@@ -64,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             private static async Task<Solution> FixAllByDocumentAsync(
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
-                IProgressTracker progressTracker,
+                IProgress<CodeAnalysisProgress> progressTracker,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 // Use documentId instead of tree here because the
@@ -76,18 +83,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 var documentIdToDiagnosticsMap = diagnostics
                     .GroupBy(diagnostic => diagnostic.Location.SourceTree)
                     .Where(group => group.Key is not null)
-                    .ToImmutableDictionary(group => solution.GetRequiredDocument(group.Key!).Id, group => group.ToImmutableArray());
+                    .SelectAsArray(group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
 
                 var newSolution = solution;
 
-                progressTracker.AddItems(documentIdToDiagnosticsMap.Count);
+                progressTracker.AddItems(documentIdToDiagnosticsMap.Length);
 
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {
                     var document = newSolution.GetRequiredDocument(documentId);
                     using var _ = progressTracker.ItemCompletedScope(document.Name);
 
-                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
+                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, options, cancellationToken).ConfigureAwait(false);
                 }
 
                 return newSolution;

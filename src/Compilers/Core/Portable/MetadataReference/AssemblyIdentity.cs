@@ -158,7 +158,8 @@ namespace Microsoft.CodeAnalysis
             Version version,
             string? cultureName,
             ImmutableArray<byte> publicKeyOrToken,
-            bool hasPublicKey)
+            bool hasPublicKey,
+            bool isRetargetable)
         {
             Debug.Assert(name != null);
             Debug.Assert(IsValid(version));
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             _name = name;
             _version = version ?? NullVersion;
             _cultureName = NormalizeCultureName(cultureName);
-            _isRetargetable = false;
+            _isRetargetable = isRetargetable;
             _contentType = AssemblyContentType.Default;
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }

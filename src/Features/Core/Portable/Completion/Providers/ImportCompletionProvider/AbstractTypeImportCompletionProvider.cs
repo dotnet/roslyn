@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -21,38 +19,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where AliasDeclarationTypeNode : SyntaxNode
     {
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsTypeContext;
+            => syntaxContext.IsTypeContext || syntaxContext.IsEnumBaseListContext;
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
 
-        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
+        }
+
+        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
                 var telemetryCounter = new TelemetryCounter();
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
-                var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
                     completionContext.Document.Project,
                     syntaxContext,
-                    forceCacheCreation: isExpandedCompletion,
+                    forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                    completionContext.CompletionOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                if (itemsFromAllAssemblies == null)
-                {
+                var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+                foreach (var items in itemsFromAllAssemblies)
+                    AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+
+                if (isPartialResult)
                     telemetryCounter.CacheMiss = true;
-                }
-                else
-                {
-                    var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-                    foreach (var items in itemsFromAllAssemblies)
-                    {
-                        AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
-                    }
-                }
 
                 telemetryCounter.Report();
             }
@@ -163,13 +162,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class TelemetryCounter
         {
-            protected int Tick { get; }
+            private readonly SharedStopwatch _elapsedTime;
+
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
             public bool CacheMiss { get; set; }
 
             public TelemetryCounter()
-                => Tick = Environment.TickCount;
+            {
+                _elapsedTime = SharedStopwatch.StartNew();
+            }
 
             public void Report()
             {
@@ -177,13 +179,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
                 }
-                else
-                {
-                    var delta = Environment.TickCount - Tick;
-                    CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
-                    CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
-                    CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
-                }
+
+                // cache miss still count towards the cost of completion, so we need to log regardless of it.
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(_elapsedTime.Elapsed);
+                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }
         }
     }

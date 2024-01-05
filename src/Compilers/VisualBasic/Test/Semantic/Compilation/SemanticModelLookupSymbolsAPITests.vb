@@ -108,7 +108,7 @@ Imports System
             ' Outside the method, all B's are available.
             syms = semanticModel.LookupSymbols(posOutside, Nothing, "b", Nothing)
             Assert.Equal(3, syms.Length)
-            Dim fullNames = From s In syms.AsEnumerable Order By s.ToTestDisplayString() Select s.ToTestDisplayString()
+            Dim fullNames = syms.Select(Function(x) x.ToTestDisplayString()).OrderBy(StringComparer.Ordinal).ToArray()
             Assert.Equal("A.B(Of X)", fullNames(0))
             Assert.Equal("A.B(Of X, Y)", fullNames(1))
             Assert.Equal("B", fullNames(2))
@@ -116,7 +116,7 @@ Imports System
             ' Inside the method, all B's are available if only types/namespace are allowed
             syms = semanticModel.LookupNamespacesAndTypes(posOutside, Nothing, "b")
             Assert.Equal(3, syms.Length)
-            fullNames = From s In syms.AsEnumerable Order By s.ToTestDisplayString() Select s.ToTestDisplayString()
+            fullNames = syms.Select(Function(x) x.ToTestDisplayString()).OrderBy(StringComparer.Ordinal).ToArray()
             Assert.Equal("A.B(Of X)", fullNames(0))
             Assert.Equal("A.B(Of X, Y)", fullNames(1))
             Assert.Equal("B", fullNames(2))
@@ -478,7 +478,6 @@ End Class
     </file>
 </compilation>, TestOptions.ReleaseExe)
 
-
             CompileAndVerify(compilation, <![CDATA[
 True
 1234
@@ -548,7 +547,6 @@ Namespace System.Runtime.CompilerServices
 End Namespace
     </file>
 </compilation>)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <result>
@@ -1640,7 +1638,6 @@ End Class
                     "Sub C1.C1Sub1()"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1694,7 +1691,6 @@ End Class
                     "Sub ImplementationClass1.Sub2()"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1743,7 +1739,6 @@ End Module
                     "me2 As System.Int32"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1788,7 +1783,6 @@ End Module
                     "me1 As System.Int32"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1825,7 +1819,6 @@ End Module
                     "x1 As System.Object"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1858,7 +1851,6 @@ End Module
                 {
                     "x1 As System.Object"
                 }
-
 
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
@@ -1895,7 +1887,6 @@ End Module
                     "x1 As System.Object"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1930,7 +1921,6 @@ End Module
                 {
                     "x1 As System.Object"
                 }
-
 
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 

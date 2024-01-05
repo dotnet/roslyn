@@ -6,8 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub New()
         End Sub
+
+        Public ReadOnly Property SyntaxFacts As ISyntaxFacts Implements ISemanticFacts.SyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
 
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFacts.SupportsImplicitInterfaceImplementation
             Get
@@ -64,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
                    Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
                     If symbol IsNot Nothing Then
                         If symbol.Locations.Contains(location) Then
@@ -99,11 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public ReadOnly Property SupportsParameterizedProperties As Boolean Implements ISemanticFacts.SupportsParameterizedProperties
-            Get
-                Return True
-            End Get
-        End Property
+        Public ReadOnly Property SupportsParameterizedProperties As Boolean = True Implements ISemanticFacts.SupportsParameterizedProperties
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFacts.TryGetSpeculativeSemanticModel
             Debug.Assert(oldNode.Kind = newNode.Kind)
@@ -142,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetAliasNameSet(model As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String) Implements ISemanticFacts.GetAliasNameSet
-            Dim original = DirectCast(model.GetOriginalSemanticModel(), SemanticModel)
+            Dim original = model.GetOriginalSemanticModel()
 
             If Not original.SyntaxTree.HasCompilationUnitRoot Then
                 Return ImmutableHashSet.Create(Of String)()
@@ -163,7 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetForEachSymbols(model As SemanticModel, forEachStatement As SyntaxNode) As ForEachSymbols Implements ISemanticFacts.GetForEachSymbols
-
             Dim vbForEachStatement = TryCast(forEachStatement, ForEachStatementSyntax)
             If vbForEachStatement IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForEachStatement)
@@ -189,6 +190,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFacts.GetCollectionInitializerSymbolInfo
+            Return semanticModel.GetCollectionInitializerSymbolInfo(DirectCast(node, ExpressionSyntax), cancellationToken)
+        End Function
+
         Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFacts.GetGetAwaiterMethod
             If node.IsKind(SyntaxKind.AwaitExpression) Then
                 Dim awaitExpression = DirectCast(node, AwaitExpressionSyntax)
@@ -207,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
-        Public Function IsPartial(typeSymbol As ITypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsPartial
+        Public Function IsPartial(typeSymbol As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsPartial
             Dim syntaxRefs = typeSymbol.DeclaringSyntaxReferences
             Return syntaxRefs.Any(
                 Function(n As SyntaxReference)
@@ -225,8 +230,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken)
+        End Function
+
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForArgument
+            Dim argument = TryCast(node, SimpleArgumentSyntax)
+            If argument?.NameColonEquals IsNot Nothing AndAlso
+               TypeOf argument.Parent Is ArgumentListSyntax AndAlso
+               TypeOf argument.Parent.Parent Is AttributeSyntax Then
+
+                Dim symbol = semanticModel.GetSymbolInfo(argument.NameColonEquals.Name, cancellationToken).GetAnySymbol()
+                If symbol?.Kind = SymbolKind.Field OrElse symbol?.Kind = SymbolKind.Property Then
+                    Return symbol
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForAttributeArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForAttributeArgument
+            Return Nothing
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
@@ -237,6 +265,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
+
+        Public Function GetLocalFunctionSymbols(compilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFacts.GetLocalFunctionSymbols
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
+        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
+        End Function
+
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As SyntaxNode,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
     End Class
 End Namespace

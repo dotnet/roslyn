@@ -1431,7 +1431,7 @@ static partial class C
 
 #Region "IsDerivedFrom tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFromObject_Explicit()
             Dim code =
 <Code>
@@ -1441,7 +1441,7 @@ class $$C : object { }
             TestIsDerivedFrom(code, "System.Object", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_ObjectImplicit()
             Dim code =
 <Code>
@@ -1451,7 +1451,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.Object", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_NotString()
             Dim code =
 <Code>
@@ -1461,7 +1461,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.String", False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_NotNonexistent()
             Dim code =
 <Code>
@@ -1471,7 +1471,7 @@ class $$C { }
             TestIsDerivedFrom(code, "System.ThisIsClearlyNotARealClassName", False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInGlobalNamespace()
             Dim code =
 <Code>
@@ -1482,7 +1482,7 @@ class $$C : B { }
             TestIsDerivedFrom(code, "B", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInSameNamespace()
             Dim code =
 <Code>
@@ -1496,7 +1496,7 @@ namespace NS
             TestIsDerivedFrom(code, "NS.B", True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/52273"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestIsDerivedFrom_UserClassInDifferentNamespace()
             Dim code =
 <Code>
@@ -1614,7 +1614,7 @@ class C { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment1() As Task
             Dim code =
@@ -1636,7 +1636,7 @@ class C { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment2() As Task
             Dim code =
@@ -1660,7 +1660,7 @@ class C { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment3() As Task
             Dim code =
@@ -2025,7 +2025,7 @@ class C
             Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(1172038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddFunction_AfterIncompleteMember() As Task
             Dim code =
@@ -2582,7 +2582,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(545238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545238")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545238")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable14() As Task
             Dim code =
@@ -2603,7 +2603,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
-        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable15() As Task
             Dim code =
@@ -2624,7 +2624,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
         End Function
 
-        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable16() As Task
             Dim code =
@@ -2645,7 +2645,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
         End Function
 
-        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable17() As Task
             Dim code =
@@ -2693,7 +2693,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
         End Function
 
-        <WorkItem(529865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariableAfterComment() As Task
             Dim code =
@@ -3879,13 +3879,13 @@ class C$$
             TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , EnvDTE.vsCMAccess.vsCMAccessDefault)
                         codeClass.RemoveMember(variable)
                     Next
                 End Sub)
         End Sub
 
-        <WorkItem(8423, "https://github.com/dotnet/roslyn/issues/8423")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/8423")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddAndRemoveViaTextChangeManyTimes()
             Dim code =
@@ -3898,7 +3898,7 @@ class C$$
             TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , EnvDTE.vsCMAccess.vsCMAccessDefault)
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint

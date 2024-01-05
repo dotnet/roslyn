@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -30,10 +32,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
-    [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
-        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+        protected RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
             : base(logger)
         {
         }
@@ -112,10 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         {
             public static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
-                    customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
+                    customTags: [WellKnownDiagnosticTags.CompilationEnd]);
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context) =>
-                context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
         }
 
         #endregion
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
-            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+            protected CompilerOrAnalyzerTests(ITestOutputHelper logger)
                 : base(logger)
             {
             }
@@ -294,7 +296,7 @@ class Class
             }
 
             [Theory, CombinatorialData]
-            [WorkItem(46047, "https://github.com/dotnet/roslyn/issues/46047")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/46047")]
             public async Task TestDoNotRemoveUnsupportedDiagnosticSuppression(bool disable, TestKind testKind)
             {
                 var disableOrRestore = disable ? "disable" : "restore";
@@ -302,10 +304,10 @@ class Class
                 var suppressMessageAttribtes = new StringBuilder();
                 foreach (var id in UnsupportedDiagnosticIds)
                 {
-                    if (testKind == TestKind.Pragmas || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.Pragmas or TestKind.PragmasAndSuppressMessageAttributes)
                         pragmas.AppendLine($@"#pragma warning {disableOrRestore} {id}");
 
-                    if (testKind == TestKind.SuppressMessageAttributes || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.SuppressMessageAttributes or TestKind.PragmasAndSuppressMessageAttributes)
                         suppressMessageAttribtes.AppendLine($@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{id}"")]");
                 }
 
@@ -387,7 +389,7 @@ class Class
 |]");
             }
 
-            [Fact, WorkItem(46075, "https://github.com/dotnet/roslyn/issues/46075")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46075")]
             public async Task TestDoNotRemoveDiagnosticSuppressionInGeneratedCode()
             {
                 await TestMissingInRegularAndScriptAsync(
@@ -433,7 +435,7 @@ class Class
 |]", new TestParameters(options: options));
             }
 
-            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47288")]
             public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
             {
                 var options = new OptionsCollection(LanguageNames.CSharp)
@@ -1015,8 +1017,8 @@ class Class
             {
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 
             [Fact]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
@@ -1312,10 +1314,10 @@ class Class
                 }
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
 
-            [Fact, WorkItem(50203, "https://github.com/dotnet/roslyn/issues/50203")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50203")]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
             {
                 await TestMissingInRegularAndScriptAsync(
@@ -1330,6 +1332,33 @@ namespace N
 }}");
             }
         }
+
+        public sealed class UseAutoPropertyAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
+        {
+            public UseAutoPropertyAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
+
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55529")]
+            public async Task TestDoNotRemoveAutoPropertySuppression()
+            {
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+public class Test2
+{{
+        // Message IDE0079 Remove unnecessary suppression
+        [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Style"", ""IDE0032: Use auto property"", Justification = ""<Pending >"")]|]
+        private readonly int i;
+            public int I => i;
+}}
+", new TestParameters(options: Option(CodeStyleOptions2.PreferAutoProperties, true, NotificationOption2.Warning)));
+            }
+        }
+
         #endregion
     }
 }

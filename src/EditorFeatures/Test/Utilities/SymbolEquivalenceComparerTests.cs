@@ -215,8 +215,7 @@ class Type2
             Assert.False(SymbolEquivalenceComparer.Instance.Equals(field4_v1, field4_v2));
         }
 
-        [WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
         public async Task TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -1092,8 +1091,7 @@ class Type1
                          SymbolEquivalenceComparer.Instance.GetHashCode(method_v2));
         }
 
-        [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/599")]
         public async Task TestRefVersusOut()
         {
             var csharpCode1 =
@@ -1118,8 +1116,8 @@ class C
             var method_v1 = type1_v1.GetMembers("M").Single();
             var method_v2 = type1_v2.GetMembers("M").Single();
 
-            var trueComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false);
-            var falseComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+            var trueComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+            var falseComp = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             Assert.False(trueComp.Equals(method_v1, method_v2));
             Assert.False(trueComp.Equals(method_v2, method_v1));
@@ -1129,6 +1127,312 @@ class C
             Assert.True(falseComp.Equals(method_v2, method_v1));
             Assert.Equal(falseComp.GetHashCode(method_v1),
                          falseComp.GetHashCode(method_v2));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples1()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(int i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples2()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples3()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int, int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.True(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples4()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int, int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples5()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56133")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples6()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M((int a, int b, int c) i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        public async Task TestNullable()
+        {
+            var csharpCode1 =
+@"
+#nullable enable
+class T
+{
+    string? A;
+    string[]? B;
+    dynamic? C;
+    dynamic?[]? D;
+}";
+
+            var csharpCode2 =
+@"
+#nullable enable
+class T
+{
+    string A;
+    string[] B;
+    dynamic C;
+    dynamic[] D;
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var t1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+            var t2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+
+            var a1 = ((IFieldSymbol)t1.GetMembers("A").Single()).Type;
+            var b1 = ((IFieldSymbol)t1.GetMembers("B").Single()).Type;
+            var c1 = ((IFieldSymbol)t1.GetMembers("C").Single()).Type;
+            var d1 = ((IFieldSymbol)t1.GetMembers("D").Single()).Type;
+            var a2 = ((IFieldSymbol)t2.GetMembers("A").Single()).Type;
+            var b2 = ((IFieldSymbol)t2.GetMembers("B").Single()).Type;
+            var c2 = ((IFieldSymbol)t2.GetMembers("C").Single()).Type;
+            var d2 = ((IFieldSymbol)t2.GetMembers("D").Single()).Type;
+
+            Assert.Equal(NullableAnnotation.Annotated, a1.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
+
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+
+            Assert.True(ignoreComparer.Equals(a1, a2));
+            Assert.True(ignoreComparer.Equals(b1, b2));
+            Assert.True(ignoreComparer.Equals(c1, c2));
+            Assert.True(ignoreComparer.Equals(d1, d2));
+            Assert.False(notIgnoreComparer.Equals(a1, a2));
+            Assert.False(notIgnoreComparer.Equals(b1, b2));
+            Assert.False(notIgnoreComparer.Equals(c1, c2));
+            Assert.False(notIgnoreComparer.Equals(d1, d2));
+
+            // The hashcodes of distinct objects don't have to be distinct.
+            Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));
+            Assert.Equal(ignoreComparer.GetHashCode(b1), ignoreComparer.GetHashCode(b2));
+            Assert.Equal(ignoreComparer.GetHashCode(c1), ignoreComparer.GetHashCode(c2));
+            Assert.Equal(ignoreComparer.GetHashCode(d1), ignoreComparer.GetHashCode(d2));
+        }
+
+        [Fact]
+        public async Task TestNullableDisableVsEnable()
+        {
+            var csharpCode1 =
+@"
+#nullable disable
+class T
+{
+    string A;
+    string[] B;
+    dynamic C;
+    dynamic[] D;
+}";
+
+            var csharpCode2 =
+@"
+#nullable enable
+class T
+{
+    string A;
+    string[] B;
+    dynamic C;
+    dynamic[] D;
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var t1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+            var t2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("T").Single();
+
+            var a1 = ((IFieldSymbol)t1.GetMembers("A").Single()).Type;
+            var b1 = ((IFieldSymbol)t1.GetMembers("B").Single()).Type;
+            var c1 = ((IFieldSymbol)t1.GetMembers("C").Single()).Type;
+            var d1 = ((IFieldSymbol)t1.GetMembers("D").Single()).Type;
+            var a2 = ((IFieldSymbol)t2.GetMembers("A").Single()).Type;
+            var b2 = ((IFieldSymbol)t2.GetMembers("B").Single()).Type;
+            var c2 = ((IFieldSymbol)t2.GetMembers("C").Single()).Type;
+            var d2 = ((IFieldSymbol)t2.GetMembers("D").Single()).Type;
+
+            Assert.Equal(NullableAnnotation.None, a1.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, a2.NullableAnnotation);
+
+            var ignoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+            var notIgnoreComparer = new SymbolEquivalenceComparer(assemblyComparer: null, distinguishRefFromOut: true, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
+
+            Assert.True(ignoreComparer.Equals(a1, a2));
+            Assert.True(ignoreComparer.Equals(b1, b2));
+            Assert.True(ignoreComparer.Equals(c1, c2));
+            Assert.True(ignoreComparer.Equals(d1, d2));
+            Assert.False(notIgnoreComparer.Equals(a1, a2));
+            Assert.False(notIgnoreComparer.Equals(b1, b2));
+            Assert.False(notIgnoreComparer.Equals(c1, c2));
+            Assert.False(notIgnoreComparer.Equals(d1, d2));
+
+            // The hashcodes of distinct objects don't have to be distinct.
+            Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));
+            Assert.Equal(ignoreComparer.GetHashCode(b1), ignoreComparer.GetHashCode(b2));
+            Assert.Equal(ignoreComparer.GetHashCode(c1), ignoreComparer.GetHashCode(c2));
+            Assert.Equal(ignoreComparer.GetHashCode(d1), ignoreComparer.GetHashCode(d2));
         }
 
         [Fact]
@@ -1316,7 +1620,7 @@ End Class
             var tb2 = (ITypeSymbol)b2.GlobalNamespace.GetMembers("T").Single();
             var tb3 = (ITypeSymbol)b3.GlobalNamespace.GetMembers("T").Single();
 
-            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             // same name:
             Assert.True(SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(ta1, ta2));
@@ -1402,7 +1706,7 @@ End Class
             var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
             var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 
-            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: true);
 
             var f1 = type1.GetMembers("F");
             var f2 = type2.GetMembers("F");
@@ -1456,11 +1760,8 @@ End Class
             var method_root = method.DeclaringSyntaxReferences[0].GetSyntax();
 
             var invocation = method_root.DescendantNodes().OfType<TInvocation>().FirstOrDefault();
-            if (invocation == null)
-            {
-                // vb method root is statement, but we need block to find body with invocation
-                invocation = method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
-            }
+            // vb method root is statement, but we need block to find body with invocation
+            invocation ??= method_root.Parent.DescendantNodes().OfType<TInvocation>().First();
 
             var model = compilation.GetSemanticModel(invocation.SyntaxTree);
             var info = model.GetSymbolInfo(invocation);

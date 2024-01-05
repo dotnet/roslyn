@@ -21,53 +21,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         [Fact]
         public void C2CTypeSymbolUnchanged01()
         {
-            var src1 = @"using System;
+            var src1 = """
+                using System;
 
-public delegate void DGoo(int p1, string p2);
+                public delegate void DGoo(int p1, string p2);
 
-namespace N1.N2
-{
-    public interface IGoo { }
-    namespace N3
-    {
-        public class CGoo 
-        {
-            public struct SGoo 
-            {
-                public enum EGoo { Zero, One }
-            }
-        }
-    }
-}
-";
+                namespace N1.N2
+                {
+                    public interface IGoo { }
+                    namespace N3
+                    {
+                        public class CGoo 
+                        {
+                            public struct SGoo 
+                            {
+                                public enum EGoo { Zero, One }
+                            }
+                        }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
+            var src2 = """
+                using System;
 
-public delegate void DGoo(int p1, string p2);
+                public delegate void DGoo(int p1, string p2);
 
-namespace N1.N2
-{
-    public interface IGoo 
-    {
-        // Add member
-        N3.CGoo GetClass();
-    }
+                namespace N1.N2
+                {
+                    public interface IGoo 
+                    {
+                        // Add member
+                        N3.CGoo GetClass();
+                    }
 
-    namespace N3
-    {
-        public class CGoo 
-        {
-            public struct SGoo 
-            {
-                // Update member
-                public enum EGoo { Zero, One, Two }
-            }
-            // Add member
-            public void M(int n) { Console.WriteLine(n); }
-        }
-    }
-}
-";
+                    namespace N3
+                    {
+                        public class CGoo 
+                        {
+                            public struct SGoo 
+                            {
+                                // Update member
+                                public enum EGoo { Zero, One, Two }
+                            }
+                            // Add member
+                            public void M(int n) { Console.WriteLine(n); }
+                        }
+                    }
+                }
+                """;
 
             var comp1 = CreateCompilation(src1, assemblyName: "Test");
             var comp2 = CreateCompilation(src2, assemblyName: "Test");
@@ -78,17 +80,17 @@ namespace N1.N2
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void C2CErrorSymbolUnchanged01()
         {
             var src1 = @"public void Method() { }";
 
-            var src2 = @"
-public void Method() 
-{ 
-    System.Console.WriteLine(12345);
-}
-";
+            var src2 = """
+                public void Method() 
+                { 
+                    System.Console.WriteLine(12345);
+                }
+                """;
 
             var comp1 = CreateCompilation(src1, assemblyName: "C2CErrorSymbolUnchanged01");
             var comp2 = CreateCompilation(src2, assemblyName: "C2CErrorSymbolUnchanged01");
@@ -108,25 +110,25 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact]
-        [WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
-            var src = @"using System;
-namespace NS
-{
-    public partial class C1
-    {
-        partial void M() { }
-        partial void M();
-    }
-}
-";
+            var src = """
+                using System;
+                namespace NS
+                {
+                    public partial class C1
+                    {
+                        partial void M() { }
+                        partial void M();
+                    }
+                }
+                """;
 
             var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var type = ns.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var type = ns.GetTypeMembers("C1").FirstOrDefault();
             var definition = type.GetMembers("M").First() as IMethodSymbol;
             var implementation = definition.PartialImplementationPart;
 
@@ -138,21 +140,22 @@ namespace NS
         [Fact]
         public void ExtendedPartialDefinitionAndImplementationResolveCorrectly()
         {
-            var src = @"using System;
-namespace NS
-{
-    public partial class C1
-    {
-        public partial void M() { }
-        public partial void M();
-    }
-}
-";
+            var src = """
+                using System;
+                namespace NS
+                {
+                    public partial class C1
+                    {
+                        public partial void M() { }
+                        public partial void M();
+                    }
+                }
+                """;
 
             var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var type = ns.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var type = ns.GetTypeMembers("C1").FirstOrDefault();
             var definition = type.GetMembers("M").First() as IMethodSymbol;
             var implementation = definition.PartialImplementationPart;
 
@@ -161,42 +164,40 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
-        [Fact]
-        [WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
-            var src = @"
-interface I
-{
-    object this[int index] { get; }
-}
-interface I<T>
-{
-    T this[int index] { get; }
-}
-class C<T> : I<T>, I
-{
-    object I.this[int index]
-    {
-        get
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-    T I<T>.this[int index]
-    {
-        get
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}
-
-";
+            var src = """
+                interface I
+                {
+                    object this[int index] { get; }
+                }
+                interface I<T>
+                {
+                    T this[int index] { get; }
+                }
+                class C<T> : I<T>, I
+                {
+                    object I.this[int index]
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                    T I<T>.this[int index]
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                }
+                """;
 
             var compilation = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
-            var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single() as INamedTypeSymbol;
+            var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
             var indexer2 = type.GetMembers().Where(m => m.MetadataName == "I<T>.Item").Single() as IPropertySymbol;
 
@@ -210,15 +211,17 @@ class C<T> : I<T>, I
         public void RecursiveReferenceToConstructedGeneric()
         {
             var src1 =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    public void M<Z>(List<Z> list)
-    {
-        var v = list.Add(default(Z));
-    }
-}";
+                class C
+                {
+                    public void M<Z>(List<Z> list)
+                    {
+                        var v = list.Add(default(Z));
+                    }
+                }
+                """;
 
             var comp1 = CreateCompilation(src1);
             var comp2 = CreateCompilation(src1);
@@ -239,6 +242,102 @@ class C
             ResolveAndVerifySymbolList(members1, members2, comp1);
         }
 
+        [Fact]
+        public void FileType1()
+        {
+            var src1 = """
+                using System;
+
+                namespace N1.N2
+                {
+                    file class C { }
+                }
+                """;
+            var originalComp = CreateCompilation(src1, assemblyName: "Test");
+            var newComp = CreateCompilation(src1, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(3, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType2()
+        {
+            var src1 = """
+                using System;
+
+                namespace N1.N2
+                {
+                    file class C<T> { }
+                }
+                """;
+            var originalComp = CreateCompilation(src1, assemblyName: "Test");
+            var newComp = CreateCompilation(src1, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(3, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType3()
+        {
+            var src1 = """
+                using System;
+
+                namespace N1.N2
+                {
+                    file class C { }
+                }
+                """;
+            // this should result in two entirely separate file symbols.
+            // note that the IDE can only distinguish file-local type symbols with the same name when they have distinct file paths.
+            // We are OK with this as we will require file types with identical names to have distinct file paths later in the preview.
+            // See https://github.com/dotnet/roslyn/issues/61999
+            var originalComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
+            var newComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(4, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
+        [Fact]
+        public void FileType4()
+        {
+            // we should be able to distinguish a file-local type and non-file-local type when they have the same source name.
+            var src1 = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                namespace N1.N2
+                {
+                    file class C { }
+                }
+                """, path: "File1.cs");
+
+            var src2 = SyntaxFactory.ParseSyntaxTree("""
+                namespace N1.N2
+                {
+                    class C { }
+                }
+                """, path: "File2.cs");
+            var originalComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+            var newComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+
+            var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+            var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
+
+            Assert.Equal(4, originalSymbols.Length);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, originalComp);
+        }
+
         #endregion
 
         #region "Change to symbol"
@@ -246,50 +345,52 @@ class C
         [Fact]
         public void C2CTypeSymbolChanged01()
         {
-            var src1 = @"using System;
+            var src1 = """
+                using System;
 
-public delegate void DGoo(int p1);
+                public delegate void DGoo(int p1);
 
-namespace N1.N2
-{
-    public interface IBase { }
-    public interface IGoo { }
-    namespace N3
-    {
-        public class CGoo 
-        {
-            public struct SGoo 
-            {
-                public enum EGoo { Zero, One }
-            }
-        }
-    }
-}
-";
+                namespace N1.N2
+                {
+                    public interface IBase { }
+                    public interface IGoo { }
+                    namespace N3
+                    {
+                        public class CGoo 
+                        {
+                            public struct SGoo 
+                            {
+                                public enum EGoo { Zero, One }
+                            }
+                        }
+                    }
+                }
+                """;
 
-            var src2 = @"using System;
+            var src2 = """
+                using System;
 
-public delegate void DGoo(int p1, string p2); // add 1 more parameter
+                public delegate void DGoo(int p1, string p2); // add 1 more parameter
 
-namespace N1.N2
-{
-    public interface IBase { }
-    public interface IGoo : IBase // add base interface
-    {
-    }
+                namespace N1.N2
+                {
+                    public interface IBase { }
+                    public interface IGoo : IBase // add base interface
+                    {
+                    }
 
-    namespace N3
-    {
-        public class CGoo : IGoo // impl interface
-        {
-            private struct SGoo // change modifier
-            {
-                internal enum EGoo : long { Zero, One } // change base class, and modifier
-            }
-        }
-    }
-}
-";
+                    namespace N3
+                    {
+                        public class CGoo : IGoo // impl interface
+                        {
+                            private struct SGoo // change modifier
+                            {
+                                internal enum EGoo : long { Zero, One } // change base class, and modifier
+                            }
+                        }
+                    }
+                }
+                """;
 
             var comp1 = CreateCompilation(src1, assemblyName: "Test");
             var comp2 = CreateCompilation(src2, assemblyName: "Test");
@@ -303,39 +404,40 @@ namespace N1.N2
         [Fact]
         public void C2CTypeSymbolChanged02()
         {
-            var src1 = @"using System;
-namespace NS
-{
-    public class C1 
-    {
-        public void M() {}
-    }
-}
-";
+            var src1 = """
+                using System;
+                namespace NS
+                {
+                    public class C1 
+                    {
+                        public void M() {}
+                    }
+                }
+                """;
 
-            var src2 = @"
-namespace NS
-{
-    internal class C1 // add new C1
-    {
-        public string P { get; set; }
-    }
+            var src2 = """
+                namespace NS
+                {
+                    internal class C1 // add new C1
+                    {
+                        public string P { get; set; }
+                    }
 
-    public class C2  // rename C1 to C2
-    {
-        public void M() {}
-    }
-}
-";
+                    public class C2  // rename C1 to C2
+                    {
+                        public void M() {}
+                    }
+                }
+                """;
             var comp1 = (Compilation)CreateCompilation(src1, assemblyName: "Test");
             var comp2 = (Compilation)CreateCompilation(src2, assemblyName: "Test");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault();
 
             var namespace2 = comp2.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym01 = namespace2.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
-            var typeSym02 = namespace2.GetTypeMembers("C2").Single() as INamedTypeSymbol;
+            var typeSym01 = namespace2.GetTypeMembers("C1").FirstOrDefault();
+            var typeSym02 = namespace2.GetTypeMembers("C2").Single();
 
             // new C1 resolve to old C1
             ResolveAndVerifySymbol(typeSym01, typeSym00, comp1);
@@ -349,31 +451,33 @@ namespace NS
         [Fact]
         public void C2CMemberSymbolChanged01()
         {
-            var src1 = @"using System;
-using System.Collections.Generic;
+            var src1 = """
+                using System;
+                using System.Collections.Generic;
 
-public class Test
-{
-    private byte field = 123;
-    internal string P { get; set; }
-    public void M(ref int n) { }
-    event Action<string> myEvent;
-}
-";
+                public class Test
+                {
+                    private byte field = 123;
+                    internal string P { get; set; }
+                    public void M(ref int n) { }
+                    event Action<string> myEvent;
+                }
+                """;
 
-            var src2 = @"using System;
-public class Test
-{
-    internal protected byte field = 255;    // change modifier and init-value
-    internal string P { get { return null; } }       // remove 'set'
-    public int M(ref int n) { return 0;  }   // change ret type
-    event Action<string> myEvent             // add add/remove
-    {
-        add { }
-        remove { }
-    }
-}
-";
+            var src2 = """
+                using System;
+                public class Test
+                {
+                    internal protected byte field = 255;    // change modifier and init-value
+                    internal string P { get { return null; } }       // remove 'set'
+                    public int M(ref int n) { return 0;  }   // change ret type
+                    event Action<string> myEvent             // add add/remove
+                    {
+                        add { }
+                        remove { }
+                    }
+                }
+                """;
             var comp1 = CreateCompilation(src1, assemblyName: "Test");
             var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
@@ -386,34 +490,35 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
-            var src1 = @"using System;
-using System.Collections.Generic;
+            var src1 = """
+                using System;
+                using System.Collections.Generic;
 
-public class Test
-{
-    public string this[string p1] { set { } }
-    protected long this[long p1] { set { } }
-}
-";
+                public class Test
+                {
+                    public string this[string p1] { set { } }
+                    protected long this[long p1] { set { } }
+                }
+                """;
 
-            var src2 = @"using System;
-public class Test
-{
-    internal string this[string p1] { set { } } // change modifier
-    protected long this[long p1] { get { return 0; } set { } }  // add 'get'
-}
-";
+            var src2 = """
+                using System;
+                public class Test
+                {
+                    internal string this[string p1] { set { } } // change modifier
+                    protected long this[long p1] { get { return 0; } set { } }  // add 'get'
+                }
+                """;
             var comp1 = (Compilation)CreateCompilation(src1, assemblyName: "Test");
             var comp2 = (Compilation)CreateCompilation(src2, assemblyName: "Test");
 
-            var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as INamedTypeSymbol;
+            var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var originalSymbols = typeSym1.GetMembers(WellKnownMemberNames.Indexer);
 
-            var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as INamedTypeSymbol;
+            var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var newSymbols = typeSym2.GetMembers(WellKnownMemberNames.Indexer);
 
             ResolveAndVerifySymbol(newSymbols.First(), originalSymbols.First(), comp1, SymbolKeyComparison.None);
@@ -423,23 +528,23 @@ public class Test
         [Fact]
         public void C2CAssemblyChanged01()
         {
-            var src = @"
-namespace NS
-{
-    public class C1 
-    {
-        public void M() {}
-    }
-}
-";
+            var src = """
+                namespace NS
+                {
+                    public class C1 
+                    {
+                        public void M() {}
+                    }
+                }
+                """;
             var comp1 = (Compilation)CreateCompilation(src, assemblyName: "Assembly1");
             var comp2 = (Compilation)CreateCompilation(src, assemblyName: "Assembly2");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault();
 
             var namespace2 = comp2.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault();
 
             // new C1 resolves to old C1 if we ignore assembly and module ids
             ResolveAndVerifySymbol(typeSym02, typeSym01, comp1, SymbolKeyComparison.IgnoreAssemblyIds);
@@ -448,7 +553,7 @@ namespace NS
             Assert.Null(ResolveSymbol(typeSym02, comp1, SymbolKeyComparison.None));
         }
 
-        [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
+        [WpfFact(Skip = "530169"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
         public void C2CAssemblyChanged02()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -476,7 +581,7 @@ namespace NS
             Assert.NotNull(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
         public void C2CAssemblyChanged03()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -511,20 +616,20 @@ namespace NS
             Assert.Null(ResolveSymbol(module2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(546254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
         public void C2CAssemblyChanged04()
         {
-            var src = @"
-[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] 
-[assembly: System.Reflection.AssemblyTitle(""One Hundred Years of Solitude"")]
-public class C {}
-";
+            var src = """
+                [assembly: System.Reflection.AssemblyVersion("1.2.3.4")] 
+                [assembly: System.Reflection.AssemblyTitle("One Hundred Years of Solitude")]
+                public class C {}
+                """;
 
-            var src2 = @"
-[assembly: System.Reflection.AssemblyVersion(""1.2.3.42"")] 
-[assembly: System.Reflection.AssemblyTitle(""One Hundred Years of Solitude"")]
-public class C {}
-";
+            var src2 = """
+                [assembly: System.Reflection.AssemblyVersion("1.2.3.42")] 
+                [assembly: System.Reflection.AssemblyTitle("One Hundred Years of Solitude")]
+                public class C {}
+                """;
 
             // different versions
             var comp1 = (Compilation)CreateCompilation(src, assemblyName: "Assembly");

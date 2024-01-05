@@ -202,6 +202,39 @@ $$", "class {$$}");
 }");
         }
 
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57323")]
+        public void EmbededStatementFollowedByStatement()
+        {
+            Test(@"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true)
+        {
+            $$
+        }
+        if (true)
+        {
+        }
+    }
+}", @"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true$$)
+        if (true)
+        {
+        }
+    }
+}");
+        }
+
         [WpfFact]
         public void Statement()
         {
@@ -240,7 +273,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethod()
         {
@@ -254,7 +287,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedOperator()
         {
@@ -272,7 +305,7 @@ $$", "class {$$}");
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedConversionOperator()
         {
@@ -304,7 +337,7 @@ public struct DBBool
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedProperty()
         {
@@ -318,7 +351,7 @@ public struct DBBool
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedIndexer()
         {
@@ -336,7 +369,7 @@ class SampleCollection<T>
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
@@ -358,7 +391,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
@@ -374,7 +407,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
@@ -396,7 +429,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
@@ -412,7 +445,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
@@ -438,7 +471,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_SimpleExpressionBodiedMember()
         {
@@ -452,7 +485,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_ExpressionBodiedMemberWithSingleLineBlock()
         {
@@ -468,7 +501,7 @@ class TestClass
 }");
         }
 
-        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3944")]
         [WpfFact]
         public void Format_ExpressionBodiedMemberWithMultiLineBlock()
         {
@@ -589,7 +622,7 @@ $$", @"         using
 }", completionActive: true);
         }
 
-        [WorkItem(530352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
         [WpfFact]
         public void EmbededStatement3()
         {
@@ -611,9 +644,9 @@ $$", @"         using
 }");
         }
 
-        [WorkItem(530716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
         [WpfFact]
-        public void DontAssertOnMultilineToken()
+        public void DoNotAssertOnMultilineToken()
         {
             Test(@"interface I
 {
@@ -625,7 +658,7 @@ $$
 }");
         }
 
-        [WorkItem(530718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
         [WpfFact]
         public void AutomaticLineFormat()
         {
@@ -710,7 +743,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void DelegatedInEmptyBlock()
         {
@@ -729,7 +762,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void DelegatedInEmptyBlock2()
         {
@@ -748,7 +781,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedOutsideEmptyBlock()
         {
@@ -768,7 +801,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
@@ -788,7 +821,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedInNonEmptyBlock()
         {
@@ -808,7 +841,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
@@ -828,7 +861,7 @@ $$
 }");
         }
 
-        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact]
         public void NotDelegatedAfterOpenBraceObjectCreationExpression()
         {
@@ -1145,7 +1178,7 @@ public class Bar
 {
     public int P
     {
-        ge$$t
+        ge$$t$$
     }
 }";
 
@@ -1226,7 +1259,7 @@ public class Bar
 {
     public int this[int i]
     {
-        ge$$t
+        ge$$t$$
     }
 }");
         }
@@ -1346,7 +1379,7 @@ public class Bar
     public int this[int i]
     {
         get;
-        se$$t
+        se$$t$$
     }
 }");
         }
@@ -1401,7 +1434,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        ad$$d
+        ad$$d$$
         remove
     }
 }");
@@ -1460,7 +1493,7 @@ public class Bar
     public event EventHandler e
     {
         add
-        remo$$ve
+        remo$$ve$$
     }
 }");
         }
@@ -2684,6 +2717,82 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestSwitchExpression1()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression2()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchStatementWithOnlyOpenParenthesis()
+        {
+            // This test is to make sure {} will be added to the switch statement,
+            // but our formatter now can't format the case when the CloseParenthesis token is missing.
+            // If any future formatter improvement can handle this case, this test can be modified safely
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        switch (
+{
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        swi$$tch ($$
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestSwitchStatement()
         {
             Test(@"
@@ -2966,10 +3075,165 @@ public class Bar
         catch (System.Exception)
         {
         }
-        fin$$ally
+        fin$$ally$$
         {
         }
     }
+}");
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithMissingType()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new()
+        {
+            $$
+        };
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveInitializerForImplicitObjectCreationExpression()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new();
+        $$
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new()
+        {
+            $$
+        };
+    }
+}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TestCheckedStatement(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}
+        {{
+            $$
+        }}
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}$$
+    }}
+}}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TextCheckedExpression(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}(1 + 1);
+        $$
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}$$(1 +$$ 1)$$
+    }}
+}}");
+        }
+
+        [WpfFact]
+        public void TestConvertFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public int Property
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public int Property$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}");
+        }
+
+        [WpfFact]
+        public void TestConvertEventFieldToPropertyWithAttributeAndComment()
+        {
+            Test(@"
+public class Bar
+{
+    public event EventHandler MyEvent
+    {
+        $$
+    }
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
+}",
+@"
+public class Bar
+{
+    public event EventHandler MyEvent$$
+
+    /// <summary>
+    /// </summary>
+    [SomeAttri]
+    public void Method() { }
 }");
         }
 

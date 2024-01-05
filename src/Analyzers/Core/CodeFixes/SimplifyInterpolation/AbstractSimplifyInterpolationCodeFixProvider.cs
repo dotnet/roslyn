@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -23,21 +23,17 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         TExpressionSyntax,
         TInterpolationAlignmentClause,
         TInterpolationFormatClause,
-        TInterpolatedStringExpressionSyntax,
-        TConditionalExpressionSyntax,
-        TParenthesizedExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+        TInterpolatedStringExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TInterpolationAlignmentClause : SyntaxNode
         where TInterpolationFormatClause : SyntaxNode
         where TInterpolatedStringExpressionSyntax : TExpressionSyntax
-        where TConditionalExpressionSyntax : TExpressionSyntax
-        where TParenthesizedExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
@@ -46,19 +42,19 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Simplify_interpolation, nameof(AnalyzersResources.Simplify_interpolation));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var helpers = GetHelpers();
+
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
@@ -66,15 +62,18 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
+                    helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
-                        document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
-                        out var alignment, out var negate, out var formatString, out _);
+                        document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                     if (unwrapped == null)
                         continue;
 
-                    alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
+                    if (alignment != null && negate)
+                    {
+                        alignment = (TExpressionSyntax)generator.NegateExpression(alignment);
+                    }
 
                     editor.ReplaceNode(
                         interpolationSyntax,
@@ -104,14 +103,6 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             return result;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_interpolation, createChangedDocument, AnalyzersResources.Simplify_interpolation)
-            {
-            }
         }
     }
 }

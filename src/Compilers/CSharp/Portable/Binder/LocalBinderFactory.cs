@@ -9,8 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// The LocalBinderFactory is used to build up the map of all Binders within a method body, and the associated
     /// CSharpSyntaxNode. To do so it traverses all the statements, handling blocks and other
     /// statements that create scopes. For efficiency reasons, it does not traverse into all
-    /// expressions. This means that blocks within lambdas and queries are not created. 
-    /// Blocks within lambdas are bound by their own LocalBinderFactory when they are 
+    /// expressions. This means that blocks within lambdas and queries are not created.
+    /// Blocks within lambdas are bound by their own LocalBinderFactory when they are
     /// analyzed.
     ///
-    /// For reasons of lifetime management, this type is distinct from the BinderFactory 
-    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns it's binders
+    /// For reasons of lifetime management, this type is distinct from the BinderFactory
+    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns its binders
     /// and that type's lifetime is that of the compilation. Therefore we do not store
-    /// binders local to method bodies in that type's cache. 
+    /// binders local to method bodies in that type's cache.
     /// </summary>
     internal sealed class LocalBinderFactory : CSharpSyntaxWalker
     {
@@ -158,18 +161,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            VisitTypeDeclaration(node);
+        }
+
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
-            Debug.Assert(node.ParameterList is object);
+            VisitTypeDeclaration(node);
+        }
 
-            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, enclosing);
-            Visit(node.PrimaryConstructorBaseType, enclosing);
+        private void VisitTypeDeclaration(TypeDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
+            Debug.Assert(node.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
+
+            Visit(node.PrimaryConstructorBaseTypeIfClass);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
         {
-            Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing).WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, enclosing);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, enclosing);
         }
@@ -197,6 +209,167 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Body);
             Visit(node.ExpressionBody);
         }
+
+#nullable enable
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (node.MayBeNameofOperator())
+            {
+                var oldEnclosing = _enclosing;
+
+                WithTypeParametersBinder? withTypeParametersBinder;
+                Binder? withParametersBinder;
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+                {
+                    var attributeTarget = getAttributeTarget(_enclosing);
+                    withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
+                    withParametersBinder = getExtraWithParametersBinder(_enclosing, attributeTarget);
+                }
+                else
+                {
+                    withTypeParametersBinder = null;
+                    withParametersBinder = null;
+                }
+
+                var argumentExpression = node.ArgumentList.Arguments[0].Expression;
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder, withParametersBinder);
+                AddToMap(node, possibleNameofBinder);
+
+                _enclosing = possibleNameofBinder;
+                base.VisitInvocationExpression(node);
+                _enclosing = oldEnclosing;
+                return;
+            }
+
+            if (receiverIsInvocation(node, out InvocationExpressionSyntax? nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                Visit(node.Expression);
+
+                do
+                {
+                    Visit(node.ArgumentList);
+                }
+                while (invocations.TryPop(out node!));
+
+                invocations.Free();
+            }
+            else
+            {
+                Visit(node.Expression);
+                Visit(node.ArgumentList);
+            }
+
+            return;
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, [NotNullWhen(true)] out InvocationExpressionSyntax? nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver } && !receiver.MayBeNameofOperator())
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
+
+            static Symbol getAttributeTarget(Binder current)
+            {
+                Debug.Assert((current.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+                var contextualAttributeBinder = Binder.TryGetContextualAttributeBinder(current);
+
+                Debug.Assert(contextualAttributeBinder is not null);
+                return contextualAttributeBinder.AttributeTarget;
+            }
+
+            static WithTypeParametersBinder? getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
+                => target.Kind == SymbolKind.Method ? new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing) : null;
+
+            // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
+            // This also applies to local functions, lambdas, indexers and delegates.
+            static Binder? getExtraWithParametersBinder(Binder enclosing, Symbol target)
+            {
+                if (target is LambdaSymbol lambda)
+                {
+                    // lambda parameters have some special rules around parameters named `_`
+                    return new WithLambdaParametersBinder(lambda, enclosing);
+                }
+
+                var parameters = target switch
+                {
+                    SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
+                    MethodSymbol methodSymbol => methodSymbol.Parameters,
+                    ParameterSymbol parameter => getAllParameters(parameter),
+                    TypeParameterSymbol typeParameter => getMethodParametersFromTypeParameter(typeParameter),
+                    PropertySymbol property => property.Parameters,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => getDelegateParameters(namedType),
+                    _ => default
+                };
+
+                return parameters.IsDefaultOrEmpty
+                    ? null
+                    : new WithParametersBinder(parameters, enclosing);
+            }
+
+            static ImmutableArray<ParameterSymbol> getAllParameters(ParameterSymbol parameter)
+            {
+                switch (parameter.ContainingSymbol)
+                {
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case PropertySymbol property:
+                        return property.Parameters;
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
+            }
+
+            static ImmutableArray<ParameterSymbol> getMethodParametersFromTypeParameter(TypeParameterSymbol typeParameter)
+            {
+                switch (typeParameter.ContainingSymbol)
+                {
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case NamedTypeSymbol namedType when namedType.IsDelegateType():
+                        return getDelegateParameters(namedType);
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
+            }
+
+            static ImmutableArray<ParameterSymbol> getDelegateParameters(NamedTypeSymbol delegateType)
+            {
+                Debug.Assert(delegateType.IsDelegateType());
+                if (delegateType.DelegateInvokeMethod is { } invokeMethod)
+                {
+                    return invokeMethod.Parameters;
+                }
+
+                Debug.Assert(false);
+                return default;
+            }
+
+            static ImmutableArray<ParameterSymbol> getSetterParameters(SourcePropertyAccessorSymbol setter)
+            {
+                var parameters = setter.Parameters;
+                Debug.Assert(parameters[^1] is SynthesizedAccessorValueParameterSymbol);
+                return parameters.RemoveAt(parameters.Length - 1);
+            }
+        }
+#nullable disable
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
@@ -278,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate in possibleScopeBinder.LocalFunctions)
                 {
-                    if (candidate.Locations[0] == node.Identifier.GetLocation())
+                    if (candidate.GetFirstLocation() == node.Identifier.GetLocation())
                     {
                         match = candidate;
                     }
@@ -474,6 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = new ForEachLoopBinder(patternBinder, node);
             AddToMap(node, binder);
 
+            if (node is ForEachVariableStatementSyntax forEachVariable && !forEachVariable.Variable.IsDeconstructionLeft())
+            {
+                // We will bind this expression for error recovery, anything could be there
+                Visit(forEachVariable.Variable, binder);
+            }
+
             VisitPossibleEmbeddedStatement(node.Statement, binder);
         }
 
@@ -485,6 +664,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
+        }
+
+        public override void VisitCheckedExpression(CheckedExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
@@ -629,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Catches.Any())
             {
-                // NOTE: We're going to cheat a bit - we know that the block is definitely going 
+                // NOTE: We're going to cheat a bit - we know that the block is definitely going
                 // to get a map entry, so we don't need to worry about the WithAdditionalFlags
                 // binder being dropped.  That is, there's no point in adding the WithAdditionalFlags
                 // binder to the map ourselves and having VisitBlock unconditionally overwrite it.
@@ -674,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitFinallyClause(FinallyClauseSyntax node)
         {
-            // NOTE: We're going to cheat a bit - we know that the block is definitely going 
+            // NOTE: We're going to cheat a bit - we know that the block is definitely going
             // to get a map entry, so we don't need to worry about the WithAdditionalFlags
             // binder being dropped.  That is, there's no point in adding the WithAdditionalFlags
             // binder to the map ourselves and having VisitBlock unconditionally overwrite it.
@@ -747,8 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a + b + c + d .... are relatively common in machine-generated code. The parser can handle
             // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack.
 
-            // For the purpose of creating binders, the order, in which we visit expressions, is not 
-            // significant. 
+            // For the purpose of creating binders, the order, in which we visit expressions, is not
+            // significant.
             while (true)
             {
                 Visit(node.Right);
@@ -793,10 +979,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Some statements by default do not introduce its own scope for locals. 
-        /// For example: Expression Statement, Return Statement, etc. However, 
-        /// when a statement like that is an embedded statement (like IfStatementSyntax.Statement), 
-        /// then it should introduce a scope for locals declared within it. 
+        /// Some statements by default do not introduce its own scope for locals.
+        /// For example: Expression Statement, Return Statement, etc. However,
+        /// when a statement like that is an embedded statement (like IfStatementSyntax.Statement),
+        /// then it should introduce a scope for locals declared within it.
         /// Here we are detecting such statements and creating a binder that should own the scope.
         /// </summary>
         private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing, out CSharpSyntaxNode embeddedScopeDesignator)
@@ -807,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
                 // It is an error to have a declaration or a label in an embedded statement,
-                // but we still want to bind it.  
+                // but we still want to bind it.
 
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.LockStatement:
@@ -836,10 +1022,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (statement != null)
             {
                 CSharpSyntaxNode embeddedScopeDesignator;
-                // Some statements by default do not introduce its own scope for locals. 
-                // For example: Expression Statement, Return Statement, etc. However, 
-                // when a statement like that is an embedded statement (like IfStatementSyntax.Statement), 
-                // then it should introduce a scope for locals declared within it. Here we are detecting 
+                // Some statements by default do not introduce its own scope for locals.
+                // For example: Expression Statement, Return Statement, etc. However,
+                // when a statement like that is an embedded statement (like IfStatementSyntax.Statement),
+                // then it should introduce a scope for locals declared within it. Here we are detecting
                 // such statements and creating a binder that should own the scope.
                 enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 

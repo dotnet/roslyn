@@ -210,7 +210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper))
             End If
 
-
             ' No helpers starting from here
 
             Dim convertOperandsToInteger As Boolean = False
@@ -348,7 +347,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.MethodInfo(helper))
             End If
 
-
             ' No special helper
             Dim resultTypeIsNullable As Boolean = resultType.IsNullableType
             Dim needToCastBackToByteOrSByte As Boolean = resultUnderlyingSpecialType = SpecialType.System_Byte OrElse
@@ -373,7 +371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                isChecked AndAlso IsIntegralType(resultUnderlyingType),
                                                                needToCastBackToByteOrSByte)
             End If
-
 
             Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(opMethod, left, right)
 

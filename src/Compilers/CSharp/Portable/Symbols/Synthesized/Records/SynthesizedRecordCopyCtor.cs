@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -37,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
         {
-            // Tracking issue for copy constructor in inheritance scenario: https://github.com/dotnet/roslyn/issues/44902
             // Write assignments to fields
             // .ctor(DerivedRecordType original) : base((BaseRecordType)original)
             // {
@@ -52,6 +53,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
                 }
+            }
+
+            // Add a sequence point at the end of the copy-constructor, so that a breakpoint placed on the record constructor
+            // can be hit whenever a new instance of the record is created (either via a primary constructor or via a copy constructor).
+            // 
+            // If the record doesn't have base initializer the span overlaps the span of the sequence point generated for primary
+            // constructor implicit base initializer:
+            //
+            // record [|C<T>(int P, int Q)|]               // implicit base constructor initializer span
+            // record C<T>(int P, int Q) : [|B(...)|]      // explicit base constructor initializer span
+            // record [|C<T>|](int P, int Q)               // copy-constructor span
+            //
+            // The copy-constructor span does not include the parameter list since the parameters are not in scope.
+            var recordDeclaration = (RecordDeclarationSyntax)F.Syntax;
+            statements.Add(new BoundSequencePointWithSpan(recordDeclaration, statementOpt: null,
+                (recordDeclaration.TypeParameterList == null) ? recordDeclaration.Identifier.Span :
+                TextSpan.FromBounds(recordDeclaration.Identifier.Span.Start, recordDeclaration.TypeParameterList.Span.End)));
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            Debug.Assert(IsImplicitlyDeclared);
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
+            if (HasSetsRequiredMembersImpl)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor));
             }
         }
 
@@ -101,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsCopyConstructor(Symbol member)
         {
-            if (member is MethodSymbol { MethodKind: MethodKind.Constructor } method)
+            if (member is MethodSymbol { ContainingType.IsRecord: true, MethodKind: MethodKind.Constructor } method)
             {
                 return HasCopyConstructorSignature(method);
             }
@@ -116,5 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 method.Parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions) &&
                 method.Parameters[0].RefKind == RefKind.None;
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl
+            // If the record type has a required members error, then it does have required members of some kind, we emit the SetsRequiredMembers attribute.
+            => ContainingType.HasAnyRequiredMembers || ContainingType.HasRequiredMembersError;
     }
 }

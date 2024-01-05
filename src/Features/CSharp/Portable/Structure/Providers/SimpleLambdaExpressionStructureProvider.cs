@@ -12,9 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class SimpleLambdaExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<SimpleLambdaExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             SimpleLambdaExpressionSyntax lambdaExpression,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             // fault tolerance
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            if (!(lambdaExpression.Body is BlockSyntax lambdaBlock) ||
+            if (lambdaExpression.Body is not BlockSyntax lambdaBlock ||
                 lambdaBlock.OpenBraceToken.IsMissing ||
                 lambdaBlock.CloseBraceToken.IsMissing)
             {

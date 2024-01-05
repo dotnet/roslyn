@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,
                 isExpressionBodied: false,
-                isInitOnly: true,
+                isInitOnly: ShouldUseInit(containingType),
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                backingParameter.Locations[0],
+                backingParameter.GetFirstLocation(),
                 diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;
@@ -60,14 +60,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
         }
 
+        private static bool ShouldUseInit(TypeSymbol container)
+        {
+            // the setter is always init-only in record class and in readonly record struct
+            return !container.IsStructType() || container.IsReadOnly;
+        }
+
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics)
         {
+            var usesInit = !isGet && ShouldUseInit(ContainingType);
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
-                usesInit: !isGet, // the setter is always init-only
+                usesInit,
                 ContainingType,
                 this,
                 _modifiers,
@@ -82,13 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        protected override bool HasPointerTypeSyntactically
-            // Since we already bound the type, don't bother looking at syntax
-            => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
-
         public static bool HaveCorrespondingSynthesizedRecordPropertySymbol(SourceParameterSymbol parameter)
         {
-            return parameter.ContainingSymbol is SynthesizedRecordConstructor &&
+            return parameter.ContainingSymbol is SynthesizedPrimaryConstructor &&
                    parameter.ContainingType.GetMembersUnordered().Any((s, parameter) => (s as SynthesizedRecordPropertySymbol)?.BackingParameter == (object)parameter, parameter);
         }
     }

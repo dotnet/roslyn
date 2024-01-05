@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,14 +10,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -34,11 +38,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
     /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
-    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
     {
+        public record GenerateConstructorIntentData(Accessibility? Accessibility);
+
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
-        private readonly IPickMembersService _pickMembersService_forTesting;
+        private readonly IPickMembersService? _pickMembersService_forTesting;
 
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
@@ -47,60 +53,164 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
             => _pickMembersService_forTesting = pickMembersService_forTesting;
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
-        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract IFieldSymbol? TryMapToWritableInstanceField(IPropertySymbol property, CancellationToken cancellationToken);
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            return ComputeRefactoringsAsync(
+                context.Document,
+                context.Span,
+                context.RegisterRefactoring,
+                actions => context.RegisterRefactorings(actions),
+                desiredAccessibility: null,
+                context.Options,
+                context.CancellationToken);
+        }
+
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+        {
+            var accessibility = intentDataProvider.GetIntentData<GenerateConstructorIntentData>()?.Accessibility;
+
+            using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            await ComputeRefactoringsAsync(
+                priorDocument,
+                priorSelection,
+                (singleAction, applicableToSpan) => actions.Add(singleAction),
+                actions.AddRange,
+                desiredAccessibility: accessibility,
+                intentDataProvider.FallbackOptions,
+                cancellationToken).ConfigureAwait(false);
+
+            if (actions.IsEmpty())
+            {
+                return ImmutableArray<IntentProcessorResult>.Empty;
+            }
+
+            // The refactorings returned will be in the following order (if available)
+            // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
+            using var _2 = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            foreach (var action in actions)
+            {
+                // Intents don't current support progress.
+                var intentResult = await GetIntentProcessorResultAsync(
+                    priorDocument, action, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+                results.AddIfNotNull(intentResult);
+            }
+
+            return results.ToImmutable();
+
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
+                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            {
+                var operations = await GetCodeActionOperationsAsync(
+                    priorDocument.Project.Solution, codeAction, progressTracker, cancellationToken).ConfigureAwait(false);
+
+                // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
+                // We can only return edits, so we only care about the ApplyChangesOperation.
+                var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
+                if (applyChangesOperation == null)
+                {
+                    return null;
+                }
+
+                var type = codeAction.GetType();
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, ImmutableArray.Create(priorDocument.Id), codeAction.Title, type.Name);
+            }
+
+            static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
+                Solution originalSolution,
+                CodeAction action,
+                IProgress<CodeAnalysisProgress> progressTracker,
+                CancellationToken cancellationToken)
+            {
+                if (action is GenerateConstructorWithDialogCodeAction dialogAction)
+                {
+                    // Usually applying this code action pops up a dialog allowing the user to choose which options.
+                    // We can't do that here, so instead we just take the defaults until we have more intent data.
+                    var options = new PickMembersResult(
+                        dialogAction.ViableMembers,
+                        dialogAction.PickMembersOptions,
+                        selectedAll: true);
+                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
+                    return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
+                }
+                else
+                {
+                    return await action.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task ComputeRefactoringsAsync(
+            Document document,
+            TextSpan textSpan,
+            Action<CodeAction, TextSpan> registerSingleAction,
+            Action<ImmutableArray<CodeAction>> registerMultipleActions,
+            Accessibility? desiredAccessibility,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
+        {
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
             var actions = await GenerateConstructorFromMembersAsync(
-                document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
+                document, textSpan, addNullChecks: false, desiredAccessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            if (!actions.IsDefault)
+            {
+                registerMultipleActions(actions);
+            }
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
             {
-                await HandleNonSelectionAsync(context).ConfigureAwait(false);
+                var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, desiredAccessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                if (nonSelectionAction != null)
+                {
+                    registerSingleAction(nonSelectionAction.Value.CodeAction, nonSelectionAction.Value.ApplicableToSpan);
+                }
             }
         }
 
-        private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
+        private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(
+            Document document,
+            TextSpan textSpan,
+            Accessibility? desiredAccessibility,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
-            var (document, textSpan, cancellationToken) = context;
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
-                return;
+                return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
-                return;
+                return null;
             }
 
             // No constructors for static classes.
             if (containingType.IsStatic)
             {
-                return;
+                return null;
             }
 
             // Find all the possible writable instance fields/properties.  If there are any, then
@@ -109,67 +219,76 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
-                return;
+                return null;
+            }
+
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
+            {
+                return null;
             }
 
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMemberOptions);
             var canAddNullCheck = viableMembers.Any(
-                m => m.GetSymbolType().CanAddNullCheck());
+                static m => m.GetSymbolType().CanAddNullCheck());
 
             if (canAddNullCheck)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+                // ILegacyGlobalOptionsWorkspaceService is not provided in LSP, so don't give the code action with Dialog if it is null
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                if (globalOptions == null)
+                {
+                    return null;
+                }
 
+                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
                     FeaturesResources.Add_null_checks,
                     optionValue));
             }
 
-            context.RegisterRefactoring(
-                new GenerateConstructorWithDialogCodeAction(
-                    this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutable()),
-                typeDeclaration.Span);
+            return (new GenerateConstructorWithDialogCodeAction(
+                    this, document, textSpan, containingType, desiredAccessibility, viableMembers,
+                    pickMemberOptions.ToImmutable(), fallbackOptions), typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, bool addNullChecks, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
-                    {
-                        return GetCodeActions(document, state, addNullChecks);
-                    }
+                        return GetCodeActions(document, state, addNullChecks, fallbackOptions);
                 }
 
                 return default;
             }
         }
 
-        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)
+        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
-            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
+            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
             if (state.DelegatedConstructor != null)
-                result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
+                result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
 
             return result.ToImmutable();
         }
 
         private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.GetAnnotatedNodes(CodeGenerator.Annotation);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             foreach (var node in nodes)
             {

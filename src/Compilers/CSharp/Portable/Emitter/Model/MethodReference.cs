@@ -47,14 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get
-            {
-                return UnderlyingMethod.IsGenericMethod;
-            }
-        }
-
         ushort Cci.ISignature.ParameterCount
         {
             get
@@ -116,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
         }
 
         public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference

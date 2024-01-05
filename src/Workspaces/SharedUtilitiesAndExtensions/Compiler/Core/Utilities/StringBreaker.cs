@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -13,15 +13,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static ArrayBuilder<TextSpan> GetWordParts(string identifier)
-            => GetParts(identifier, word: true);
+        public static void AddWordParts(string identifier, ref TemporaryArray<TextSpan> parts)
+            => AddParts(identifier, word: true, ref parts);
 
-        public static ArrayBuilder<TextSpan> GetCharacterParts(string identifier)
-            => GetParts(identifier, word: false);
+        public static void AddCharacterParts(string identifier, ref TemporaryArray<TextSpan> parts)
+            => AddParts(identifier, word: false, ref parts);
 
-        public static ArrayBuilder<TextSpan> GetParts(string text, bool word)
+        public static void AddParts(string text, bool word, ref TemporaryArray<TextSpan> parts)
         {
-            var parts = ArrayBuilder<TextSpan>.GetInstance();
             for (var start = 0; start < text.Length;)
             {
                 var span = StringBreaker.GenerateSpan(text, start, word);
@@ -36,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 parts.Add(span);
                 start = span.End;
             }
-
-            return parts;
         }
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (IsAscii(c))
             {
-                return c >= 'a' && c <= 'z';
+                return c is >= 'a' and <= 'z';
             }
 
             return char.IsLower(c);

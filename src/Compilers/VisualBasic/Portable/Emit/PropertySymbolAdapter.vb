@@ -17,6 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         Implements IPropertyDefinition
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors
             CheckDefinitionInvariant()
 
@@ -140,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
             CheckDefinitionInvariantAllowEmbedded()
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedPropertySymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedPropertySymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
@@ -153,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedPropertySymbol)
+                Return AdaptedPropertySymbol.MetadataVisibility
             End Get
         End Property
 

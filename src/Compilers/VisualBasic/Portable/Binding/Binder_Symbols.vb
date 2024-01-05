@@ -204,7 +204,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-
         ''' <summary>
         ''' The type binder class handles binding of type names.
         ''' </summary>
@@ -306,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag.DiagnosticBag)
                             End If
 
-                            binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, sym, typeSyntax)
+                            binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, sym, typeSyntax)
 
                             Return sym
                         End If
@@ -375,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If rightPart.Kind = SyntaxKind.GenericName Then
                         arity = DirectCast(rightPart, GenericNameSyntax).Arity
-                        fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
+                        fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity, associatedFileIdentifier:=Nothing)
                     End If
 
                     forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, typeSyntax, diagBag)
@@ -531,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' LookupTypeOrNamespaceSyntax can't return more than one symbol.
                         Dim result = lookupResult.SingleSymbol
-                        binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, result, typeSyntax)
+                        binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, result, typeSyntax)
                         binder.AddTypesAssemblyAsDependency(TryCast(result, NamedTypeSymbol), diagBag)
                         Return result
                     End If
@@ -744,23 +743,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Binder.GetErrorSymbol(name, result.Diagnostic, DirectCast(result.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols, result.Kind)
                 End If
                 Return Binder.GetErrorSymbol(name, result.Diagnostic, result.Symbols.ToImmutable(), result.Kind)
-            End Function
-
-            ''' <summary>
-            ''' Check that the given symbol is a type. If it is a namespace, report an error into the diagnostic bag
-            ''' and return an error symbol.
-            ''' </summary>
-            Private Shared Function CheckSymbolIsType(sym As NamespaceOrTypeSymbol,
-                                                      syntax As VisualBasicSyntaxNode,
-                                                      binder As Binder,
-                                                      diagBag As BindingDiagnosticBag) As TypeSymbol
-                If sym.IsNamespace Then
-                    Dim diagInfo = New BadSymbolDiagnostic(sym, ERRID.ERR_UnrecognizedType)
-                    Binder.ReportDiagnostic(diagBag, syntax, diagInfo)
-                    Return Binder.GetErrorSymbol(sym.Name, diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
-                Else
-                    Return DirectCast(sym, TypeSymbol)
-                End If
             End Function
 
             ''' <summary>
@@ -978,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
                 binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 lookupResult.Clear()
@@ -1077,7 +1059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
                 End If
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
                 binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 ' Lookup the generic type.

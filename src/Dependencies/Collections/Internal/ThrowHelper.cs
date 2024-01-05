@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         internal static void ThrowWrongKeyTypeArgumentException<T>(T key, Type targetType)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetWrongKeyTypeArgumentException((object?)key, targetType);
+            throw GetWrongKeyTypeArgumentException(key, targetType);
         }
 
         [DoesNotReturn]
         internal static void ThrowWrongValueTypeArgumentException<T>(T value, Type targetType)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetWrongValueTypeArgumentException((object?)value, targetType);
+            throw GetWrongValueTypeArgumentException(value, targetType);
         }
 
         private static ArgumentException GetAddingDuplicateWithKeyArgumentException(object? key)
@@ -120,14 +120,14 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         internal static void ThrowAddingDuplicateWithKeyArgumentException<T>(T key)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetAddingDuplicateWithKeyArgumentException((object?)key);
+            throw GetAddingDuplicateWithKeyArgumentException(key);
         }
 
         [DoesNotReturn]
         internal static void ThrowKeyNotFoundException<T>(T key)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetKeyNotFoundException((object?)key);
+            throw GetKeyNotFoundException(key);
         }
 
         [DoesNotReturn]
@@ -239,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "dictionary";
                 case ExceptionArgument.array:
                     return "array";
+                case ExceptionArgument.info:
+                    return "info";
                 case ExceptionArgument.key:
                     return "key";
                 case ExceptionArgument.value:
@@ -269,6 +271,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "length";
                 case ExceptionArgument.destinationArray:
                     return "destinationArray";
+                case ExceptionArgument.other:
+                    return "other";
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionArgument Enum.");
                     return "";
@@ -319,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
     {
         dictionary,
         array,
+        info,
         key,
         value,
         startIndex,
@@ -334,6 +339,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         source,
         length,
         destinationArray,
+        other,
     }
 
     //

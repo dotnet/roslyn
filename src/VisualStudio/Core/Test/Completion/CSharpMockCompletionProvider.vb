@@ -18,5 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.CSharp
+            End Get
+        End Property
     End Class
 End Namespace

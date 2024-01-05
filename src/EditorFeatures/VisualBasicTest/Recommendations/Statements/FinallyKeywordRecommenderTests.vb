@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class FinallyKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotInMethodBodyTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryBlockTest()
             VerifyRecommendationsContain(<MethodBody>
 Try
@@ -20,7 +21,6 @@ End Try</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInCatchBlockTest()
             VerifyRecommendationsContain(<MethodBody>
 Try
@@ -30,7 +30,6 @@ End Try</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotBeforeCatchBlockTest()
             VerifyRecommendationsMissing(<MethodBody>
 Try
@@ -40,7 +39,6 @@ End Try</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotInFinallyBlockTest()
             VerifyRecommendationsMissing(<MethodBody>
 Try
@@ -50,7 +48,6 @@ End Try</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryNestedInCatch1Test()
             VerifyRecommendationsContain(<MethodBody>
         Try
@@ -62,7 +59,6 @@ End Try</MethodBody>, "Finally")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryNestedInCatch2Test()
             VerifyRecommendationsContain(<MethodBody>
         Try

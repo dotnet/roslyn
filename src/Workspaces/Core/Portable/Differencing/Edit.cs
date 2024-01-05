@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     /// <typeparam name="TNode">Tree node.</typeparam>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct Edit<TNode> : IEquatable<Edit<TNode>>
+    public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
     {
         private readonly TreeComparer<TNode> _comparer;
         private readonly EditKind _kind;
@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.Differencing
             Debug.Assert((oldNode == null || oldNode.Equals(null)) == (kind == EditKind.Insert));
             Debug.Assert((newNode == null || newNode.Equals(null)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(null)) ||
-                         (newNode == null || newNode.Equals(null)) ||
+            Debug.Assert(comparer == null ||
+                         oldNode == null || oldNode.Equals(null) ||
+                         newNode == null || newNode.Equals(null) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -113,6 +114,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private string DisplayPosition(TNode node)
-            => "@" + _comparer.GetSpan(node).Start;
+            => (_comparer != null) ? "@" + _comparer.GetSpan(node).Start : "";
     }
 }

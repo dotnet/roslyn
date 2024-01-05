@@ -2,27 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal sealed partial class ExplicitConversionSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName } &&
+            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.ImplicitConversionName } &&
                GetUnderlyingNamedType(symbol.ReturnType) is not null;
 
         private static INamedTypeSymbol? GetUnderlyingNamedType(ITypeSymbol symbol)
             => UnderlyingNamedTypeVisitor.Instance.Visit(symbol);
 
-        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
             Contract.ThrowIfNull(underlyingNamedType);
-            var documentsWithName = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Ignore any documents that don't also have an explicit cast in them.
             foreach (var document in documentsWithName.Concat(documentsWithType).Distinct())
             {
-                var index = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                 if (index.ContainsConversion)
                     result.Add(document);
             }
@@ -56,24 +59,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
-        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
+                    state);
 
-            return FindReferencesInDocumentAsync(
-                symbol, document, semanticModel,
-                t => IsPotentialReference(syntaxFacts, t),
-                cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static bool IsPotentialReference(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
+            ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             var node = token.GetRequiredParent();
             return node.GetFirstToken() == token && syntaxFacts.IsConversionExpression(node);

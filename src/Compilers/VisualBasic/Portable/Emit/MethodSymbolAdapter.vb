@@ -4,8 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -22,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements Cci.ISpecializedMethodReference
         Implements Cci.ITypeDefinitionMember
         Implements Cci.IMethodDefinition
+
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
 
         Private ReadOnly Property IMethodReferenceAsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference Implements Cci.IMethodReference.AsGenericMethodInstanceReference
             Get
@@ -57,14 +65,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not AdaptedMethodSymbol.IsDefinition Then
-                Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             ElseIf TypeOf AdaptedMethodSymbol Is SynthesizedGlobalMethodBase Then
-                Dim privateImplClass = moduleBeingBuilt.GetPrivateImplClass(syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Dim privateImplClass = moduleBeingBuilt.GetPrivateImplClass(syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
                 Debug.Assert(privateImplClass IsNot Nothing)
                 Return privateImplClass
             End If
 
-            Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
+            Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch
@@ -104,12 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodReferenceGenericParameterCount As UShort Implements Cci.IMethodReference.GenericParameterCount
             Get
                 Return CType(AdaptedMethodSymbol.Arity, UShort)
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements Cci.IMethodReference.IsGeneric
-            Get
-                Return AdaptedMethodSymbol.IsGenericMethod
             End Get
         End Property
 
@@ -197,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Dim returnType As TypeSymbol = AdaptedMethodSymbol.ReturnType
-            Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As EmitContext) As IEnumerable(Of Cci.ITypeReference) Implements Cci.IGenericMethodInstanceReference.GetGenericArguments
@@ -206,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
             Return From arg In AdaptedMethodSymbol.TypeArguments
-                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
@@ -218,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NoPia method might come through here.
                 Return DirectCast(context.Module, PEModuleBuilder).Translate(
                     AdaptedMethodSymbol.OriginalDefinition,
-                    DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                    DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                     context.Diagnostics,
                     needDeclaration:=True)
             End If
@@ -250,7 +252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeDefinitionMemberVisibility As Cci.TypeMemberVisibility Implements Cci.ITypeDefinitionMember.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedMethodSymbol)
+                Return AdaptedMethodSymbol.MetadataVisibility
+            End Get
+        End Property
+
+        Private ReadOnly Property HasBody As Boolean Implements Cci.IMethodDefinition.HasBody
+            Get
+                CheckDefinitionInvariant()
+                Return DefaultImplementations.HasBody(Me)
             End Get
         End Property
 
@@ -483,24 +492,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Const DisableJITOptimizationFlags As MethodImplAttributes = MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
 
-        Friend Overridable ReadOnly Property IsAccessCheckedOnOverride As Boolean
+        Friend Overridable ReadOnly Property IsAccessCheckedOnOverride As Boolean Implements IMethodSymbolInternal.IsAccessCheckedOnOverride
             Get
-                CheckDefinitionInvariant()
                 Return Me.IsMetadataVirtual ' VB always sets this for methods where virtual is set.
             End Get
         End Property
 
-        Friend Overridable ReadOnly Property IsExternal As Boolean
+        Friend Overridable ReadOnly Property IsExternal As Boolean Implements IMethodSymbolInternal.IsExternal
             Get
-                CheckDefinitionInvariant()
                 Return Me.IsExternalMethod
             End Get
         End Property
 
-        Friend Overridable ReadOnly Property IsHiddenBySignature As Boolean
+        Friend Overridable ReadOnly Property IsHiddenBySignature As Boolean Implements IMethodSymbolInternal.IsHiddenBySignature
             Get
-                CheckDefinitionInvariant()
                 Return Me.IsOverloads
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_IsPlatformInvoke As Boolean Implements IMethodSymbolInternal.IsPlatformInvoke
+            Get
+                Return Me.GetDllImportData() IsNot Nothing
             End Get
         End Property
 
@@ -523,7 +535,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
+        Private ReadOnly Property IMethodSymbolInternal_IsMetadataNewSlot As Boolean Implements IMethodSymbolInternal.IsMetadataNewSlot
+            Get
+                Return IsMetadataNewSlot()
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean Implements IMethodSymbolInternal.HasRuntimeSpecialName
             Get
                 CheckDefinitionInvariant()
                 Dim result = Me.MethodKind = MethodKind.Constructor OrElse
@@ -536,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable ReadOnly Property IsMetadataFinal As Boolean
+        Friend Overridable ReadOnly Property IsMetadataFinal As Boolean Implements IMethodSymbolInternal.IsMetadataFinal
             Get
                 ' If we are metadata virtual, but not language virtual, set the "final" bit (i.e., interface
                 ' implementation methods). Also do it if we are explicitly marked "NotOverridable".

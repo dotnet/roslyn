@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis.Text;
-
-#if DEBUG
 using System.Diagnostics;
-#endif
+using System.Text;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal partial struct VirtualCharSequence
+    internal readonly partial struct VirtualCharSequence
     {
         /// <summary>
         /// Abstraction over a contiguous chunk of <see cref="VirtualChar"/>s.  This
@@ -28,22 +26,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public abstract int Length { get; }
             public abstract VirtualChar this[int index] { get; }
+            public abstract VirtualChar? Find(int position);
         }
 
         /// <summary>
-        /// Thin wrapper over an actual <see cref="ImmutableArray{VirtualChar}"/>.
+        /// Thin wrapper over an actual <see cref="ImmutableSegmentedList{T}"/>.
         /// This will be the common construct we generate when getting the
         /// <see cref="Chunk"/> for a string token that has escapes in it.
         /// </summary>
-        private class ImmutableArrayChunk : Chunk
+        private class ImmutableSegmentedListChunk(ImmutableSegmentedList<VirtualChar> array) : Chunk
         {
-            private readonly ImmutableArray<VirtualChar> _array;
+            public override int Length => array.Count;
+            public override VirtualChar this[int index] => array[index];
 
-            public ImmutableArrayChunk(ImmutableArray<VirtualChar> array)
-                => _array = array;
+            public override VirtualChar? Find(int position)
+            {
+                if (array.IsEmpty)
+                    return null;
 
-            public override int Length => _array.Length;
-            public override VirtualChar this[int index] => _array[index];
+                if (position < array[0].Span.Start || position >= array[^1].Span.End)
+                    return null;
+
+                var index = array.BinarySearch(position, static (ch, position) =>
+                {
+                    if (position < ch.Span.Start)
+                        return 1;
+
+                    if (position >= ch.Span.End)
+                        return -1;
+
+                    return 0;
+                });
+
+                // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
+                // position is in one of the gaps, it won't be able to find a corresponding virtual char.
+                if (index < 0)
+                    return null;
+
+                return array[index];
+            }
         }
 
         /// <summary>
@@ -51,42 +72,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// string.  This is the common case of the type of the sequence we would
         /// create for a normal string token without any escapes in it.
         /// </summary>
-        private class StringChunk : Chunk
+        /// <param name="data">
+        /// The underlying string that we're returning virtual chars from.  Note:
+        /// this will commonly include things like quote characters.  Clients who
+        /// do not want that should then ask for an appropriate <see cref="VirtualCharSequence.GetSubSequence"/>
+        /// back that does not include those characters.
+        /// </param>
+        private class StringChunk(int firstVirtualCharPosition, string data) : Chunk
         {
-            private readonly int _firstVirtualCharPosition;
+            public override int Length => data.Length;
 
-            /// <summary>
-            /// The underlying string that we're returning virtual chars from.  Note:
-            /// this will commonly include things like quote characters.  Clients who
-            /// do not want that should then ask for an appropriate <see cref="VirtualCharSequence.GetSubSequence"/>
-            /// back that does not include those characters.
-            /// </summary>
-            private readonly string _underlyingData;
-
-            public StringChunk(int firstVirtualCharPosition, string data)
+            public override VirtualChar? Find(int position)
             {
-                _firstVirtualCharPosition = firstVirtualCharPosition;
-                _underlyingData = data;
-            }
+                var stringIndex = position - firstVirtualCharPosition;
+                if (stringIndex < 0 || stringIndex >= data.Length)
+                    return null;
 
-            public override int Length => _underlyingData.Length;
+                return this[stringIndex];
+            }
 
             public override VirtualChar this[int index]
             {
                 get
                 {
 #if DEBUG
-                    // We should never have a property paired high/low surrogate in a StringChunk. We are only created
+                    // We should never have a properly paired high/low surrogate in a StringChunk. We are only created
                     // when the string has the same number of chars as there are VirtualChars.
-                    if (char.IsHighSurrogate(_underlyingData[index]))
+                    if (char.IsHighSurrogate(data[index]))
                     {
-                        Debug.Assert(index + 1 >= _underlyingData.Length ||
-                                     !char.IsLowSurrogate(_underlyingData[index + 1]));
+                        Debug.Assert(index + 1 >= data.Length ||
+                                     !char.IsLowSurrogate(data[index + 1]));
                     }
 #endif
 
-                    var span = new TextSpan(_firstVirtualCharPosition + index, length: 1);
-                    var ch = _underlyingData[index];
+                    var span = new TextSpan(firstVirtualCharPosition + index, length: 1);
+                    var ch = data[index];
                     return char.IsSurrogate(ch)
                         ? VirtualChar.Create(ch, span)
                         : VirtualChar.Create(new Rune(ch), span);

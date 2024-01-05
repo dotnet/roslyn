@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     ControlFlowGraph controlFlowGraph,
                     ISymbol owningSymbol,
                     ImmutableArray<IParameterSymbol> parameters,
+                    ImmutableHashSet<ILocalSymbol> capturedLocals,
                     PooledDictionary<BasicBlock, BasicBlockAnalysisData> analysisDataByBasicBlockMap,
                     PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
                     PooledHashSet<ISymbol> symbolsRead,
@@ -83,6 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     ControlFlowGraph = controlFlowGraph;
                     OwningSymbol = owningSymbol;
                     _parameters = parameters;
+                    CapturedLocals = capturedLocals;
                     _analysisDataByBasicBlockMap = analysisDataByBasicBlockMap;
                     _analyzeLocalFunctionOrLambdaInvocation = analyzeLocalFunctionOrLambdaInvocation;
                     _reachingDelegateCreationTargets = reachingDelegateCreationTargets;
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                     _lValueFlowCapturesMap = PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                     LValueFlowCapturesInGraph = LValueFlowCapturesProvider.CreateLValueFlowCaptures(controlFlowGraph);
-                    Debug.Assert(LValueFlowCapturesInGraph.Values.All(kind => kind == FlowCaptureKind.LValueCapture || kind == FlowCaptureKind.LValueAndRValueCapture));
+                    Debug.Assert(LValueFlowCapturesInGraph.Values.All(kind => kind is FlowCaptureKind.LValueCapture or FlowCaptureKind.LValueAndRValueCapture));
 
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
@@ -107,6 +110,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
                 protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+
+                public ImmutableHashSet<ILocalSymbol> CapturedLocals { get; }
 
                 public static FlowGraphAnalysisData Create(
                     ControlFlowGraph cfg,
@@ -120,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         cfg,
                         owningSymbol,
                         parameters,
+                        capturedLocals: GetCapturedLocals(cfg),
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: CreateSymbolsWriteMap(parameters),
                         symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
@@ -144,6 +150,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         cfg,
                         lambdaOrLocalFunction,
                         parameters,
+                        capturedLocals: parentAnalysisData.CapturedLocals,
                         analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                         symbolsWriteMap: UpdateSymbolsWriteMap(parentAnalysisData.SymbolsWriteBuilder, parameters),
                         symbolsRead: parentAnalysisData.SymbolsReadBuilder,
@@ -172,6 +179,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 /// Flow captures for l-value or address captures.
                 /// </summary>
                 public ImmutableDictionary<CaptureId, FlowCaptureKind> LValueFlowCapturesInGraph { get; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <returns></returns>
+                private static ImmutableHashSet<ILocalSymbol> GetCapturedLocals(ControlFlowGraph cfg)
+                {
+                    using var _ = PooledHashSet<ILocalSymbol>.GetInstance(out var builder);
+                    foreach (var operation in cfg.OriginalOperation.Descendants())
+                    {
+                        if (operation.Kind is OperationKind.LocalFunction or OperationKind.AnonymousFunction)
+                        {
+                            var dataFlow = operation.SemanticModel.AnalyzeDataFlow(operation.Syntax);
+                            builder.AddRange(dataFlow.Captured.OfType<ILocalSymbol>());
+                        }
+                    }
+
+                    return builder.ToImmutableHashSet();
+                }
 
                 public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
                     => _analysisDataByBasicBlockMap[basicBlock];
@@ -412,16 +438,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     // Mark all reachable definitions for ref/out parameters at end of exit block as used.
                     foreach (var parameter in _parameters)
                     {
-                        if (parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.Out)
+                        if (parameter.RefKind is RefKind.Ref or RefKind.Out)
                         {
-                            var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(parameter);
-                            foreach (var write in currentWrites)
-                            {
-                                if (write != null)
+                            CurrentBlockAnalysisData.ForEachCurrentWrite(
+                                parameter,
+                                static (write, arg) =>
                                 {
-                                    SymbolsWriteBuilder[(parameter, write)] = true;
-                                }
-                            }
+                                    if (write != null)
+                                    {
+                                        arg.self.SymbolsWriteBuilder[(arg.parameter, write)] = true;
+                                    }
+                                },
+                                (parameter, self: this));
                         }
                     }
                 }
@@ -493,28 +521,40 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     //      Action y = x;
                     //
                     var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
-                    foreach (var symbolWrite in CurrentBlockAnalysisData.GetCurrentWrites(symbol))
-                    {
-                        if (symbolWrite == null)
+                    var completedVisit = CurrentBlockAnalysisData.ForEachCurrentWrite(
+                        symbol,
+                        static (symbolWrite, arg) =>
                         {
-                            continue;
-                        }
-
-                        if (!_reachingDelegateCreationTargets.TryGetValue(symbolWrite, out var targetsBuilderForSymbolWrite))
-                        {
-                            // Unable to find delegate creation targets for this symbol write.
-                            // Bail out without setting targets.
-                            targetsBuilder.Free();
-                            return;
-                        }
-                        else
-                        {
-                            foreach (var target in targetsBuilderForSymbolWrite)
+                            if (symbolWrite == null)
                             {
-                                targetsBuilder.Add(target);
+                                // Continue with the iteration
+                                return true;
                             }
-                        }
-                    }
+
+                            if (!arg.self._reachingDelegateCreationTargets.TryGetValue(symbolWrite, out var targetsBuilderForSymbolWrite))
+                            {
+                                // Unable to find delegate creation targets for this symbol write.
+                                // Bail out without setting targets.
+                                arg.targetsBuilder.Free();
+
+                                // Stop iterating here, even if early
+                                return false;
+                            }
+                            else
+                            {
+                                foreach (var target in targetsBuilderForSymbolWrite)
+                                {
+                                    arg.targetsBuilder.Add(target);
+                                }
+                            }
+
+                            // Continue with the iteration
+                            return true;
+                        },
+                        (targetsBuilder, self: this));
+
+                    if (!completedVisit)
+                        return;
 
                     _reachingDelegateCreationTargets[write] = targetsBuilder;
                 }

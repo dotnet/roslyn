@@ -22,6 +22,11 @@
         <target state="translated">Zugriffsmodifizierer hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">Explizite Umwandlung hinzufügen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">Zur besseren Unterscheidung Klammern hinzufügen</target>
@@ -32,9 +37,38 @@
         <target state="translated">Modifizierer "readonly" hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
+      not report warnings for missing comments.
+      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
+      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </source>
+        <target state="translated">Fügen Sie die folgende PropertyGroup zu Ihrer MSBuild-Projektdatei hinzu, um IDE0005 (Nicht benötigte Using-Direktiven/Importe entfernen) beim Build zu aktivieren:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Stellen Sie sicher, dass alle Dokumentationskommentare, die im Code enthalten sind, während des Builds auf Syntax geprüft werden,
+      aber melden Sie keine Warnungen für fehlende Kommentare.
+      CS1573: Der Parameter 'parameter' hat kein passendes param-Tag im XML-Kommentar für 'parameter' (andere Parameter jedoch schon)
+      CS1591: Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Member 'Type_or_Member'
+      CS1712: Der Typparameter 'type_parameter' hat kein passendes typeparam-Tag im XML-Kommentar zu 'type_or_member' (andere Typparameter jedoch schon)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;TRUE&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Qualifizierung "this" oder "Me" hinzufügen.</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="translated">Qualifizierung 'this' oder 'Me' hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
@@ -49,7 +83,7 @@
       </trans-unit>
       <trans-unit id="Avoid_multiple_blank_lines">
         <source>Avoid multiple blank lines</source>
-        <target state="new">Avoid multiple blank lines</target>
+        <target state="translated">Vermeiden Sie mehrere Leerzeilen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -64,12 +98,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
-        <target state="new">Blank line required between block and subsequent statement</target>
+        <target state="translated">Zwischen dem Block und der nachfolgenden Anweisung ist eine leere Zeile erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_match_folder_structure">
         <source>Change namespace to match folder structure</source>
-        <target state="new">Change namespace to match folder structure</target>
+        <target state="translated">Ändern Sie "namespace", sodass er der Ordnerstruktur entspricht.</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
@@ -87,11 +121,6 @@
         <target state="translated">In bedingten Ausdruck konvertieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">In Tupel konvertieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">Der Ausdruckswert wird niemals verwendet.</target>
@@ -100,6 +129,11 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="translated">Die Initialisierung der Sammlung kann vereinfacht werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Formatierung korrigieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -162,14 +196,19 @@
         <target state="translated">Modifizierer sind nicht angeordnet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Der Name kann vereinfacht werden</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
-        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <target state="translated">Der Namespace "{0}" entspricht nicht der Ordnerstruktur. Erwartet: {1}</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Namespace_does_not_match_folder_structure">
         <source>Namespace does not match folder structure</source>
-        <target state="new">Namespace does not match folder structure</target>
+        <target state="translated">Der Namespace entspricht stimmt nicht der Ordnerstruktur.</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -228,12 +267,12 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Der private Member "{0}" kann entfernt werden, da der zugewiesene Wert nie gelesen wird.</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">Der private Member "{0}" kann entfernt werden, weil der zugewiesene Wert nie gelesen wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
+        <source>Private member '{0}' is unused</source>
         <target state="translated">Der private Member "{0}" wird nicht verwendet.</target>
         <note />
       </trans-unit>
@@ -250,6 +289,11 @@
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
         <target state="translated">Nicht erforderliche Umwandlung entfernen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Barrierefreiheitsmodifizierer entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
@@ -297,9 +341,34 @@
         <target state="translated">Nicht verwendete private Member entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
+        <target state="translated">MSBuild-Eigenschaft "GenerateDocumentationFile" auf "true" festlegen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
+        <target state="translated">Legen Sie die MSBuild-Eigenschaft "GenerateDocumentationFile" in der Projektdatei auf "true" fest, um IDE0005 (Nicht benötigte Using-Direktiven/Importe entfernen) beim Build zu aktivieren.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
+        <target state="translated">LINQ-Ausdruck vereinfachen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Memberzugriff vereinfachen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Namen vereinfachen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Überprüfung vereinfachen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -390,6 +459,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">throw-Ausdruck verwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' Anweisung konvertiert implizit '{1}' in '{2}'. Fügen Sie eine explizite Umwandlung hinzu, um die Absicht klarer zu machen, da sie zur Laufzeit fehlschlagen kann.</target>
         <note />
       </trans-unit>
     </body>

@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 var allMembers = _symbol.GetMembers();
                 var filteredMembers = from m in allMembers
                                       where !m.HasUnsupportedMetadata
-                                      where m.DeclaredAccessibility == Accessibility.Public ||
-                                            m.DeclaredAccessibility == Accessibility.Protected ||
-                                            m.DeclaredAccessibility == Accessibility.ProtectedOrInternal
-                                      where m.Kind == SymbolKind.Event ||
-                                            m.Kind == SymbolKind.Field ||
-                                            m.Kind == SymbolKind.Method ||
-                                            m.Kind == SymbolKind.NamedType ||
-                                            m.Kind == SymbolKind.Property
+                                      where m.DeclaredAccessibility is Accessibility.Public or
+                                            Accessibility.Protected or
+                                            Accessibility.ProtectedOrInternal
+                                      where m.Kind is SymbolKind.Event or
+                                            SymbolKind.Field or
+                                            SymbolKind.Method or
+                                            SymbolKind.NamedType or
+                                            SymbolKind.Property
                                       select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
                 _members = ImmutableArray.CreateRange(filteredMembers);
@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsRecord => _symbol.IsRecord;
 
             public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
+
+            public bool IsFileLocal => _symbol.IsFileLocal;
 
             public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 

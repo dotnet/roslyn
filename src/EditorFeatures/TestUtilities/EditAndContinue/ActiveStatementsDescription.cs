@@ -5,206 +5,177 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal class ActiveStatementsDescription
     {
-        public readonly ActiveStatement[] OldStatements;
-        public readonly TextSpan[] NewSpans;
-        public readonly ImmutableArray<TextSpan>[] OldRegions;
-        public readonly ImmutableArray<TextSpan>[] NewRegions;
-        public readonly TextSpan[]? OldTrackingSpans;
+        internal static readonly ActiveStatementsDescription Empty = new();
+
+        public readonly ImmutableArray<UnmappedActiveStatement> OldStatements;
+        public readonly ActiveStatementsMap OldStatementsMap;
+        public readonly ImmutableArray<SourceFileSpan> NewMappedSpans;
+        public readonly ImmutableArray<ImmutableArray<SourceFileSpan>> NewMappedRegions;
+        public readonly ImmutableArray<LinePositionSpan> OldUnmappedTrackingSpans;
 
         private ActiveStatementsDescription()
         {
-            OldStatements = Array.Empty<ActiveStatement>();
-            NewSpans = Array.Empty<TextSpan>();
-            OldRegions = Array.Empty<ImmutableArray<TextSpan>>();
-            NewRegions = Array.Empty<ImmutableArray<TextSpan>>();
-            OldTrackingSpans = null;
+            OldStatements = ImmutableArray<UnmappedActiveStatement>.Empty;
+            NewMappedSpans = ImmutableArray<SourceFileSpan>.Empty;
+            OldStatementsMap = ActiveStatementsMap.Empty;
+            NewMappedRegions = ImmutableArray<ImmutableArray<SourceFileSpan>>.Empty;
+            OldUnmappedTrackingSpans = ImmutableArray<LinePositionSpan>.Empty;
         }
 
-        private static readonly DocumentId s_dummyDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
-
-        public ActiveStatementsDescription(string oldSource, string newSource)
+        public ActiveStatementsDescription(string oldMarkedSource, string newMarkedSource, Func<string, SyntaxTree> syntaxTreeFactory, ActiveStatementFlags[]? flags)
         {
-            var oldText = SourceText.From(oldSource);
+            var oldSource = SourceMarkers.Clear(oldMarkedSource);
+            var newSource = SourceMarkers.Clear(newMarkedSource);
 
-            OldStatements = GetActiveSpans(oldSource).Aggregate(
-                new List<ActiveStatement>(),
-                (list, s) => SetListItem(list, s.Id, CreateActiveStatement(s.Span, s.Id, oldText, s_dummyDocumentId))).ToArray();
+            var oldTree = syntaxTreeFactory(oldSource);
+            var newTree = syntaxTreeFactory(newSource);
 
-            NewSpans = GetActiveSpans(newSource).Aggregate(
-                new List<TextSpan>(),
-                (list, s) => SetListItem(list, s.Id, s.Span)).ToArray();
+            var oldDocumentMap = new Dictionary<string, List<ActiveStatement>>();
+            OldStatements = CreateActiveStatementMapFromMarkers(oldMarkedSource, oldTree, flags, oldDocumentMap);
 
-            OldRegions = GetExceptionRegions(oldSource, OldStatements.Length);
-            NewRegions = GetExceptionRegions(newSource, NewSpans.Length);
+            OldStatementsMap = new ActiveStatementsMap(
+                documentPathMap: oldDocumentMap.ToImmutableDictionary(e => e.Key, e => e.Value.OrderBy(ActiveStatementsMap.Comparer).ToImmutableArray()),
+                instructionMap: OldStatements.ToDictionary(s => new ManagedInstructionId(new ManagedMethodId(Guid.NewGuid(), 0x060000001, version: 1), ilOffset: 0), s => s.Statement));
+
+            var newActiveStatementMarkers = SourceMarkers.GetActiveSpans(newMarkedSource).ToArray();
+
+            var activeStatementCount = Math.Max(OldStatements.Length, (newActiveStatementMarkers.Length == 0) ? -1 : newActiveStatementMarkers.Max(m => m.Id));
+
+            var newMappedSpans = new ArrayBuilder<SourceFileSpan>();
+            var newMappedRegions = new ArrayBuilder<ImmutableArray<SourceFileSpan>>();
+            var newExceptionRegionMarkers = SourceMarkers.GetExceptionRegions(newMarkedSource);
+
+            newMappedSpans.ZeroInit(activeStatementCount);
+            newMappedRegions.ZeroInit(activeStatementCount);
+
+            // initialize with deleted spans (they will retain their file path):
+            foreach (var oldStatement in OldStatements)
+            {
+                if (oldStatement.Statement != null)
+                {
+                    newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
+                    newMappedRegions[oldStatement.Statement.Ordinal] = ImmutableArray<SourceFileSpan>.Empty;
+                }
+            }
+
+            // update with spans marked in the new source:
+            foreach (var (unmappedSpan, ordinal) in newActiveStatementMarkers)
+            {
+                newMappedSpans[ordinal] = newTree.GetMappedLineSpan(unmappedSpan);
+                newMappedRegions[ordinal] = (ordinal < newExceptionRegionMarkers.Length)
+                    ? newExceptionRegionMarkers[ordinal].SelectAsArray(span => (SourceFileSpan)newTree.GetMappedLineSpan(span))
+                    : ImmutableArray<SourceFileSpan>.Empty;
+            }
+
+            NewMappedSpans = newMappedSpans.ToImmutable();
+            NewMappedRegions = newMappedRegions.ToImmutable();
 
             // Tracking spans are marked in the new source since the editor moves them around as the user 
             // edits the source and we get their positions when analyzing the new source.
-            // The EnC analyzer uses old trackign spans as hints to find matching nodes.
-            OldTrackingSpans = GetTrackingSpans(newSource, OldStatements.Length);
+            // The EnC analyzer uses old tracking spans as hints to find matching nodes.
+            var newText = newTree.GetText();
+            OldUnmappedTrackingSpans = SourceMarkers.GetTrackingSpans(newMarkedSource, activeStatementCount).
+                SelectAsArray(s => newText.Lines.GetLinePositionSpan(s));
         }
 
-        internal static readonly ActiveStatementsDescription Empty = new ActiveStatementsDescription();
-
-        internal static string ClearTags(string source)
-            => s_tags.Replace(source, m => new string(' ', m.Length));
-
-        internal static string[] ClearTags(string[] sources)
-            => sources.Select(ClearTags).ToArray();
-
-        private static readonly Regex s_tags = new Regex(
-            @"[<][/]?(AS|ER|N|TS)[:][.0-9,]+[>]",
-            RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
-        private static readonly Regex s_activeStatementPattern = new Regex(
-            @"[<]AS[:]    (?<Id>[0-9,]+) [>]
-              (?<ActiveStatement>.*)
-              [<][/]AS[:] (\k<Id>)      [>]",
-            RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
-        public static readonly Regex ExceptionRegionPattern = new Regex(
-            @"[<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
-              (?<ExceptionRegion>.*)
-              [<][/]ER[:]   (\k<Id>)                 [>]",
-            RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
-        private static readonly Regex s_trackingStatementPattern = new Regex(
-            @"[<]TS[:]    (?<Id>[0-9,]+) [>]
-              (?<TrackingStatement>.*)
-              [<][/]TS[:] (\k<Id>)      [>]",
-            RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
-        internal static IEnumerable<int> GetIds(Match match)
-            => match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-
-        internal static int[] GetIds(string ids)
-            => ids.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
-
-        internal static IEnumerable<ValueTuple<int, int>> GetDottedIds(Match match)
+        internal static ImmutableArray<UnmappedActiveStatement> CreateActiveStatementMapFromMarkers(
+            string markedSource,
+            SyntaxTree tree,
+            ActiveStatementFlags[]? flags,
+            Dictionary<string, List<ActiveStatement>> documentMap)
         {
-            return from ids in match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                   let parts = ids.Split('.')
-                   select ValueTuple.Create(int.Parse(parts[0]), int.Parse(parts[1]));
-        }
+            var activeStatementMarkers = SourceMarkers.GetActiveSpans(markedSource).ToArray();
+            var exceptionRegionMarkers = SourceMarkers.GetExceptionRegions(markedSource);
 
-        private static IEnumerable<(TextSpan Span, int[] Ids)> GetSpansRecursive(Regex regex, string contentGroupName, string markedSource, int offset)
-        {
-            foreach (var match in regex.Matches(markedSource).ToEnumerable())
-            {
-                var markedSyntax = match.Groups[contentGroupName];
-                var ids = GetIds(match.Groups["Id"].Value);
-                var absoluteOffset = offset + markedSyntax.Index;
-
-                var span = markedSyntax.Length != 0 ? new TextSpan(absoluteOffset, markedSyntax.Length) : new TextSpan();
-                yield return (span, ids);
-
-                foreach (var nestedSpan in GetSpansRecursive(regex, contentGroupName, markedSyntax.Value, absoluteOffset))
+            return activeStatementMarkers.Aggregate(
+                new List<UnmappedActiveStatement>(),
+                (list, marker) =>
                 {
-                    yield return nestedSpan;
-                }
-            }
+                    var (unmappedSpan, ordinal) = marker;
+                    var mappedSpan = tree.GetMappedLineSpan(unmappedSpan);
+                    var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => new List<ActiveStatement>());
+
+                    var statementFlags = (flags != null) ? flags[ordinal] :
+                        ((ordinal == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.NonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
+
+                    var exceptionRegions = (ordinal < exceptionRegionMarkers.Length)
+                        ? exceptionRegionMarkers[ordinal].SelectAsArray(unmappedRegionSpan => (SourceFileSpan)tree.GetMappedLineSpan(unmappedRegionSpan))
+                        : ImmutableArray<SourceFileSpan>.Empty;
+
+                    var unmappedActiveStatement = new UnmappedActiveStatement(
+                        unmappedSpan,
+                        new ActiveStatement(
+                            ordinal,
+                            statementFlags,
+                            mappedSpan,
+                            instructionId: default),
+                        new ActiveStatementExceptionRegions(exceptionRegions, isActiveStatementCovered: true));
+
+                    documentActiveStatements.Add(unmappedActiveStatement.Statement);
+                    return SourceMarkers.SetListItem(list, ordinal, unmappedActiveStatement);
+                }).ToImmutableArray();
         }
 
-        internal static IEnumerable<(TextSpan Span, int Id)> GetActiveSpans(string markedSource)
+        internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(
+           Func<string, string, SyntaxTree> syntaxTreeFactory,
+           string[] markedSources,
+           string[]? filePaths = null,
+           string? extension = null,
+           ActiveStatementFlags[]? flags = null)
         {
-            foreach (var (span, ids) in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", markedSource, offset: 0))
+            var map = new Dictionary<string, List<ActiveStatement>>();
+
+            var activeStatements = new ArrayBuilder<UnmappedActiveStatement>();
+
+            var sourceIndex = 0;
+            foreach (var markedSource in markedSources)
             {
-                foreach (var id in ids)
-                {
-                    yield return (span, id);
-                }
+                var documentName = filePaths?[sourceIndex] ?? Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension));
+                var tree = syntaxTreeFactory(SourceMarkers.Clear(markedSource), documentName);
+                var statements = CreateActiveStatementMapFromMarkers(markedSource, tree, flags, map);
+
+                activeStatements.AddRange(statements.Where(s => s.Statement != null));
+                sourceIndex++;
             }
+
+            activeStatements.Sort((x, y) => x.Statement.Ordinal.CompareTo(y.Statement.Ordinal));
+            return activeStatements.ToImmutable();
         }
 
-        internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span, DocumentId documentId)
-            => new ActiveStatement(
-                ordinal: 0,
-                primaryDocumentOrdinal: 0,
-                ImmutableArray.Create(documentId),
-                flags,
-                span,
-                instructionId: default);
-
-        internal static ActiveStatement CreateActiveStatement(TextSpan span, int id, SourceText text, DocumentId documentId)
-            => CreateActiveStatement(
-                (id == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame,
-                text.Lines.GetLinePositionSpan(span),
-                documentId);
-
-        internal static TextSpan[]? GetTrackingSpans(string src, int count)
+        internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
+           ImmutableArray<UnmappedActiveStatement> activeStatements,
+           int[]? methodRowIds = null,
+           Guid[]? modules = null,
+           int[]? methodVersions = null,
+           int[]? ilOffsets = null)
         {
-            var matches = s_trackingStatementPattern.Matches(src);
-            if (matches.Count == 0)
-            {
-                return null;
-            }
+            var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
 
-            var result = new TextSpan[count];
-
-            for (var i = 0; i < matches.Count; i++)
-            {
-                var span = matches[i].Groups["TrackingStatement"];
-                foreach (var id in GetIds(matches[i]))
-                {
-                    result[id] = new TextSpan(span.Index, span.Length);
-                }
-            }
-
-            Contract.ThrowIfTrue(result.Any(span => span == default));
-
-            return result;
-        }
-
-        internal static ImmutableArray<TextSpan>[] GetExceptionRegions(string src, int activeStatementCount)
-        {
-            var matches = ExceptionRegionPattern.Matches(src);
-            var result = new List<TextSpan>[activeStatementCount];
-
-            for (var i = 0; i < matches.Count; i++)
-            {
-                var exceptionRegion = matches[i].Groups["ExceptionRegion"];
-
-                foreach (var id in GetDottedIds(matches[i]))
-                {
-                    var activeStatementId = id.Item1;
-                    var exceptionRegionId = id.Item2;
-
-                    if (result[activeStatementId] == null)
-                    {
-                        result[activeStatementId] = new List<TextSpan>();
-                    }
-
-                    EnsureSlot(result[activeStatementId], exceptionRegionId);
-                    result[activeStatementId][exceptionRegionId] = new TextSpan(exceptionRegion.Index, exceptionRegion.Length);
-                }
-            }
-
-            return result.Select(r => r.AsImmutableOrEmpty()).ToArray();
-        }
-
-        public static List<T> SetListItem<T>(List<T> list, int i, T item)
-        {
-            EnsureSlot(list, i);
-            list[i] = item;
-            return list;
-        }
-
-        public static void EnsureSlot<T>(List<T> list, int i)
-        {
-            while (i >= list.Count)
-            {
-                list.Add(default!);
-            }
+            return activeStatements.Select(s => s.Statement).SelectAsArray(statement =>
+                new ManagedActiveStatementDebugInfo(
+                    new ManagedInstructionId(
+                        new ManagedMethodId(
+                            (modules != null) ? modules[statement.Ordinal] : moduleId,
+                            new ManagedModuleMethodId(
+                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[statement.Ordinal] : statement.Ordinal + 1),
+                                version: (methodVersions != null) ? methodVersions[statement.Ordinal] : 1)),
+                        ilOffset: (ilOffsets != null) ? ilOffsets[statement.Ordinal] : 0),
+                    documentName: statement.FilePath,
+                    sourceSpan: statement.Span.ToSourceSpan(),
+                    flags: statement.Flags));
         }
     }
 }

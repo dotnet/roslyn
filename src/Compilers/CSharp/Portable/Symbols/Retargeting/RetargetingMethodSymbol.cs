@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, this.RetargetParameters());
                 }
 
                 return _lazyParameters;
@@ -172,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             else
             {
-                ParameterSymbol[] parameters = new ParameterSymbol[count];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    parameters[i] = new RetargetingMethodParameterSymbol(this, list[i]);
+                    parameters.Add(new RetargetingMethodParameterSymbol(this, list[i]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 
@@ -254,6 +254,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             return _lazyUnmanagedAttributeData;
+        }
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        {
+            if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))
+            {
+                thisParameter = null;
+                return false;
+            }
+
+            thisParameter = underlyingParameter is { }
+                ? new ThisParameterSymbol(this)
+                : null;
+            return true;
         }
 #nullable disable
 
@@ -358,9 +372,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            if (_underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument))
+            {
+                builderArgument = this.RetargetingTranslator.Retarget(builderArgument, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
+        }
     }
 }

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -37,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
         internal sealed override SynthesizedLocalKind SynthesizedKind
@@ -52,9 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return null; }
         }
 
-        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override bool IsImportedFromMetadata
@@ -64,8 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override SyntaxNode GetDeclaratorSyntax()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
+
+        internal override bool HasSourceLocation => false;
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
@@ -84,16 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return result;
         }
 
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint ValEscapeScope => Binder.TopLevelScope;
-
-        /// <summary>
-        /// EE Symbols have no source symbols associated with them.
-        /// They should be safe to escape for evaluation purposes.
-        /// </summary>
-        internal override uint RefEscapeScope => Binder.TopLevelScope;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

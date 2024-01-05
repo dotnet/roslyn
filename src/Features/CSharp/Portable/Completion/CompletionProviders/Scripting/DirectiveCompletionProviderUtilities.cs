@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (tree.IsEntirelyWithinStringLiteral(position, cancellationToken))
             {
                 var token = tree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-                if (token.Kind() == SyntaxKind.EndOfDirectiveToken || token.Kind() == SyntaxKind.EndOfFileToken)
+                if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
                 {
                     token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
                 }

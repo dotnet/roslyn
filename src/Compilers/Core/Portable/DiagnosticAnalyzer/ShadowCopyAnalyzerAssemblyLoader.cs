@@ -2,18 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
+
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
@@ -36,21 +40,32 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private int _assemblyDirectoryId;
 
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
+        internal string BaseDirectory => _baseDirectory;
+
+        internal int CopyCount => _assemblyDirectoryId;
+
+#if NETCOREAPP
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+            : this(null, baseDirectory)
         {
-            if (baseDirectory != null)
+        }
+
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory)
+            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk)
+#else
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+#endif
+        {
+            if (baseDirectory is null)
             {
-                _baseDirectory = baseDirectory;
-            }
-            else
-            {
-                _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
+                throw new ArgumentNullException(nameof(baseDirectory));
             }
 
+            _baseDirectory = baseDirectory;
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
                 () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-            DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
+            DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
@@ -72,15 +87,31 @@ namespace Microsoft.CodeAnalysis
             foreach (var subDirectory in subDirectories)
             {
                 string name = Path.GetFileName(subDirectory).ToLowerInvariant();
-                Mutex mutex = null;
+                Mutex? mutex = null;
                 try
                 {
                     // We only want to try deleting the directory if no-one else is currently
                     // using it. That is, if there is no corresponding mutex.
                     if (!Mutex.TryOpenExisting(name, out mutex))
                     {
-                        ClearReadOnlyFlagOnFiles(subDirectory);
-                        Directory.Delete(subDirectory, recursive: true);
+                        try
+                        {
+                            // Avoid calling ClearReadOnlyFlagOnFiles before calling Directory.Delete. In general, files
+                            // created by the shadow copy should not be marked read-only (CopyFile also clears the
+                            // read-only flag), and clearing the read-only flag for the entire directory requires
+                            // significant disk access.
+                            //
+                            // If the deletion fails for an IOException, it may have been the result of a file being
+                            // marked read-only. We catch that exception and perform an explicit clear before trying
+                            // again.
+                            Directory.Delete(subDirectory, recursive: true);
+                        }
+                        catch (IOException)
+                        {
+                            // Retry after clearing the read-only flag
+                            ClearReadOnlyFlagOnFiles(subDirectory);
+                            Directory.Delete(subDirectory, recursive: true);
+                        }
                     }
                 }
                 catch
@@ -98,56 +129,41 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadImpl(string fullPath)
+        protected override string PreparePathToLoad(string originalAnalyzerPath, ImmutableHashSet<string> cultureNames)
         {
-            string assemblyDirectory = CreateUniqueDirectoryForAssembly();
-            string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
+            var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
+            var shadowDirectory = CreateUniqueDirectoryForAssembly();
+            var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
+            copyFile(originalAnalyzerPath, shadowAnalyzerPath);
 
-            return base.LoadImpl(shadowCopyPath);
-        }
-
-        private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
-        {
-            string fileNameWithExtension = Path.GetFileName(fullPath);
-            string shadowCopyPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
-
-            CopyFile(fullPath, shadowCopyPath);
-
-            string originalDirectory = Path.GetDirectoryName(fullPath);
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
-            string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
-            string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
-
-            foreach (var directory in Directory.EnumerateDirectories(originalDirectory))
+            if (cultureNames.IsEmpty)
             {
-                string directoryName = Path.GetFileName(directory);
-
-                string resourcesPath = Path.Combine(directory, resourcesNameWithExtension);
-                if (File.Exists(resourcesPath))
-                {
-                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directoryName, resourcesNameWithExtension);
-                    CopyFile(resourcesPath, resourcesShadowCopyPath);
-                }
-
-                resourcesPath = Path.Combine(directory, resourcesNameWithoutExtension, resourcesNameWithExtension);
-                if (File.Exists(resourcesPath))
-                {
-                    string resourcesShadowCopyPath = Path.Combine(assemblyDirectory, directoryName, resourcesNameWithoutExtension, resourcesNameWithExtension);
-                    CopyFile(resourcesPath, resourcesShadowCopyPath);
-                }
+                return shadowAnalyzerPath;
             }
 
-            return shadowCopyPath;
-        }
+            var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
+            var satelliteFileName = GetSatelliteFileName(analyzerFileName);
+            foreach (var cultureName in cultureNames)
+            {
+                var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
+                var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
+                copyFile(originalSatellitePath, shadowSatellitePath);
+            }
 
-        private static void CopyFile(string originalPath, string shadowCopyPath)
-        {
-            var directory = Path.GetDirectoryName(shadowCopyPath);
-            Directory.CreateDirectory(directory);
+            return shadowAnalyzerPath;
 
-            File.Copy(originalPath, shadowCopyPath);
+            static void copyFile(string originalPath, string shadowCopyPath)
+            {
+                var directory = Path.GetDirectoryName(shadowCopyPath);
+                if (directory is null)
+                {
+                    throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+                }
 
-            ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+                _ = Directory.CreateDirectory(directory);
+                File.Copy(originalPath, shadowCopyPath);
+                ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+            }
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)

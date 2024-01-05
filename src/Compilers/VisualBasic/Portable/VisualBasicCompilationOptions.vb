@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
-            SyntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
+            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -349,6 +349,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
             Return importNames.ToImmutableAndFree()
+        End Function
+
+        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
+            Return VisualBasicDeterministicKeyBuilder.Instance
         End Function
 
         ''' <summary>
@@ -656,9 +660,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
+        ''' </summary>
         ''' <param name="deterministic"> The deterministic mode. </param>
         ''' <returns> A new instance of VisualBasicCompilationOptions, if the deterministic mode is different; otherwise the current instance.</returns>
-        ''' </summary>
         Public Shadows Function WithDeterministic(deterministic As Boolean) As VisualBasicCompilationOptions
             If deterministic = Me.Deterministic Then
                 Return Me
@@ -1108,13 +1112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.Equals(TryCast(obj, VisualBasicCompilationOptions))
         End Function
 
-
         ''' <summary>
         ''' Creates a hashcode for this instance.
         ''' </summary>
         ''' <returns>A hashcode representing this instance.</returns>
-        Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(MyBase.GetHashCodeHelper(),
+        Protected Overrides Function ComputeHashCode() As Integer
+            Return Hash.Combine(GetHashCodeHelper(),
                    Hash.Combine(Hash.CombineValues(Me.GlobalImports),
                    Hash.Combine(If(Me.RootNamespace IsNot Nothing, StringComparer.Ordinal.GetHashCode(Me.RootNamespace), 0),
                    Hash.Combine(Me.OptionStrict,

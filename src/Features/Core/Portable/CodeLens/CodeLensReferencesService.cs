@@ -12,7 +12,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,21 +23,28 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-        // Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
-        // in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
-        // work that then slows the user down.
+        /// <summary>
+        /// Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
+        /// in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
+        /// work that then slows the user down.  Also, only process the inheritance hierarchy unidirectionally.  We want
+        /// to find references that could actually call into a particular, not references to other members that could
+        /// never actually call into this member.
+        /// </summary>
         private static readonly FindReferencesSearchOptions s_nonParallelSearch =
-            FindReferencesSearchOptions.Default.With(@explicit: false);
+            FindReferencesSearchOptions.Default with
+            {
+                Explicit = false,
+                UnidirectionalHierarchyCascade = true
+            };
 
         private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
             int searchCap, CancellationToken cancellationToken) where T : struct
         {
-            var document = solution.GetDocument(documentId);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document == null)
             {
                 return null;
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     progress.SearchCap > 0
                         ? Math.Min(progress.ReferencesCount, progress.SearchCap)
                         : progress.ReferencesCount, progress.SearchCapReached, projectVersion.ToString())),
-                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true, projectVersion.ToString())),
+                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, IsCapped: true, projectVersion.ToString())),
                 maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
@@ -114,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var longName = langServices.GetDisplayName(semanticModel, node);
 
             // get the full line of source text on the line that contains this position
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // get the actual span of text for the line containing reference
             var textLine = text.Lines.GetLineFromPosition(position);
@@ -187,10 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
             }
 
-            if (node == null)
-            {
-                node = token.Parent;
-            }
+            node ??= token.Parent;
 
             return langServices.GetDisplayNode(node);
         }
@@ -240,13 +245,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static async Task<ReferenceMethodDescriptor> TryGetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
-            var doc = solution.GetDocument(commonLocation.SourceTree);
-            if (doc == null)
+            var document = solution.GetDocument(commonLocation.SourceTree);
+            if (document == null)
             {
                 return null;
             }
 
-            var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
@@ -274,65 +278,64 @@ namespace Microsoft.CodeAnalysis.CodeLens
         {
             var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);
 
-            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declaredSymbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+
+            if (declaredSymbol == null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+                return string.Empty;
+            }
 
-                if (declaredSymbol == null)
+            var parts = declaredSymbol.ToDisplayParts(MethodDisplayFormat);
+            var pool = PooledStringBuilder.GetInstance();
+
+            try
+            {
+                var actualBuilder = pool.Builder;
+                var previousWasClass = false;
+
+                for (var index = 0; index < parts.Length; index++)
                 {
-                    return string.Empty;
-                }
-
-                var parts = declaredSymbol.ToDisplayParts(MethodDisplayFormat);
-                var pool = PooledStringBuilder.GetInstance();
-
-                try
-                {
-                    var actualBuilder = pool.Builder;
-                    var previousWasClass = false;
-
-                    for (var index = 0; index < parts.Length; index++)
+                    var part = parts[index];
+                    if (previousWasClass &&
+                        part.Kind == SymbolDisplayPartKind.Punctuation &&
+                        index < parts.Length - 1)
                     {
-                        var part = parts[index];
-                        if (previousWasClass &&
-                            part.Kind == SymbolDisplayPartKind.Punctuation &&
-                            index < parts.Length - 1)
+                        switch (parts[index + 1].Kind)
                         {
-                            switch (parts[index + 1].Kind)
-                            {
-                                case SymbolDisplayPartKind.ClassName:
-                                case SymbolDisplayPartKind.RecordClassName:
-                                case SymbolDisplayPartKind.DelegateName:
-                                case SymbolDisplayPartKind.EnumName:
-                                case SymbolDisplayPartKind.ErrorTypeName:
-                                case SymbolDisplayPartKind.InterfaceName:
-                                case SymbolDisplayPartKind.StructName:
-                                    actualBuilder.Append('+');
-                                    break;
+                            case SymbolDisplayPartKind.ClassName:
+                            case SymbolDisplayPartKind.RecordClassName:
+                            case SymbolDisplayPartKind.DelegateName:
+                            case SymbolDisplayPartKind.EnumName:
+                            case SymbolDisplayPartKind.ErrorTypeName:
+                            case SymbolDisplayPartKind.InterfaceName:
+                            case SymbolDisplayPartKind.StructName:
+                            case SymbolDisplayPartKind.RecordStructName:
+                                actualBuilder.Append('+');
+                                break;
 
-                                default:
-                                    actualBuilder.Append(part);
-                                    break;
-                            }
+                            default:
+                                actualBuilder.Append(part);
+                                break;
                         }
-                        else
-                        {
-                            actualBuilder.Append(part);
-                        }
-
-                        previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
-                                           part.Kind == SymbolDisplayPartKind.RecordClassName ||
-                                           part.Kind == SymbolDisplayPartKind.InterfaceName ||
-                                           part.Kind == SymbolDisplayPartKind.StructName;
+                    }
+                    else
+                    {
+                        actualBuilder.Append(part);
                     }
 
-                    return actualBuilder.ToString();
+                    previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
+                                       SymbolDisplayPartKind.RecordClassName or
+                                       SymbolDisplayPartKind.InterfaceName or
+                                       SymbolDisplayPartKind.StructName or
+                                       SymbolDisplayPartKind.RecordStructName;
                 }
-                finally
-                {
-                    pool.Free();
-                }
+
+                return actualBuilder.ToString();
+            }
+            finally
+            {
+                pool.Free();
             }
         }
     }

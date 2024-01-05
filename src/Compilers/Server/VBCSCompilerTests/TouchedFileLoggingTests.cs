@@ -46,6 +46,7 @@ End Class
         [ConditionalFact(typeof(DesktopOnly))]
         public void CSharpTrivialMetadataCaching()
         {
+            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
             var filelist = new List<string>();
 
             // Do the following compilation twice.
@@ -67,7 +68,8 @@ End Class
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
+                    loader,
+                    driverCache: null);
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -95,6 +97,7 @@ End Class
         [ConditionalFact(typeof(DesktopOnly))]
         public void VisualBasicTrivialMetadataCaching()
         {
+            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
             var filelist = new List<string>();
 
             // Do the following compilation twice.
@@ -116,7 +119,8 @@ End Class
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
+                    loader,
+                    driverCache: null);
 
                 List<string> expectedReads;
                 List<string> expectedWrites;

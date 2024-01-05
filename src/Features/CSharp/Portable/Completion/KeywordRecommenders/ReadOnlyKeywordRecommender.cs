@@ -43,7 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
             => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
-               (context.TargetToken.Parent.IsKind(SyntaxKind.RefType) || context.IsFunctionPointerTypeArgumentContext);
+               (context.TargetToken.Parent.IsKind(SyntaxKind.RefType) ||
+                context.IsParameterTypeContext ||
+                context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext);
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -52,7 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         private static bool IsStructAccessorContext(CSharpSyntaxContext context)
-            => context.ContainingTypeDeclaration.IsKind(SyntaxKind.StructDeclaration) &&
+        {
+            var type = context.ContainingTypeDeclaration;
+            return type is not null &&
+                type.Kind() is SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration &&
                 context.TargetToken.IsAnyAccessorDeclarationContext(context.Position, SyntaxKind.ReadOnlyKeyword);
+        }
     }
 }

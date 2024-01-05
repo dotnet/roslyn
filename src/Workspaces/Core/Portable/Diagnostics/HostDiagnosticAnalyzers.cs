@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -51,23 +52,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is quite common for multiple projects to have the same set of analyzer references, yet we will create
         /// multiple instances of the analyzer list and thus not share the info.
         /// </remarks>
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers = new();
 
-        internal HostDiagnosticAnalyzers(IEnumerable<AnalyzerReference> hostAnalyzerReferences)
+        internal HostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> hostAnalyzerReferences)
         {
+            HostAnalyzerReferences = hostAnalyzerReferences;
             _hostAnalyzerReferencesMap = CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
-            _skippedHostAnalyzers = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>>();
         }
 
         /// <summary>
-        /// It returns a map with <see cref="AnalyzerReference.Id"/> as key and <see cref="AnalyzerReference"/> as value
+        /// List of host <see cref="AnalyzerReference"/>s
         /// </summary>
-        public ImmutableDictionary<object, AnalyzerReference> GetHostAnalyzerReferencesMap()
-            => _hostAnalyzerReferencesMap;
+        public IReadOnlyList<AnalyzerReference> HostAnalyzerReferences { get; }
 
         /// <summary>
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
@@ -221,7 +221,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticAnalyzer>>();
 
-            foreach (var reference in analyzerReferencesMap)
+            // Randomize the order we process analyzer references to minimize static constructor/JIT contention during analyzer instantiation.
+            foreach (var reference in Shuffle(analyzerReferencesMap))
             {
                 var analyzers = language == null ? reference.Value.GetAnalyzersForAllLanguages() : reference.Value.GetAnalyzers(language);
                 if (analyzers.Length == 0)
@@ -234,6 +235,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+
+            static IEnumerable<KeyValuePair<object, AnalyzerReference>> Shuffle(IDictionary<object, AnalyzerReference> source)
+            {
+                var random =
+#if NET6_0_OR_GREATER
+                        Random.Shared;
+#else
+                        new Random();
+#endif
+
+                using var _ = ArrayBuilder<KeyValuePair<object, AnalyzerReference>>.GetInstance(source.Count, out var builder);
+                builder.AddRange(source);
+
+                for (var i = builder.Count - 1; i >= 0; i--)
+                {
+                    var swapIndex = random.Next(i + 1);
+                    yield return builder[swapIndex];
+                    builder[swapIndex] = builder[i];
+                }
+            }
         }
 
         private static ImmutableDictionary<object, AnalyzerReference> CreateAnalyzerReferencesMap(IEnumerable<AnalyzerReference> analyzerReferences)
@@ -269,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                current = current.Add(referenceIdentity, analyzers.Where(a => seen.Add(a)).ToImmutableArray());
+                current = current.Add(referenceIdentity, analyzers.Where(seen.Add).ToImmutableArray());
             }
 
             return current;

@@ -3150,7 +3150,7 @@ class Program
         }
 
         [Fact]
-        private void RefLocalsAreValues()
+        public void RefLocalsAreValues()
         {
             var text = @"
 class Program
@@ -3282,7 +3282,11 @@ class C
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using var = C;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(2, 7)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -3402,13 +3406,586 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[
             {
                 // file.cs(6,28): error CS8386: Invalid object creation
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithArguments("?[]").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithLocation(6, 28),
                 // file.cs(6,31): error CS1031: Type expected
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 31)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(text, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref *(int*)0;
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  pop
+  IL_0003:  ldstr      ""run""
+  IL_0008:  call       ""void System.Console.WriteLine(string)""
+  IL_000d:  ret
+}
+");
+
+            // The stloc.0 is putting a native int into an int32& local. This is terribly unsafe
+            // but it is what was asked for, so oh well.
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i
+  IL_0003:  stloc.0
+  IL_0004:  ldstr      ""run""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_02()
+        {
+            var unsafeAsPointerIl = @"
+
+.class public auto ansi beforefieldinit Unsafe
+    extends [mscorlib]System.Object
+{
+  .method public hidebysig static void* AsPointer<T>(!!T& 'value') cil managed
+  {
+        .maxstack 1
+        ldarg.0
+        conv.u
+        ret
+  } // end of method Unsafe::AsPointer
+}
+";
+
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref *(int*)0;
+    Console.WriteLine((int)Unsafe.AsPointer(ref x));
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  call       ""void* Unsafe.AsPointer<int>(ref int)""
+  IL_0007:  conv.i4
+  IL_0008:  call       ""void System.Console.WriteLine(int)""
+  IL_000d:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (int& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  call       ""void* Unsafe.AsPointer<int>(ref int)""
+  IL_000a:  conv.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  nop
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, string expectedIL)
+            {
+                var comp = CreateCompilationWithIL(code, unsafeAsPointerIl, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_03()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    int i1 = 0;
+    ref int i2 = ref i1;
+    ref int i3 = ref i2 = ref *(int*)0;
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0) //i1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  conv.i
+  IL_0004:  pop
+  IL_0005:  ldstr      ""run""
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+  IL_000f:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (int V_0, //i1
+                int& V_1, //i2
+                int& V_2) //i3
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  stloc.1
+  IL_0006:  ldc.i4.0
+  IL_0007:  conv.i
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  stloc.2
+  IL_000b:  ldstr      ""run""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  nop
+  IL_0016:  nop
+  IL_0017:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerArrayAccess_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref ((int*)0)[0];
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  pop
+  IL_0003:  ldstr      ""run""
+  IL_0008:  call       ""void System.Console.WriteLine(string)""
+  IL_000d:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i
+  IL_0003:  stloc.0
+  IL_0004:  ldstr      ""run""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerArrayAccess_02()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref ((int*)0)[1];
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  ldc.i4.4
+  IL_0003:  add
+  IL_0004:  pop
+  IL_0005:  ldstr      ""run""
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+  IL_000f:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (int& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i
+  IL_0003:  ldc.i4.4
+  IL_0004:  add
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""run""
+  IL_000b:  call       ""void System.Console.WriteLine(string)""
+  IL_0010:  nop
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_01()
+        {
+            var source =
+@"struct S { }
+class Program
+{
+    static void Main()
+    {
+        F(new S[1]);
+    }
+    static void F(S[] a)
+    {
+        ref var b = ref a[0];
+        _ = b;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (S& V_0) //b
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    "S"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "S"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "S"
+  IL_0007:  ldobj      "S"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_02()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldflda     "T S<T>.F"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "T"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  ldobj      "T"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_03()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_04()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        ref readonly T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void ReadValueAndDiscard_05()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadValueAndDiscard_06()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
     }
 }

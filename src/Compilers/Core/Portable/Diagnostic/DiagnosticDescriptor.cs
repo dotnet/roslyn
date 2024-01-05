@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -19,6 +20,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An unique identifier for the diagnostic.
         /// </summary>
+        /// <remarks>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
+        /// </remarks>
         public string Id { get; }
 
         /// <summary>
@@ -62,6 +66,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
 
+        internal ImmutableArray<string> ImmutableCustomTags
+        {
+            get
+            {
+                Debug.Assert(CustomTags is ImmutableArray<string>);
+                return (ImmutableArray<string>)CustomTags;
+            }
+        }
+
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// NOTE: For localizable <paramref name="title"/>, <paramref name="description"/> and/or <paramref name="messageFormat"/>,
@@ -77,6 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="description">An optional longer description of the diagnostic.</param>
         /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
+        /// <remarks>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
+        /// </remarks>
         public DiagnosticDescriptor(
             string id,
             string title,
@@ -104,7 +120,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="description">An optional longer localizable description of the diagnostic.</param>
         /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
-        /// <remarks>Example descriptor for rule CA1001:
+        /// <remarks>
+        /// Example descriptor for rule CA1001:
+        /// <code>
         ///     internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
         ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
         ///         new LocalizableResourceString(nameof(FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
@@ -113,6 +131,8 @@ namespace Microsoft.CodeAnalysis
         ///         isEnabledByDefault: true,
         ///         helpLinkUri: "http://msdn.microsoft.com/library/ms182172.aspx",
         ///         customTags: DiagnosticCustomTags.Microsoft);
+        /// </code>
+        /// <a href="/dotnet/csharp/roslyn-sdk/choosing-diagnostic-ids">Choose an appropriate diagnostic ID</a> such that it is unique.
         /// </remarks>
         public DiagnosticDescriptor(
             string id,
@@ -139,6 +159,8 @@ namespace Microsoft.CodeAnalysis
             string? helpLinkUri,
             ImmutableArray<string> customTags)
         {
+            Debug.Assert(!customTags.IsDefault);
+
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
@@ -197,7 +219,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(this.Category.GetHashCode(),
-                Hash.Combine(this.DefaultSeverity.GetHashCode(),
+                Hash.Combine(((int)this.DefaultSeverity).GetHashCode(),
                 Hash.Combine(this.Description.GetHashCode(),
                 Hash.Combine(this.HelpLinkUri.GetHashCode(),
                 Hash.Combine(this.Id.GetHashCode(),
@@ -241,13 +263,50 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static DiagnosticSeverity? MapReportToSeverity(ReportDiagnostic severity)
+        {
+            switch (severity)
+            {
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
+                case ReportDiagnostic.Suppress:
+                    return null;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(severity);
+            }
+        }
+
         /// <summary>
         /// Returns true if diagnostic descriptor is not configurable, i.e. cannot be suppressed or filtered or have its severity changed.
         /// For example, compiler errors are always non-configurable.
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is custom configurable, i.e. analyzer supports custom
+        /// ways for configuring diagnostic severity that may not be understood by the compiler.
+        /// </summary>
+        internal bool IsCustomSeverityConfigurable()
+        {
+            return AnalyzerManager.HasCustomSeverityConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable
+        /// or is custom configurable.
+        /// </summary>
+        internal bool IsCompilerOrNotConfigurableOrCustomConfigurable()
+        {
+            return AnalyzerManager.HasCompilerOrNotConfigurableTagOrCustomConfigurableTag(ImmutableCustomTags);
         }
     }
 }

@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexLexer(VirtualCharSequence text) : this()
             => Text = text;
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
+        public readonly VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
-        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
+        public readonly VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public VirtualCharSequence GetSubPattern(int start, int end)
+        public readonly VirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        public TextSpan GetTextSpan(int startInclusive, int endExclusive)
+        public readonly TextSpan GetTextSpan(int startInclusive, int endExclusive)
             => TextSpan.FromBounds(Text[startInclusive].Span.Start, Text[endExclusive - 1].Span.End);
 
-        public bool IsAt(string val)
+        public readonly bool IsAt(string val)
             => TextAt(this.Position, val);
 
-        private bool TextAt(int position, string val)
+        private readonly bool TextAt(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private static bool IsEscapeCategoryChar(VirtualChar ch)
-            => ch == '-' ||
-               (ch >= 'a' && ch <= 'z') ||
-               (ch >= 'A' && ch <= 'Z');
+            => ch.Value is '-' or
+               (>= 'a' and <= 'z') or
+               (>= 'A' and <= 'Z');
 
         public RegexToken? TryScanNumber()
         {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var start = Position;
-            while (Position < Text.Length && RegexCharClass.IsWordChar(this.CurrentChar))
+            while (Position < Text.Length && RegexCharClass.IsBoundaryWordChar(this.CurrentChar))
             {
                 Position++;
             }
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return start == Position
-                ? (RegexToken?)null
+                ? null
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Make sure we're right after the \x or \u.
             Debug.Assert(Text[beforeSlash] == '\\');
-            Debug.Assert(Text[beforeSlash + 1] == 'x' || Text[beforeSlash + 1] == 'u');
+            Debug.Assert(Text[beforeSlash + 1].Value is 'x' or 'u');
 
             for (var i = 0; i < count; i++)
             {
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                (ch >= 'A' && ch <= 'F');
 
         private static bool IsDecimalDigit(VirtualChar ch)
-            => ch >= '0' && ch <= '9';
+            => ch.Value is >= '0' and <= '9';
 
         private static bool IsOctalDigit(VirtualChar ch)
-            => ch >= '0' && ch <= '7';
+            => ch.Value is >= '0' and <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
         {
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
                     var octalVal = this.CurrentChar.Value - '0';
-                    Debug.Assert(octalVal >= 0 && octalVal <= 7);
+                    Debug.Assert(octalVal is >= 0 and <= 7);
                     currentVal *= 8;
                     currentVal += octalVal;
 

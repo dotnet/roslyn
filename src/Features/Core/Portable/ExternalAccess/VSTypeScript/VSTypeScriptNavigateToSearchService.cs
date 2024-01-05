@@ -5,123 +5,128 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptNavigateToSearchService(
+    [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
 {
-    [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    private readonly IVSTypeScriptNavigateToSearchService? _searchService = searchService;
+
+    public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
+
+    public bool CanFilter => _searchService?.CanFilter ?? false;
+
+    public async Task SearchDocumentAsync(
+        Document document,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Func<INavigateToSearchResult, Task> onResultFound,
+        CancellationToken cancellationToken)
     {
-        private readonly IVSTypeScriptNavigateToSearchService? _searchService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptNavigateToSearchService(
-            [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService)
+        if (_searchService != null)
         {
-            _searchService = searchService;
-        }
-
-        public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
-
-        public bool CanFilter => _searchService?.CanFilter ?? false;
-
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-        {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
-
             var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+            foreach (var result in results)
+                await onResultFound(Convert(result)).ConfigureAwait(false);
         }
+    }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+    public async Task SearchProjectsAsync(
+        Solution solution,
+        ImmutableArray<Project> projects,
+        ImmutableArray<Document> priorityDocuments,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Document? activeDocument,
+        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<Task> onProjectCompleted,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfTrue(projects.IsEmpty);
+        Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
+        using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
+
+        foreach (var group in priorityDocuments.GroupBy(d => d.Project))
+            await ProcessProjectAsync(group.Key).ConfigureAwait(false);
+
+        foreach (var project in projects)
+            await ProcessProjectAsync(project).ConfigureAwait(false);
+
+        return;
+
+        async Task ProcessProjectAsync(Project project)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
-
-            var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
-        }
-
-        private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
-            => new WrappedNavigateToSearchResult(result);
-
-        private class WrappedNavigateToSearchResult : INavigateToSearchResult
-        {
-            private readonly IVSTypeScriptNavigateToSearchResult _result;
-
-            public WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result)
+            if (processedProjects.Add(project))
             {
-                _result = result;
-            }
-
-            public string AdditionalInformation => _result.AdditionalInformation;
-
-            public string Kind => _result.Kind;
-
-            public NavigateToMatchKind MatchKind
-                => _result.MatchKind switch
+                if (_searchService != null)
                 {
-                    VSTypeScriptNavigateToMatchKind.Exact => NavigateToMatchKind.Exact,
-                    VSTypeScriptNavigateToMatchKind.Prefix => NavigateToMatchKind.Prefix,
-                    VSTypeScriptNavigateToMatchKind.Substring => NavigateToMatchKind.Substring,
-                    VSTypeScriptNavigateToMatchKind.Regular => NavigateToMatchKind.Regular,
-                    VSTypeScriptNavigateToMatchKind.None => NavigateToMatchKind.None,
-                    VSTypeScriptNavigateToMatchKind.CamelCaseExact => NavigateToMatchKind.CamelCaseExact,
-                    VSTypeScriptNavigateToMatchKind.CamelCasePrefix => NavigateToMatchKind.CamelCasePrefix,
-                    VSTypeScriptNavigateToMatchKind.CamelCaseNonContiguousPrefix => NavigateToMatchKind.CamelCaseNonContiguousPrefix,
-                    VSTypeScriptNavigateToMatchKind.CamelCaseSubstring => NavigateToMatchKind.CamelCaseSubstring,
-                    VSTypeScriptNavigateToMatchKind.CamelCaseNonContiguousSubstring => NavigateToMatchKind.CamelCaseNonContiguousSubstring,
-                    VSTypeScriptNavigateToMatchKind.Fuzzy => NavigateToMatchKind.Fuzzy,
-                    _ => throw ExceptionUtilities.UnexpectedValue(_result.MatchKind),
-                };
+                    var results = await _searchService.SearchProjectAsync(
+                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                    foreach (var result in results)
+                        await onResultFound(project, Convert(result)).ConfigureAwait(false);
+                }
 
-            public bool IsCaseSensitive => _result.IsCaseSensitive;
-
-            public string Name => _result.Name;
-
-            public ImmutableArray<TextSpan> NameMatchSpans => _result.NameMatchSpans;
-
-            public string SecondarySort => _result.SecondarySort;
-
-            public string Summary => _result.Summary;
-
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new WrappedNavigableItem(_result.NavigableItem);
-        }
-
-        private class WrappedNavigableItem : INavigableItem
-        {
-            private readonly IVSTypeScriptNavigableItem _navigableItem;
-
-            public WrappedNavigableItem(IVSTypeScriptNavigableItem navigableItem)
-            {
-                _navigableItem = navigableItem;
+                await onProjectCompleted().ConfigureAwait(false);
             }
-
-            public Glyph Glyph => _navigableItem.Glyph;
-
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
-
-            public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
-
-            public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
-
-            public Document Document => _navigableItem.Document;
-
-            public TextSpan SourceSpan => _navigableItem.SourceSpan;
-
-            public ImmutableArray<INavigableItem> ChildItems
-                => _navigableItem.ChildItems.IsDefault
-                    ? default
-                    : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new WrappedNavigableItem(i));
         }
+    }
+
+    private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
+        => new WrappedNavigateToSearchResult(result);
+
+    private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
+    {
+        private readonly IVSTypeScriptNavigateToSearchResult _result = result;
+
+        public string AdditionalInformation => _result.AdditionalInformation;
+
+        public string Kind => _result.Kind;
+
+        public NavigateToMatchKind MatchKind
+            => _result.MatchKind switch
+            {
+                VSTypeScriptNavigateToMatchKind.Exact => NavigateToMatchKind.Exact,
+                VSTypeScriptNavigateToMatchKind.Prefix => NavigateToMatchKind.Prefix,
+                VSTypeScriptNavigateToMatchKind.Substring => NavigateToMatchKind.Substring,
+                VSTypeScriptNavigateToMatchKind.Regular => NavigateToMatchKind.Regular,
+                VSTypeScriptNavigateToMatchKind.None => NavigateToMatchKind.None,
+                VSTypeScriptNavigateToMatchKind.CamelCaseExact => NavigateToMatchKind.CamelCaseExact,
+                VSTypeScriptNavigateToMatchKind.CamelCasePrefix => NavigateToMatchKind.CamelCasePrefix,
+                VSTypeScriptNavigateToMatchKind.CamelCaseNonContiguousPrefix => NavigateToMatchKind.CamelCaseNonContiguousPrefix,
+                VSTypeScriptNavigateToMatchKind.CamelCaseSubstring => NavigateToMatchKind.CamelCaseSubstring,
+                VSTypeScriptNavigateToMatchKind.CamelCaseNonContiguousSubstring => NavigateToMatchKind.CamelCaseNonContiguousSubstring,
+                VSTypeScriptNavigateToMatchKind.Fuzzy => NavigateToMatchKind.Fuzzy,
+                _ => throw ExceptionUtilities.UnexpectedValue(_result.MatchKind),
+            };
+
+        public bool IsCaseSensitive => _result.IsCaseSensitive;
+
+        public string Name => _result.Name;
+
+        public ImmutableArray<TextSpan> NameMatchSpans => _result.NameMatchSpans;
+
+        public string SecondarySort => _result.SecondarySort;
+
+        public string Summary => _result.Summary;
+
+        public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+
+        public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
     }
 }

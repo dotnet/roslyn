@@ -19,10 +19,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 #endif
 
-#if !NET5_0 && !NET5_0_OR_GREATER
-using Half = System.Single;
-#endif
-
 namespace Microsoft.CodeAnalysis.Collections.Internal
 {
     #region ArraySortHelper for single arrays
@@ -304,9 +300,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                         // For floating-point, do a pre-pass to move all NaNs to the beginning
                         // so that we can do an optimized comparison as part of the actual sort
                         // on the remainder of the values.
-                        if (typeof(T) == typeof(double) ||
-                            typeof(T) == typeof(float) ||
-                            typeof(T) == typeof(Half))
+                        if (typeof(T) == typeof(double)
+                            || typeof(T) == typeof(float)
+#if NET
+                            || typeof(T) == typeof(Half)
+#endif
+                            )
                         {
                             int nanLeft = SegmentedArraySortUtils.MoveNansToFront(keys, default(Span<byte>));
                             if (nanLeft == keys.Length)
@@ -611,16 +610,18 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left < (ulong)(object)right ? true : false;
             if (typeof(T) == typeof(long))
                 return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint))
+            if (typeof(T) == typeof(UIntPtr))
                 return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint))
+            if (typeof(T) == typeof(IntPtr))
                 return (nint)(object)left < (nint)(object)right ? true : false;
             if (typeof(T) == typeof(float))
                 return (float)(object)left < (float)(object)right ? true : false;
             if (typeof(T) == typeof(double))
                 return (double)(object)left < (double)(object)right ? true : false;
+#if NET
             if (typeof(T) == typeof(Half))
                 return (Half)(object)left < (Half)(object)right ? true : false;
+#endif
             return left.CompareTo(right) < 0 ? true : false;
         }
 
@@ -643,16 +644,18 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left > (ulong)(object)right ? true : false;
             if (typeof(T) == typeof(long))
                 return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint))
+            if (typeof(T) == typeof(UIntPtr))
                 return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint))
+            if (typeof(T) == typeof(IntPtr))
                 return (nint)(object)left > (nint)(object)right ? true : false;
             if (typeof(T) == typeof(float))
                 return (float)(object)left > (float)(object)right ? true : false;
             if (typeof(T) == typeof(double))
                 return (double)(object)left > (double)(object)right ? true : false;
+#if NET
             if (typeof(T) == typeof(Half))
                 return (Half)(object)left > (Half)(object)right ? true : false;
+#endif
             return left.CompareTo(right) > 0 ? true : false;
         }
     }
@@ -902,9 +905,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                         // For floating-point, do a pre-pass to move all NaNs to the beginning
                         // so that we can do an optimized comparison as part of the actual sort
                         // on the remainder of the values.
-                        if (typeof(TKey) == typeof(double) ||
-                            typeof(TKey) == typeof(float) ||
-                            typeof(TKey) == typeof(Half))
+                        if (typeof(TKey) == typeof(double)
+                            || typeof(TKey) == typeof(float)
+#if NET
+                            || typeof(TKey) == typeof(Half)
+#endif
+                            )
                         {
                             int nanLeft = SegmentedArraySortUtils.MoveNansToFront(keys, values);
                             if (nanLeft == keys.Length)
@@ -1161,16 +1167,18 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left < (ulong)(object)right ? true : false;
             if (typeof(TKey) == typeof(long))
                 return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint))
+            if (typeof(TKey) == typeof(UIntPtr))
                 return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint))
+            if (typeof(TKey) == typeof(IntPtr))
                 return (nint)(object)left < (nint)(object)right ? true : false;
             if (typeof(TKey) == typeof(float))
                 return (float)(object)left < (float)(object)right ? true : false;
             if (typeof(TKey) == typeof(double))
                 return (double)(object)left < (double)(object)right ? true : false;
+#if NET
             if (typeof(TKey) == typeof(Half))
                 return (Half)(object)left < (Half)(object)right ? true : false;
+#endif
             return left.CompareTo(right) < 0 ? true : false;
         }
 
@@ -1193,16 +1201,18 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return (ulong)(object)left > (ulong)(object)right ? true : false;
             if (typeof(TKey) == typeof(long))
                 return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint))
+            if (typeof(TKey) == typeof(UIntPtr))
                 return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint))
+            if (typeof(TKey) == typeof(IntPtr))
                 return (nint)(object)left > (nint)(object)right ? true : false;
             if (typeof(TKey) == typeof(float))
                 return (float)(object)left > (float)(object)right ? true : false;
             if (typeof(TKey) == typeof(double))
                 return (double)(object)left > (double)(object)right ? true : false;
+#if NET
             if (typeof(TKey) == typeof(Half))
                 return (Half)(object)left > (Half)(object)right ? true : false;
+#endif
             return left.CompareTo(right) > 0 ? true : false;
         }
     }
@@ -1230,9 +1240,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
             for (int i = 0; i < keys.Length; i++)
             {
-                if ((typeof(TKey) == typeof(double) && double.IsNaN((double)(object)keys[i])) ||
-                    (typeof(TKey) == typeof(float) && float.IsNaN((float)(object)keys[i])) ||
-                    (typeof(TKey) == typeof(Half) && Half.IsNaN((Half)(object)keys[i])))
+                if ((typeof(TKey) == typeof(double) && double.IsNaN((double)(object)keys[i]))
+                    || (typeof(TKey) == typeof(float) && float.IsNaN((float)(object)keys[i]))
+#if NET
+                    || (typeof(TKey) == typeof(Half) && Half.IsNaN((Half)(object)keys[i]))
+#endif
+                    )
                 {
                     TKey temp = keys[left];
                     keys[left] = keys[i];

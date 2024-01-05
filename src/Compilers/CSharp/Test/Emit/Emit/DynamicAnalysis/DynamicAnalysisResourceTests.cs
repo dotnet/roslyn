@@ -72,7 +72,7 @@ public class C
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestSpansPresentInResource()
         {
-            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -216,7 +216,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -336,7 +336,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -430,7 +430,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -458,6 +458,55 @@ class Student : Person { public double GPA; }
         }
 
         [Fact]
+        public void TestPatternSpans_WithSharedWhenExpression()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                            // Method 0
+    {
+        Method1(1, b1: false, b2: false);
+    }
+
+    static string Method1(int i, bool b1, bool b2)       // Method 1
+    {
+        switch (i)
+        {
+            case not 1 when b1:
+                return ""b1"";
+            case var _ when b2:
+                return ""b2"";
+            case 1:
+                return ""1"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[1], sourceLines,
+                new SpanResult(10, 4, 23, 5, "static string Method1(int i, bool b1, bool b2)"),
+                new SpanResult(14, 23, 14, 30, "when b1:"),
+                new SpanResult(16, 23, 16, 30, "when b2:"),
+                new SpanResult(15, 16, 15, 28, @"return ""b1"";"),
+                new SpanResult(17, 16, 17, 28, @"return ""b2"";"),
+                new SpanResult(19, 16, 19, 27, @"return ""1"";"),
+                new SpanResult(21, 16, 21, 33, @"return ""default"";"),
+                new SpanResult(12, 16, 12, 17, "i"));
+        }
+
+        [Fact]
         public void TestDeconstructionSpans()
         {
             string source = @"
@@ -477,7 +526,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -508,7 +557,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -548,7 +597,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -616,7 +665,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -697,7 +746,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -778,7 +827,7 @@ partial struct E
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -872,7 +921,7 @@ public class D
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -1003,7 +1052,9 @@ class C
             ArrayBuilder<string> expectedSpanSpellings = ArrayBuilder<string>.GetInstance(expected.Length);
             foreach (SpanResult expectedSpanResult in expected)
             {
-                Assert.True(sourceLines[expectedSpanResult.StartLine].Substring(expectedSpanResult.StartColumn).StartsWith(expectedSpanResult.TextStart));
+                var text = sourceLines[expectedSpanResult.StartLine].Substring(expectedSpanResult.StartColumn);
+                Assert.True(text.StartsWith(expectedSpanResult.TextStart), $"Text doesn't start with {expectedSpanResult.TextStart}. Text is: {text}");
+
                 expectedSpanSpellings.Add(string.Format("({0},{1})-({2},{3})", expectedSpanResult.StartLine, expectedSpanResult.StartColumn, expectedSpanResult.EndLine, expectedSpanResult.EndColumn));
             }
 

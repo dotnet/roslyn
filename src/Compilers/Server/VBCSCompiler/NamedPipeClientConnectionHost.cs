@@ -68,17 +68,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // large builds such as dotnet/roslyn or dotnet/runtime
             var listenCount = Math.Min(4, Environment.ProcessorCount);
             _listenTasks = new Task[listenCount];
-            int clientLoggingIdentifier = 0;
             for (int i = 0; i < listenCount; i++)
             {
-                var task = Task.Run(() => ListenCoreAsync(PipeName, Logger, _queue, GetNextClientLoggingIdentifier, _cancellationTokenSource.Token));
+                var task = Task.Run(() => ListenCoreAsync(PipeName, Logger, _queue, _cancellationTokenSource.Token));
                 _listenTasks[i] = task;
-            }
-
-            string GetNextClientLoggingIdentifier()
-            {
-                var count = Interlocked.Increment(ref clientLoggingIdentifier);
-                return $"Client{count}";
             }
         }
 
@@ -175,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string pipeName,
             ICompilerServerLogger logger,
             AsyncQueue<ListenResult> queue,
-            Func<string> getClientLoggingIdentifier,
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -213,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     await connectTask.ConfigureAwait(false);
                     logger.Log("Pipe connection established.");
-                    var connection = new NamedPipeClientConnection(pipeStream, getClientLoggingIdentifier(), logger);
+                    var connection = new NamedPipeClientConnection(pipeStream, logger);
                     queue.Enqueue(new ListenResult(connection: connection));
                 }
                 catch (OperationCanceledException)

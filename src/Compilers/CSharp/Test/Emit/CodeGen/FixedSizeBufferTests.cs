@@ -862,10 +862,10 @@ class Program
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, '[' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, ']' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]").WithLocation(8, 18),
     // (8,18): error CS0443: Syntax error; value expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),

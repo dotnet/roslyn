@@ -5,16 +5,17 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class ParameterGenerator
 
-        Public Shared Function GenerateParameterList(parameterDefinitions As ImmutableArray(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Public Shared Function GenerateParameterList(parameterDefinitions As ImmutableArray(Of IParameterSymbol), options As CodeGenerationContextInfo) As ParameterListSyntax
             Return GenerateParameterList(DirectCast(parameterDefinitions, IList(Of IParameterSymbol)), options)
         End Function
 
-        Public Shared Function GenerateParameterList(parameterDefinitions As IEnumerable(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Public Shared Function GenerateParameterList(parameterDefinitions As IEnumerable(Of IParameterSymbol), options As CodeGenerationContextInfo) As ParameterListSyntax
             Dim result = New List(Of ParameterSyntax)()
             Dim seenOptional = False
 
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(result))
         End Function
 
-        Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationOptions) As ParameterSyntax
+        Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationContextInfo) As ParameterSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ParameterSyntax)(parameter, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -38,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ' If the type is actually an array, then we place the array specifier on the identifier,
             ' not on the type syntax.  
 
+            Dim generator = options.Generator
             If parameter.Type.IsArrayType() Then
                 Dim arrayType = DirectCast(parameter.Type, IArrayTypeSymbol)
                 Dim elementType = arrayType.ElementType
@@ -49,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))
 
                     Return SyntaxFactory.Parameter(
-                        AttributeGenerator.GenerateAttributeBlocks(parameter.GetAttributes(), options),
+                        GenerateAttributeBlocks(parameter.GetAttributes(), options),
                         GenerateModifiers(parameter, seenOptional),
                         parameter.Name.ToModifiedIdentifier.WithArrayBounds(argumentList),
                         SyntaxFactory.SimpleAsClause(type:=elementType.GenerateTypeSyntax()),
-                        GenerateEqualsValue(parameter, seenOptional))
+                        GenerateEqualsValue(generator, parameter, seenOptional))
                 End If
             End If
 
@@ -61,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                Nothing,
                                SyntaxFactory.SimpleAsClause(type:=parameter.Type.GenerateTypeSyntax()))
             Return SyntaxFactory.Parameter(
-                AttributeGenerator.GenerateAttributeBlocks(parameter.GetAttributes(), options),
+                GenerateAttributeBlocks(parameter.GetAttributes(), options),
                 GenerateModifiers(parameter, seenOptional),
                 parameter.Name.ToModifiedIdentifier(),
                 asClause,
-                GenerateEqualsValue(parameter, seenOptional))
+                GenerateEqualsValue(generator, parameter, seenOptional))
         End Function
 
         Private Shared Function GenerateModifiers(parameter As IParameterSymbol, seenOptional As Boolean) As SyntaxTokenList
@@ -86,10 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return modifiers
         End Function
 
-        Private Shared Function GenerateEqualsValue(parameter As IParameterSymbol, seenOptional As Boolean) As EqualsValueSyntax
+        Private Shared Function GenerateEqualsValue(generator As SyntaxGenerator, parameter As IParameterSymbol, seenOptional As Boolean) As EqualsValueSyntax
             If parameter.HasExplicitDefaultValue OrElse parameter.IsOptional OrElse seenOptional Then
                 Return SyntaxFactory.EqualsValue(
                     ExpressionGenerator.GenerateExpression(
+                        generator,
                         parameter.Type,
                         If(parameter.HasExplicitDefaultValue, parameter.ExplicitDefaultValue, Nothing),
                         canUseFieldReference:=True))

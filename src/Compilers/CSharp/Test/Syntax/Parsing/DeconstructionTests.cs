@@ -2128,12 +2128,12 @@ namespace System
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                    // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         (int x1, x2) = (1, 2);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x1, x2) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
-                    // (8,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         (x3, int x4) = (1, 2);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x3, int x4) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(8, 9));
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x1, x2) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (8,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (x3, int x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x3, int x4) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 9));
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
@@ -3245,7 +3245,7 @@ class C
             UsingStatement(@"var? (x, y) = e;",
                 // (1,16): error CS1003: Syntax error, ':' expected
                 // var? (x, y) = e;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 16),
                 // (1,16): error CS1525: Invalid expression term ';'
                 // var? (x, y) = e;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 16)
@@ -3378,7 +3378,7 @@ class C
     }
 }
 ";
-            UsingTree(source).GetDiagnostics().Verify(
+            UsingTree(source,
                 // (7,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = e;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 10)

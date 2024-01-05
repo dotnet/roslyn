@@ -1,0 +1,17 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!-- 
+    Include this props file in projects that build meta-packages.
+  -->
+
+  <PropertyGroup>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <SkipCopyBuildProduct>true</SkipCopyBuildProduct>
+
+    <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <IsShippingAssembly>false</IsShippingAssembly>
+  </PropertyGroup>
+</Project>

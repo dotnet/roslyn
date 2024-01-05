@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis
             return nodeOrToken.RawKind == (int)kind;
         }
 
+        /// <inheritdoc cref="SyntaxNode.ContainsDirective"/>
+        public static bool ContainsDirective(this SyntaxNode node, SyntaxKind kind)
+            => node.ContainsDirective((int)kind);
+
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
@@ -232,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsVerbatimStringLiteral(this SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
+            return token.Kind() is (SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
         }
 
         public static bool IsVerbatimIdentifier(this SyntaxToken token)
@@ -848,6 +852,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// </summary>
+        /// <remarks>
+        /// This spread operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetElementConversion(this ISpreadOperation spread)
+        {
+            if (spread == null)
+            {
+                throw new ArgumentNullException(nameof(spread));
+            }
+
+            if (spread.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((SpreadOperation)spread).ElementConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ISpreadOperationIsNotCSharpSpread, nameof(spread)), nameof(spread));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel? semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1033,7 +1060,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(constructorInitializer);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {
@@ -1260,6 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static Conversion ClassifyConversion(this SemanticModel? semanticModel, ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
@@ -1312,6 +1359,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the declaration assembly.
         /// </summary>
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1518,19 +1577,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(forEachStatement);
         }
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(catchDeclaration);
         }
 
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
@@ -1552,6 +1615,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Get the query range variable declared in a query continuation clause.
         /// </summary>
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+#pragma warning disable RS0026
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);

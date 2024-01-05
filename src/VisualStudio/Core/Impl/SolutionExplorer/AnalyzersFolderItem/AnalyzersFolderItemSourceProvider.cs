@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(AnalyzersFolderItemSourceProvider))]
     [Order(Before = HierarchyItemsProviderNames.Contains)]
-    [AppliesToProject("(CSharp | VisualBasic) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
+    [AppliesToProject("(CSharp | VB) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
     internal class AnalyzersFolderItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 var itemId = item.HierarchyIdentity.NestedItemID;
 
                 var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-                if (projectTreeCapabilities.Any(c => c.Equals("References")))
+                if (projectTreeCapabilities.Any(static c => c.Equals("References")))
                 {
                     var hierarchyMapper = TryGetProjectMap();
                     if (hierarchyMapper != null &&
@@ -78,10 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private IHierarchyItemToProjectIdMap? TryGetProjectMap()
         {
-            if (_projectMap == null)
-            {
-                _projectMap = _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-            }
+            _projectMap ??= _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
 
             return _projectMap;
         }

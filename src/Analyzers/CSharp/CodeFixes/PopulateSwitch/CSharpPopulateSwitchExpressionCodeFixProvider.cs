@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
     using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+        Name = PredefinedCodeFixProviderNames.PopulateSwitchExpression), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class CSharpPopulateSwitchExpressionCodeFixProvider
         : AbstractPopulateSwitchExpressionCodeFixProvider<
@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
 
         protected override SwitchExpressionArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, MemberAccessExpressionSyntax caseLabel)
             => SwitchExpressionArm(ConstantPattern(caseLabel), Exception(generator, compilation));
+
+        protected override SwitchExpressionArmSyntax CreateNullSwitchArm(SyntaxGenerator generator, Compilation compilation)
+            => SwitchExpressionArm(ConstantPattern((LiteralExpressionSyntax)generator.NullLiteralExpression()), Exception(generator, compilation));
 
         protected override SwitchExpressionSyntax InsertSwitchArms(SyntaxGenerator generator, SwitchExpressionSyntax switchNode, int insertLocation, List<SwitchExpressionArmSyntax> newArms)
         {

@@ -4,17 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
-    internal struct ExternalSourceInfo
+    internal readonly struct ExternalSourceInfo(int? startLine, bool ends)
     {
-        public readonly int? StartLine;
-        public readonly bool Ends;
-
-        public ExternalSourceInfo(int? startLine, bool ends)
-        {
-            this.StartLine = startLine;
-            this.Ends = ends;
-        }
+        public readonly int? StartLine = startLine;
+        public readonly bool Ends = ends;
     }
 }

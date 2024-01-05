@@ -4,18 +4,18 @@
 
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
     internal readonly struct SolutionReplicationContext : IDisposable
     {
-        private readonly ArrayBuilder<IDisposable> _resources;
+        private static readonly ObjectPool<ConcurrentSet<IDisposable>> s_pool = new(() => new());
 
-        private SolutionReplicationContext(ArrayBuilder<IDisposable> resources)
-            => _resources = resources;
+        private readonly ConcurrentSet<IDisposable> _resources;
 
-        public static SolutionReplicationContext Create()
-            => new(ArrayBuilder<IDisposable>.GetInstance());
+        public SolutionReplicationContext()
+            => _resources = s_pool.Allocate();
 
         public void AddResource(IDisposable resource)
             => _resources.Add(resource);
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             // Currently we don't dispose resources, only keep them alive.
             // Shouldn't we dispose them? 
             // _resources.All(resource => resource.Dispose());
-            _resources.Free();
+            s_pool.ClearAndFree(_resources);
         }
     }
 }

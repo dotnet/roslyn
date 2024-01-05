@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
             SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
             ConversionOperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
@@ -22,33 +23,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
             var location = syntax.Type.Location;
-            string name = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword)
-                ? WellKnownMemberNames.ImplicitConversionName
-                : WellKnownMemberNames.ExplicitConversionName;
+            string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
+
+            if (name == WellKnownMemberNames.CheckedExplicitConversionName)
+            {
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
+            }
+            else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
+            {
+                diagnostics.Add(ErrorCode.ERR_ImplicitConversionOperatorCantBeChecked, syntax.CheckedKeyword.GetLocation());
+            }
+
+            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+
+            TypeSymbol explicitInterfaceType;
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+
+            var methodKind = interfaceSpecifier == null
+                ? MethodKind.Conversion
+                : MethodKind.ExplicitInterfaceImplementation;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
+                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
         // is bound lazily using binders from a BinderFactory (which will already include an
         // UnsafeBinder, if necessary).
         private SourceUserDefinedConversionSymbol(
+            MethodKind methodKind,
             SourceMemberContainerTypeSymbol containingType,
+            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
             base(
-                MethodKind.Conversion,
+                methodKind,
+                explicitInterfaceType,
                 name,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(syntax, location, diagnostics),
-                hasBody: syntax.HasAnyBody(),
-                isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
+                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                hasAnyBody: syntax.HasAnyBody(),
+                isExpressionBodied: syntax.IsExpressionBodied(),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
@@ -60,12 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
             }
+
+            if (IsStatic && (IsAbstract || IsVirtual))
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+            }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
         internal ConversionOperatorDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (ConversionOperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
         protected override int GetParameterCountFromSyntax()

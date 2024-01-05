@@ -26,7 +26,8 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Assert.Empty(comp1.GetUsedAssemblyReferences())
 
@@ -48,7 +49,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>
@@ -235,7 +236,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>
@@ -801,7 +802,7 @@ public class C2
 End Class
         ]]></file>
     </compilation>,
-                    hasTypeReferensesInImports:=False)
+                    hasTypeReferencesInImports:=False)
 
             VerifyCrefReferences(comp0Ref, comp1Ref,
     <compilation>
@@ -871,7 +872,7 @@ public class C2
 End Class
         ]]></file>
     </compilation>,
-                    hasTypeReferensesInImports:=False)
+                    hasTypeReferencesInImports:=False)
 
             VerifyCrefReferences(comp0Ref, comp1Ref,
     <compilation>
@@ -920,13 +921,13 @@ End Class
             reference0 As MetadataReference,
             reference1 As MetadataReference,
             source As BasicTestSource,
-            Optional hasTypeReferensesInImports As Boolean = True
+            Optional hasTypeReferencesInImports As Boolean = True
         )
             Dim references = {reference0, reference1}
             Dim comp2 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.None))
-            AssertUsedAssemblyReferences(comp2, If(hasTypeReferensesInImports, references, {}), references)
+            AssertUsedAssemblyReferences(comp2, If(hasTypeReferencesInImports, references, {}), references)
 
-            Dim expected = If(hasTypeReferensesInImports, references, {reference1})
+            Dim expected = If(hasTypeReferencesInImports, references, {reference1})
 
             Dim comp3 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
             AssertUsedAssemblyReferences(comp3, expected)
@@ -1699,7 +1700,6 @@ End Class
 
             VerifyUsedAssemblyReferences(Of PEAssemblySymbol)(source2, comp1ImageRef)
             VerifyUsedAssemblyReferences(Of SourceAssemblySymbol)(source2, comp1Ref)
-
 
             Dim source3 =
 "
@@ -3408,7 +3408,7 @@ class C2
     End Sub
 End Class
 ",
-                hasTypeReferensesInImports:=False)
+                hasTypeReferencesInImports:=False)
 
             VerifyCrefReferences(comp0Ref, comp1Ref,
 "
@@ -3471,15 +3471,14 @@ End Class
             Dim comp1Ref = comp1.ToMetadataReference()
 
             Dim verifyCrefReferences =
-                Sub(reference0 As MetadataReference, reference1 As MetadataReference, source As String, hasTypeReferensesInImports As Boolean)
+                Sub(reference0 As MetadataReference, reference1 As MetadataReference, source As String, hasTypeReferencesInImports As Boolean)
                     Dim references = {reference0, reference1}
                     Dim comp2 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.None))
-                    AssertUsedAssemblyReferences(comp2, If(hasTypeReferensesInImports, references, {}), references)
+                    AssertUsedAssemblyReferences(comp2, If(hasTypeReferencesInImports, references, {}), references)
 
                     Dim comp3 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
                     AssertUsedAssemblyReferences(comp3, references)
                 End Sub
-
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "
@@ -3494,7 +3493,7 @@ class C2
     End Sub
 End Class
 ",
-                hasTypeReferensesInImports:=False)
+                hasTypeReferencesInImports:=False)
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "
@@ -3510,7 +3509,7 @@ class C2
     End Sub
 End Class
 ",
-                hasTypeReferensesInImports:=True)
+                hasTypeReferencesInImports:=True)
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "
@@ -3526,7 +3525,7 @@ class C2
     End Sub
 End Class
 ",
-                hasTypeReferensesInImports:=True)
+                hasTypeReferencesInImports:=True)
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "
@@ -3542,7 +3541,7 @@ class C2
     End Sub
 End Class
 ",
-                hasTypeReferensesInImports:=True)
+                hasTypeReferencesInImports:=True)
 
         End Sub
 

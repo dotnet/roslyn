@@ -7,14 +7,15 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentDidCloseName)]
-    internal class DidCloseHandler : AbstractStatelessRequestHandler<LSP.DidCloseTextDocumentParams, object?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDidCloseName)]
+    internal class DidCloseHandler : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidCloseTextDocumentParams, TextDocumentIdentifier>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,18 +23,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override string Method => LSP.Methods.TextDocumentDidCloseName;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public override bool MutatesSolutionState => true;
-        public override bool RequiresLSPSolution => false;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
-
-        public override Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            context.StopTracking(request.TextDocument.Uri);
+            // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
+            context.TraceInformation($"didClose for {request.TextDocument.Uri}");
 
-            return SpecializedTasks.Default<object>();
+            await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
     }
 }

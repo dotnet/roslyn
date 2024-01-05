@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,8 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds all the callers of a specified symbol.
         /// </summary>
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
+            ISymbol symbol, Solution solution, IImmutableSet<Document>? documents, CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
+
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
@@ -49,17 +52,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (directReference != null)
             {
-                await AddReferencingSymbols(directReference, isDirect: true).ConfigureAwait(false);
+                await AddReferencingSymbolsAsync(directReference, isDirect: true).ConfigureAwait(false);
             }
 
             foreach (var indirectReference in indirectReferences)
             {
-                await AddReferencingSymbols(indirectReference, isDirect: false).ConfigureAwait(false);
+                await AddReferencingSymbolsAsync(indirectReference, isDirect: false).ConfigureAwait(false);
             }
 
             return results;
 
-            async Task AddReferencingSymbols(ReferencedSymbol reference, bool isDirect)
+            async Task AddReferencingSymbolsAsync(ReferencedSymbol reference, bool isDirect)
             {
                 var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var (callingSymbol, locations) in result)
@@ -72,21 +75,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(
             Solution solution,
             ISymbol symbol,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
-            if (symbol != null)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Method or
+                SymbolKind.Property or
+                SymbolKind.Field)
             {
-                if (symbol.Kind == SymbolKind.Event ||
-                    symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Property)
-                {
-                    var collector = new StreamingProgressCollector();
-                    await FindReferencesAsync(
-                        symbol, solution, collector, documents,
-                        FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
-                    return collector.GetReferencedSymbols();
-                }
+                var collector = new StreamingProgressCollector();
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                await FindReferencesAsync(
+                    symbol, solution, collector, documents,
+                    options, cancellationToken).ConfigureAwait(false);
+                return collector.GetReferencedSymbols();
             }
 
             return ImmutableArray<ReferencedSymbol>.Empty;

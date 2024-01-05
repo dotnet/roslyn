@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             private void SetModelExplicitlySelectedItem(Func<Model, SignatureHelpItem> selector)
             {
-                AssertIsForeground();
+                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     model => SetModelExplicitlySelectedItemInBackground(model, selector),
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 Model model,
                 Func<Model, SignatureHelpItem> selector)
             {
-                AssertIsBackground();
+                this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
 
                 if (model == null)
                 {

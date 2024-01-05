@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Differencing
         private readonly TNode _root1;
         private readonly TNode _root2;
 
-        private readonly Dictionary<TNode, TNode> _oneToTwo;
-        private readonly Dictionary<TNode, TNode> _twoToOne;
+        private readonly Dictionary<TNode, TNode> _oneToTwo = new();
+        private readonly Dictionary<TNode, TNode> _twoToOne = new();
 
         internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
         {
@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.Differencing
             var labelCount = comparer.LabelCount;
             CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out _);
             CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out _);
-
-            _oneToTwo = new Dictionary<TNode, TNode>();
-            _twoToOne = new Dictionary<TNode, TNode>();
 
             // Root nodes always match. Add them before adding known matches to make sure we always have root mapping.
             TryAdd(root1, root2);
@@ -172,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // So in the case of totally matching sequences, we process them in O(n) - 
             // both node1 and firstNonMatch2 will be advanced simultaneously.
 
-            Debug.Assert(maxAcceptableDistance >= ExactMatchDistance && maxAcceptableDistance <= MaxDistance);
+            Debug.Assert(maxAcceptableDistance is >= ExactMatchDistance and <= MaxDistance);
             var count1 = s1.Count;
             var count2 = s2.Count;
             var firstNonMatch2 = 0;

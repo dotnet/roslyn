@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
 
@@ -12,16 +13,26 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
     {
         public override bool CanConvert(Type objectType)
         {
-            return typeof(ISerializableId).IsAssignableFrom(objectType) ||
-                   objectType == typeof(Uri);
+            if (typeof(ISerializableId).IsAssignableFrom(objectType) ||
+                objectType == typeof(Uri))
+            {
+                return true;
+            }
+
+            if (objectType.IsConstructedGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return CanConvert(objectType.GenericTypeArguments.Single());
+            }
+
+            return false;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             switch (value)
             {
@@ -30,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                     break;
 
                 case Uri uri:
-                    writer.WriteValue(uri.AbsoluteUri);
+                    writer.WriteValue(uri.ToString());
                     break;
 
                 default:

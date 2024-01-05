@@ -9,6 +9,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: poolName
+  type: string
+  default: ''
 - name: queueName
   type: string
   default: ''
@@ -20,12 +23,16 @@ jobs:
 - job: ${{ parameters.jobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCorePublic-Pool
-      queue: ${{ parameters.queueName }}
+      name: ${{ parameters.poolName}}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
+  variables:
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
   steps:
     - template: checkout-unix-task.yml

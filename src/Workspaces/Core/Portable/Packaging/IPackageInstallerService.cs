@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
@@ -19,12 +18,13 @@ namespace Microsoft.CodeAnalysis.Packaging
     {
         bool IsEnabled(ProjectId projectId);
 
-        bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
+        bool IsInstalled(ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId,
-            string source, string packageName,
-            string versionOpt, bool includePrerelease,
-            CancellationToken cancellationToken);
+        Task<bool> TryInstallPackageAsync(
+            Workspace workspace, DocumentId documentId,
+            string? source, string packageName,
+            string? version, bool includePrerelease,
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
@@ -46,21 +46,15 @@ namespace Microsoft.CodeAnalysis.Packaging
     }
 
     [DataContract]
-    internal readonly struct PackageSource : IEquatable<PackageSource>
+    internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
     {
         [DataMember(Order = 0)]
-        public readonly string Name;
+        public readonly string Name = name;
 
         [DataMember(Order = 1)]
-        public readonly string Source;
+        public readonly string Source = source;
 
-        public PackageSource(string name, string source)
-        {
-            Name = name;
-            Source = source;
-        }
-
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is PackageSource source && Equals(source);
 
         public bool Equals(PackageSource other)

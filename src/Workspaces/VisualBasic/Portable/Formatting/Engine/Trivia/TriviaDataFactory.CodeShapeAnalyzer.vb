@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Structure CodeShapeAnalyzer
 
             Private ReadOnly _context As FormattingContext
-            Private ReadOnly _options As AnalyzerConfigOptions
+            Private ReadOnly _options As SyntaxFormattingOptions
             Private ReadOnly _list As TriviaList
 
             Private _indentation As Integer
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                Dim currentSpaces = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), Me._currentColumn, text.Length)
+                Dim currentSpaces = text.ConvertTabToSpace(_options.TabSize, Me._currentColumn, text.Length)
 
                 If currentIndex + 1 < Me._list.Count AndAlso Me._list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
                     If currentSpaces <> 1 Then
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
-                   ShouldFormatDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia) Then
+                   ShouldFormatDocumentationComment(_indentation, _options.TabSize, trivia) Then
                     Return True
                 End If
 

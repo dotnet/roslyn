@@ -2568,7 +2568,6 @@ True");
 ");
         }
 
-
         [Fact]
         public void ConditionalMemberAccessUnConstrainedDyn()
         {
@@ -3152,7 +3151,6 @@ False
 True");
         }
 
-
         [Fact]
         public void ConditionalExtensionAccessGeneric001()
         {
@@ -3186,15 +3184,26 @@ static class Ext
             var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
-  // Code size       21 (0x15)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  box        ""T""
-  IL_0006:  brfalse.s  IL_0014
-  IL_0008:  ldarga.s   V_0
-  IL_000a:  ldobj      ""T""
-  IL_000f:  call       ""void Ext.CheckT<T>(T)""
-  IL_0014:  ret
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_0024
+  IL_0012:  ldobj      ""T""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""T""
+  IL_0020:  brtrue.s   IL_0024
+  IL_0022:  pop
+  IL_0023:  ret
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""void Ext.CheckT<T>(T)""
+  IL_002e:  ret
 }
 ");
         }
@@ -3458,27 +3467,22 @@ class Program
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
-  // Code size       41 (0x29)
-  .maxstack  1
-  .locals init (int? V_0,
-                int? V_1)
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (int? V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000e
-  IL_0003:  ldloca.s   V_1
+  IL_0003:  ldloca.s   V_0
   IL_0005:  initobj    ""int?""
-  IL_000b:  ldloc.1
+  IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0014
   IL_000e:  ldarg.0
   IL_000f:  call       ""int? Program.C1.y.get""
   IL_0014:  stloc.0
   IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  brtrue.s   IL_0021
-  IL_001e:  ldc.i4.s   42
-  IL_0020:  ret
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""int int?.GetValueOrDefault()""
-  IL_0028:  ret
+  IL_0017:  ldc.i4.s   42
+  IL_0019:  call       ""int int?.GetValueOrDefault(int)""
+  IL_001e:  ret
 }
 ");
         }
@@ -3615,29 +3619,24 @@ class Program
 }
 ").VerifyIL("Program.Test2(ref Program.C1)", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       33 (0x21)
   .maxstack  2
-  .locals init (int? V_0,
-                int? V_1)
+  .locals init (int? V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
   IL_0002:  dup
   IL_0003:  brtrue.s   IL_0011
   IL_0005:  pop
-  IL_0006:  ldloca.s   V_1
+  IL_0006:  ldloca.s   V_0
   IL_0008:  initobj    ""int?""
-  IL_000e:  ldloc.1
+  IL_000e:  ldloc.0
   IL_000f:  br.s       IL_0016
   IL_0011:  call       ""int? Program.C1.y.get""
   IL_0016:  stloc.0
   IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""bool int?.HasValue.get""
-  IL_001e:  brtrue.s   IL_0023
-  IL_0020:  ldc.i4.s   42
-  IL_0022:  ret
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  call       ""int int?.GetValueOrDefault()""
-  IL_002a:  ret
+  IL_0019:  ldc.i4.s   42
+  IL_001b:  call       ""int int?.GetValueOrDefault(int)""
+  IL_0020:  ret
 }
 ");
         }
@@ -3698,32 +3697,27 @@ class Program
 }
 ").VerifyIL("Program.Test2(Program.C1?)", @"
 {
-  // Code size       56 (0x38)
-  .maxstack  1
+  // Code size       46 (0x2e)
+  .maxstack  2
   .locals init (int? V_0,
-                int? V_1,
-                Program.C1 V_2)
+                Program.C1 V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool Program.C1?.HasValue.get""
   IL_0007:  brtrue.s   IL_0014
-  IL_0009:  ldloca.s   V_1
+  IL_0009:  ldloca.s   V_0
   IL_000b:  initobj    ""int?""
-  IL_0011:  ldloc.1
+  IL_0011:  ldloc.0
   IL_0012:  br.s       IL_0023
   IL_0014:  ldarga.s   V_0
   IL_0016:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
-  IL_001b:  stloc.2
-  IL_001c:  ldloca.s   V_2
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_1
   IL_001e:  call       ""readonly int? Program.C1.y.get""
   IL_0023:  stloc.0
   IL_0024:  ldloca.s   V_0
-  IL_0026:  call       ""bool int?.HasValue.get""
-  IL_002b:  brtrue.s   IL_0030
-  IL_002d:  ldc.i4.s   42
-  IL_002f:  ret
-  IL_0030:  ldloca.s   V_0
-  IL_0032:  call       ""int int?.GetValueOrDefault()""
-  IL_0037:  ret
+  IL_0026:  ldc.i4.s   42
+  IL_0028:  call       ""int int?.GetValueOrDefault(int)""
+  IL_002d:  ret
 }
 ");
         }
@@ -3788,33 +3782,28 @@ class Program
 
 ").VerifyIL("Program.Test2(ref Program.C1?)", @"
 {
-  // Code size       55 (0x37)
+  // Code size       45 (0x2d)
   .maxstack  2
   .locals init (int? V_0,
-                int? V_1,
-                Program.C1 V_2)
+                Program.C1 V_1)
   IL_0000:  ldarg.0
   IL_0001:  dup
   IL_0002:  call       ""bool Program.C1?.HasValue.get""
   IL_0007:  brtrue.s   IL_0015
   IL_0009:  pop
-  IL_000a:  ldloca.s   V_1
+  IL_000a:  ldloca.s   V_0
   IL_000c:  initobj    ""int?""
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.0
   IL_0013:  br.s       IL_0022
   IL_0015:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
-  IL_001a:  stloc.2
-  IL_001b:  ldloca.s   V_2
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
   IL_001d:  call       ""readonly int? Program.C1.y.get""
   IL_0022:  stloc.0
   IL_0023:  ldloca.s   V_0
-  IL_0025:  call       ""bool int?.HasValue.get""
-  IL_002a:  brtrue.s   IL_002f
-  IL_002c:  ldc.i4.s   42
-  IL_002e:  ret
-  IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""int int?.GetValueOrDefault()""
-  IL_0036:  ret
+  IL_0025:  ldc.i4.s   42
+  IL_0027:  call       ""int int?.GetValueOrDefault(int)""
+  IL_002c:  ret
 }
 ");
         }
@@ -4471,7 +4460,6 @@ class Program
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
-
 
         [Fact]
         public void ConditionalMemberAccessConditional001()
@@ -5233,7 +5221,8 @@ class C
     public ref struct RefLike{}
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
 M
 ---
 ---");
@@ -5491,15 +5480,15 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         Func<object> a = () => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 33),
-    // (18,41): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object F2(C<T> c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(18, 41),
-    // (20,44): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object P1 => (new C<T>())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(20, 44)
+                // (15,34): error CS8977: 'T' cannot be made nullable.
+                //         Func<object> a = () => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 34),
+                // (18,42): error CS8977: 'T' cannot be made nullable.
+                //     static public object F2(C<T> c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(18, 42),
+                // (20,45): error CS8977: 'T' cannot be made nullable.
+                //     static public object P1 => (new C<T>())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(20, 45)
                 );
         }
 
@@ -5620,15 +5609,15 @@ unsafe class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
-    // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         Func<object, object> a = o => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(16, 40),
-    // (19,38): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object F2(C c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(19, 38),
-    // (21,41): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object P1 => (new C())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(21, 41)
+                // (16,41): error CS8977: 'void*' cannot be made nullable.
+                //         Func<object, object> a = o => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(16, 41),
+                // (19,39): error CS8977: 'void*' cannot be made nullable.
+                //     static public object F2(C c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(19, 39),
+                // (21,42): error CS8977: 'void*' cannot be made nullable.
+                //     static public object P1 => (new C())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(21, 42)
                 );
         }
 
@@ -5757,9 +5746,9 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         for (; x?.M();)
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 17)
+                // (15,18): error CS8977: 'T' cannot be made nullable.
+                //         for (; x?.M();)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 18)
                 );
         }
 
@@ -6275,7 +6264,6 @@ class C
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
             var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
         }
-
 
         [Fact]
         public void ConditionalBoolExpr06()
@@ -7003,27 +6991,27 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0,
                 string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
-  IL_0003:  initobj    ""T""
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldnull
-  IL_0012:  br.s       IL_0028
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  dup
-  IL_0017:  initobj    ""T""
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""string object.ToString()""
-  IL_0028:  stloc.1
-  IL_0029:  br.s       IL_002b
-  IL_002b:  ldloc.1
-  IL_002c:  ret
+  IL_0003:  dup
+  IL_0004:  initobj    ""T""
+  IL_000a:  dup
+  IL_000b:  ldobj      ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  brtrue.s   IL_001b
+  IL_0017:  pop
+  IL_0018:  ldnull
+  IL_0019:  br.s       IL_0026
+  IL_001b:  constrained. ""T""
+  IL_0021:  callvirt   ""string object.ToString()""
+  IL_0026:  stloc.1
+  IL_0027:  br.s       IL_0029
+  IL_0029:  ldloc.1
+  IL_002a:  ret
 }");
         }
 
@@ -7063,25 +7051,35 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       38 (0x26)
-  .maxstack  1
+  // Code size       63 (0x3f)
+  .maxstack  2
   .locals init (T V_0, //v
-                string V_1)
+                T V_1,
+                string V_2)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldnull
-  IL_0012:  br.s       IL_0021
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""string object.ToString()""
-  IL_0021:  stloc.1
-  IL_0022:  br.s       IL_0024
-  IL_0024:  ldloc.1
-  IL_0025:  ret
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T""
+  IL_0013:  ldloc.1
+  IL_0014:  box        ""T""
+  IL_0019:  brtrue.s   IL_002f
+  IL_001b:  ldobj      ""T""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  ldloc.1
+  IL_0024:  box        ""T""
+  IL_0029:  brtrue.s   IL_002f
+  IL_002b:  pop
+  IL_002c:  ldnull
+  IL_002d:  br.s       IL_003a
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""string object.ToString()""
+  IL_003a:  stloc.2
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.2
+  IL_003e:  ret
 }");
         }
 
@@ -7514,6 +7512,38 @@ False
 ";
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(57629, "https://github.com/dotnet/roslyn/issues/57629")]
+        public void Issue57629()
+        {
+            var source = @"
+namespace OperatorQuestionmarkProblem
+{
+    public class OuterClass<TValue>
+    {
+        public class InnerClass
+        {
+            public TValue SomeInfo() { throw null; }
+
+            public InnerClass Next { get; set; }
+
+            void Test()
+            {
+                Next?.SomeInfo();
+                _ = Next?.SomeInfo();
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (15,26): error CS8977: 'TValue' cannot be made nullable.
+                //                 _ = Next?.SomeInfo();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".SomeInfo()").WithArguments("TValue").WithLocation(15, 26)
+                );
         }
     }
 }

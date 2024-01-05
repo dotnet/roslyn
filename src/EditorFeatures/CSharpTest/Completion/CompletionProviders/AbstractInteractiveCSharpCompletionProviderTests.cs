@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public abstract class AbstractInteractiveCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<InteractiveCSharpTestWorkspaceFixture>
     {
         protected override TestWorkspace CreateWorkspace(string fileContents)
-            => InteractiveCSharpTestWorkspaceFixture.CreateInteractiveWorkspace(fileContents, exportProvider: ExportProvider);
+            => InteractiveCSharpTestWorkspaceFixture.CreateInteractiveWorkspace(fileContents, composition: GetComposition());
     }
 }

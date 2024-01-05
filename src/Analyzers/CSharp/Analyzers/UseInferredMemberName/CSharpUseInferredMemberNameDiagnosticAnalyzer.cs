@@ -21,31 +21,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.NameColon, SyntaxKind.NameEquals);
 
-        protected override void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected override void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
-                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context);
                     break;
                 case SyntaxKind.NameEquals:
-                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context);
                     break;
             }
         }
 
-        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context)
         {
-            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (nameColon.Parent is not ArgumentSyntax argument)
             {
                 return;
             }
 
+            var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
-            if (!preference.Value ||
-                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
+            var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
+            if (!preference.Value
+                || ShouldSkipAnalysis(context, preference.Notification)
+                || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
@@ -56,20 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColon.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
-        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
         {
-            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
+            if (nameEquals.Parent is not AnonymousObjectMemberDeclaratorSyntax anonCtor)
             {
                 return;
             }
 
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            var preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames;
             if (!preference.Value ||
                 !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
+                    additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
         }
     }
 }

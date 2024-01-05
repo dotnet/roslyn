@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 {
@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             : base(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
                    CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Blank_line_required_between_block_and_subsequent_statement), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -35,35 +34,37 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
-            var cancellationToken = context.CancellationToken;
-            var tree = context.Tree;
-            var option = context.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, tree.Options.Language);
-            if (option.Value)
+            var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            Recurse(context, option.Notification.Severity, tree.GetRoot(cancellationToken), cancellationToken);
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (node.ContainsDiagnostics && node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             if (IsBlockLikeStatement(node))
-                ProcessBlockLikeStatement(context, severity, node);
+                ProcessBlockLikeStatement(context, notificationOption, node);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!, cancellationToken);
+                    Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
             }
         }
 
-        private void ProcessBlockLikeStatement(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode block)
+        private void ProcessBlockLikeStatement(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode block)
         {
             // Don't examine broken blocks.
             var endToken = block.GetLastToken();
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             // Grab whatever comes after the close brace.  If it's not the start of a statement, ignore it.
             var nextToken = endToken.GetNextToken();
-            var nextTokenContainingStatement = nextToken.Parent!.FirstAncestorOrSelf<TExecutableStatementSyntax>();
+            var nextTokenContainingStatement = nextToken.Parent?.FirstAncestorOrSelf<TExecutableStatementSyntax>();
             if (nextTokenContainingStatement == null)
                 return;
 
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 GetDiagnosticLocation(block),
-                severity,
+                notificationOption,
                 additionalLocations: ImmutableArray.Create(nextToken.GetLocation()),
                 properties: null));
         }

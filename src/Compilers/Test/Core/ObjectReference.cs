@@ -16,6 +16,16 @@ namespace Roslyn.Test.Utilities
         // on the stack in this method or targetFactory get cleaned up. Otherwise, they might still
         // be alive when we want to make later assertions.
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static ObjectReference<T> CreateFromFactory<T, TArg>(Func<TArg, T> targetFactory, TArg arg)
+            where T : class
+        {
+            return new ObjectReference<T>(targetFactory(arg));
+        }
+
+        // We want to ensure this isn't inlined, because we need to ensure that any temporaries
+        // on the stack in this method or targetFactory get cleaned up. Otherwise, they might still
+        // be alive when we want to make later assertions.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static ObjectReference<T> CreateFromFactory<T>(Func<T> targetFactory) where T : class
         {
             return new ObjectReference<T>(targetFactory());
@@ -161,9 +171,21 @@ namespace Roslyn.Test.Utilities
         /// caller must not "leak" the object out of the given action for any lifetime assertions to be safe.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public ObjectReference<U> GetObjectReference<U>(Func<T, U> function) where U : class
+        public ObjectReference<TResult> GetObjectReference<TResult>(Func<T, TResult> function) where TResult : class
         {
             var newValue = function(GetReferenceWithChecks());
+            return ObjectReference.Create(newValue);
+        }
+
+        /// <summary>
+        /// Provides the underlying strong reference to the given function, lets a function extract some value, and then returns a new ObjectReference.
+        /// This method is marked not be inlined, to ensure that no temporaries are left on the stack that might still root the strong reference. The
+        /// caller must not "leak" the object out of the given action for any lifetime assertions to be safe.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ObjectReference<TResult> GetObjectReference<TResult, TArg>(Func<T, TArg, TResult> function, TArg argument) where TResult : class
+        {
+            var newValue = function(GetReferenceWithChecks(), argument);
             return ObjectReference.Create(newValue);
         }
 

@@ -5,13 +5,23 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
         Inherits AbstractVisualBasicCodeActionTest
+
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(MockDiagnosticUpdateSourceRegistrationService),
+                GetType(MockPreviewPaneService))
 
         Private Const s_addedDocumentName As String = "AddedDocument"
         Private Const s_addedDocumentText As String = "Class C1 : End Class"
@@ -20,18 +30,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
 
+        Protected Overrides Function GetComposition() As TestComposition
+            Return s_composition
+        End Function
+
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
         Private Class MyCodeRefactoringProvider : Inherits CodeRefactoringProvider
             Public NotOverridable Overrides Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
-                Dim codeAction = New MyCodeAction(context.Document)
+                Dim codeAction = New TestCodeAction(context.Document)
                 context.RegisterRefactoring(codeAction, context.Span)
                 Return Task.CompletedTask
             End Function
 
-            Private Class MyCodeAction : Inherits CodeAction
+            Private NotInheritable Class TestCodeAction : Inherits CodeAction
                 Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
@@ -44,7 +58,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     End Get
                 End Property
 
-                Protected Overrides Function GetChangedSolutionAsync(cancellationToken As CancellationToken) As Task(Of Solution)
+                Protected Overrides Function GetChangedSolutionAsync(
+                        progress As IProgress(Of CodeAnalysisProgress),
+                        cancellationToken As CancellationToken) As Task(Of Solution)
                     Dim solution = _oldDocument.Project.Solution
 
                     ' Add a document - This will result in IWpfTextView previews.
@@ -66,8 +82,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Class
         End Class
 
-        Private Sub GetMainDocumentAndPreviews(parameters As TestParameters, workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
-            document = GetDocument(workspace)
+        Private Async Function GetMainDocumentAndPreviewsAsync(
+                parameters As TestParameters,
+                workspace As TestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
+            Dim document = GetDocument(workspace)
             Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span
             Dim refactorings = New List(Of CodeAction)()
@@ -75,16 +93,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             provider.ComputeRefactoringsAsync(context).Wait()
             Dim action = refactorings.Single()
             Dim editHandler = workspace.ExportProvider.GetExportedValue(Of ICodeActionEditHandlerService)()
-            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
-        End Sub
+            Dim previews = Await editHandler.GetPreviewsAsync(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
+            Return (document, previews)
+        End Function
+
+        <WpfFact>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
             Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)
-                Dim document As Document = Nothing
-                Dim previews As SolutionPreviewResult = Nothing
-                GetMainDocumentAndPreviews(parameters, workspace, document, previews)
+                Dim tuple = Await GetMainDocumentAndPreviewsAsync(parameters, workspace)
+                Dim document = tuple.document
+                Dim previews = tuple.previews
 
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()

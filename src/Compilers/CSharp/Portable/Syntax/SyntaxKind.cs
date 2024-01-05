@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         TildeToken = 8193,
         /// <summary>Represents <c>!</c> token.</summary>
         ExclamationToken = 8194,
-        /// <summary>Represents <c>$</c> token.</summary>
-        /// <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
+        /// <summary>Represents <c>$</c> token.
+        /// <para>
+        /// This is a debugger special punctuation and not related to string interpolation.
+        /// </para>
+        /// </summary>
         DollarToken = 8195,
         /// <summary>Represents <c>%</c> token.</summary>
         PercentToken = 8196,
@@ -143,6 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentEqualsToken = 8283,
         /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
+        // Don't use 8285. It corresponds to the deleted kind ExclamationExclamationToken which was previously shipped.
+
+        /// <summary>Represents <c>&gt;&gt;&gt;</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanToken = 8286,
+        /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanEqualsToken = 8287,
+
+        // When adding punctuation, the following functions must be adapted:
+        // <see cref="SyntaxFacts.IsPunctuation"/>
+        // <see cref="SyntaxFacts.GetPunctuationKinds"/>
 
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
@@ -381,8 +394,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndKeyword = 8439,
         /// <summary>Represents <see langword="not"/>.</summary>
         NotKeyword = 8440,
-        /// <summary>Represents <see langword="data"/>.</summary>
-        DataKeyword = 8441,
+
+        // Don't use 8441. It corresponds to a deleted kind (DataKeyword) that was previously shipped.
+
         /// <summary>Represents <see langword="with"/>.</summary>
         WithKeyword = 8442,
         /// <summary>Represents <see langword="init"/>.</summary>
@@ -393,9 +407,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ManagedKeyword = 8445,
         /// <summary>Represents <see langword="unmanaged"/>.</summary>
         UnmanagedKeyword = 8446,
+        /// <summary>Represents <see langword="required"/>.</summary>
+        RequiredKeyword = 8447,
+        /// <summary>Represents <see langword="scoped"/>.</summary>
+        ScopedKeyword = 8448,
+        /// <summary>Represents <see langword="file"/>.</summary>
+        FileKeyword = 8449,
 
         // when adding a contextual keyword following functions must be adapted:
-        // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
         // <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
         // <see cref="SyntaxFacts.GetText(SyntaxKind)"/>
@@ -459,11 +479,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         VarKeyword = 8490,
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
-        /// <summary>Represents that nothing was specified as a type argument.</summary>
-        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as a type argument.
+        /// <para>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedTypeArgumentToken = 8492,
-        /// <summary>Represents that nothing was specified as an array size.</summary>
-        /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as an array size.
+        /// <para>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedArraySizeExpressionToken = 8493,
         /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
@@ -482,9 +508,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextLiteralToken = 8513,    // xml text node text
         XmlTextLiteralNewLineToken = 8514,
 
-        InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
-                                                        // This only exists in transient form during parsing.
+        /// <summary>
+        /// Token for a whole interpolated string <c>$""" ... { expr } ..."""</c>. This only exists in transient form during parsing.
+        /// </summary>
+        InterpolatedStringToken = 8515,
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
+
+        SingleLineRawStringLiteralToken = 8518,
+        MultiLineRawStringLiteralToken = 8519,
+
+        Utf8StringLiteralToken = 8520,
+        Utf8SingleLineRawStringLiteralToken = 8521,
+        Utf8MultiLineRawStringLiteralToken = 8522,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -608,6 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SimpleMemberAccessExpression = 8689,  // dot access:   a.b
         PointerMemberAccessExpression = 8690,  // arrow access:   a->b
         ConditionalAccessExpression = 8691,    // question mark access:   a?.b , a?[1]
+        UnsignedRightShiftExpression = 8692,
 
         // binding expressions
         MemberBindingExpression = 8707,
@@ -626,6 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
         CoalesceAssignmentExpression = 8725,
+        UnsignedRightShiftAssignmentExpression = 8726,
 
         // unary expressions
         UnaryPlusExpression = 8730,
@@ -652,6 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
+        Utf8StringLiteralExpression = 8756,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -734,6 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NamespaceDeclaration = 8842,
         UsingDirective = 8843,
         ExternAliasDirective = 8844,
+        FileScopedNamespaceDeclaration = 8845,
 
         // attributes
         AttributeList = 8847,
@@ -827,6 +866,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
+        // new patterns added in C# 11.0
+        SlicePattern = 9034,
+        ListPattern = 9035,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 
         DeclarationExpression = 9040,
@@ -854,5 +897,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         FunctionPointerUnmanagedCallingConventionList = 9066,
         FunctionPointerUnmanagedCallingConvention = 9067,
+
+        RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
+
+        InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
+        InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
+        InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
+
+        ScopedType = 9075,
+
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
     }
 }

@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         bool SupportsMappingImportDirectives { get; }
 
+        Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+            Document oldDocument,
+            Document newDocument,
+            CancellationToken cancellationToken);
+
         /// <summary>
         /// Map spans in the document to more appropriate locations
         /// 
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Result of span mapping
     /// </summary>
-    internal struct MappedSpanResult
+    internal readonly struct MappedSpanResult
     {
         /// <summary>
         /// Path to mapped file

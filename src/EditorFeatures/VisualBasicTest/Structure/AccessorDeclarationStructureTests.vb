@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class AccessorDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of AccessorStatementSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New AccessorDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestReadOnlyPropertyGet() As Task
             Const code = "
 Class C1
@@ -30,7 +31,7 @@ EndClass
                 Region("span", "Get ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestReadOnlyPropertyGetWithComments() As Task
             Const code = "
 Class C1
@@ -49,7 +50,7 @@ EndClass
                 Region("span2", "Get ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPropertyGet() As Task
             Const code = "
 Class C1
@@ -67,7 +68,7 @@ EndClass
                 Region("span", "Get ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPropertyGetWithComments() As Task
             Const code = "
 Class C1
@@ -88,7 +89,7 @@ EndClass
                 Region("span2", "Get ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestWriteOnlyPropertySet() As Task
             Const code = "
 Class C1
@@ -104,7 +105,7 @@ EndClass
                 Region("span", "Set(ByVal value As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestWriteOnlyPropertySetWithComments() As Task
             Const code = "
 Class C1
@@ -123,7 +124,7 @@ EndClass
                 Region("span2", "Set(ByVal value As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPropertySet() As Task
             Const code = "
 Class C1
@@ -141,7 +142,7 @@ EndClass
                 Region("span", "Set(value As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPropertySetWithPrivateModifier() As Task
             Const code = "
 Class C1
@@ -159,7 +160,7 @@ EndClass
                 Region("span", "Private Set(value As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPropertySetWithComments() As Task
             Const code = "
 Class C1
@@ -180,7 +181,7 @@ EndClass
                 Region("span2", "Private Set(value As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventAddHandler() As Task
             Const code = "
 Class C1
@@ -199,7 +200,7 @@ EndClass
                 Region("span", "AddHandler(ByVal value As EventHandler) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventAddHandlerWithComments() As Task
             Const code = "
 Class C1
@@ -221,7 +222,7 @@ EndClass
                 Region("span2", "AddHandler(ByVal value As EventHandler) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventRemoveHandler() As Task
             Const code = "
 Class C1
@@ -240,7 +241,7 @@ EndClass
                 Region("span", "RemoveHandler(ByVal value As EventHandler) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventRemoveHandlerWithComments() As Task
             Const code = "
 Class C1
@@ -262,7 +263,7 @@ EndClass
                 Region("span2", "RemoveHandler(ByVal value As EventHandler) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventRaiseHandler() As Task
             Const code = "
 Class C1
@@ -281,7 +282,7 @@ EndClass
                 Region("span", "RaiseEvent(ByVal sender As Object, ByVal e As EventArgs) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestCustomEventRaiseHandlerWithComments() As Task
             Const code = "
 Class C1

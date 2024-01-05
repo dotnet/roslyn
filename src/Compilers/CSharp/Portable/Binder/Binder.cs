@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -72,14 +73,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
-        protected virtual SyntaxNode? EnclosingNameofArgument => null;
+        protected virtual SyntaxNode? EnclosingNameofArgument => NextRequired.EnclosingNameofArgument;
 
-        private bool IsInsideNameof => this.EnclosingNameofArgument != null;
+        internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
         protected internal Binder? Next { get; }
+
+        /// <summary>
+        /// Get the next binder in which to look up a name, if not found by this binder, asserting if `Next` is null.
+        /// </summary>
+        protected internal Binder NextRequired
+        {
+            get
+            {
+                Debug.Assert(Next is not null);
+                return Next;
+            }
+        }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
@@ -116,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// context is unchecked unless external factors (such as compiler switches and execution 
         /// environment configuration) call for checked evaluation.
         /// </remarks>
-        protected bool CheckOverflowAtRuntime
+        internal bool CheckOverflowAtRuntime
         {
             get
             {
@@ -142,6 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckOverflow != OverflowChecks.Disabled;
             }
         }
+
+        internal bool UseUpdatedEscapeRules => Compilation.SourceModule.UseUpdatedEscapeRules;
 
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
@@ -209,6 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool InExpressionTree => (Flags & BinderFlags.InExpressionTree) == BinderFlags.InExpressionTree;
+
         /// <summary>
         /// True if this is the top-level binder for a local function or lambda
         /// (including implicit lambdas from query expressions).
@@ -242,8 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax.NullableContextState.State.Disabled => false,
                 Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
                 Syntax.NullableContextState.State.Unknown =>
-                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                    && AreNullableAnnotationsGloballyEnabled(),
+                    // IsGeneratedCode may be slow, check global state first:
+                    AreNullableAnnotationsGloballyEnabled() &&
+                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None),
                 _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
             };
         }
@@ -252,12 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(token.SyntaxTree is object);
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
-        }
-
-        internal bool IsGeneratedCode(SyntaxToken token)
-        {
-            var tree = (CSharpSyntaxTree)token.SyntaxTree!;
-            return tree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None);
         }
 
         internal virtual bool AreNullableAnnotationsGloballyEnabled()
@@ -394,12 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            RoslynDebug.Assert(Next is object);
-            return Next.GetImports(basesBeingResolved);
-        }
-
         protected virtual bool InExecutableBinder
         {
             get
@@ -426,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
         }
-
 
         /// <summary>
         /// Returns true if the binder is binding top-level script code.
@@ -734,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
@@ -742,13 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
                 // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
                 // binding cycle.
+                Debug.Assert(syntax.GetLocation() != null);
                 diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
-                                    ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
+                                    ? new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
                                     : new CSDiagnosticInfo(isDelegateConversion
                                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
                                                                : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
                                                            symbol),
-                                location);
+                                syntax.GetLocation()!);
             }
         }
 
@@ -803,6 +809,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOptional = WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember);
 
             GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
+        }
+
+        /// <summary>
+        /// Adds diagnostics that should be reported when using a synthesized attribute. 
+        /// </summary>
+        internal static void AddUseSiteDiagnosticForSynthesizedAttribute(
+            CSharpCompilation compilation,
+            WellKnownMember attributeMember,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            GetWellKnownTypeMember(compilation,
+                attributeMember,
+                out var memberUseSiteInfo,
+                isOptional: WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember));
+            useSiteInfo.Add(memberUseSiteInfo);
         }
 
         public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
@@ -862,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions,
+            return new BoundBlock(statement.Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

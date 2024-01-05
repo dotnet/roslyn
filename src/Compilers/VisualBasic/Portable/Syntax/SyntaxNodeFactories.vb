@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional path As String = "",
             Optional encoding As Encoding = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding)
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), If(DirectCast(options, VisualBasicParseOptions), VisualBasicParseOptions.Default), path, encoding, SourceHashAlgorithm.Sha1)
         End Function
 
         ''' <summary>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             encoding As Encoding,
             cancellationToken As CancellationToken) As SyntaxTree
 
-            Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken)
+            Return ParseSyntaxTree(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, cancellationToken)
         End Function
 
         ''' <summary>
@@ -138,6 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Parse tokens in the input.
+        ''' Since this API does not create a <see cref="SyntaxNode"/> that owns all produced tokens,
+        ''' the <see cref="SyntaxToken.GetLocation"/> API may yield surprising results for
+        ''' the produced tokens and its behavior is generally unspecified.
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>

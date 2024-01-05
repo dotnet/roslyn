@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal static partial class UsingsAndExternAliasesOrganizer
     {
-        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.CarriageReturnLineFeed;
-
         public static void Organize(
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
             SyntaxList<UsingDirectiveSyntax> usingList,
             bool placeSystemNamespaceFirst, bool separateGroups,
+            SyntaxTrivia newLineTrivia,
             out SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList,
             out SyntaxList<UsingDirectiveSyntax> organizedUsingList)
         {
             OrganizeWorker(
                 externAliasList, usingList, placeSystemNamespaceFirst,
+                newLineTrivia,
                 out organizedExternAliasList, out organizedUsingList);
 
             if (separateGroups)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     if (!firstUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
                     {
-                        var newFirstUsing = firstUsing.WithPrependedLeadingTrivia(s_newLine);
+                        var newFirstUsing = firstUsing.WithPrependedLeadingTrivia(newLineTrivia);
                         organizedUsingList = organizedUsingList.Replace(firstUsing, newFirstUsing);
                     }
                 }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     if (NeedsGrouping(lastUsing, currentUsing) &&
                         !currentUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
                     {
-                        var newCurrentUsing = currentUsing.WithPrependedLeadingTrivia(s_newLine);
+                        var newCurrentUsing = currentUsing.WithPrependedLeadingTrivia(newLineTrivia);
                         organizedUsingList = organizedUsingList.Replace(currentUsing, newCurrentUsing);
                     }
                 }
@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // Both normal usings.  Place them in groups if their first namespace
                 // component differs.
+                Contract.ThrowIfNull(using1.Name);
+                Contract.ThrowIfNull(using2.Name);
                 var name1 = using1.Name.GetFirstToken().ValueText;
                 var name2 = using2.Name.GetFirstToken().ValueText;
                 return name1 != name2;
@@ -94,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
             SyntaxList<UsingDirectiveSyntax> usingList,
             bool placeSystemNamespaceFirst,
+            SyntaxTrivia newLineTrivia,
             out SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList,
             out SyntaxList<UsingDirectiveSyntax> organizedUsingList)
         {
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     if (!finalList.SequenceEqual(initialList))
                     {
                         // Make sure newlines are correct between nodes.
-                        EnsureNewLines(finalList);
+                        EnsureNewLines(finalList, newLineTrivia);
 
                         // Reattach the banner.
                         finalList[0] = finalList[0].WithPrependedLeadingTrivia(leadingTrivia);
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             organizedUsingList = usingList;
         }
 
-        private static void EnsureNewLines(IList<SyntaxNode> list)
+        private static void EnsureNewLines(IList<SyntaxNode> list, SyntaxTrivia newLineTrivia)
         {
             // First, make sure that every node (except the last one) ends with
             // a newline.
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (!trailingTrivia.Any() || trailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
                 {
-                    list[i] = node.WithTrailingTrivia(trailingTrivia.Concat(s_newLine));
+                    list[i] = node.WithTrailingTrivia(trailingTrivia.Concat(newLineTrivia));
                 }
             }
 

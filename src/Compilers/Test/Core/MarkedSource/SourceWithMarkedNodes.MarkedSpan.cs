@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {
     internal sealed partial class SourceWithMarkedNodes
     {
-        internal struct MarkedSpan
+        internal readonly struct MarkedSpan
         {
             public readonly TextSpan MarkedSyntax;
             public readonly TextSpan MatchedSpan;

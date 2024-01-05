@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using MessagePack;
-using MessagePack.Resolvers;
+using System.Diagnostics;
 using Microsoft.ServiceHub.Framework;
-using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -17,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
+        /// <summary>
+        /// Brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
+        /// </summary>
+        internal const string ServiceNameTopLevelPrefix = "Microsoft.VisualStudio.";
+
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new()
         {
             // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
@@ -26,12 +30,23 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
+        internal readonly string ComponentName;
+        internal readonly string SimpleName;
+
         private readonly Func<string, string> _featureDisplayNameProvider;
         private readonly RemoteSerializationOptions _serializationOptions;
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, RemoteSerializationOptions serializationOptions, Func<string, string> displayNameProvider, Type? clientInterface)
+        private ServiceDescriptor(
+            ServiceMoniker serviceMoniker,
+            string componentName,
+            string simpleName,
+            RemoteSerializationOptions serializationOptions,
+            Func<string, string> displayNameProvider,
+            Type? clientInterface)
             : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, serializationOptions.MultiplexingStreamOptions)
         {
+            ComponentName = componentName;
+            SimpleName = simpleName;
             _featureDisplayNameProvider = displayNameProvider;
             _serializationOptions = serializationOptions;
         }
@@ -39,15 +54,20 @@ namespace Microsoft.CodeAnalysis.Remote
         private ServiceDescriptor(ServiceDescriptor copyFrom)
           : base(copyFrom)
         {
+            ComponentName = copyFrom.ComponentName;
+            SimpleName = copyFrom.SimpleName;
             _featureDisplayNameProvider = copyFrom._featureDisplayNameProvider;
             _serializationOptions = copyFrom._serializationOptions;
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, RemoteSerializationOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
-            => new(new ServiceMoniker(serviceName), options, featureDisplayNameProvider, clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string componentName, string simpleName, string suffix, RemoteSerializationOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
+            => new(CreateMoniker(componentName, simpleName, suffix), componentName, simpleName, options, featureDisplayNameProvider, clientInterface);
 
-        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider)
-            => new(new ServiceMoniker(serviceName), RemoteSerializationOptions.Default, featureDisplayNameProvider, clientInterface: null);
+        public static ServiceDescriptor CreateInProcServiceDescriptor(string componentName, string simpleName, string suffix, Func<string, string> featureDisplayNameProvider)
+            => new(CreateMoniker(componentName, simpleName, suffix), componentName, simpleName, RemoteSerializationOptions.Default, featureDisplayNameProvider, clientInterface: null);
+
+        private static ServiceMoniker CreateMoniker(string componentName, string simpleName, string suffix)
+            => new(ServiceNameTopLevelPrefix + componentName + "." + simpleName + suffix);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
@@ -64,6 +84,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         internal string GetFeatureDisplayName()
-            => _featureDisplayNameProvider(Moniker.Name);
+            => _featureDisplayNameProvider(SimpleName);
     }
 }

@@ -42,11 +42,6 @@
         <target state="translated">スマート インデント</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">ドキュメントのフォーマット</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">ドキュメントを書式設定しています...</target>

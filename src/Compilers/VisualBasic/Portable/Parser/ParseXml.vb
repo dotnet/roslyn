@@ -366,7 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
 
-
             Dim builder = SyntaxListBuilder(Of GreenNode).Create()
 
             Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
@@ -994,7 +993,6 @@ LessThanSlashTokenCase:
                         value = ParseXmlString(ScannerState.Element)
                         Result = SyntaxFactory.XmlAttribute(Name, equals, value)
                     End If
-
 
                 ElseIf Name.Kind = SyntaxKind.XmlEmbeddedExpression Then
                     ' // In this case, the Name is some expression which may evaluate to an attribute

@@ -1432,6 +1432,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _namespaces = namespaces
         End Sub
 
+        Public Function GetImportChainData() As ImmutableArray(Of ImportedXmlNamespace)
+            Return _namespaces.SelectAsArray(Function(kvp) New ImportedXmlNamespace(kvp.Value.XmlNamespace, kvp.Value.SyntaxReference))
+        End Function
+
         Friend Overrides ReadOnly Property HasImportedXmlNamespaces As Boolean
             Get
                 Return True
@@ -1705,6 +1709,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
             Get
                 Debug.Assert(Not _originalDefinition.IsMyGroupCollectionProperty)
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
                 Return False
             End Get
         End Property
@@ -1983,6 +1993,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
                 Throw ExceptionUtilities.Unreachable
             End Function
+
+            Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
         End Class
 
         Private NotInheritable Class ReducedAccessorParameterSymbol

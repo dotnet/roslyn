@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim base6 = derived6.BaseType
             BaseTypeResolution.AssertBaseType(base6, "GenericBase(Of K).NestedGenericBase(Of L)")
 
-
             Assert.Equal(assembly3, base1.ContainingAssembly)
             Assert.Equal(assembly3, base4.ContainingAssembly)
             Assert.Equal(assembly3, base6.ContainingAssembly)
@@ -61,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(base1, assembly3.CachedTypeByEmittedName(base1.ToTestDisplayString()))
             Assert.Equal(base4.OriginalDefinition, assembly3.CachedTypeByEmittedName("GenericBase`1"))
             Assert.Equal(2, assembly3.EmittedNameToTypeMapCount)
-
 
             Dim derived2 = DirectCast(module2.GlobalNamespace.GetMembers("Derived").Single(), NamedTypeSymbol)
             Dim base2 = derived2.BaseType
@@ -784,6 +782,83 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub LookupInvalidForwardedTypeIgnoringCase_Cycles()
+            Dim il1 = <![CDATA[
+.assembly extern pe2 { }
+.assembly pe1 { }
+
+.class extern forwarder UPPER
+{
+  .assembly extern pe2
+}
+
+.class extern forwarder lower.mIxEd
+{
+  .assembly extern pe2
+}
+]]>
+
+            Dim il2 = <![CDATA[
+.assembly extern pe1 { }
+.assembly pe2 { }
+
+.class extern forwarder UPPER
+{
+  .assembly extern pe1
+}
+
+.class extern forwarder lower.mIxEd
+{
+  .assembly extern pe1
+}
+]]>
+
+            Dim vb =
+<compilation name="TypeForwarders">
+    <file name="a.vb">
+Option Strict On
+
+Class Test 
+    Private F1 As upper
+    Private F2 As uPPeR
+    Private F3 As LOWER.mixed
+    Private F4 As lOwEr.MIXED
+End Class
+        </file>
+</compilation>
+
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
+
+            CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2}).AssertTheseDiagnostics(<expected><![CDATA[
+BC31424: Type 'upper' in assembly 'TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Either a reference to 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is missing from your project or the type 'upper' is missing from assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    Private F1 As upper
+                  ~~~~~
+BC31425: 'upper' in assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to itself and so is an unsupported type.
+    Private F1 As upper
+                  ~~~~~
+BC31424: Type 'uPPeR' in assembly 'TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Either a reference to 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is missing from your project or the type 'uPPeR' is missing from assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    Private F2 As uPPeR
+                  ~~~~~
+BC31425: 'uPPeR' in assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to itself and so is an unsupported type.
+    Private F2 As uPPeR
+                  ~~~~~
+BC31424: Type 'LOWER.mixed' in assembly 'TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Either a reference to 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is missing from your project or the type 'LOWER.mixed' is missing from assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    Private F3 As LOWER.mixed
+                  ~~~~~~~~~~~
+BC31425: 'LOWER.mixed' in assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to itself and so is an unsupported type.
+    Private F3 As LOWER.mixed
+                  ~~~~~~~~~~~
+BC31424: Type 'lOwEr.MIXED' in assembly 'TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Either a reference to 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is missing from your project or the type 'lOwEr.MIXED' is missing from assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    Private F4 As lOwEr.MIXED
+                  ~~~~~~~~~~~
+BC31425: 'lOwEr.MIXED' in assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' has been forwarded to itself and so is an unsupported type.
+    Private F4 As lOwEr.MIXED
+                  ~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
         Public Sub NamespacesOnlyMentionedInForwarders()
             Dim il1 = <![CDATA[
 .assembly extern pe2 { }
@@ -999,7 +1074,6 @@ End class
                                  End Sub
             ).VerifyDiagnostics()
 
-
             Dim ilSource1 =
             <![CDATA[
 .assembly extern ForwarderTargetAssembly
@@ -1047,7 +1121,7 @@ End class
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
             ' Exported types in .NET module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=Verification.Fails,
+            CompileAndVerify(appCompilation, verify:=Verification.FailsPEVerify,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1225,7 +1299,7 @@ End class
             Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(appCompilation))
 
             ' Exported types in .NET module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify:=Verification.Fails,
+            CompileAndVerify(appCompilation, verify:=Verification.FailsPEVerify,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(m.ContainingAssembly))
@@ -1275,7 +1349,6 @@ End class
 </compilation>, {ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.TypeForwarders.Forwarded).GetReference(),
                  New VisualBasicCompilationReference(cC_v1)},
                 TestOptions.ReleaseDll)
-
 
             Dim cC_v2 = CreateCompilationWithMscorlib40(
 <compilation name="C">

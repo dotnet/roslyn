@@ -1,9 +1,0 @@
-# RunCsc/RunVbc are shell scripts and should always have unix line endings
-# These shell scripts are included in the toolset packages. Normally, the shell
-# scripts in our repo are only run by cloning onto a Linux/Mac machine, and git
-# automatically chooses LF as the line ending.
-#
-# However, right now the toolset packages must be built on Windows, and so the
-# files must be hard-coded to be cloned with LF
-tools/bincore/RunCsc text eol=lf
-tools/bincore/RunVbc text eol=lf

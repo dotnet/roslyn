@@ -30,6 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericTypeInstanceReference
         Implements ISpecializedNestedTypeReference
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -234,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If baseType IsNot Nothing Then
-                Return moduleBeingBuilt.Translate(baseType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return moduleBeingBuilt.Translate(baseType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Nothing
@@ -305,14 +311,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' The stub will implement the implemented method in metadata.
                 If MethodSignatureComparer.CustomModifiersAndParametersAndReturnTypeSignatureComparer.Equals(implementingMethod, implemented) Then
                     explicitImplements.Add(New Cci.MethodImplementation(implementingMethod.GetCciAdapter(),
-                        moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)))
+                        moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), context.Diagnostics)))
                 End If
             Next
 
             ' Explicit overrides needed in some overriding situations.
             If OverrideHidingHelper.RequiresExplicitOverride(implementingMethod) Then
                 explicitImplements.Add(New Cci.MethodImplementation(implementingMethod.GetCciAdapter(),
-                                                                    moduleBeingBuilt.TranslateOverriddenMethodReference(implementingMethod.OverriddenMethod, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)))
+                                                                    moduleBeingBuilt.TranslateOverriddenMethodReference(implementingMethod.OverriddenMethod, DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), context.Diagnostics)))
             End If
 
             If sourceNamedType IsNot Nothing Then
@@ -320,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If comMethod IsNot Nothing Then
                     explicitImplements.Add(New Cci.MethodImplementation(implementingMethod.GetCciAdapter(),
-                                                                        moduleBeingBuilt.TranslateOverriddenMethodReference(comMethod, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)))
+                                                                        moduleBeingBuilt.TranslateOverriddenMethodReference(comMethod, DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), context.Diagnostics)))
                 End If
             End If
         End Sub
@@ -415,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In AdaptedNamedTypeSymbol.GetInterfacesToEmit()
                 Dim typeRef = moduleBeingBuilt.Translate([interface],
-                                                            syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                                             diagnostics:=context.Diagnostics,
                                                             fromImplements:=True)
 
@@ -758,6 +764,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeReferenceAssociatedFileIdentifier As String Implements INamedTypeReference.AssociatedFileIdentifier
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
                 ' CCI automatically adds the arity suffix, so we return Name, not MetadataName here.
@@ -782,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 'Debug.Assert(((ITypeReference)this).AsNamespaceTypeDefinition != null);
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol) = Cci.TypeMemberVisibility.Public
+                Return AdaptedNamedTypeSymbol.MetadataVisibility = Cci.TypeMemberVisibility.Public
             End Get
         End Property
 
@@ -792,7 +804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            Return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=AdaptedNamedTypeSymbol.IsDefinition)
+            Return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=AdaptedNamedTypeSymbol.IsDefinition)
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
@@ -812,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(AdaptedNamedTypeSymbol.ContainingType IsNot Nothing)
                 CheckDefinitionInvariant()
 
-                Return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol)
+                Return AdaptedNamedTypeSymbol.MetadataVisibility
             End Get
         End Property
 
@@ -825,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
             Dim arguments = AdaptedNamedTypeSymbol.TypeArgumentsNoUseSiteDiagnostics
             For i As Integer = 0 To arguments.Length - 1
-                Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
                 If hasModifiers Then
                     Dim modifiers = AdaptedNamedTypeSymbol.GetTypeArgumentCustomModifiers(i)
@@ -848,7 +860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property GenericTypeImpl(context As EmitContext) As INamedTypeReference
             Get
                 Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-                Return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                Return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                                   diagnostics:=context.Diagnostics, needDeclaration:=True)
             End Get
         End Property

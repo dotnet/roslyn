@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
@@ -23,19 +23,19 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        private static readonly ImmutableDictionary<string, string> s_takeCondition
-            = ImmutableDictionary<string, string>.Empty;
-        private static readonly ImmutableDictionary<string, string> s_negateCondition
+        private static readonly ImmutableDictionary<string, string?> s_takeCondition
+            = ImmutableDictionary<string, string?>.Empty;
+        private static readonly ImmutableDictionary<string, string?> s_negateCondition
             = s_takeCondition.Add(Negate, Negate);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionOrWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionOrWhenFalse
             = s_takeCondition.Add(Or, Or).Add(WhenFalse, WhenFalse);
-        private static readonly ImmutableDictionary<string, string> s_negateConditionAndWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_negateConditionAndWhenFalse
             = s_negateCondition.Add(And, And).Add(WhenFalse, WhenFalse);
-        private static readonly ImmutableDictionary<string, string> s_negateConditionOrWhenTrue
+        private static readonly ImmutableDictionary<string, string?> s_negateConditionOrWhenTrue
             = s_negateCondition.Add(Or, Or).Add(WhenTrue, WhenTrue);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenTrue
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionAndWhenTrue
             = s_takeCondition.Add(And, And).Add(WhenTrue, WhenTrue);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionAndWhenFalse
             = s_takeCondition.Add(And, And).Add(WhenFalse, WhenFalse);
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
@@ -63,20 +63,15 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         private void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
         {
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var styleOption = options.GetOption(
-                CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
-                semanticModel.Language, syntaxTree, cancellationToken);
-            if (!styleOption.Value)
+            var styleOption = context.GetAnalyzerOptions().PreferSimplifiedBooleanExpressions;
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
             }
 
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             SyntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
@@ -141,11 +136,11 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
             // local functions
 
-            void ReportDiagnostic(ImmutableDictionary<string, string> properties)
+            void ReportDiagnostic(ImmutableDictionary<string, string?> properties)
                 => context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     conditionalExpression.GetLocation(),
-                    styleOption.Notification.Severity,
+                    styleOption.Notification,
                     additionalLocations: null,
                     properties));
 

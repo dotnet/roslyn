@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
         {
-            if (!(node is ParenthesizedExpressionSyntax parenthesizedExpression))
+            if (node is not ParenthesizedExpressionSyntax parenthesizedExpression)
             {
                 return node;
             }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             => (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
 
         public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node is BlockSyntax || node is SwitchSectionSyntax;
+            => node is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax;
 
         public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {
@@ -68,12 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
+            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
+            {
+                return false;
+            }
+
+            return true;
+
             bool predicate(SyntaxNode n)
             {
-                if (n is BaseMethodDeclarationSyntax ||
-                    n is AccessorDeclarationSyntax ||
-                    n is BlockSyntax ||
-                    n is GlobalStatementSyntax)
+                if (n is BaseMethodDeclarationSyntax or
+                    AccessorDeclarationSyntax or
+                    BlockSyntax or
+                    GlobalStatementSyntax or
+                    CompilationUnitSyntax)
                 {
                     return true;
                 }
@@ -85,22 +93,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return false;
             }
+        }
 
-            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
+        public static bool ContainsInArgument(this ConstructorInitializerSyntax initializer, TextSpan textSpan)
+        {
+            if (initializer == null)
             {
                 return false;
             }
 
-            if (node.FromScript() || node.GetAncestor<TypeDeclarationSyntax>() != null)
-            {
-                return true;
-            }
-
-            return false;
+            return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
         }
 
-        public static bool UnderValidContext(this SyntaxToken token)
-            => token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
+        public static bool ContainedInValidType(this SyntaxNode node)
+        {
+            Contract.ThrowIfNull(node);
+            foreach (var ancestor in node.AncestorsAndSelf())
+            {
+                if (ancestor is TypeDeclarationSyntax)
+                {
+                    return true;
+                }
+
+                if (ancestor is NamespaceDeclarationSyntax)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         public static bool PartOfConstantInitializerExpression(this SyntaxNode node)
         {
@@ -116,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            if (!modifiersGetter(decl).Any(t => t.Kind() == SyntaxKind.ConstKeyword))
+            if (!modifiersGetter(decl).Any(SyntaxKind.ConstKeyword))
             {
                 return false;
             }
@@ -140,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     continue;
                 }
 
-                if (!(token.Parent is ThrowStatementSyntax throwStatement) || throwStatement.Expression != null)
+                if (token.Parent is not ThrowStatementSyntax throwStatement || throwStatement.Expression != null)
                 {
                     continue;
                 }

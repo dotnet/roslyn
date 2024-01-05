@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConstructorInitializerPlacement), Shared]
     internal sealed class ConstructorInitializerPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => UpdateDocumentAsync(document, ImmutableArray.Create(diagnostic), c)),
+                CodeAction.Create(
+                    CSharpCodeFixesResources.Place_token_on_following_line,
+                    c => UpdateDocumentAsync(document, ImmutableArray.Create(diagnostic), c),
+                    nameof(CSharpCodeFixesResources.Place_token_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
         private static async Task<Document> UpdateDocumentAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var replacementMap);
 
@@ -112,13 +115,5 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
 
         public override FixAllProvider? GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) => await UpdateDocumentAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Place_colon_on_following_line, createChangedDocument, CSharpCodeFixesResources.Place_colon_on_following_line)
-            {
-            }
-        }
     }
 }

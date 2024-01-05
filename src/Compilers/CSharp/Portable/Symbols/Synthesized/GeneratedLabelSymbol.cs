@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public GeneratedLabelSymbol(string name)
         {
             _name = LabelName(name);
+#if DEBUG
+            NameNoSequence = $"<{name}>";
+#endif
         }
 
         public override string Name
@@ -27,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #if DEBUG
+        internal string NameNoSequence { get; }
+
         private static int s_sequence = 1;
 #endif
         private static string LabelName(string name)

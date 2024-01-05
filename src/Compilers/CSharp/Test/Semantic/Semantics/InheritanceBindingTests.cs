@@ -68,7 +68,7 @@ abstract partial class AbstractGoo : IGoo
     private protected void IGoo.Method14() { }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (22,24): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void IGoo.Method1() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract").WithLocation(22, 24),
@@ -99,15 +99,21 @@ abstract partial class AbstractGoo : IGoo
                 // (34,23): error CS0106: The modifier 'private' is not valid for this item
                 //     private void IGoo.Method10() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private").WithLocation(34, 23),
-                // (37,22): error CS0106: The modifier 'static' is not valid for this item
+                // (37,22): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
                 //     static void IGoo.Method12() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static").WithLocation(37, 22),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Method12").WithArguments("static", "9.0", "11.0").WithLocation(37, 22),
                 // (40,33): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected void IGoo.Method14() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method14").WithArguments("private protected").WithLocation(40, 33),
+                // (37,22): error CS0539: 'AbstractGoo.Method12()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static void IGoo.Method12() { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method12").WithArguments("AbstractGoo.Method12()").WithLocation(37, 22),
                 // (38,23): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void IGoo.Method13();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13").WithLocation(38, 23),
+                // (20,38): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Method12()'
+                // abstract partial class AbstractGoo : IGoo
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Method12()").WithLocation(20, 38),
                 // (36,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()").WithLocation(36, 22)
@@ -154,31 +160,49 @@ abstract class AbstractGoo : IGoo
     static int IGoo.Property12 { set { } }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract"),
+                //     abstract int IGoo.Property1 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract").WithLocation(20, 23),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property2").WithArguments("virtual"),
+                //     virtual int IGoo.Property2 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property2").WithArguments("virtual").WithLocation(21, 22),
                 // (22,23): error CS0106: The modifier 'override' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property3").WithArguments("override"),
+                //     override int IGoo.Property3 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property3").WithArguments("override").WithLocation(22, 23),
                 // (24,21): error CS0106: The modifier 'sealed' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property4").WithArguments("sealed"),
+                //     sealed int IGoo.Property4 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property4").WithArguments("sealed").WithLocation(24, 21),
                 // (26,18): error CS0106: The modifier 'new' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property5").WithArguments("new"),
+                //     new int IGoo.Property5 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property5").WithArguments("new").WithLocation(26, 18),
                 // (28,21): error CS0106: The modifier 'public' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property6").WithArguments("public"),
+                //     public int IGoo.Property6 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property6").WithArguments("public").WithLocation(28, 21),
                 // (29,24): error CS0106: The modifier 'protected' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property7").WithArguments("protected"),
+                //     protected int IGoo.Property7 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property7").WithArguments("protected").WithLocation(29, 24),
                 // (30,23): error CS0106: The modifier 'internal' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property8").WithArguments("internal"),
+                //     internal int IGoo.Property8 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property8").WithArguments("internal").WithLocation(30, 23),
                 // (31,33): error CS0106: The modifier 'protected internal' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property9").WithArguments("protected internal"),
+                //     protected internal int IGoo.Property9 { set { } } //roslyn considers 'protected internal' one modifier (two in dev10)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property9").WithArguments("protected internal").WithLocation(31, 33),
                 // (32,22): error CS0106: The modifier 'private' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property10").WithArguments("private"),
-                // (35,21): error CS0106: The modifier 'static' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property12").WithArguments("static"),
+                //     private int IGoo.Property10 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property10").WithArguments("private").WithLocation(32, 22),
+                // (35,21): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
+                //     static int IGoo.Property12 { set { } }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Property12").WithArguments("static", "9.0", "11.0").WithLocation(35, 21),
+                // (35,21): error CS0539: 'AbstractGoo.Property12' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int IGoo.Property12 { set { } }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property12").WithArguments("AbstractGoo.Property12").WithLocation(35, 21),
+                // (18,30): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Property12'
+                // abstract class AbstractGoo : IGoo
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Property12").WithLocation(18, 30),
                 // (34,34): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Property11.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.Property11.set"));
+                //     extern int IGoo.Property11 { set; } //not an error (in dev10 or roslyn)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.Property11.set").WithLocation(34, 34));
         }
 
         [Fact]
@@ -292,46 +316,53 @@ abstract class AbstractGoo : IGoo
             // If the other errors are fixed ERR_ExternHasBody is reported. 
             // We report all errors at once since they are unrelated, not cascading.
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action IGoo.Event1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract").WithLocation(20, 39),
                 // (21,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual event System.Action IGoo.Event2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event2").WithArguments("virtual"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event2").WithArguments("virtual").WithLocation(21, 38),
                 // (22,39): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action IGoo.Event3 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event3").WithArguments("override"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event3").WithArguments("override").WithLocation(22, 39),
                 // (24,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed event System.Action IGoo.Event4 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event4").WithArguments("sealed"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event4").WithArguments("sealed").WithLocation(24, 37),
                 // (26,34): error CS0106: The modifier 'new' is not valid for this item
                 //     new event System.Action IGoo.Event5 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event5").WithArguments("new"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event5").WithArguments("new").WithLocation(26, 34),
                 // (28,37): error CS0106: The modifier 'public' is not valid for this item
                 //     public event System.Action IGoo.Event6 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event6").WithArguments("public"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event6").WithArguments("public").WithLocation(28, 37),
                 // (29,40): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected event System.Action IGoo.Event7 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event7").WithArguments("protected"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event7").WithArguments("protected").WithLocation(29, 40),
                 // (30,39): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal event System.Action IGoo.Event8 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event8").WithArguments("internal"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event8").WithArguments("internal").WithLocation(30, 39),
                 // (31,49): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal event System.Action IGoo.Event9 { add { } remove { } } //roslyn considers 'protected internal' one modifier (two in dev10)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event9").WithArguments("protected internal"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event9").WithArguments("protected internal").WithLocation(31, 49),
                 // (32,38): error CS0106: The modifier 'private' is not valid for this item
                 //     private event System.Action IGoo.Event10 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event10").WithArguments("private"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event10").WithArguments("private").WithLocation(32, 38),
                 // (34,47): error CS0179: 'AbstractGoo.IGoo.Event11.add' cannot be extern and declare a body
                 //     extern event System.Action IGoo.Event11 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("AbstractGoo.IGoo.Event11.add"),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("AbstractGoo.IGoo.Event11.add").WithLocation(34, 47),
                 // (34,55): error CS0179: 'AbstractGoo.IGoo.Event11.remove' cannot be extern and declare a body
                 //     extern event System.Action IGoo.Event11 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("AbstractGoo.IGoo.Event11.remove"),
-                // (35,37): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("AbstractGoo.IGoo.Event11.remove").WithLocation(34, 55),
+                // (35,37): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version '11.0' or greater.
                 //     static event System.Action IGoo.Event12 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event12").WithArguments("static"));
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Event12").WithArguments("static", "9.0", "11.0").WithLocation(35, 37),
+                // (35,37): error CS0539: 'AbstractGoo.Event12' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static event System.Action IGoo.Event12 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event12").WithArguments("AbstractGoo.Event12").WithLocation(35, 37),
+                // (18,30): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Event12'
+                // abstract class AbstractGoo : IGoo
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Event12").WithLocation(18, 30)
+                );
         }
 
         [Fact] // can't bind to events
@@ -698,7 +729,7 @@ class Derived : Base, Interface
         }
 
         [Fact]
-        public void TestSupressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
+        public void TestSuppressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
         {
             var text = @"
 class Base
@@ -754,7 +785,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
+        public void TestSuppressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
         {
             var text = @"
 class Base
@@ -810,7 +841,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
+        public void TestSuppressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -870,7 +901,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenPropertyTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenPropertyTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -930,7 +961,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenIndexerTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -1004,7 +1035,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenEventTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenEventTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -1307,7 +1338,7 @@ class Derived : Base
             // Override same virtual / abstract member more than once in different parts of a (partial) derived type
 
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1333,13 +1364,13 @@ partial class Derived2
             CreateCompilation(text).VerifyDiagnostics(
                 // (13,28): error CS0111: Type 'Derived' already defines a member called 'Method1' with the same parameter types
                 //     public override string Method1() { return null; }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method1").WithArguments("Method1", "Derived"),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method1").WithArguments("Method1", "Derived").WithLocation(13, 28),
                 // (22,28): error CS0111: Type 'Derived2' already defines a member called 'Method2' with the same parameter types
                 //     public override string Method2() { return null; }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method2").WithArguments("Method2", "Derived2"),
-                // (2,1): info CS8019: Unnecessary using directive.
-                // using str = System.String;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using str = System.String;"));
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method2").WithArguments("Method2", "Derived2").WithLocation(22, 28),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using @str = System.String;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @str = System.String;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -1696,7 +1727,7 @@ class Derived2 : Derived
         public void TestChangeMethodReturnType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1764,8 +1795,8 @@ class Derived : Base
             // Change default value of optional argument in overridden member
 
             var text = @"
-using str = System.String;
-using integer = System.Int32;
+using @str = System.String;
+using @integer = System.Int32;
 abstract class Base
 {
     public virtual string Method1(int i) { return string.Empty; }
@@ -1843,7 +1874,7 @@ abstract class Derived : Base
         public void TestChangePropertyType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -1902,7 +1933,7 @@ class Derived : Base
         public void TestChangeIndexerType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -2222,7 +2253,7 @@ abstract class Derived : Base
         public void TestChangeEventType()
         {
             var text = @"
-using str = System.String;
+using @str = System.String;
 
 class Base
 {
@@ -2267,7 +2298,6 @@ class Derived : Base<string>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 11, Column = 28 },
             });
         }
-
 
         [Fact]
         public void TestChangeGenericMethodParameters()
@@ -2642,7 +2672,6 @@ class Derived : Base
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.set").WithLocation(19, 7));
         }
-
 
         [Fact]
         public void TestNoImplementationOfAbstractIndexer()
@@ -3688,7 +3717,7 @@ partial class Base : Interface
                 // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method6()'. 'Base.Method6()' cannot implement an interface member because it is not public.
                 // partial class Base : Interface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method6()", "Base.Method6()").WithLocation(13, 22),
-                // (13,22): error CS0736: 'Base' does not implement interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement an interface member because it is static.
+                // (13,22): error CS0736: 'Base' does not implement instance interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement the interface member because it is static.
                 // partial class Base : Interface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "Interface").WithArguments("Base", "Interface.Method1()", "Base.Method1()").WithLocation(13, 22));
         }
@@ -4773,6 +4802,16 @@ public class Base<T> : Interface<T, T>
 public class Derived : Base<int>, Interface<int, int>
 {
 }
+
+class Other : Interface<int, int>
+{
+    void Interface<int, int>.Method(int i) { }
+}
+
+class YetAnother : Interface<int, int>
+{
+    public void Method(int i) { }
+}
 ";
             //Both Base methods implement Interface.Method(int)
             //Both Base methods implement Interface.Method(T)
@@ -4786,7 +4825,16 @@ public class Derived : Base<int>, Interface<int, int>
                 Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
                 // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
                 // public class Derived : Base<int>, Interface<int, int>
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35)
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
+                // (19,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(19, 15),
+                // (19,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(19, 15),
+                // (21,30): warning CS0473: Explicit interface implementation 'Other.Interface<int, int>.Method(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int, int>.Method(int i) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Other.Interface<int, int>.Method(int)").WithLocation(21, 30)
                 );
         }
 
@@ -4937,7 +4985,10 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -4995,7 +5046,10 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 // We no longer report a runtime ambiguous override because the compiler
@@ -6625,7 +6679,6 @@ abstract public class Class1
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Member1").WithArguments("Class1.Class2.Class3.Member1()", "Class1.Class2.Member1"));
         }
 
-
         [Fact]
         public void ImplicitMultipleInterfaceInGrandChild()
         {
@@ -6791,7 +6844,6 @@ class Class2 : I2, I1<string>
                 //     void I1<string>.Method(ref int a, long b = 3, string c = null, params List<string>[] d) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("c"));
         }
-
 
         [Fact]
         public void TestImplicitImplSignatureMismatches2()
@@ -7345,7 +7397,7 @@ class Outer<T>
                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
                 {
                 }
-                internal class Derived6<u> : Outer<List<T>>.Inner<U>.Interface<List<u>, T>
+                internal class Derived6<@u> : Outer<List<T>>.Inner<U>.Interface<List<u>, T>
                 {
                     List<T> Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property
                     {
@@ -7355,7 +7407,7 @@ class Outer<T>
                     {
                     }
                 }
-                internal class Derived7<u> : Outer<List<T>>.Inner<U>.Interface<List<U>, T>
+                internal class Derived7<@u> : Outer<List<T>>.Inner<U>.Interface<List<U>, T>
                 {
                     List<u> Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property
                     {
@@ -7968,7 +8020,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, 
 //         i.Method(x, y, new int[] { x, x, x }); i.Method(x, y, x, x, x);
 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, System.Func<T, U>, U[])", "I1<T, U>.Method(U, System.Func<T, U>, params U[])"));
         }
-
 
         [Fact]
         public void TestImplementAmbiguousSignaturesFromSameInterface_Errors4()
@@ -9741,6 +9792,33 @@ class C2 : I
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(63490, "https://github.com/dotnet/roslyn/issues/63490")]
+        public void MultipleBasesWithObliviousDifferencesAndInterfaces()
+        {
+            var source1 = @"
+#nullable enable
+interface ITest
+{
+    void Test();
+}
+
+class Generic<T> { }
+class Argument { }
+partial class Partial : Generic<Argument> { }
+";
+
+            var source2 = @"
+#nullable disable
+partial class Partial : Generic<Argument>, ITest
+{
+    void ITest.Test() { }
+}
+";
+            CreateCompilation(source1 + source2).VerifyDiagnostics();
+            CreateCompilation(source2 + source1).VerifyDiagnostics();
         }
     }
 }

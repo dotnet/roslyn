@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -13,10 +12,13 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TCompilationUnitSyntax : SyntaxNode
     {
+        protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
+            AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
+
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
                    EnforceOnBuildValues.AddAccessibilityModifiers,
-                   CodeStyleOptions2.RequireAccessibilityModifiers,
+                   CodeStyleOptions2.AccessibilityModifiersRequired,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -26,21 +28,19 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;
-
-            var language = syntaxTree.Options.Language;
-            var option = context.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language);
-            if (option.Value == AccessibilityModifiersRequired.Never)
+            var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
+            if (option.Value == AccessibilityModifiersRequired.Never
+                || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             {
                 return;
             }
 
-            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
+            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
         }
 
         protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);

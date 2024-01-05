@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -52,11 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             GreenStats.NoteGreen(this);
         }
 
-        internal CSharpSyntaxNode(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         public override string Language
         {
             get { return LanguageNames.CSharp; }
@@ -74,22 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 return this.RawKind;
-            }
-        }
-
-        public override bool IsStructuredTrivia
-        {
-            get
-            {
-                return this is StructuredTriviaSyntax;
-            }
-        }
-
-        public override bool IsDirective
-        {
-            get
-            {
-                return this is DirectiveTriviaSyntax;
             }
         }
 
@@ -279,8 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
-            = new ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
+        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, WeakReference<SyntaxNode>>> s_structuresTable
+            = new ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, WeakReference<SyntaxNode>>>();
 
         /// <summary>
         /// Gets the syntax node represented the structure of this trivia, if any. The HasStructure property can be used to 
@@ -308,10 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var structsInParent = s_structuresTable.GetOrCreateValue(parent);
                     lock (structsInParent)
                     {
-                        if (!structsInParent.TryGetValue(trivia, out structure))
+                        if (!structsInParent.TryGetValue(trivia, out var weakStructure))
                         {
                             structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
-                            structsInParent.Add(trivia, structure);
+                            structsInParent.Add(trivia, new WeakReference<SyntaxNode>(structure));
+                        }
+                        else if (!weakStructure.TryGetTarget(out structure))
+                        {
+                            structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+                            weakStructure.SetTarget(structure);
                         }
                     }
 

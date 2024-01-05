@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             switch (value)
             {
-                case long v: return HasOneBitSet((long)v);
+                case long v: return HasOneBitSet(v);
                 case ulong v: return HasOneBitSet(unchecked((long)v));
-                case int v: return HasOneBitSet((long)v);
-                case uint v: return HasOneBitSet((long)v);
-                case short v: return HasOneBitSet((long)v);
-                case ushort v: return HasOneBitSet((long)v);
-                case sbyte v: return HasOneBitSet((long)v);
-                case byte v: return HasOneBitSet((long)v);
+                case int v: return HasOneBitSet(v);
+                case uint v: return HasOneBitSet(v);
+                case short v: return HasOneBitSet(v);
+                case ushort v: return HasOneBitSet(v);
+                case sbyte v: return HasOneBitSet(v);
+                case byte v: return HasOneBitSet(v);
                 default: return false;
             }
         }

@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasConverted = 1 << 8,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+            ParamsArray = 1 << 9,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArray,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -149,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+
+            if (original.IsParamsArray)
+            {
+                this.IsParamsArray = true;
+            }
+
 #if DEBUG
             this.WasConverted = original.WasConverted;
 #endif
@@ -319,6 +327,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
+        public bool IsParamsArray
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.ParamsArray) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArray) == 0, "ParamsArray flag should not be set twice or reset");
+                Debug.Assert(value);
+                Debug.Assert(this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true });
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.ParamsArray;
+                }
+            }
+        }
+
         public BoundKind Kind
         {
             get
@@ -383,6 +410,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             LocalsScanner.CheckLocalsDefined(this);
 #endif
+        }
+
+        public static Conversion GetConversion(BoundExpression? conversion, BoundValuePlaceholder? placeholder)
+        {
+            switch (conversion)
+            {
+                case null:
+                    return Conversion.NoConversion;
+
+                case BoundConversion boundConversion:
+
+                    if ((object)boundConversion.Operand == placeholder)
+                    {
+                        return boundConversion.Conversion;
+                    }
+
+                    if (!boundConversion.Conversion.IsUserDefined)
+                    {
+                        boundConversion = (BoundConversion)boundConversion.Operand;
+                    }
+
+                    if (boundConversion.Conversion.IsUserDefined)
+                    {
+                        BoundConversion next;
+
+                        if ((object)boundConversion.Operand == placeholder ||
+                            (object)(next = (BoundConversion)boundConversion.Operand).Operand == placeholder ||
+                            (object)((BoundConversion)next.Operand).Operand == placeholder)
+                        {
+                            return boundConversion.Conversion;
+                        }
+                    }
+
+                    goto default;
+
+                case BoundValuePlaceholder valuePlaceholder when (object)valuePlaceholder == placeholder:
+                    return Conversion.Identity;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversion);
+            }
         }
 
 #if DEBUG
@@ -457,9 +525,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBlock(BoundBlock node)
             {
+                if (node.Instrumentation != null)
+                {
+                    var added = DeclaredLocals.Add(node.Instrumentation.Local);
+                    Debug.Assert(added);
+
+                    _ = Visit(node.Instrumentation.Prologue);
+                }
+
                 AddAll(node.Locals);
                 base.VisitBlock(node);
                 RemoveAll(node.Locals);
+
+                if (node.Instrumentation != null)
+                {
+                    _ = Visit(node.Instrumentation.Epilogue);
+
+                    var removed = DeclaredLocals.Remove(node.Instrumentation.Local);
+                    Debug.Assert(removed);
+                }
+
                 return null;
             }
 

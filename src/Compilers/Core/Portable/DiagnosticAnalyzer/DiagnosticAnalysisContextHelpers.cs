@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyOperationKinds(operationKinds);
         }
 
-        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, bool> isSupportedDiagnostic)
+        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             if (diagnostic is DiagnosticWithInfo)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 VerifyDiagnosticLocationsInCompilation(diagnostic, compilation);
             }
 
-            if (!isSupportedDiagnostic(diagnostic))
+            if (!isSupportedDiagnostic(diagnostic, cancellationToken))
             {
                 throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
                 }
             }
         }
@@ -111,13 +111,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
-            }
-
-            // Disallow async methods to be registered.
-            // Suppression due to bug fixed in .NET 5: https://github.com/dotnet/runtime/issues/30968
-            if (action.GetMethodInfo()!.IsDefined(typeof(AsyncStateMachineAttribute)))
-            {
-                throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
             }
         }
 

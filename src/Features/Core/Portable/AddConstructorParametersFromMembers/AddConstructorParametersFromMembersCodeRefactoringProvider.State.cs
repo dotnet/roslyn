@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,16 +20,19 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         private class State
         {
             public ImmutableArray<ConstructorCandidate> ConstructorCandidates { get; private set; }
-            public INamedTypeSymbol ContainingType { get; private set; }
 
-            public static async Task<State> GenerateAsync(
+            [NotNull]
+            public INamedTypeSymbol? ContainingType { get; private set; }
+
+            public static async Task<State?> GenerateAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
                 if (!await state.TryInitializeAsync(
-                    selectedMembers, document, cancellationToken).ConfigureAwait(false))
+                    selectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -40,11 +43,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private async Task<bool> TryInitializeAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
+                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 ContainingType = selectedMembers[0].ContainingType;
 
-                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 var parametersForSelectedMembers = DetermineParameters(selectedMembers, rules);
 
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (constructorParams.Length == 2)
                 {
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                     if (deserializationConstructorCheck.IsDeserializationConstructor(constructor))
                     {
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 return constructorParams.All(parameter => parameter.RefKind == RefKind.None) &&
                     !constructor.IsImplicitlyDeclared &&
-                    !constructorParams.Any(p => p.IsParams) &&
+                    !constructorParams.Any(static p => p.IsParams) &&
                     !SelectedMembersAlreadyExistAsParameters(parameterNamesForSelectedMembers, constructorParams);
             }
 

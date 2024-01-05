@@ -31,40 +31,46 @@ Wait time between retry attempts in seconds
 .PARAMETER GlobalJsonFile
 File path to global.json file
 
+.PARAMETER PathPromotion
+Optional switch to enable either promote native tools specified in the global.json to the path (in Azure Pipelines)
+or break the build if a native tool is not found on the path (on a local dev machine)
+
 .NOTES
 #>
 [CmdletBinding(PositionalBinding=$false)]
 Param (
-  [string] $BaseUri = "https://netcorenativeassets.blob.core.windows.net/resource-packages/external",
+  [string] $BaseUri = 'https://netcorenativeassets.blob.core.windows.net/resource-packages/external',
   [string] $InstallDirectory,
   [switch] $Clean = $False,
   [switch] $Force = $False,
   [int] $DownloadRetries = 5,
   [int] $RetryWaitTimeInSeconds = 30,
-  [string] $GlobalJsonFile
+  [string] $GlobalJsonFile,
+  [switch] $PathPromotion
 )
 
 if (!$GlobalJsonFile) {
-  $GlobalJsonFile = Join-Path (Get-Item $PSScriptRoot).Parent.Parent.FullName "global.json"
+  $GlobalJsonFile = Join-Path (Get-Item $PSScriptRoot).Parent.Parent.FullName 'global.json'
 }
 
 Set-StrictMode -version 2.0
-$ErrorActionPreference="Stop"
+$ErrorActionPreference='Stop'
 
-Import-Module -Name (Join-Path $PSScriptRoot "native\CommonLibrary.psm1")
+. $PSScriptRoot\pipeline-logging-functions.ps1
+Import-Module -Name (Join-Path $PSScriptRoot 'native\CommonLibrary.psm1')
 
 try {
   # Define verbose switch if undefined
-  $Verbose = $VerbosePreference -Eq "Continue"
+  $Verbose = $VerbosePreference -Eq 'Continue'
 
-  $EngCommonBaseDir = Join-Path $PSScriptRoot "native\"
+  $EngCommonBaseDir = Join-Path $PSScriptRoot 'native\'
   $NativeBaseDir = $InstallDirectory
   if (!$NativeBaseDir) {
     $NativeBaseDir = CommonLibrary\Get-NativeInstallDirectory
   }
   $Env:CommonLibrary_NativeInstallDir = $NativeBaseDir
-  $InstallBin = Join-Path $NativeBaseDir "bin"
-  $InstallerPath = Join-Path $EngCommonBaseDir "install-tool.ps1"
+  $InstallBin = Join-Path $NativeBaseDir 'bin'
+  $InstallerPath = Join-Path $EngCommonBaseDir 'install-tool.ps1'
 
   # Process tools list
   Write-Host "Processing $GlobalJsonFile"
@@ -74,56 +80,105 @@ try {
   }
   $NativeTools = Get-Content($GlobalJsonFile) -Raw |
                     ConvertFrom-Json |
-                    Select-Object -Expand "native-tools" -ErrorAction SilentlyContinue
+                    Select-Object -Expand 'native-tools' -ErrorAction SilentlyContinue
   if ($NativeTools) {
-    $NativeTools.PSObject.Properties | ForEach-Object {
-      $ToolName = $_.Name
-      $ToolVersion = $_.Value
-      $LocalInstallerArguments =  @{ ToolName = "$ToolName" }
-      $LocalInstallerArguments += @{ InstallPath = "$InstallBin" }
-      $LocalInstallerArguments += @{ BaseUri = "$BaseUri" }
-      $LocalInstallerArguments += @{ CommonLibraryDirectory = "$EngCommonBaseDir" }
-      $LocalInstallerArguments += @{ Version = "$ToolVersion" }
+    if ($PathPromotion -eq $True) {
+      $ArcadeToolsDirectory = "$env:SYSTEMDRIVE\arcade-tools"
+      if (Test-Path $ArcadeToolsDirectory) { # if this directory exists, we should use native tools on machine
+        $NativeTools.PSObject.Properties | ForEach-Object {
+          $ToolName = $_.Name
+          $ToolVersion = $_.Value
+          $InstalledTools = @{}
 
-      if ($Verbose) {
-        $LocalInstallerArguments += @{ Verbose = $True }
+          if ((Get-Command "$ToolName" -ErrorAction SilentlyContinue) -eq $null) {
+            if ($ToolVersion -eq "latest") {
+              $ToolVersion = ""
+            }
+            $ToolDirectories = (Get-ChildItem -Path "$ArcadeToolsDirectory" -Filter "$ToolName-$ToolVersion*" | Sort-Object -Descending)
+            if ($ToolDirectories -eq $null) {
+              Write-Error "Unable to find directory for $ToolName $ToolVersion; please make sure the tool is installed on this image."
+              exit 1
+            }
+            $ToolDirectory = $ToolDirectories[0]
+            $BinPathFile = "$($ToolDirectory.FullName)\binpath.txt"
+            if (-not (Test-Path -Path "$BinPathFile")) {
+              Write-Error "Unable to find binpath.txt in '$($ToolDirectory.FullName)' ($ToolName $ToolVersion); artifact is either installed incorrectly or is not a bootstrappable tool."
+              exit 1
+            }
+            $BinPath = Get-Content "$BinPathFile"
+            $ToolPath = Convert-Path -Path $BinPath
+            Write-Host "Adding $ToolName to the path ($ToolPath)..."
+            Write-Host "##vso[task.prependpath]$ToolPath"
+            $env:PATH = "$ToolPath;$env:PATH"
+            $InstalledTools += @{ $ToolName = $ToolDirectory.FullName }
+          }
+        }
+        return $InstalledTools
+      } else {
+        $NativeTools.PSObject.Properties | ForEach-Object {
+          $ToolName = $_.Name
+          $ToolVersion = $_.Value
+
+          if ((Get-Command "$ToolName" -ErrorAction SilentlyContinue) -eq $null) {
+            Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message "$ToolName not found on path. Please install $ToolName $ToolVersion before proceeding."
+            Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message "If this is running on a build machine, the arcade-tools directory was not found, which means there's an error with the image."
+          }
+        }
+        exit 0
       }
-      if (Get-Variable 'Force' -ErrorAction 'SilentlyContinue') {
-        if($Force) {
-          $LocalInstallerArguments += @{ Force = $True }
+    } else {
+      $NativeTools.PSObject.Properties | ForEach-Object {
+        $ToolName = $_.Name
+        $ToolVersion = $_.Value
+        $LocalInstallerArguments =  @{ ToolName = "$ToolName" }
+        $LocalInstallerArguments += @{ InstallPath = "$InstallBin" }
+        $LocalInstallerArguments += @{ BaseUri = "$BaseUri" }
+        $LocalInstallerArguments += @{ CommonLibraryDirectory = "$EngCommonBaseDir" }
+        $LocalInstallerArguments += @{ Version = "$ToolVersion" }
+  
+        if ($Verbose) {
+          $LocalInstallerArguments += @{ Verbose = $True }
+        }
+        if (Get-Variable 'Force' -ErrorAction 'SilentlyContinue') {
+          if($Force) {
+            $LocalInstallerArguments += @{ Force = $True }
+          }
+        }
+        if ($Clean) {
+          $LocalInstallerArguments += @{ Clean = $True }
+        }
+  
+        Write-Verbose "Installing $ToolName version $ToolVersion"
+        Write-Verbose "Executing '$InstallerPath $($LocalInstallerArguments.Keys.ForEach({"-$_ '$($LocalInstallerArguments.$_)'"}) -join ' ')'"
+        & $InstallerPath @LocalInstallerArguments
+        if ($LASTEXITCODE -Ne "0") {
+          $errMsg = "$ToolName installation failed"
+          if ((Get-Variable 'DoNotAbortNativeToolsInstallationOnFailure' -ErrorAction 'SilentlyContinue') -and $DoNotAbortNativeToolsInstallationOnFailure) {
+              $showNativeToolsWarning = $true
+              if ((Get-Variable 'DoNotDisplayNativeToolsInstallationWarnings' -ErrorAction 'SilentlyContinue') -and $DoNotDisplayNativeToolsInstallationWarnings) {
+                  $showNativeToolsWarning = $false
+              }
+              if ($showNativeToolsWarning) {
+                  Write-Warning $errMsg
+              }
+              $toolInstallationFailure = $true
+          } else {
+              # We cannot change this to Write-PipelineTelemetryError because of https://github.com/dotnet/arcade/issues/4482
+              Write-Host $errMsg
+              exit 1
+          }
         }
       }
-      if ($Clean) {
-        $LocalInstallerArguments += @{ Clean = $True }
+  
+      if ((Get-Variable 'toolInstallationFailure' -ErrorAction 'SilentlyContinue') -and $toolInstallationFailure) {
+          # We cannot change this to Write-PipelineTelemetryError because of https://github.com/dotnet/arcade/issues/4482
+          Write-Host 'Native tools bootstrap failed'
+          exit 1
       }
-
-      Write-Verbose "Installing $ToolName version $ToolVersion"
-      Write-Verbose "Executing '$InstallerPath $($LocalInstallerArguments.Keys.ForEach({"-$_ '$($LocalInstallerArguments.$_)'"}) -join ' ')'"
-      & $InstallerPath @LocalInstallerArguments
-      if ($LASTEXITCODE -Ne "0") {
-        $errMsg = "$ToolName installation failed"
-        if ((Get-Variable 'DoNotAbortNativeToolsInstallationOnFailure' -ErrorAction 'SilentlyContinue') -and $DoNotAbortNativeToolsInstallationOnFailure) {
-            $showNativeToolsWarning = $true
-            if ((Get-Variable 'DoNotDisplayNativeToolsInstallationWarnings' -ErrorAction 'SilentlyContinue') -and $DoNotDisplayNativeToolsInstallationWarnings) {
-                $showNativeToolsWarning = $false
-            }
-            if ($showNativeToolsWarning) {
-                Write-Warning $errMsg
-            }
-            $toolInstallationFailure = $true
-        } else {
-            Write-Error $errMsg
-            exit 1
-        }
-      }
-    }
-
-    if ((Get-Variable 'toolInstallationFailure' -ErrorAction 'SilentlyContinue') -and $toolInstallationFailure) {
-        exit 1
     }
   }
   else {
-    Write-Host "No native tools defined in global.json"
+    Write-Host 'No native tools defined in global.json'
     exit 0
   }
 
@@ -131,17 +186,18 @@ try {
     exit 0
   }
   if (Test-Path $InstallBin) {
-    Write-Host "Native tools are available from" (Convert-Path -Path $InstallBin)
+    Write-Host 'Native tools are available from ' (Convert-Path -Path $InstallBin)
     Write-Host "##vso[task.prependpath]$(Convert-Path -Path $InstallBin)"
+    return $InstallBin
   }
-  else {
-    Write-Error "Native tools install directory does not exist, installation failed"
+  elseif (-not ($PathPromotion)) {
+    Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message 'Native tools install directory does not exist, installation failed'
     exit 1
   }
   exit 0
 }
 catch {
-  Write-Host $_
-  Write-Host $_.Exception
-  exit 1
+  Write-Host $_.ScriptStackTrace
+  Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message $_
+  ExitWithExitCode 1
 }

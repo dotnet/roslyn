@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = expression.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 EmitBinaryOperatorSimple(expression);
                 return;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -223,6 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         _builder.EmitOpCode(ILOpCode.Shr);
                     }
+                    break;
+
+                case BinaryOperatorKind.UnsignedRightShift:
+                    _builder.EmitOpCode(ILOpCode.Shr_un);
                     break;
 
                 case BinaryOperatorKind.And:
@@ -353,12 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BinaryOperatorKind.Equal:
 
-                    var constant = binOp.Left.ConstantValue;
+                    var constant = binOp.Left.ConstantValueOpt;
                     var comparand = binOp.Right;
 
                     if (constant == null)
                     {
-                        constant = comparand.ConstantValue;
+                        constant = comparand.ConstantValueOpt;
                         comparand = binOp.Left;
                     }
 
@@ -467,17 +471,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // this will leave a value on the stack which conforms to sense, ie:(condition == sense)
         private void EmitCondExpr(BoundExpression condition, bool sense)
         {
-            while (condition.Kind == BoundKind.UnaryOperator)
-            {
-                var unOp = (BoundUnaryOperator)condition;
-                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
-                condition = unOp.Operand;
-                sense = !sense;
-            }
+            RemoveNegation(ref condition, ref sense);
 
             Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
 
-            var constantValue = condition.ConstantValue;
+            var constantValue = condition.ConstantValueOpt;
             if (constantValue != null)
             {
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
@@ -502,6 +500,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return;
         }
 
+        /// <summary>
+        /// Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
+        /// Leaves a boolean (int32, 0 or 1) value on the stack which conforms to sense, i.e., <c>condition == sense</c>.
+        /// </summary>
+        private bool TryEmitComparison(BoundExpression condition, bool sense)
+        {
+            RemoveNegation(ref condition, ref sense);
+
+            Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+            if (condition.ConstantValueOpt is { } constantValue)
+            {
+                Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
+                _builder.EmitBoolConstant(constantValue.BooleanValue == sense);
+                return true;
+            }
+
+            if (condition is BoundBinaryOperator binOp)
+            {
+                // Intentionally don't optimize logical operators, they need branches to short-circuit.
+                if (binOp.OperatorKind.IsComparison())
+                {
+                    EmitBinaryCondOperator(binOp, sense: sense);
+                    return true;
+                }
+            }
+            else if (condition is BoundIsOperator isOp)
+            {
+                EmitIsExpression(isOp, used: true, omitBooleanConversion: true);
+
+                // Convert to 1 or 0.
+                _builder.EmitOpCode(ILOpCode.Ldnull);
+                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                return true;
+            }
+            else
+            {
+                EmitExpression(condition, used: true);
+
+                // Convert to 1 or 0 (although `condition` is of type `bool`, it can contain any integer).
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void RemoveNegation(ref BoundExpression condition, ref bool sense)
+        {
+            while (condition is BoundUnaryOperator unOp)
+            {
+                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
+                condition = unOp.Operand;
+                sense = !sense;
+            }
+        }
+
         private void EmitUnaryCheckedOperatorExpression(BoundUnaryOperator expression, bool used)
         {
             Debug.Assert(expression.OperatorKind.Operator() == UnaryOperatorKind.UnaryMinus);
@@ -517,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // then the mathematical negation of x is not representable within the operand type. If this occurs within a checked context, 
             // a System.OverflowException is thrown; if it occurs within an unchecked context, 
             // the result is the value of the operand and the overflow is not reported.
-            Debug.Assert(type == UnaryOperatorKind.Int || type == UnaryOperatorKind.Long);
+            Debug.Assert(type == UnaryOperatorKind.Int || type == UnaryOperatorKind.Long || type == UnaryOperatorKind.NInt);
 
             // ldc.i4.0
             // conv.i8  (when the operand is 64bit)
@@ -529,6 +585,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (type == UnaryOperatorKind.Long)
             {
                 _builder.EmitOpCode(ILOpCode.Conv_i8);
+            }
+            else if (type == UnaryOperatorKind.NInt)
+            {
+                _builder.EmitOpCode(ILOpCode.Conv_i);
             }
 
             EmitExpression(expression.Operand, used: true);
@@ -696,6 +756,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsUnsignedBinaryOperator(BoundBinaryOperator op)
         {
             BinaryOperatorKind opKind = op.OperatorKind;
+            Debug.Assert(opKind.Operator() != BinaryOperatorKind.UnsignedRightShift);
+
             BinaryOperatorKind type = opKind.OperandTypes();
             switch (type)
             {

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(symbol);
             Contract.ThrowIfNull(within);
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
 
             failedThroughTypeCheck = false;
             switch (symbol.Kind)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         // an assembly.
         private static bool IsNamedTypeAccessible(INamedTypeSymbol type, ISymbol within)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(type);
 
             if (type.IsErrorType())
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Accessibility declaredAccessibility,
             ISymbol within)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(assembly);
             var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol? throughType,
             out bool failedThroughTypeCheck)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(containingType);
 
             failedThroughTypeCheck = false;
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within,
             INamedTypeSymbol originalContainingType)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
 
             var withinType = within as INamedTypeSymbol;
             if (withinType == null)

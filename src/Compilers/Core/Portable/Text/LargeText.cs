@@ -132,34 +132,6 @@ namespace Microsoft.CodeAnalysis.Text
             return chunks.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Check for occurrence of two consecutive NUL (U+0000) characters.
-        /// This is unlikely to appear in genuine text, so it's a good heuristic
-        /// to detect binary files.
-        /// </summary>
-        private static bool IsBinary(char[] chunk)
-        {
-            // PERF: We can advance two chars at a time unless we find a NUL.
-            for (int i = 1; i < chunk.Length;)
-            {
-                if (chunk[i] == '\0')
-                {
-                    if (chunk[i - 1] == '\0')
-                    {
-                        return true;
-                    }
-
-                    i += 1;
-                }
-                else
-                {
-                    i += 2;
-                }
-            }
-
-            return false;
-        }
-
         private int GetIndexFromPosition(int position)
         {
             // Binary search to find the chunk that contains the given position.

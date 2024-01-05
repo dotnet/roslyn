@@ -117,13 +117,37 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Remove_Unnecessary_Imports" xml:space="preserve">
-    <value>Remove Unnecessary Imports</value>
+  <data name="Remove_unnecessary_imports" xml:space="preserve">
+    <value>Remove unnecessary imports</value>
   </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
   <data name="Convert_GetType_to_NameOf" xml:space="preserve">
     <value>Convert 'GetType' to 'NameOf'</value>
+  </data>
+  <data name="Simplify_object_creation" xml:space="preserve">
+    <value>Simplify object creation</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
+  <data name="Convert_0_to_Iterator" xml:space="preserve">
+    <value>Convert {0} to Iterator</value>
+  </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Replace_Return_with_Yield" xml:space="preserve">
+    <value>Replace 'Return' with 'Yield</value>
+  </data>
+  <data name="Make_0_an_Async_Function" xml:space="preserve">
+    <value>Make {0} an Async Function.</value>
+  </data>
+  <data name="Make_Async_Function" xml:space="preserve">
+    <value>Make Async Function</value>
+  </data>
+  <data name="Make_Async_Sub" xml:space="preserve">
+    <value>Make Async Sub</value>
   </data>
 </root>

@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorer"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.StackTraceExplorer"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
+    </UserControl.CommandBindings>
+    <Grid>
+        <Grid.CommandBindings>
+            <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
+        </Grid.CommandBindings>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ListView 
+            ItemsSource="{Binding Frames}" 
+            Grid.Row="0" 
+            SelectedItem="{Binding Selection, Mode=TwoWay}" 
+            MouseDoubleClick="ListViewItem_MouseDoubleClick" 
+            Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+            Background="Transparent"
+            Focusable="True"
+            AutomationProperties.Name="{Binding StackTrace}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                <Border
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Margin="{TemplateBinding Margin}"
+                                    Padding="{TemplateBinding Padding}"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalAlignment}">
+
+                                    <ContentPresenter />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowMouseOver}" Value="False">
+                            <DataTrigger.Setters>
+                                <Setter Property="IsHitTestVisible" Value="False" />
+                            </DataTrigger.Setters>
+                        </DataTrigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Trigger.Setters>
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderBrush" Value="{StaticResource {x:Static vsshell:VsBrushes.ActiveBorderKey}}" />
+                                <Setter Property="BorderThickness" Value="2" />
+                                <Setter Property="Padding" Value="1" />
+                            </Trigger.Setters>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="False">
+                            <Trigger.Setters>
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="Padding" Value="3" />
+                            </Trigger.Setters>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:FrameViewModel}">
+                    <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <TextBlock Grid.Row="0" Visibility="{Binding IsInstructionTextVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding InstructionText}" Margin="5" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" AutomationProperties.LiveSetting="Polite" IsVisibleChanged="TextBlock_IsVisibleChanged">
+            <TextBlock.CommandBindings>
+                <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed" />
+            </TextBlock.CommandBindings>
+        </TextBlock>
+    </Grid>
+</UserControl>

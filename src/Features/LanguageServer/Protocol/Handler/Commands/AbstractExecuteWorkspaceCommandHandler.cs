@@ -4,20 +4,18 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
 {
-    internal abstract class AbstractExecuteWorkspaceCommandHandler : IRequestHandler<ExecuteCommandParams, object>
+    internal abstract class AbstractExecuteWorkspaceCommandHandler : ILspServiceDocumentRequestHandler<ExecuteCommandParams, object>
     {
-        public string Method => GetRequestNameForCommandName(Command);
-
         public abstract string Command { get; }
 
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request);
+        public abstract TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request);
 
         public abstract Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);
 

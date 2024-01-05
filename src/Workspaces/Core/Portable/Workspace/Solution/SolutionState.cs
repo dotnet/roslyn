@@ -8,90 +8,68 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal readonly record struct StateChange(
+        SolutionState NewSolutionState,
+        ProjectState OldProjectState,
+        ProjectState NewProjectState);
+
     /// <summary>
     /// Represents a set of projects and their source code documents.
     ///
     /// this is a green node of Solution like ProjectState/DocumentState are for
     /// Project and Document.
     /// </summary>
-    internal partial class SolutionState
+    internal sealed partial class SolutionState
     {
-        // branch id for this solution
-        private readonly BranchId _branchId;
-
         // the version of the workspace this solution is from
-        private readonly int _workspaceVersion;
+        public int WorkspaceVersion { get; }
+        public string? WorkspaceKind { get; }
+        public SolutionServices Services { get; }
+        public SolutionOptionSet Options { get; }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
-        private readonly SolutionServices _solutionServices;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
-        public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
-
-        // Values for all these are created on demand.
-        private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
-
-        // Checksums for this solution state
-        private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
-
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-        /// <summary>
-        /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
-        /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
-        /// question quickly after computing for the first one.  Created on demand.
-        /// </summary>
-        private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
-        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
-
         private SolutionState(
-            BranchId branchId,
+            string? workspaceKind,
             int workspaceVersion,
-            SolutionServices solutionServices,
+            SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
-            SerializableOptionSet options,
+            SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
         {
-            _branchId = branchId;
-            _workspaceVersion = workspaceVersion;
+            WorkspaceKind = workspaceKind;
+            WorkspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
-            _solutionServices = solutionServices;
+            Services = services;
             ProjectIds = projectIds;
             Options = options;
             AnalyzerReferences = analyzerReferences;
             _projectIdToProjectStateMap = idToProjectStateMap;
-            _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
-
-            // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
 
             CheckInvariants();
 
@@ -101,36 +79,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
-            SolutionServices solutionServices,
+            string? workspaceKind,
+            SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
-            SerializableOptionSet options,
+            SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
-                primaryBranchId,
+                workspaceKind,
                 workspaceVersion: 0,
-                solutionServices,
+                services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyAnalyzers: null)
         {
-        }
-
-        public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
-        {
-            var services = workspace != _solutionServices.Workspace
-                ? new SolutionServices(workspace)
-                : _solutionServices;
-
-            // Note: this will potentially have problems if the workspace services are different, as some services
-            // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -138,30 +104,6 @@ namespace Microsoft.CodeAnalysis
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
-
-        public int WorkspaceVersion => _workspaceVersion;
-
-        public SolutionServices Services => _solutionServices;
-
-        public SerializableOptionSet Options { get; }
-
-        /// <summary>
-        /// branch id of this solution
-        ///
-        /// currently, it only supports one level of branching. there is a primary branch of a workspace and all other
-        /// branches that are branched from the primary branch.
-        ///
-        /// one still can create multiple forked solutions from an already branched solution, but versions among those
-        /// can't be reliably used and compared.
-        ///
-        /// version only has a meaning between primary solution and branched one or between solutions from same branch.
-        /// </summary>
-        public BranchId BranchId => _branchId;
-
-        /// <summary>
-        /// The Workspace this solution is associated with.
-        /// </summary>
-        public Workspace Workspace => _solutionServices.Workspace;
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -183,50 +125,44 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // [Conditional("DEBUG")]
         private void CheckInvariants()
         {
+            // Run these quick checks all the time.  We need to know immediately if we violate these.
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
 
-            // An id shouldn't point at a tracker for a different project.
-            Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
-
+            // Only run this in debug builds; even the .SetEquals() call across all projects can be expensive when there's a lot of them.
+#if DEBUG
             // project ids must be the same:
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(ProjectIds));
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
+#endif
         }
 
-        private SolutionState Branch(
+        internal SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IReadOnlyList<ProjectId>? projectIds = null,
-            SerializableOptionSet? options = null,
+            SolutionOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
-            var branchId = GetBranchId();
-
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
+            options ??= Options;
             analyzerReferences ??= AnalyzerReferences;
-            projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
-            if (branchId == _branchId &&
-                solutionAttributes == _solutionAttributes &&
+            if (solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
                 analyzerReferencesEqual &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
-                projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
                 dependencyGraph == _dependencyGraph)
             {
@@ -234,34 +170,40 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
-                branchId,
-                _workspaceVersion,
-                _solutionServices,
+                WorkspaceKind,
+                WorkspaceVersion,
+                Services,
                 solutionAttributes,
                 projectIds,
                 options,
                 analyzerReferences,
                 idToProjectStateMap,
-                projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph,
                 analyzerReferencesEqual ? _lazyAnalyzers : null);
         }
 
-        private SolutionState CreatePrimarySolution(
-            BranchId branchId,
+        /// <summary>
+        /// Updates the solution with specified workspace kind, workspace version and services.
+        /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
+        /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
+        /// </summary>
+        public SolutionState WithNewWorkspace(
+            string? workspaceKind,
             int workspaceVersion,
             SolutionServices services)
         {
-            if (branchId == _branchId &&
-                workspaceVersion == _workspaceVersion &&
-                services == _solutionServices)
+            if (workspaceKind == WorkspaceKind &&
+                workspaceVersion == WorkspaceVersion &&
+                services == Services)
             {
                 return this;
             }
 
+            // Note: this will potentially have problems if the workspace services are different, as some services
+            // get locked-in by document states and project states when first constructed.
             return new SolutionState(
-                branchId,
+                workspaceKind,
                 workspaceVersion,
                 services,
                 _solutionAttributes,
@@ -269,19 +211,9 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 AnalyzerReferences,
                 _projectIdToProjectStateMap,
-                _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
                 _lazyAnalyzers);
-        }
-
-        private BranchId GetBranchId()
-        {
-            // currently we only support one level branching.
-            // my reasonings are
-            // 1. it seems there is no-one who needs sub branches.
-            // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
@@ -338,67 +270,17 @@ namespace Microsoft.CodeAnalysis
                 this.GetProjectState(documentId.ProjectId)!.AnalyzerConfigDocumentStates.Contains(documentId);
         }
 
-        private DocumentState GetRequiredDocumentState(DocumentId documentId)
+        internal DocumentState GetRequiredDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredState(documentId);
 
-        private TextDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
+        private AdditionalDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).AdditionalDocumentStates.GetRequiredState(documentId);
 
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
-        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
-        {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    var projectState = GetProjectState(documentId.ProjectId);
-                    if (projectState != null)
-                    {
-                        var document = projectState.DocumentStates.GetState(documentId);
-                        if (document != null)
-                        {
-                            // does this document really have the syntax tree?
-                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                            {
-                                return document;
-                            }
-                        }
-                        else
-                        {
-                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-
-                            if (generatedDocument != null)
-                            {
-                                // does this document really have the syntax tree?
-                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                                {
-                                    return generatedDocument;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
-
-        public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
-
         public ProjectState? GetProjectState(ProjectId projectId)
-        {
-            _projectIdToProjectStateMap.TryGetValue(projectId, out var state);
-            return state;
-        }
+            => _projectIdToProjectStateMap.TryGetValue(projectId, out var state) ? state : null;
 
         public ProjectState GetRequiredProjectState(ProjectId projectId)
         {
@@ -407,42 +289,10 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        /// <summary>
-        /// Gets the <see cref="Project"/> associated with an assembly symbol.
-        /// </summary>
-        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
+        private SolutionState AddProject(ProjectState projectState)
         {
-            if (assemblySymbol == null)
-                return null;
+            var projectId = projectState.Id;
 
-            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
-            return id == null ? null : this.GetProjectState(id);
-        }
-
-        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
-            => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
-
-        private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
-
-        private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
-        {
-            var projectState = solution.GetProjectState(projectId);
-            Contract.ThrowIfNull(projectState);
-            return new CompilationTracker(projectState);
-        }
-
-        private CompilationTracker GetCompilationTracker(ProjectId projectId)
-        {
-            if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
-            {
-                tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this);
-            }
-
-            return tracker;
-        }
-
-        private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
-        {
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
 
@@ -470,14 +320,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(newStateMap[projectId]));
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
         }
@@ -508,18 +356,18 @@ namespace Microsoft.CodeAnalysis
 
             CheckNotContainsProject(projectId);
 
-            var languageServices = this.Workspace.Services.GetLanguageServices(language);
+            var languageServices = Services.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
             }
 
-            var newProject = new ProjectState(projectInfo, languageServices, _solutionServices);
+            var newProject = new ProjectState(languageServices, projectInfo);
 
-            return this.AddProject(newProject.Id, newProject);
+            return this.AddProject(newProject);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
@@ -539,9 +387,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
-            => projectState.DocumentStates.States
-                   .Concat(projectState.AdditionalDocumentStates.States)
-                   .Concat(projectState.AnalyzerConfigDocumentStates.States);
+            => projectState.DocumentStates.States.Values
+                   .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
+                   .Concat(projectState.AnalyzerConfigDocumentStates.States.Values);
 
         /// <summary>
         /// Create a new solution instance without the project specified.
@@ -561,19 +409,17 @@ namespace Microsoft.CodeAnalysis
             var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(_projectIdToProjectStateMap[projectId]));
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap.Remove(projectId),
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
@@ -623,220 +469,227 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project specified updated to have the new
         /// assembly name.
         /// </summary>
-        public SolutionState WithProjectAssemblyName(ProjectId projectId, string assemblyName)
+        public StateChange WithProjectAssemblyName(ProjectId projectId, string assemblyName)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAssemblyName(assemblyName);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName));
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public SolutionState WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
+        public StateChange WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputFilePath(outputFilePath);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the output file path.
         /// </summary>
-        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
+        public StateChange WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithOutputRefFilePath(outputRefFilePath);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public SolutionState WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
+        public StateChange WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOutputInfo(info);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the default namespace.
         /// </summary>
-        public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
+        public StateChange WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithDefaultNamespace(defaultNamespace);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
-        public SolutionState WithProjectName(ProjectId projectId, string name)
+        public StateChange WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        {
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
+
+            if (oldProject == newProject)
+            {
+                return new(this, oldProject, newProject);
+            }
+
+            return ForkProject(oldProject, newProject);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the name.
+        /// </summary>
+        public StateChange WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithName(name);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the project file path.
         /// </summary>
-        public SolutionState WithProjectFilePath(ProjectId projectId, string? filePath)
+        public StateChange WithProjectFilePath(ProjectId projectId, string? filePath)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithFilePath(filePath);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>
-        public SolutionState WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+        public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithCompilationOptions(options);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(options));
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified parse options.
         /// </summary>
-        public SolutionState WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+        public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithParseOptions(options);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            if (Workspace.PartialSemanticsEnabled)
-            {
-                // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
-                // Since changing options is rare event, it is okay to start compilation building from scratch.
-                return ForkProject(newProject, forkTracker: false);
-            }
-            else
-            {
-                return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
-            }
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
-        public SolutionState WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+        public StateChange WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithHasAllInformation(hasAllInformation);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified runAnalyzers.
         /// </summary>
-        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        public StateChange WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
             // fork without any change on compilation.
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
-        public SolutionState AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        public StateChange AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
+            var oldProject = GetRequiredProjectState(projectId);
             if (projectReferences.Count == 0)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
-            var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(projectReferences);
 
             var newProject = oldProject.WithProjectReferences(newReferences);
             var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences);
 
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer
         /// include the specified project reference.
         /// </summary>
-        public SolutionState RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        public StateChange RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
@@ -846,7 +699,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldReferences == newReferences)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
             var newProject = oldProject.WithProjectReferences(newReferences);
@@ -869,402 +722,248 @@ namespace Microsoft.CodeAnalysis
                 newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
             }
 
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public SolutionState WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
+        public StateChange WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
             var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);
-            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(oldProject, newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableArray<DocumentId> documentIds)
+        public StateChange WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+
+            if (documentIds.Count != oldProject.DocumentStates.Count)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
             }
 
-            if (documentIds == null)
+            foreach (var id in documentIds)
             {
-                throw new ArgumentNullException(nameof(documentIds));
+                if (!oldProject.DocumentStates.Contains(id))
+                {
+                    throw new InvalidOperationException($"The document '{id}' does not exist in the project.");
+                }
             }
 
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.UpdateDocumentsOrder(documentIds);
 
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return this.ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified metadata references.
         /// </summary>
-        public SolutionState AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
+        public StateChange AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
         {
+            var oldProject = GetRequiredProjectState(projectId);
             if (metadataReferences.Count == 0)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
-            var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(metadataReferences);
 
-            return ForkProject(oldProject.WithMetadataReferences(newReferences));
+            return ForkProject(oldProject, oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified metadata reference.
         /// </summary>
-        public SolutionState RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        public StateChange RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(metadataReference);
             if (oldReferences == newReferences)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
-            return ForkProject(oldProject.WithMetadataReferences(newReferences));
+            return ForkProject(oldProject, oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include only the
         /// specified metadata references.
         /// </summary>
-        public SolutionState WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
+        public StateChange WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithMetadataReferences(metadataReferences);
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
-        public SolutionState AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
+        public StateChange AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
         {
+            var oldProject = GetRequiredProjectState(projectId);
             if (analyzerReferences.Length == 0)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
-            var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(analyzerReferences);
 
-            return ForkProject(
-                oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
+            return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer include
         /// the specified analyzer reference.
         /// </summary>
-        public SolutionState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        public StateChange RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.Remove(analyzerReference);
             if (oldReferences == newReferences)
             {
-                return this;
+                return new(this, oldProject, oldProject);
             }
 
-            return ForkProject(
-                oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
+            return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include only the
         /// specified analyzer references.
         /// </summary>
-        public SolutionState WithProjectAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
+        public StateChange WithProjectAnalyzerReferences(ProjectId projectId, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithAnalyzerReferences(analyzerReferences);
             if (oldProject == newProject)
             {
-                return this;
+                return new(this, oldProject, newProject);
             }
 
-            return ForkProject(newProject);
-        }
-
-        /// <summary>
-        /// Create a new solution instance with the corresponding projects updated to include new
-        /// documents defined by the document info.
-        /// </summary>
-        public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
-                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
-        }
-
-        /// <summary>
-        /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
-        /// </summary>
-        /// <param name="documentInfos">The set of documents to add.</param>
-        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
-        /// <returns></returns>
-        private SolutionState AddDocumentsToMultipleProjects<T>(
-            ImmutableArray<DocumentInfo> documentInfos,
-            Func<DocumentInfo, ProjectState, T> createDocumentState,
-            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
-            where T : TextDocumentState
-        {
-            if (documentInfos.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(documentInfos));
-            }
-
-            if (documentInfos.IsEmpty)
-            {
-                return this;
-            }
-
-            // The documents might be contributing to multiple different projects; split them by project and then we'll process
-            // project-at-a-time.
-            var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
-
-            var newSolutionState = this;
-
-            foreach (var documentInfosInProject in documentInfosByProjectId)
-            {
-                CheckContainsProject(documentInfosInProject.Key);
-                var oldProjectState = this.GetProjectState(documentInfosInProject.Key)!;
-
-                var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
-
-                foreach (var documentInfo in documentInfosInProject)
-                {
-                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
-                }
-
-                var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
-
-                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
-
-                newSolutionState = newSolutionState.ForkProject(newProjectState,
-                    compilationTranslationAction,
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
-            }
-
-            return newSolutionState;
-        }
-
-        public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new TextDocumentState(documentInfo, _solutionServices),
-                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
-        }
-
-        public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        {
-            // Adding a new analyzer config potentially modifies the compilation options
-            return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
-                (oldProject, documents) =>
-                {
-                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
-                });
-        }
-
-        public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
-        {
-            return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-                (oldProject, documentIds, _) =>
-                {
-                    var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
-                });
-        }
-
-        /// <summary>
-        /// Creates a new solution instance that no longer includes the specified document.
-        /// </summary>
-        public SolutionState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
-        {
-            return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
-        }
-
-        private SolutionState RemoveDocumentsFromMultipleProjects<T>(
-            ImmutableArray<DocumentId> documentIds,
-            Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
-            where T : TextDocumentState
-        {
-            if (documentIds.IsEmpty)
-            {
-                return this;
-            }
-
-            // The documents might be contributing to multiple different projects; split them by project and then we'll process
-            // project-at-a-time.
-            var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
-
-            var newSolutionState = this;
-
-            foreach (var documentIdsInProject in documentIdsByProjectId)
-            {
-                var oldProjectState = this.GetProjectState(documentIdsInProject.Key);
-
-                if (oldProjectState == null)
-                {
-                    throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
-                }
-
-                var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
-
-                foreach (var documentId in documentIdsInProject)
-                {
-                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
-                }
-
-                var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
-
-                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
-
-                newSolutionState = newSolutionState.ForkProject(newProjectState,
-                    compilationTranslationAction,
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
-            }
-
-            return newSolutionState;
-        }
-
-        /// <summary>
-        /// Creates a new solution instance that no longer includes the specified additional documents.
-        /// </summary>
-        public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
-        {
-            return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified name.
         /// </summary>
-        public SolutionState WithDocumentName(DocumentId documentId, string name)
+        public StateChange WithDocumentName(DocumentId documentId, string name)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.Attributes.Name == name)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateName(name));
+            return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public SolutionState WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
+        public StateChange WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.Folders.SequenceEqual(folders))
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFolders(folders));
+            return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified file path.
         /// </summary>
-        public SolutionState WithDocumentFilePath(DocumentId documentId, string? filePath)
+        public StateChange WithDocumentFilePath(DocumentId documentId, string? filePath)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.FilePath == filePath)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath));
+            return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode));
@@ -1274,42 +973,45 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
-        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
             if (oldDocument.TryGetTextAndVersion(out var oldTextAndVersion) && textAndVersion == oldTextAndVersion)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
@@ -1319,72 +1021,81 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to have a syntax tree
         /// rooted by the specified syntax node.
         /// </summary>
-        public SolutionState WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
                 oldTree.TryGetRoot(out var oldRoot) &&
                 oldRoot == root)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        private static async Task<Compilation> UpdateDocumentInCompilationAsync(
-            Compilation compilation,
-            DocumentState oldDocument,
-            DocumentState newDocument,
-            CancellationToken cancellationToken)
+        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
         {
-            return compilation.ReplaceSyntaxTree(
-                await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+            var oldDocument = GetRequiredDocumentState(documentId);
+            var oldProject = GetRequiredProjectState(documentId.ProjectId);
+            if (oldDocument == documentState)
+                return new(this, oldProject, oldProject);
+
+            if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
+                oldDocument.TreeSource == documentState.TreeSource)
+            {
+                return new(this, oldProject, oldProject);
+            }
+
+            return UpdateDocumentState(
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
         /// </summary>
-        public SolutionState WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        public StateChange WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             if (oldDocument.SourceCodeKind == sourceCodeKind)
             {
-                return this;
+                var oldProject = GetRequiredProjectState(documentId.ProjectId);
+                return new(this, oldProject, oldProject);
             }
 
-            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
+            return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
         }
 
-        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
+        public StateChange UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateDocumentState(oldDocument.UpdateText(loader, text, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public SolutionState UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public StateChange UpdateAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAdditionalDocumentState(documentId);
 
-            // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
-            // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            // Assumes that content has changed. User could have closed a doc without saving and we are loading text
+            // from closed file with old content.
+            return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
         }
 
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
-        public SolutionState UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        public StateChange UpdateAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredAnalyzerConfigDocumentState(documentId);
 
@@ -1393,10 +1104,10 @@ namespace Microsoft.CodeAnalysis
             return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
         }
 
-        private SolutionState UpdateDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private StateChange UpdateDocumentState(DocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
@@ -1405,27 +1116,23 @@ namespace Microsoft.CodeAnalysis
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
 
             return ForkProject(
+                oldProject,
                 newProject,
-                new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
-        private SolutionState UpdateAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
+            var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
 
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredState(newDocument.Id);
-
-            return ForkProject(
-                newProject,
-                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
+            return ForkProject(oldProject, newProject);
         }
 
-        private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
+        private StateChange UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
@@ -1433,8 +1140,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject,
-                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
+            return ForkProject(oldProject, newProject);
         }
 
         /// <summary>
@@ -1443,35 +1149,25 @@ namespace Microsoft.CodeAnalysis
         /// are fixed-up if the change to the new project affects its public metadata, and old
         /// dependent compilations are forgotten.
         /// </summary>
-        private SolutionState ForkProject(
+        public StateChange ForkProject(
+            ProjectState oldProjectState,
             ProjectState newProjectState,
-            CompilationAndGeneratorDriverTranslationAction? translate = null,
             ProjectDependencyGraph? newDependencyGraph = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null,
-            bool forkTracker = true)
+            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
         {
             var projectId = newProjectState.Id;
 
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
+
             newDependencyGraph ??= _dependencyGraph;
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            // If we have a tracker for this project, then fork it as well (along with the
-            // translation action and store it in the tracker map.
-            if (newTrackerMap.TryGetValue(projectId, out var tracker))
-            {
-                newTrackerMap = newTrackerMap.Remove(projectId);
 
-                if (forkTracker)
-                {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
-                }
-            }
-
-            return this.Branch(
+            var newSolutionState = this.Branch(
                 idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
+
+            return new(newSolutionState, oldProjectState, newProjectState);
         }
 
         /// <summary>
@@ -1490,7 +1186,7 @@ namespace Microsoft.CodeAnalysis
                 : ImmutableArray<DocumentId>.Empty;
         }
 
-        private static ProjectDependencyGraph CreateDependencyGraph(
+        public static ProjectDependencyGraph CreateDependencyGraph(
             IReadOnlyList<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> projectStates)
         {
@@ -1502,64 +1198,7 @@ namespace Microsoft.CodeAnalysis
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
-            IEnumerable<ProjectId>? dependencies = null;
-
-            foreach (var (id, tracker) in _projectIdToTrackerMap)
-            {
-                if (!tracker.HasCompilation)
-                {
-                    continue;
-                }
-
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
-            }
-
-            return builder.ToImmutable();
-
-            // Returns true if 'tracker' can be reused for project 'id'
-            bool CanReuse(ProjectId id)
-            {
-                if (id == changedProjectId)
-                {
-                    return true;
-                }
-
-                // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
-                // If the information is not available, do not compute it.
-                var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-                if (forwardDependencies is object && !forwardDependencies.Contains(changedProjectId))
-                {
-                    return true;
-                }
-
-                // Compute the set of all projects that depend on 'projectId'. This information answers the same
-                // question as the previous check, but involves at most one transitive computation within the
-                // dependency graph.
-                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
-                return !dependencies.Contains(id);
-            }
-        }
-
-        /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        ///
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done.
-        /// When the isolated solution is reclaimed so will the computed state.
-        /// </summary>
-        public SolutionState GetIsolatedSolution()
-        {
-            var forkedMap = ImmutableDictionary.CreateRange<ProjectId, CompilationTracker>(
-                _projectIdToTrackerMap.Where(kvp => kvp.Value.HasCompilation)
-                                     .Select(kvp => new KeyValuePair<ProjectId, CompilationTracker>(kvp.Key, kvp.Value.Clone())));
-
-            return this.Branch(projectIdToTrackerMap: forkedMap);
-        }
-
-        public SolutionState WithOptions(SerializableOptionSet options)
+        public SolutionState WithOptions(SolutionOptionSet options)
             => Branch(options: options);
 
         public SolutionState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
@@ -1596,302 +1235,50 @@ namespace Microsoft.CodeAnalysis
             return Branch(analyzerReferences: analyzerReferences);
         }
 
-        // this lock guards all the mutable fields (do not share lock with derived classes)
-        private NonReentrantLock? _stateLockBackingField;
-        private NonReentrantLock StateLock
+        public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
-            get
+            var projectState = this.GetProjectState(documentId.ProjectId);
+            if (projectState == null)
             {
-                // TODO: why did I need to do a nullable suppression here?
-                return LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory)!;
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
             }
-        }
 
-        private WeakReference<SolutionState>? _latestSolutionWithPartialCompilation;
-        private DateTime _timeOfLatestSolutionWithPartialCompilation;
-        private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
-
-        /// <summary>
-        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-        /// busy building this compilations.
-        ///
-        /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        ///
-        /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
-        /// </summary>
-        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            try
+            var documentState = projectState.DocumentStates.GetState(documentId);
+            if (documentState == null)
             {
-                var doc = this.GetRequiredDocumentState(documentId);
-                var tree = doc.GetSyntaxTree(cancellationToken);
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
 
-                using (this.StateLock.DisposableWait(cancellationToken))
+            var filePath = documentState.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // this document can't have any related document. only related document is itself.
+                return ImmutableArray.Create(documentId);
+            }
+
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return documentIds.WhereAsArray(
+                static (documentId, args) =>
                 {
-                    // in progress solutions are disabled for some testing
-                    if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)
+                    var projectState = args.solution.GetProjectState(documentId.ProjectId);
+                    if (projectState == null)
                     {
-                        return this;
+                        // this document no longer exist
+                        // I'm adding this ReportAndCatch to see if this does happen in the wild; it's not clear to me under what scenario that could happen since all the IDs of all document types
+                        // should be removed when a project is removed.
+                        FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
+                        return false;
                     }
 
-                    SolutionState? currentPartialSolution = null;
-                    if (_latestSolutionWithPartialCompilation != null)
-                    {
-                        _latestSolutionWithPartialCompilation.TryGetTarget(out currentPartialSolution);
-                    }
+                    if (projectState.ProjectInfo.Language != args.Language)
+                        return false;
 
-                    var reuseExistingPartialSolution =
-                        currentPartialSolution != null &&
-                        (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
-                        _documentIdOfLatestSolutionWithPartialCompilation == documentId;
-
-                    if (reuseExistingPartialSolution)
-                    {
-                        SolutionLogger.UseExistingPartialSolution();
-                        return currentPartialSolution!;
-                    }
-
-                    // if we don't have one or it is stale, create a new partial solution
-                    var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
-
-                    var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
-                    var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
-
-                    currentPartialSolution = this.Branch(
-                        idToProjectStateMap: newIdToProjectStateMap,
-                        projectIdToTrackerMap: newIdToTrackerMap,
-                        dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
-
-                    _latestSolutionWithPartialCompilation = new WeakReference<SolutionState>(currentPartialSolution);
-                    _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
-                    _documentIdOfLatestSolutionWithPartialCompilation = documentId;
-
-                    SolutionLogger.CreatePartialSolution();
-                    return currentPartialSolution;
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Creates a new solution instance with all the documents specified updated to have the same specified text.
-        /// </summary>
-        public SolutionState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
-        {
-            var solution = this;
-
-            foreach (var documentId in documentIds)
-            {
-                if (documentId == null)
-                {
-                    continue;
-                }
-
-                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
-                if (doc != null)
-                {
-                    if (!doc.TryGetText(out var existingText) || existingText != text)
-                    {
-                        solution = solution.WithDocumentText(documentId, text, mode);
-                    }
-                }
-            }
-
-            return solution;
-        }
-
-        public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
-        {
-            CheckContainsProject(projectId);
-            compilation = null;
-
-            return this.TryGetCompilationTracker(projectId, out var tracker)
-                && tracker.TryGetCompilation(out compilation);
-        }
-
-        /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
-        /// does not support compilations.
-        /// </summary>
-        /// <remarks>
-        /// The compilation is guaranteed to have a syntax tree for each document of the project.
-        /// </remarks>
-        private Task<Compilation?> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            // TODO: figure out where this is called and why the nullable suppression is required
-            return GetCompilationAsync(GetProjectState(projectId)!, cancellationToken);
-        }
-
-        /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
-        /// does not support compilations.
-        /// </summary>
-        /// <remarks>
-        /// The compilation is guaranteed to have a syntax tree for each document of the project.
-        /// </remarks>
-        public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
-        {
-            return project.SupportsCompilation
-                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
-                : SpecializedTasks.Null<Compilation>();
-        }
-
-        /// <summary>
-        /// Return reference completeness for the given project and all projects this references.
-        /// </summary>
-        public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
-        {
-            // return HasAllInformation when compilation is not supported.
-            // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
-            return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
-                : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
-        }
-
-        /// <summary>
-        /// Returns the generated document states for source generated documents.
-        /// </summary>
-        public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
-        {
-            return project.SupportsCompilation
-                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
-                : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
-        /// </summary>
-        /// <remarks>
-        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
-        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
-        /// similarly tricky like that.
-        /// </remarks>
-        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
-        {
-            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-        }
-
-        /// <summary>
-        /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
-        /// </summary>
-        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
-
-        /// <summary>
-        /// Get a metadata reference for the project's compilation
-        /// </summary>
-        public Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // Get the compilation state for this project.  If it's not already created, then this
-                // will create it.  Then force that state to completion and get a metadata reference to it.
-                var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-                return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Attempt to get the best readily available compilation for the project. It may be a
-        /// partially built compilation.
-        /// </summary>
-        private MetadataReference? GetPartialMetadataReference(
-            ProjectReference projectReference,
-            ProjectState fromProject)
-        {
-            // Try to get the compilation state for this project.  If it doesn't exist, don't do any
-            // more work.
-            if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
-            {
-                return null;
-            }
-
-            return state.GetPartialMetadataReference(fromProject, projectReference);
-        }
-
-        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(name, filter, cancellationToken);
-            if (result.HasValue)
-            {
-                return result.Value;
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return false;
-            }
-
-            return compilation.ContainsSymbolsWithName(name, filter, cancellationToken);
-        }
-
-        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
-            if (result.HasValue)
-            {
-                return result.Value;
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return false;
-            }
-
-            return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
-        }
-
-        public async Task<ImmutableArray<DocumentState>> GetDocumentsWithNameAsync(
-            ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
-            var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
-            if (trees != null)
-            {
-                return ConvertTreesToDocuments(id, trees);
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return ImmutableArray<DocumentState>.Empty;
-            }
-
-            return ConvertTreesToDocuments(
-                id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
-        }
-
-        private ImmutableArray<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
-        {
-            var result = ArrayBuilder<DocumentState>.GetInstance();
-            foreach (var tree in trees)
-            {
-                var document = GetDocumentState(tree, id);
-                if (document == null)
-                {
-                    // ignore trees that are not known to solution such as VB synthesized trees made by compilation.
-                    continue;
-                }
-
-                result.Add(document);
-            }
-
-            return result.ToImmutableAndFree();
+                    // GetDocumentIdsWithFilePath may return DocumentIds for other types of documents (like additional files), so filter to normal documents
+                    return projectState.DocumentStates.Contains(documentId);
+                },
+                (solution: this, projectState.Language));
         }
 
         /// <summary>
@@ -1908,7 +1295,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsProject(ProjectId projectId)
+        internal void CheckContainsProject(ProjectId projectId)
         {
             if (!this.ContainsProject(projectId))
             {
@@ -1927,22 +1314,5 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
-
-        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
-            => GetRemoteSupportedProjectLanguages(ProjectStates);
-
-        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
-        {
-            var builder = ImmutableHashSet.CreateBuilder<string>();
-            foreach (var projectState in projectStates)
-            {
-                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
-                {
-                    builder.Add(projectState.Value.Language);
-                }
-            }
-
-            return builder.ToImmutable();
-        }
     }
 }

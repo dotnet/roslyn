@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -49,10 +50,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return referencedAssemblySymbols;
             }
 
+            // Do a quick check first to avoid unnecessary allocations in case this is not a script compilation.
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previous is null)
+            {
+                return referencedAssemblySymbols;
+            }
+
             var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
             builder.AddRange(referencedAssemblySymbols);
 
-            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             while (previous != null)
             {
                 builder.Add(previous.Assembly);
@@ -119,17 +126,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
+        public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
+
         public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
 
         public static INamedTypeSymbol? IEnumeratorOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
 
+        public static INamedTypeSymbol? IListOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(IList<>).FullName!);
+
+        public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
+
         public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
 
         public static INamedTypeSymbol? IAsyncEnumeratorOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
+
+        public static INamedTypeSymbol? ImmutableArrayOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
 
         public static INamedTypeSymbol? SerializableAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
@@ -211,5 +230,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataMemberAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+
+        public static INamedTypeSymbol? AsyncMethodBuilderAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
+
+        public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
+
+        public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
+            => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
+
+        public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+
+        public static INamedTypeSymbol? ReadOnlySpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+
+        public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
     }
 }

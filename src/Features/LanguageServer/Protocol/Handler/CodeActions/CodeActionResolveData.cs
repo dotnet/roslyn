@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using System.Collections.Immutable;
+using Newtonsoft.Json;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
@@ -23,15 +25,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public string UniqueIdentifier { get; }
 
+        public ImmutableArray<string> CustomTags { get; }
+
         public LSP.Range Range { get; }
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        public string[] CodeActionPath { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[]? FixAllFlavors { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
+
+        public CodeActionResolveData(
+            string uniqueIdentifier,
+            ImmutableArray<string> customTags,
+            LSP.Range range,
+            LSP.TextDocumentIdentifier textDocument,
+            string[] codeActionPath,
+            string[]? fixAllFlavors,
+            ImmutableArray<LSP.CodeAction>? nestedCodeActions)
         {
             UniqueIdentifier = uniqueIdentifier;
+            CustomTags = customTags;
             Range = range;
             TextDocument = textDocument;
+            CodeActionPath = codeActionPath;
+            FixAllFlavors = fixAllFlavors;
+            NestedCodeActions = nestedCodeActions;
         }
     }
 }

@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -19,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public override bool IsApplicable(OptionSet optionSet)
-            => optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value ||
-               optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Value ||
-               optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+            => options.VarForBuiltInTypes.Value ||
+               options.VarWhenTypeIsApparent.Value ||
+               options.VarElsewhere.Value;
     }
 }

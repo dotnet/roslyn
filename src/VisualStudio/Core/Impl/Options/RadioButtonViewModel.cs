@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class RadioButtonViewModel<TOption> : AbstractRadioButtonViewModel
+    internal class RadioButtonViewModel<TOptionValue> : AbstractRadioButtonViewModel
     {
-        private readonly Option<TOption> _option;
-        private readonly TOption _value;
+        private readonly Option2<TOptionValue> _option;
+        private readonly TOptionValue _value;
 
-        public RadioButtonViewModel(string description, string preview, string group, TOption value, Option<TOption> option, AbstractOptionPreviewViewModel info, OptionStore optionStore)
-            : base(description, preview, info, isChecked: optionStore.GetOption(option).Equals(value), group: group)
+        public RadioButtonViewModel(string description, string preview, string group, TOptionValue value, Option2<TOptionValue> option, AbstractOptionPreviewViewModel info, OptionStore optionStore)
+            : base(description, preview, info, isChecked: optionStore.GetOption<TOptionValue>(option).Equals(value), group: group)
         {
             _value = value;
             _option = option;

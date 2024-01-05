@@ -1301,7 +1301,6 @@ public static class E2
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void BadTruncateExtensionMethodLookupAfterFirstNamespace()
         {
@@ -1515,7 +1514,7 @@ static class MyExtensions
                 // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A").WithLocation(10, 9),
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'B.GetAwaiter(object)'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'B.GetAwaiter(object)'
                 //         await new B();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await new B()").WithArguments("o", "B.GetAwaiter(object)").WithLocation(11, 9),
                 // (12,9): error CS1986: 'await' requires that the type C have a suitable GetAwaiter method
@@ -2836,7 +2835,8 @@ class Repro
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
-            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.FailsPEVerify);
 
             compiled.VerifyIL("MyAwaiter.OnCompleted(System.Action)", @"
 {

@@ -31,11 +31,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
+        Private Shared ReadOnly s_minimalParameterTypeFormat As SymbolDisplayFormat =
+            SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.ExpandValueTuple)
+
         Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
@@ -72,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return
                 End If
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim items = CreateCompletionItems(semanticModel, symbols, position)
                 context.AddItems(items)
@@ -87,7 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 ' nop
             End Try
         End Function
-        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
+
+        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetTargetToken(position, cancellationToken)
 
@@ -104,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
-            Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
             Return (token, semanticModel, symbols.ToImmutableArray())
@@ -225,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         builder.Append("ByRef ")
                     End If
 
-                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position))
+                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position, s_minimalParameterTypeFormat))
                 Next
 
                 builder.Append(")"c)
@@ -253,13 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
         Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
-#If False Then
-        Private Shared s_defaultRules As CompletionItemRules =
-            CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
-                CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
-#Else
         Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
-#End If
 
         Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
@@ -267,12 +270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If displayText.Contains("(") Then
                 commitRules = commitRules.Add(s_WithoutOpenParen)
             End If
-
-#If False Then
-            If displayText.Contains("(Of") Then
-                commitRules = commitRules.Add(s_WithoutSpace)
-            End If
-#End If
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function

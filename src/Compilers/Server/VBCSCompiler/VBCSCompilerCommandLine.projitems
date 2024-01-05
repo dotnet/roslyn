@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d8ef0777-9d65-4849-a7d6-ac81e58e2317</SharedGUID>
+    <LargeAddressAware>true</LargeAddressAware>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>CommandLine</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Shared items -->
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\BuildProtocol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\ConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Core\CommandLine\CompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ExitingTraceListener.cs" />
+
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerConsistencyChecker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assembly.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildProtocolUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildServerController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClientConnectionHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompletionData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClientConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICompilerServerHost.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MetadataCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamedPipeClientConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamedPipeClientConnectionHost.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerDispatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VBCSCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicCompilerServer.cs" />
+
+    <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
+
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
+    
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+
+    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' == 'net472'" />
+
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
+</Project>

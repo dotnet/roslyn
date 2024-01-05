@@ -18,12 +18,9 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal abstract class AbstractConverter : IConverter<ForEachStatementSyntax, StatementSyntax>
+    internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : IConverter<ForEachStatementSyntax, StatementSyntax>
     {
-        public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; }
-
-        public AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-            => ForEachInfo = forEachInfo;
+        public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; } = forEachInfo;
 
         public abstract void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
 
@@ -43,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             return convertToQuery
                 ? CreateQueryExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect)
-                : (ExpressionSyntax)CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
+                : CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
         }
 
         /// <summary>
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             .WithCommentsFrom(node.ExtraLeadingComments, node.ExtraTrailingComments);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static FromClauseSyntax CreateFromClause(
@@ -106,11 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                         forEachStatement.OpenParenToken)
                                     .KeepCommentsAndAddElasticMarkers(),
                     type: forEachStatement.Type.IsVar ? null : forEachStatement.Type,
-                    identifier: forEachStatement.Type.IsVar ?
-                                forEachStatement.Identifier.WithPrependedLeadingTrivia(
+                    identifier: forEachStatement.Type.IsVar
+                                ? forEachStatement.Identifier.WithPrependedLeadingTrivia(
                                     SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken())
-                                    .FilterComments(addElasticMarker: false)) :
-                                forEachStatement.Identifier,
+                                    .FilterComments(addElasticMarker: false))
+                                : forEachStatement.Identifier,
                     inKeyword: forEachStatement.InKeyword.KeepCommentsAndAddElasticMarkers(),
                     expression: forEachStatement.Expression)
                         .WithCommentsFrom(extraLeadingTrivia, extraTrailingTrivia, forEachStatement.CloseParenToken);
@@ -292,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     return CreateLinqInvocationForExtendedNode(selectExpression, ref extendedNodeIndex, ref receiver, ref hasForEachChild);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

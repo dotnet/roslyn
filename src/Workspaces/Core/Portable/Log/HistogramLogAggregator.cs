@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// Defines a log aggregator to create a histogram
     /// </summary>
-    internal sealed class HistogramLogAggregator : AbstractLogAggregator<HistogramLogAggregator.HistogramCounter>
+    internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey, HistogramLogAggregator<TKey>.HistogramCounter> where TKey : notnull
     {
         private readonly int _bucketSize;
         private readonly int _maxBucketValue;
@@ -34,10 +33,22 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         protected override HistogramCounter CreateCounter()
             => new(_bucketSize, _maxBucketValue, _bucketCount);
 
-        public void IncreaseCount(object key, decimal value)
+        public void IncreaseCount(TKey key, int value)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount(value);
+        }
+
+        public void LogTime(TKey key, TimeSpan timeSpan)
+        {
+            var counter = GetCounter(key);
+            counter.IncreaseCount((int)timeSpan.TotalMilliseconds);
+        }
+
+        public HistogramCounter? GetValue(TKey key)
+        {
+            TryGetCounter(key, out var counter);
+            return counter;
         }
 
         internal sealed class HistogramCounter
@@ -58,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 _buckets = new int[BucketCount];
             }
 
-            public void IncreaseCount(decimal value)
+            public void IncreaseCount(int value)
             {
                 var bucket = GetBucket(value);
                 _buckets[bucket]++;
@@ -82,15 +93,29 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return pooledStringBuilder.ToStringAndFree();
             }
 
-            private int GetBucket(decimal value)
+            private int GetBucket(int value)
             {
-                var bucket = (int)Math.Floor(value / BucketSize);
+                var bucket = value / BucketSize;
                 if (bucket >= BucketCount)
                 {
                     bucket = BucketCount - 1;
                 }
 
                 return bucket;
+            }
+
+            /// <summary>
+            /// Writes out these statistics to a property bag for sending to telemetry.
+            /// </summary>
+            /// <param name="prefix">The prefix given to any properties written. A period is used to delimit between the 
+            /// prefix and the value.</param>
+            public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix)
+            {
+                prefix += ".";
+
+                properties.Add(prefix + nameof(BucketSize), BucketSize);
+                properties.Add(prefix + nameof(MaxBucketValue), MaxBucketValue);
+                properties.Add(prefix + "Buckets", GetBucketsAsString());
             }
         }
     }

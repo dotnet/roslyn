@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild InvalidSuppressMessageAttribute = /*IDE0076*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild LegacyFormatSuppressMessageAttribute = /*IDE0077*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild RemoveConfusingSuppressionForIsExpression = /*IDE0080*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseBlockScopedNamespace = /*IDE0160*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseFileScopedNamespace = /*IDE0161*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseTupleSwap = /*IDE0180*/ EnforceOnBuild.HighlyRecommended;
 
         /* EnforceOnBuild.Recommended */
         public const EnforceOnBuild UseThrowExpression = /*IDE0016*/ EnforceOnBuild.Recommended;
@@ -73,9 +76,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseImplicitObjectCreation = /*IDE0090*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveRedundantEquality = /*IDE0100*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryDiscardDesignation = /*IDE0110*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveUnnecessaryLambdaExpression = /*IDE0200*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild InvokeDelegateWithConditionalAccess = /*IDE1005*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
-        public const EnforceOnBuild MatchFolderAndNamespace = /* IDE0130*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild SimplifyPropertyPattern = /*IDE0170*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveRedundantNullableDirective = /*IDE0240*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveUnnecessaryNullableDirective = /*IDE0241*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild MakeStructReadOnly = /*IDE0250*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild MakeStructMemberReadOnly = /*IDE0251*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UsePatternMatchingAsAndMemberAccess = /*IDE0260*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCoalesceExpressionForIfNullCheck = /*IDE0270*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseNameofInAttribute = /*IDE0280*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UsePrimaryConstructor = /*IDE0290*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForArray = /*IDE0300*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForEmpty = /*IDE0301*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForStackAlloc = /*IDE0302*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForCreate = /*IDE0303*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForBuilder = /*IDE0304*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild UseCollectionExpressionForFluent = /*IDE0305*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
@@ -88,12 +108,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseNullCheckOverTypeCheck = /*IDE0150*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseTopLevelStatements = /*IDE0210*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseProgramMain = /*IDE0211*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ForEachCast = /*IDE0220*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseUtf8StringLiteral = /*IDE0230*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveStatementPlacement = /*IDE2003*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConditionalExpressionPlacement = /*IDE2005*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ArrowExpressionClausePlacement = /*IDE2006*/ EnforceOnBuild.WhenExplicitlyEnabled;
+
+        public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
         // TODO: Allow enforcing simplify names and related diagnostics on build once we validate their performance charactericstics.
@@ -105,5 +134,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Never;
         public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
+
+        // Pure IDE feature for lighting up editor features.  Do not enforce on build.
+        public const EnforceOnBuild DetectProbableJsonStrings = /*JSON002*/ EnforceOnBuild.Never;
     }
 }

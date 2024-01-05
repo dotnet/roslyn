@@ -50,6 +50,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void ParseFullTagEmptyValues()
+        {
+            var comment = DocumentationComment.FromXmlFragment(
+                @"<summary></summary>
+                  <returns></returns>
+                  <value></value>
+                  <example></example>
+                  <param name=""goo""></param>
+                  <typeparam name=""T""></typeparam>
+                  <exception cref=""System.Exception""></exception>
+                  <remarks></remarks>");
+
+            Assert.Equal(string.Empty, comment.SummaryText);
+            Assert.Equal(string.Empty, comment.ReturnsText);
+            Assert.Equal(string.Empty, comment.ValueText);
+            Assert.Equal(string.Empty, comment.ExampleText);
+            Assert.Equal("goo", comment.ParameterNames[0]);
+            Assert.Equal(string.Empty, comment.GetParameterText("goo"));
+            Assert.Equal("T", comment.TypeParameterNames[0]);
+            Assert.Equal(string.Empty, comment.GetTypeParameterText("T"));
+            Assert.Equal("System.Exception", comment.ExceptionTypes[0]);
+            Assert.Equal(string.Empty, comment.GetExceptionTexts("System.Exception")[0]);
+            Assert.Equal(string.Empty, comment.RemarksText);
+        }
+
+        [Fact]
         public void ParseTagWithMultipleSummaries()
         {
             var comment = DocumentationComment.FromXmlFragment("<summary>Summary 1</summary><summary>Summary 2</summary>");
@@ -57,8 +83,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("Summary 1", comment.SummaryText);
         }
 
-        [WorkItem(522741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         [Fact(Skip = "Bug 522741")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         public void ParseTagWithMultiLineComments()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<summary>
@@ -117,7 +143,7 @@ Summary 2
             Assert.Equal("b", comment.ExceptionTypes[2]);
         }
 
-        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void UnknownTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -130,7 +156,7 @@ Summary 2
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void TextOutsideTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -143,7 +169,7 @@ This is random top-level text.
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void SingleTopLevelTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -158,7 +184,7 @@ This is random top-level text.
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleParamsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -170,7 +196,7 @@ This is random top-level text.
             Assert.Equal("This comment should be retained.", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleTypeParamsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -182,7 +208,7 @@ This is random top-level text.
             Assert.Equal("This comment should be retained.", comment.GetTypeParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleExceptionsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -202,7 +228,7 @@ This is random top-level text.
             Assert.Equal("Second B description", comment.GetExceptionTexts("B")[1]);
         }
 
-        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void NoExceptionWithGivenName()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<summary>This is a summary</summary>");
@@ -210,7 +236,7 @@ This is random top-level text.
             Assert.Equal(0, comment.GetExceptionTexts("A").Length);
         }
 
-        [Fact, WorkItem(531189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531189")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531189")]
         public void NoNameAttribute()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<param/><typeparam/><exception/>");
@@ -231,7 +257,7 @@ This is random top-level text.
             Assert.True(comments.HadXmlParseError);
         }
 
-        [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
         public void TrimEachLine()
         {
             var multiLineText = @"
@@ -259,11 +285,58 @@ Hello
                   <remarks>{multiLineText}</remarks>";
 
             var expected = @"Hello
-World     .
+     World     .
 +
 .......
 123
-1";
+                                           1";
+
+            var comment = DocumentationComment.FromXmlFragment(fullXml);
+
+            Assert.Equal(expected, comment.SummaryText);
+            Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ValueText);
+            Assert.Equal(expected, comment.ExampleText);
+            Assert.Equal(expected, comment.GetParameterText("goo"));
+            Assert.Equal(expected, comment.GetTypeParameterText("T"));
+            Assert.Equal(expected, comment.RemarksText);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
+        public void TrimEachLineCommonOffset()
+        {
+            var multiLineText = @"
+
+
+
+  Hello
+    World     .        
+  +
+  .......
+         
+
+
+
+
+    123
+
+                                           1";
+
+            var fullXml = $@"<summary>{multiLineText}</summary>
+                  <returns>{multiLineText}</returns>
+                  <value>{multiLineText}</value>
+                  <example>{multiLineText}</example>
+                  <param name=""goo"">{multiLineText}</param>
+                  <typeparam name=""T"">{multiLineText}</typeparam>
+                  <remarks>{multiLineText}</remarks>";
+
+            var expected = @"Hello
+  World     .
++
+.......
+
+  123
+                                         1";
 
             var comment = DocumentationComment.FromXmlFragment(fullXml);
 

@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
+        public bool IsEncDeleted
+            => false;
+
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isFixed = AdaptedFieldSymbol.IsFixedSizeBuffer;
             var implType = isFixed ? AdaptedFieldSymbol.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                   diagnostics: context.Diagnostics);
 
             if (isFixed || customModifiers.Length == 0)
@@ -46,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
             }
         }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
+            ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedFieldSymbol.RefCustomModifiers);
+
+        bool Cci.IFieldReference.IsByReference => AdaptedFieldSymbol.RefKind != RefKind.None;
 
         Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
-                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
                                               needDeclaration: AdaptedFieldSymbol.IsDefinition);
         }
@@ -152,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // (and we specifically don't want to prevent metadata-only emit because of a bad
                 // constant).  If the constant value is bad, we'll end up exposing null to CCI.
                 return ((PEModuleBuilder)context.Module).CreateConstant(AdaptedFieldSymbol.Type, AdaptedFieldSymbol.ConstantValue,
-                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                diagnostics: context.Diagnostics);
             }
 
@@ -274,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol);
+                return AdaptedFieldSymbol.MetadataVisibility;
             }
         }
 

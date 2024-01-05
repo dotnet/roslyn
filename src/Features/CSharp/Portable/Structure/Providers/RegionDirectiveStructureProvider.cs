@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal class RegionDirectiveStructureProvider : AbstractSyntaxNodeStructureProvider<RegionDirectiveTriviaSyntax>
+    internal sealed class RegionDirectiveStructureProvider : AbstractSyntaxNodeStructureProvider<RegionDirectiveTriviaSyntax>
     {
         private static string GetBannerText(DirectiveTriviaSyntax simpleDirective)
         {
             var kw = simpleDirective.DirectiveNameToken;
             var prefixLength = kw.Span.End - simpleDirective.Span.Start;
-            var text = simpleDirective.ToString().Substring(prefixLength).Trim();
+            var text = simpleDirective.ToString()[prefixLength..].Trim();
 
             if (text.Length == 0)
             {
@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             RegionDirectiveTriviaSyntax regionDirective,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);
@@ -46,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //   #endregion
                 //
                 // For other files, auto-collapse regions based on the user option.
-                var autoCollapse = optionProvider.IsMetadataAsSource || optionProvider.GetOption(
-                    BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+                var autoCollapse = options.IsMetadataAsSource || options.CollapseRegionsWhenCollapsingToDefinitions;
 
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: autoCollapse,
-                    isDefaultCollapsed: !optionProvider.IsMetadataAsSource));
+                    isDefaultCollapsed: options.CollapseRegionsWhenFirstOpened));
             }
         }
     }

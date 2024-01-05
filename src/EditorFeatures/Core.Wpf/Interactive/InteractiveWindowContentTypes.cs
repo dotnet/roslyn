@@ -7,7 +7,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// Represents the content type for specialized interactive commands for C# and VB

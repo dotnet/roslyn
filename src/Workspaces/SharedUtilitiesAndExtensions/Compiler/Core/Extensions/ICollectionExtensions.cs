@@ -4,11 +4,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class ICollectionExtensions
     {
+        public static ImmutableArray<T> WhereAsArray<T, TState>(this IEnumerable<T> values, Func<T, TState, bool> predicate, TState state)
+        {
+            using var _ = ArrayBuilder<T>.GetInstance(out var result);
+
+            foreach (var value in values)
+            {
+                if (predicate(value, state))
+                    result.Add(value);
+            }
+
+            return result.ToImmutable();
+        }
+
         public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)
         {
             if (collection == null)
@@ -23,6 +38,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     collection.Remove(item);
                 }
             }
+        }
+
+        public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : struct
+        {
+            if (value != null)
+                collection.Add(value.Value);
+        }
+
+        public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : class
+        {
+            if (value != null)
+                collection.Add(value);
         }
     }
 }

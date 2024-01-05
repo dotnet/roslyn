@@ -9,28 +9,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Private Property IsExpandedCompletion As Boolean = True
-
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
-
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-        Private Property UsePartialSemantic As Boolean = False
-
-        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds) _
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
-        End Function
+        Public Sub New()
+            ShowImportCompletionItemsOptionValue = True
+            ForceExpandedCompletionIndexCreation = True
+        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(ExtensionMethodImportCompletionProvider)
@@ -62,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestExtensionAttribute(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -129,7 +115,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestCaseMismatchInTargetType(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -167,7 +153,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestCaseMismatchInNamespaceImport(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -206,7 +192,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestImplicitTarget1(refType As ReferenceType) As Task
 
             Dim file1 = <Text><![CDATA[
@@ -241,7 +227,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestImplicitTarget2(refType As ReferenceType) As Task
 
             Dim file1 = <Text><![CDATA[
@@ -282,7 +268,7 @@ End Class]]></Text>.Value
         <InlineData(ReferenceType.None, "()()", "ExtentionMethod3")>
         <InlineData(ReferenceType.None, "(,)", "ExtentionMethod4")>
         <InlineData(ReferenceType.None, "()(,)", "ExtentionMethod5")>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestExtensionMethodsForArrayType(refType As ReferenceType, rank As String, expectedName As String) As Task
 
             Dim file1 = <Text><![CDATA[

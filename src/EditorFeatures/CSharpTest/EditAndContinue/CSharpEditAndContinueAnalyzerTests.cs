@@ -7,19 +7,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -33,7 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         #region Helpers
 
-        private static void TestSpans(string source, Func<SyntaxKind, bool> hasLabel)
+        private static TestWorkspace CreateWorkspace()
+            => new(composition: s_composition);
+
+        private static Solution AddDefaultTestProject(Solution solution, string source)
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            return solution.
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp)).GetProject(projectId).
+                AddDocument("test.cs", SourceText.From(source, Encoding.UTF8), filePath: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
+        }
+
+        private static void TestSpans(string source, Func<SyntaxNode, bool> hasLabel)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(source);
 
@@ -42,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var expectedText = source.Substring(expected.Start, expected.Length);
                 var token = tree.GetRoot().FindToken(expected.Start);
                 var node = token.Parent;
-                while (!hasLabel(node.Kind()))
+                while (!hasLabel(node))
                 {
                     node = node.Parent;
                 }
@@ -103,6 +117,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(Array.Empty<SyntaxKind>(), unhandledKinds);
         }
 
+        private static async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+            Project oldProject,
+            Document newDocument,
+            ActiveStatementsMap activeStatementMap = null,
+            EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities)
+        {
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+            var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
+            var lazyCapabilities = AsyncLazy.Create(capabilities);
+            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, lazyCapabilities, CancellationToken.None);
+        }
+
         #endregion
 
         [Fact]
@@ -123,6 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 [A, B]
 /*<span>*/public abstract partial class C/*</span>*/ { }
 
+[A, B]
+/*<span>*/public abstract partial record R/*</span>*/ { }
+
+[A, B]
+/*<span>*/public abstract partial record struct R/*</span>*/ { }
+
 /*<span>*/interface I/*</span>*/ : J, K, L { }
 
 [A]
@@ -141,8 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
 /*<span>*/delegate C<T> D2()/*</span>*/;
 
-[/*<span>*/Attrib/*</span>*/]
-/*<span>*/[Attrib]/*</span>*/
+[Attrib]
 /*<span>*/public class Z/*</span>*/
 {
     /*<span>*/int f/*</span>*/;
@@ -176,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => SyntaxComparer.TopLevel.HasLabel(kind));
+            TestSpans(source, SyntaxComparer.TopLevel.HasLabel);
         }
 
         [Fact]
@@ -232,7 +263,7 @@ class C
             // TODO: test
             // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
             // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-            TestSpans(source, kind => SyntaxComparer.Statement.HasLabel(kind));
+            TestSpans(source, SyntaxComparer.Statement.HasLabel);
         }
 
         /// <summary>
@@ -241,8 +272,8 @@ class C
         [Fact]
         public void ErrorSpansAllKinds()
         {
-            TestErrorSpansAllKinds(kind => SyntaxComparer.Statement.HasLabel(kind));
-            TestErrorSpansAllKinds(kind => SyntaxComparer.TopLevel.HasLabel(kind));
+            TestErrorSpansAllKinds(SyntaxComparer.Statement.HasLabel);
+            TestErrorSpansAllKinds(SyntaxComparer.TopLevel.HasLabel);
         }
 
         [Fact]
@@ -253,8 +284,7 @@ class C
 {
     public static void Main()
     {
-        // comment
-        System.Console.WriteLine(1);
+        /* comment */ System.Console.WriteLine(1);
     }
 }
 ";
@@ -268,38 +298,48 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-            var oldSolution = workspace.CurrentSolution;
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var oldText = await oldDocument.GetTextAsync();
             var oldSyntaxRoot = await oldDocument.GetSyntaxRootAsync();
             var documentId = oldDocument.Id;
-            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
             var newDocument = newSolution.GetDocument(documentId);
             var newText = await newDocument.GetTextAsync();
             var newSyntaxRoot = await newDocument.GetSyntaxRootAsync();
 
-            const string oldStatementSource = "System.Console.WriteLine(1);";
+            var oldStatementSource = "System.Console.WriteLine(1);";
             var oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal);
             var oldStatementTextSpan = new TextSpan(oldStatementPosition, oldStatementSource.Length);
             var oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan);
             var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
-            var baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())));
-            var analyzer = new CSharpEditAndContinueAnalyzer();
+            var baseActiveStatements = new ActiveStatementsMap(
+                ImmutableDictionary.CreateRange(new[]
+                {
+                    KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                        new ActiveStatement(
+                            ordinal: 0,
+                            ActiveStatementFlags.LeafFrame,
+                            new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
+                            instructionId: default)))
+                }),
+                ActiveStatementsMap.Empty.InstructionMap);
 
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements);
 
             Assert.True(result.HasChanges);
-            var syntaxMap = result.SemanticEdits[0].SyntaxMap;
-            Assert.NotNull(syntaxMap);
+
+            var syntaxMaps = result.SemanticEdits[0].SyntaxMaps;
+            Assert.True(syntaxMaps.HasMap);
 
             var newStatementSpan = result.ActiveStatements[0].Span;
             var newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan);
             var newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan);
 
-            var oldStatementSyntaxMapped = syntaxMap(newStatementSyntax);
+            var oldStatementSyntaxMapped = syntaxMaps.MatchingNodes(newStatementSyntax);
             Assert.Same(oldStatementSyntax, oldStatementSyntaxMapped);
         }
 
@@ -325,17 +365,14 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-            var oldSolution = workspace.CurrentSolution;
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
-            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
             Assert.True(result.HasChangesAndErrors);
@@ -355,13 +392,12 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source, composition: s_composition);
-            var oldProject = workspace.CurrentSolution.Projects.Single();
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source);
+            var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -390,19 +426,15 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-
-            var oldSolution = workspace.CurrentSolution;
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -423,19 +455,20 @@ class C
 ";
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
+            var root = SyntaxFactory.ParseCompilationUnit(source, options: experimental);
 
-            using var workspace = TestWorkspace.CreateCSharp(
-                source, parseOptions: experimental, compilationOptions: null, composition: s_composition);
+            using var workspace = CreateWorkspace();
 
-            var oldSolution = workspace.CurrentSolution;
+            var projectId = ProjectId.CreateNewId();
+            var oldSolution = workspace.CurrentSolution.
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp)).GetProject(projectId).
+                AddDocument("test.cs", root, filePath: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
+
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -474,7 +507,7 @@ class C
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
                 using var workspace = TestWorkspace.CreateCSharp(
-                    source1, parseOptions: experimental, compilationOptions: null, exportProvider: null);
+                    source1, parseOptions: experimental, compilationOptions: null);
 
                 var oldSolution = workspace.CurrentSolution;
                 var oldProject = oldSolution.Projects.Single();
@@ -483,10 +516,7 @@ class C
 
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-                var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-                var analyzer = new CSharpEditAndContinueAnalyzer();
-
-                var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+                var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
@@ -509,24 +539,21 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source, composition: s_composition);
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source);
 
-            var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             var source1 = @"
@@ -550,19 +577,15 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-
-            var oldSolution = workspace.CurrentSolution;
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
 
@@ -571,7 +594,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
             var source1 = @"
@@ -593,19 +616,15 @@ class C
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-
-            var oldSolution = workspace.CurrentSolution;
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
 
@@ -638,14 +657,13 @@ namespace N
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-            // fork the solution to introduce a change
-            var oldProject = workspace.CurrentSolution.Projects.Single();
-            var newDocId = DocumentId.CreateNewId(oldProject.Id);
-            var oldSolution = workspace.CurrentSolution;
-            var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
 
-            workspace.TryApplyChanges(newSolution);
+            // fork the solution to introduce a change
+            var oldProject = oldSolution.Projects.Single();
+            var newDocId = DocumentId.CreateNewId(oldProject.Id);
+            var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2), filePath: Path.Combine(TempRoot.Root, "goo.cs"));
 
             var newProject = newSolution.Projects.Single();
             var changes = newProject.GetChanges(oldProject);
@@ -657,17 +675,13 @@ namespace N
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
 
             var result = new List<DocumentAnalysisResults>();
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None));
+                result.Add(await AnalyzeDocumentAsync(oldProject, newProject.GetDocument(changedDocumentId)));
             }
 
             Assert.True(result.IsSingle());
-            Assert.Equal(1, result.Single().RudeEditErrors.Count());
-            Assert.Equal(RudeEditKind.Insert, result.Single().RudeEditErrors.Single().Kind);
+            Assert.Empty(result.Single().RudeEditErrors);
         }
 
         [Fact]
@@ -690,14 +704,12 @@ class D
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
 
-            var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
             var newDocId = DocumentId.CreateNewId(oldProject.Id);
-            var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
-
-            workspace.TryApplyChanges(newSolution);
+            var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2), filePath: Path.Combine(TempRoot.Root, "goo.cs"));
 
             var newProject = newSolution.Projects.Single();
             var changes = newProject.GetChanges(oldProject);
@@ -709,12 +721,9 @@ class D
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
 
             var result = new List<DocumentAnalysisResults>();
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None));
+                result.Add(await AnalyzeDocumentAsync(oldProject, newProject.GetDocument(changedDocumentId)));
             }
 
             Assert.True(result.IsSingle());
@@ -727,18 +736,19 @@ class D
             var source1 = @"class C {}";
             var source2 = @"class C { int x; }";
 
-            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
-            var oldProject = workspace.CurrentSolution.Projects.Single();
+            var filePath = Path.Combine(TempRoot.Root, "src.cs");
+
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
+            var oldProject = oldSolution.Projects.Single();
             var documentId = DocumentId.CreateNewId(oldProject.Id);
-            var oldSolution = workspace.CurrentSolution;
-            var newSolution = oldSolution.AddDocument(documentId, "goo.cs", SourceText.From(source2), filePath: "src.cs");
+            var newSolution = oldSolution.AddDocument(documentId, "goo.cs", SourceText.From(source2), filePath: filePath);
             var newProject = newSolution.Projects.Single();
             var newDocument = newProject.GetDocument(documentId);
             var newSyntaxTree = await newDocument.GetSyntaxTreeAsync().ConfigureAwait(false);
 
-            workspace.TryApplyChanges(newSolution);
-
-            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
+            var baseActiveStatements = AsyncLazy.Create(ActiveStatementsMap.Empty);
+            var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
 
             var analyzer = new CSharpEditAndContinueAnalyzer(node =>
             {
@@ -748,16 +758,51 @@ class D
                 }
             });
 
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
+            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
 
-            var expectedDiagnostic = outOfMemory ?
-                $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big, "src.cs")}" :
+            var expectedDiagnostic = outOfMemory
+                ? $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}"
                 // Because the error message that is formatted into this template string includes a stacktrace with newlines, we need to replicate that behavior
                 // here so that any trailing punctuation is removed from the translated template string.
-                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error, "src.cs", "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
+                : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
+        }
+
+        [Fact]
+        public async Task AnalyzeDocumentAsync_NotSupportedByRuntime()
+        {
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+
+            using var workspace = CreateWorkspace();
+            var oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1);
+
+            var oldProject = oldSolution.Projects.Single();
+            var documentId = oldProject.Documents.Single().Id;
+            var newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newDocument = newSolution.GetDocument(documentId);
+
+            var result = await AnalyzeDocumentAsync(oldProject, newDocument, capabilities: EditAndContinueCapabilities.None);
+
+            Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEditErrors.Single().Kind);
         }
     }
 }

@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -20,13 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CloseBlockCommentCommandHandler))]
     [Order(After = nameof(BlockCommentEditingCommandHandler))]
-    internal sealed class CloseBlockCommentCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService) : ICommandHandler<TypeCharCommandArgs>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloseBlockCommentCommandHandler()
-        {
-        }
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
@@ -49,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                         if (line.End == position &&
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
-                            if (args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, out _, out _))
+                            if (_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
+                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, args.SubjectBuffer, _editorOptionsService, out _, out _, executionContext.OperationContext.UserCancellationToken))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
                                 return true;

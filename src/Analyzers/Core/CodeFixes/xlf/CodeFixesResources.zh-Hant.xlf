@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_blank_line_after_block">
         <source>Add blank line after block</source>
-        <target state="new">Add blank line after block</target>
+        <target state="translated">在區塊後面新增空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_both">
@@ -17,14 +17,49 @@
         <target state="translated">新增預設案例</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">新增明確轉換</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">新增檔案標頭</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">修正名稱違規: {0}</target>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="translated">新增成員名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="translated">新增遺失的參數節點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="translated">將參數新增至 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">將參數新增至 '{0}' (以及覆寫/執行)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">新增至 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">別名不明確類型 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="translated">將類型轉換為 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
@@ -32,9 +67,44 @@
         <target state="translated">修正所有出現之處於</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">修正名稱違規: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">將類別設為 'abstract'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">使其變成靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">讓方法同步</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">將類型設定為部份</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">將不會更新中繼資料中所找到的相關方法簽章。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="translated">移除 'async' 修飾元</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
-        <target state="new">Remove extra blank lines</target>
+        <target state="translated">移除額外的空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
@@ -42,9 +112,34 @@
         <target state="translated">移除多餘的指派</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">隱藏或設定問題</target>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="translated">移除標記</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="translated">抑制或設定問題</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="translated">接受 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="translated">接受兩者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="translated">接受底端</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="translated">接受頂端</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">
@@ -60,6 +155,11 @@
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
         <target state="translated">使用捨棄的區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="new">{0} (may change semantics)</target>
         <note />
       </trans-unit>
     </body>

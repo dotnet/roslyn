@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public virtual Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            => false;
+        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
         public virtual Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
@@ -43,5 +43,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public virtual Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
             => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public void LogAnalyzerCountSummary()
+        {
+        }
+
+        /// <summary>
+        /// Order all incremental analyzers below DiagnosticIncrementalAnalyzer
+        /// </summary>
+        public virtual int Priority => 1;
+
+        public virtual void Shutdown()
+        {
+        }
     }
 }

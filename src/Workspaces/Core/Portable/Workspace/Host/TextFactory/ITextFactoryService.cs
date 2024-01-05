@@ -23,13 +23,14 @@ namespace Microsoft.CodeAnalysis.Host
         /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be the system encoding.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
+        /// <param name="checksumAlgorithm">Algorithm to calculate content checksum.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="InvalidDataException">
         /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
-        SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default);
+        SourceText CreateText(Stream stream, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates <see cref="SourceText"/> from a reader with given <paramref name="encoding"/>.
@@ -37,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// <param name="reader">The <see cref="TextReader"/> to read the text from.</param>
         /// <param name="encoding">Specifies an encoding for the <see cref="SourceText"/>SourceText. 
         /// it could be null. but if null is given, it won't be able to calculate checksum</param>
+        /// <param name="checksumAlgorithm">Algorithm to calculate content checksum.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default);
+        SourceText CreateText(TextReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken);
     }
 }
 

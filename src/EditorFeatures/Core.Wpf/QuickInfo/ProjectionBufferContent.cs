@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     {
         private readonly ImmutableArray<SnapshotSpan> _spans;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentType _contentType;
         private readonly ITextViewRoleSet _roleSet;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         {
             _spans = spans;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _textEditorFactoryService = textEditorFactoryService;
             _contentType = contentType;
             _roleSet = roleSet ?? _textEditorFactoryService.NoRoles;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 threadingContext,
                 spans,
                 projectionBufferFactoryService,
-                editorOptionsFactoryService,
+                editorOptionsService,
                 textEditorFactoryService,
                 contentType,
                 roleSet);
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private IProjectionBuffer CreateBuffer()
         {
             return _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                _editorOptionsFactoryService.GlobalOptions, _contentType, _spans.ToArray());
+                _editorOptionsService.Factory.GlobalOptions, _contentType, _spans.ToArray());
         }
     }
 }

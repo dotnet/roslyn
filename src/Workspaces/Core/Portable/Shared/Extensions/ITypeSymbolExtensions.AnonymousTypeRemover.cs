@@ -11,13 +11,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class AnonymousTypeRemover : SymbolVisitor<ITypeSymbol>
+        private class AnonymousTypeRemover(Compilation compilation) : SymbolVisitor<ITypeSymbol>
         {
-            private readonly Compilation _compilation;
-
-            public AnonymousTypeRemover(Compilation compilation)
-                => _compilation = compilation;
-
             public override ITypeSymbol DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
@@ -32,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
             public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
@@ -45,17 +40,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsNormalAnonymousType() ||
-                    symbol.IsAnonymousDelegateType())
-                {
-                    return _compilation.ObjectType;
-                }
+                if (symbol.IsAnonymousType())
+                    return compilation.ObjectType;
 
                 var arguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
                 if (arguments.SequenceEqual(symbol.TypeArguments))
-                {
                     return symbol;
-                }
 
                 return symbol.ConstructedFrom.Construct(arguments.ToArray());
             }
@@ -68,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return _compilation.CreatePointerTypeSymbol(elementType);
+                return compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)

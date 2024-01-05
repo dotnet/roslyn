@@ -11,8 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -94,12 +94,21 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
         /// </summary>
-        public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
+        public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
 
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
-        public HostLanguageServices LanguageServices => _projectState.LanguageServices;
+        [Obsolete($"Use {nameof(Services)} instead.")]
+#pragma warning disable CS0618 // Member is obsolete -- shouldn't be reported here https://github.com/dotnet/roslyn/issues/66409
+        public HostLanguageServices LanguageServices => _projectState.LanguageServices.HostLanguageServices;
+#pragma warning restore
+
+        /// <summary>
+        /// Immutable snapshot of language services from the host environment associated with this project's language.
+        /// Use this over <see cref="LanguageServices"/> when possible.
+        /// </summary>
+        public LanguageServices Services => _projectState.LanguageServices;
 
         /// <summary>
         /// The language associated with the project.
@@ -256,14 +265,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
+        {
+            var document = GetDocument(documentId) ?? GetAdditionalDocument(documentId) ?? GetAnalyzerConfigDocument(documentId);
+            if (document != null)
+                return document;
+
+            return await GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Gets all source generated documents in this project.
         /// </summary>
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
         {
-            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
-            return generatedDocumentStates.States.Select(state =>
+            return generatedDocumentStates.States.Values.Select(state =>
                 ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 
@@ -274,21 +295,26 @@ namespace Microsoft.CodeAnalysis
 
         public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
         {
+            // Immediately shortcircuit out if we know this is not a doc-id corresponding to an SG document.
+            if (!documentId.IsSourceGenerated)
+                return null;
+
+            // User incorrect called into us with a doc id for a different project.  Ideally we'd throw here, but we've
+            // always been resilient to this misuse since the start of roslyn, so we just quick-bail instead.
+            if (this.Id != documentId.ProjectId)
+                return null;
+
             // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
             if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
-            {
                 return sourceGeneratedDocument;
-            }
 
             // We'll have to run generators if we haven't already and now try to find it.
-            var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
+            var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
             var generatedDocumentState = generatedDocumentStates.GetState(documentId);
-            if (generatedDocumentState != null)
-            {
-                return GetOrCreateSourceGeneratedDocument(generatedDocumentState);
-            }
+            if (generatedDocumentState is null)
+                return null;
 
-            return null;
+            return GetOrCreateSourceGeneratedDocument(generatedDocumentState);
         }
 
         internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
@@ -304,38 +330,125 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
         {
+            // Immediately shortcircuit out if we know this is not a doc-id corresponding to an SG document.
+            if (!documentId.IsSourceGenerated)
+                return null;
+
+            // User incorrect called into us with a doc id for a different project.  Ideally we'd throw here, but we've
+            // always been resilient to this misuse since the start of roslyn, so we just quick-bail instead.
+            if (this.Id != documentId.ProjectId)
+                return null;
+
             // Easy case: do we already have the SourceGeneratedDocument created?
             if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
-            {
                 return document;
-            }
 
             // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
             // try to fetch the state.
-            var documentState = _solution.State.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-
+            var documentState = _solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
             if (documentState == null)
-            {
                 return null;
-            }
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+            return _solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
+            return ContainsSymbolsAsync(
+                (index, cancellationToken) => index.ProbablyContainsIdentifier(name) || index.ProbablyContainsEscapedIdentifier(name),
+                cancellationToken);
         }
 
-        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsWithNameAsync(
+                typeName => name == typeName,
+                filter,
+                cancellationToken);
+        }
+
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsDeclarationAsync(
+                (index, cancellationToken) =>
+                {
+                    foreach (var info in index.DeclaredSymbolInfos)
+                    {
+                        if (FilterMatches(info, filter) && predicate(info.Name))
+                            return true;
+                    }
+
+                    return false;
+                },
+                cancellationToken);
+
+            static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
+            {
+                switch (info.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Namespace:
+                        return (filter & SymbolFilter.Namespace) != 0;
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Delegate:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return (filter & SymbolFilter.Type) != 0;
+                    case DeclaredSymbolInfoKind.Constant:
+                    case DeclaredSymbolInfoKind.Constructor:
+                    case DeclaredSymbolInfoKind.EnumMember:
+                    case DeclaredSymbolInfoKind.Event:
+                    case DeclaredSymbolInfoKind.ExtensionMethod:
+                    case DeclaredSymbolInfoKind.Field:
+                    case DeclaredSymbolInfoKind.Indexer:
+                    case DeclaredSymbolInfoKind.Method:
+                    case DeclaredSymbolInfoKind.Property:
+                        return (filter & SymbolFilter.Member) != 0;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(info.Kind);
+                }
+            }
+        }
+
+        private Task<bool> ContainsSymbolsAsync(
+            Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            return ContainsAsync(async d =>
+            {
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
+            });
+        }
+
+        private Task<bool> ContainsDeclarationAsync(
+            Func<TopLevelSyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            return ContainsAsync(async d =>
+            {
+                var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
+            });
+        }
+
+        private async Task<bool> ContainsAsync(Func<Document, Task<bool>> predicateAsync)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var results = await Task.WhenAll(this.Documents.Select(predicateAsync)).ConfigureAwait(false);
+            return results.Any(b => b);
+        }
 
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
             (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
@@ -355,7 +468,7 @@ namespace Microsoft.CodeAnalysis
         /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-            => _solution.State.TryGetCompilation(this.Id, out compilation);
+            => _solution.CompilationState.TryGetCompilation(this.Id, out compilation);
 
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.
@@ -366,14 +479,14 @@ namespace Microsoft.CodeAnalysis
         /// return the same value if called multiple times.
         /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetCompilationAsync(_projectState, cancellationToken);
+            => _solution.CompilationState.GetCompilationAsync(_projectState, cancellationToken);
 
         /// <summary>
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
-            => _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
+            => _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
 
         /// <summary>
         /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
@@ -403,14 +516,14 @@ namespace Microsoft.CodeAnalysis
         /// The most recent version of the project, its documents and all dependent projects and documents.
         /// </summary>
         public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
+            => _solution.CompilationState.GetDependentVersionAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project including the semantics of referenced projects.
         /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
         /// </summary>
         public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
-            => _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+            => _solution.CompilationState.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project not including the semantics of referenced projects.
@@ -418,6 +531,34 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
             => _projectState.GetSemanticVersionAsync(cancellationToken);
+
+        /// <summary>
+        /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
+        /// transitive dependencies.
+        /// </summary>
+        /// <remarks>
+        /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
+        /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
+        /// <list type="bullet">
+        ///    <item>Files inside the current project</item>
+        ///    <item>Project properties of the current project</item>
+        ///    <item>Visible files in referenced projects</item>
+        ///    <item>Project properties in referenced projects</item>
+        /// </list>
+        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
+        /// semantic work.   
+        /// 
+        /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+        /// <list type="bullet">
+        ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+        ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+        /// </list>   
+        /// </para>
+        /// </remarks>
+        internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
+            => _solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// Creates a new instance of this project updated to have the new assembly name.
@@ -649,13 +790,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+        internal AnalyzerConfigData? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
             => this.Name;
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
-            => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+            => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
     }
 }

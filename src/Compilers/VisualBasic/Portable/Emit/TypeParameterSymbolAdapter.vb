@@ -22,6 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericMethodParameter
         Implements IGenericTypeParameter
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Return False
@@ -201,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim typeRef As ITypeReference = _module.Translate(t,
-                                                                  syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                                  syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                                                   diagnostics:=context.Diagnostics)
 
                 Yield t.GetTypeRefWithAttributes(AdaptedTypeParameterSymbol.DeclaringCompilation, typeRef)
@@ -209,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If AdaptedTypeParameterSymbol.HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output
                 Dim typeRef As INamedTypeReference = _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
-                                             DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+                                             DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), context.Diagnostics)
 
                 Yield New Cci.TypeReferenceWithAttributes(typeRef)
             End If

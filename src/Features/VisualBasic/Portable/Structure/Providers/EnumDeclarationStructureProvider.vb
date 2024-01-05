@@ -11,11 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class EnumDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of EnumStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(enumDeclaration As EnumStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  enumDeclaration As EnumStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(enumDeclaration, spans, optionProvider)
+            CollectCommentsRegions(enumDeclaration, spans, options)
 
             Dim block = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
             If Not block?.EndEnumStatement.IsMissing Then
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=enumDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Type, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndEnumStatement, spans, optionProvider)
+                CollectCommentsRegions(block.EndEnumStatement, spans, options)
             End If
         End Sub
     End Class

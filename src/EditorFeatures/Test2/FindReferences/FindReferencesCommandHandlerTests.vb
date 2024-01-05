@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -13,7 +13,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
-        <WorkItem(47594, "https://developercommunity.visualstudio.com/content/problem/47594/c-postfix-operators-inhibit-find-all-references-sh.html")>
+        <WorkItem("https://developercommunity.visualstudio.com/content/problem/47594/c-postfix-operators-inhibit-find-all-references-sh.html")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24794"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSelection() As Task
             Dim source = "
@@ -41,6 +41,7 @@ class C
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
                     New MockStreamingFindReferencesPresenter(context),
+                    workspace.GlobalOptions,
                     listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
@@ -73,12 +74,12 @@ class C
             Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
             End Sub
 
-            Public Function StartSearch(title As String, supportsReferences As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
-                Return _context
+            Public Function StartSearch(title As String, supportsReferences As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
+                Return (_context, CancellationToken.None)
             End Function
 
-            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
-                Return _context
+            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+                Return (_context, CancellationToken.None)
             End Function
         End Class
     End Class

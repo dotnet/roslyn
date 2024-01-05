@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
@@ -13,1035 +11,1631 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
 {
-    public partial class PopulateSwitchStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        public PopulateSwitchStatementTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task OnlyOnFirstToken()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
+    [Fact]
+    public async Task OnlyOnFirstToken()
     {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
-
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch ([||]e)
+        await TestMissingInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch ([||]e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task AllMembersAndDefaultExist()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task AllMembersAndDefaultExist()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestMissingInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task AllMembersExist_NotDefault()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task AllMembersExist_NotDefault()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_NotDefault()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_WithDefault()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """, index: 2);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_WithDefault()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum : long
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum : long
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum : long
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                enum MyEnum : long
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """, index: 2);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.FizzBuzz:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                default:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            default:
+                                break;
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                default:
-                    break;
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            default:
+                                break;
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NoMembersExist0()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NoMembersExist0()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                    break;
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                                break;
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}", index: 0);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NoMembersExist1()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """, index: 0);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NoMembersExist1()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NoMembersExist2()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """, index: 1);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NoMembersExist2()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                    break;
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                                break;
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
+            """, index: 2);
     }
-}", index: 2);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task UsingStaticEnum_AllMembersExist()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using static System.IO.FileMode;
-
-namespace ConsoleApplication1
-{
-    class MyClass
+    [Fact]
+    public async Task UsingStaticEnum_AllMembersExist()
     {
-        void Method()
-        {
-            var e = Append;
-            [||]switch (e)
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using static System.IO.FileMode;
+
+            namespace ConsoleApplication1
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        [||]switch (e)
+                        {
+                            case CreateNew:
+                                break;
+                            case Create:
+                                break;
+                            case Open:
+                                break;
+                            case OpenOrCreate:
+                                break;
+                            case Truncate:
+                                break;
+                            case Append:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using static System.IO.FileMode;
-
-namespace ConsoleApplication1
-{
-    class MyClass
+    [Fact]
+    public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
     {
-        void Method()
-        {
-            var e = Append;
-            [||]switch (e)
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using static System.IO.FileMode;
+
+            namespace ConsoleApplication1
             {
-                case CreateNew:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Open:
-                    break;
-                case Append:
-                    break;
-                case Create:
-                    break;
-                default:
-                    break;
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        [||]switch (e)
+                        {
+                            case CreateNew:
+                                break;
+                            case OpenOrCreate:
+                                break;
+                            case Truncate:
+                                break;
+                            case Open:
+                                break;
+                            case Append:
+                                break;
+                            case Create:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task UsingStaticEnum_MembersExist()
-        {
-            await TestInRegularAndScriptAsync(
-@"using static System.IO.FileMode;
-
-namespace ConsoleApplication1
-{
-    class MyClass
+    [Fact]
+    public async Task UsingStaticEnum_MembersExist()
     {
-        void Method()
-        {
-            var e = Append;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            using static System.IO.FileMode;
+
+            namespace ConsoleApplication1
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                default:
-                    break;
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        [||]switch (e)
+                        {
+                            case CreateNew:
+                                break;
+                            case Create:
+                                break;
+                            case Open:
+                                break;
+                            case OpenOrCreate:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-@"using static System.IO.FileMode;
+            """,
+            """
+            using static System.IO.FileMode;
 
-namespace ConsoleApplication1
-{
-    class MyClass
-    {
-        void Method()
-        {
-            var e = Append;
-            switch (e)
+            namespace ConsoleApplication1
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        switch (e)
+                        {
+                            case CreateNew:
+                                break;
+                            case Create:
+                                break;
+                            case Open:
+                                break;
+                            case OpenOrCreate:
+                                break;
+                            case Truncate:
+                                break;
+                            case Append:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task UsingStaticEnum_NoMembersExist()
-        {
-            await TestInRegularAndScriptAsync(
-@"using static System.IO.FileMode;
-
-namespace ConsoleApplication1
-{
-    class MyClass
+    [Fact]
+    public async Task UsingStaticEnum_NoMembersExist()
     {
-        void Method()
-        {
-            var e = Append;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            using static System.IO.FileMode;
+
+            namespace ConsoleApplication1
             {
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        [||]switch (e)
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-@"using static System.IO.FileMode;
+            """,
+            """
+            using static System.IO.FileMode;
 
-namespace ConsoleApplication1
-{
-    class MyClass
-    {
-        void Method()
-        {
-            var e = Append;
-            switch (e)
+            namespace ConsoleApplication1
             {
-                case CreateNew:
-                    break;
-                case Create:
-                    break;
-                case Open:
-                    break;
-                case OpenOrCreate:
-                    break;
-                case Truncate:
-                    break;
-                case Append:
-                    break;
-                default:
-                    break;
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = Append;
+                        switch (e)
+                        {
+                            case CreateNew:
+                                break;
+                            case Create:
+                                break;
+                            case Open:
+                                break;
+                            case OpenOrCreate:
+                                break;
+                            case Truncate:
+                                break;
+                            case Append:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
-        }
-    }
-}", index: 2);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    [System.Obsolete]
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
+            """, index: 2);
     }
 
-    class MyClass
+    [Fact]
+    public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
     {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-            }
-        }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    [System.Obsolete]
-    enum MyEnum
-    {
-        Fizz,
-        Buzz,
-        FizzBuzz
-    }
+                [System.Obsolete]
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-    class MyClass
-    {
-        void Method()
-        {
-            var e = MyEnum.Fizz;
-            switch (e)
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}", index: 2);
-        }
+                [System.Obsolete]
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_EnumIsNested()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
-{
-    class MyClass
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """, index: 2);
+    }
+
+    [Fact]
+    public async Task NotAllMembersExist_NotDefault_EnumIsNested()
     {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                class MyClass
+                {
+                    enum MyEnum
+                    {
+                        Fizz,
+                        Buzz,
+                        FizzBuzz
+                    }
+
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                class MyClass
+                {
+                    enum MyEnum
+                    {
+                        Fizz,
+                        Buzz,
+                        FizzBuzz
+                    }
+
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """, index: 2);
+    }
+
+    [Fact]
+    public async Task NotAllMembersExist_SwitchIsNotEnum()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace ConsoleApplication1
+            {
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = "test";
+                        [||]switch (e)
+                        {
+                            case "test1":
+                            case "test1":
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NotAllMembersExist_NotDefault_UsingConstants()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            enum MyEnum
+            {
+                Fizz,
+                Buzz,
+                FizzBuzz
+            }
+
+            class MyClass
+            {
+                void Method()
+                {
+                    var e = MyEnum.Fizz;
+                    [||]switch (e)
+                    {
+                        case (MyEnum)0:
+                        case (MyEnum)1:
+                            break;
+                    }
+                }
+            }
+            """,
+            """
+            enum MyEnum
+            {
+                Fizz,
+                Buzz,
+                FizzBuzz
+            }
+
+            class MyClass
+            {
+                void Method()
+                {
+                    var e = MyEnum.Fizz;
+                    switch (e)
+                    {
+                        case (MyEnum)0:
+                        case (MyEnum)1:
+                            break;
+                        case MyEnum.FizzBuzz:
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            """, index: 2);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13455")]
+    public async Task AllMissingTokens()
+    {
+        await TestInRegularAndScriptAsync(
+        """
         enum MyEnum
         {
-            Fizz,
-            Buzz,
-            FizzBuzz
+            Fizz
         }
-
-        void Method()
+        class MyClass
         {
-            var e = MyEnum.Fizz;
-            [||]switch (e)
+            void Method()
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
+                var e = MyEnum.Fizz;
+                [||]switch (e)
             }
         }
-    }
-}",
-@"namespace ConsoleApplication1
-{
-    class MyClass
-    {
+        """,
+        """
         enum MyEnum
         {
-            Fizz,
-            Buzz,
-            FizzBuzz
+            Fizz
         }
-
-        void Method()
+        class MyClass
         {
-            var e = MyEnum.Fizz;
-            switch (e)
+            void Method()
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
+                var e = MyEnum.Fizz;
+                switch (e)
+                {
+                    case MyEnum.Fizz:
+                        break;
+                }
             }
         }
+        """);
     }
-}", index: 2);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_SwitchIsNotEnum()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-namespace ConsoleApplication1
-{
-    class MyClass
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")]
+    public async Task TestAddMissingCasesForNullableEnum()
     {
-        void Method()
-        {
-            var e = ""test"";
-            [||]switch (e)
+        await TestInRegularAndScriptAsync(
+            """
+            public class Program
             {
-                case ""test1"":
-                case ""test1"":
-                default:
-                    break;
+                void Main() 
+                {
+                    Bar? bar;
+                    [||]switch (bar)
+                    {
+                        case Bar.Option1:
+                            break;
+                        case Bar.Option2:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
             }
-        }
+
+            public enum Bar
+            {
+                Option1, 
+                Option2, 
+                Option3,
+            }
+            """,
+            """
+            public class Program
+            {
+                void Main() 
+                {
+                    Bar? bar;
+                    switch (bar)
+                    {
+                        case Bar.Option1:
+                            break;
+                        case Bar.Option2:
+                            break;
+                        case null:
+                            break;
+                        case Bar.Option3:
+                            break;
+                    }
+                }
+            }
+
+            public enum Bar
+            {
+                Option1, 
+                Option2, 
+                Option3,
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task NotAllMembersExist_NotDefault_UsingConstants()
-        {
-            await TestInRegularAndScriptAsync(
-@"enum MyEnum
-{
-    Fizz,
-    Buzz,
-    FizzBuzz
-}
-
-class MyClass
-{
-    void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
+    public async Task TestForNullableEnum_NullableEnabled()
     {
-        var e = MyEnum.Fizz;
-        [||]switch (e)
-        {
-            case (MyEnum)0:
-            case (MyEnum)1:
-                break;
-        }
-    }
-}",
-@"enum MyEnum
-{
-    Fizz,
-    Buzz,
-    FizzBuzz
-}
+        await TestInRegularAndScript1Async(
+            """
+            #nullable enable
 
-class MyClass
-{
-    void Method()
-    {
-        var e = MyEnum.Fizz;
-        switch (e)
-        {
-            case (MyEnum)0:
-            case (MyEnum)1:
-                break;
-            case MyEnum.FizzBuzz:
-                break;
-            default:
-                break;
-        }
-    }
-}", index: 2);
-        }
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    [||]switch (myEnumValue)
+                    {
+                    }
+                }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
-        public async Task AllMissingTokens()
-        {
-            await TestInRegularAndScriptAsync(
-            @"
-enum MyEnum
-{
-    Fizz
-}
-class MyClass
-{
-    void Method()
-    {
-        var e = MyEnum.Fizz;
-        [||]switch (e)
-    }
-}
-",
-            @"
-enum MyEnum
-{
-    Fizz
-}
-class MyClass
-{
-    void Method()
-    {
-        var e = MyEnum.Fizz;
-        switch (e)
-        {
-            case MyEnum.Fizz:
-                break;
-        }
-    }
-}");
-        }
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """,
+            """
+            #nullable enable
 
-        [Fact]
-        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
-        public async Task TestAddMissingCasesForNullableEnum()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class Program
-{
-    void Main() 
-    {
-        Bar? bar;
-        [||]switch (bar)
-        {
-            case Bar.Option1:
-                break;
-            case Bar.Option2:
-                break;
-            case null:
-                break;
-        }
-    }
-}
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    switch (myEnumValue)
+                    {
+                        case MyEnum.Value1:
+                            break;
+                        case MyEnum.Value2:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
 
-public enum Bar
-{
-    Option1, 
-    Option2, 
-    Option3,
-}
-",
-@"public class Program
-{
-    void Main() 
-    {
-        Bar? bar;
-        switch (bar)
-        {
-            case Bar.Option1:
-                break;
-            case Bar.Option2:
-                break;
-            case null:
-                break;
-            case Bar.Option3:
-                break;
-        }
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """);
     }
-}
 
-public enum Bar
-{
-    Option1, 
-    Option2, 
-    Option3,
-}
-");
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
+    public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    [||]switch (myEnumValue)
+                    {
+                        case null:
+                            throw null;
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """,
+            """
+            #nullable enable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    switch (myEnumValue)
+                    {
+                        case null:
+                            throw null;
+                        case MyEnum.Value1:
+                            break;
+                        case MyEnum.Value2:
+                            break;
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
+    public async Task TestForNullableEnum_NullableDisabled()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            #nullable disable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    [||]switch (myEnumValue)
+                    {
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """,
+            """
+            #nullable disable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    switch (myEnumValue)
+                    {
+                        case MyEnum.Value1:
+                            break;
+                        case MyEnum.Value2:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
+    public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            #nullable disable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    [||]switch (myEnumValue)
+                    {
+                        case null:
+                            throw null;
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """,
+            """
+            #nullable disable
+
+            static class TestClass
+            {
+                public static void Test(MyEnum? myEnumValue)
+                {
+                    switch (myEnumValue)
+                    {
+                        case null:
+                            throw null;
+                        case MyEnum.Value1:
+                            break;
+                        case MyEnum.Value2:
+                            break;
+                    }
+                }
+            }
+
+            enum MyEnum
+            {
+                Value1, Value2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
+    public async Task TestNotInSwitchWithUnknownType1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    switch[||]
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
+    public async Task TestNotInSwitchWithUnknownType2()
+    {
+        // Parser currently treats "var v = null switch" as:
+        //
+        // var v = null <- ';' is "missing"
+        // switch
+        //
+        // So switch is a statement here.
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = null switch[||]
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
+    public async Task NotOnCompleteBoolean1()
+    {
+        await TestMissingAsync(
+            """
+            public class Sample
+            {
+                public string Method(bool boolean)
+                {
+                    [||]switch (boolean)
+                    {
+                        case true: return "true";
+                        case false: "false";
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
+    public async Task NotOnCompleteBoolean2()
+    {
+        await TestMissingAsync(
+            """
+            public class Sample
+            {
+                public string Method(bool? boolean)
+                {
+                    [||]switch (boolean)
+                    {
+                        case true: return "true";
+                        case false: return "false";
+                        case null: return "null";
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
+    public async Task OnIncompleteBoolean1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class Sample
+            {
+                public string Method(bool boolean)
+                {
+                    [||]switch (boolean)
+                    {
+                        case true: return "true";
+                    }
+                }
+            }
+            """,
+            """
+            public class Sample
+            {
+                public string Method(bool boolean)
+                {
+                    switch (boolean)
+                    {
+                        case true: return "true";
+                        default:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
+    public async Task OnIncompleteBoolean2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class Sample
+            {
+                public string Method(bool? boolean)
+                {
+                    [||]switch (boolean)
+                    {
+                        case true: return "true";
+                        case false: return "false";
+                    }
+                }
+            }
+            """,
+            """
+            public class Sample
+            {
+                public string Method(bool? boolean)
+                {
+                    switch (boolean)
+                    {
+                        case true: return "true";
+                        case false: return "false";
+                        default:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
+    public async Task NotWithPatternDefault1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
+    public async Task TestWithPatternDefault_NonConstantGuard1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method(int i)
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x when i > 0:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method(int i)
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x when i > 0:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
+    public async Task TestNotWithPatternDefault_ConstantGuard1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method(int i)
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x when true:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
+    public async Task TestWithPatternDefault_NonConstantTrueGuard()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method(int i)
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x when false:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method(int i)
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz:
+                            case MyEnum.Buzz:
+                            case MyEnum.FizzBuzz:
+                                break;
+                            case var x when false:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
     }
 }

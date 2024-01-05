@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -13,24 +16,32 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
     internal static class AliasSymbolCache
     {
-        // NOTE : I chose to cache on compilation assuming this cache will be quite small. usually number of times alias is used is quite small.
-        //        but if that turns out not true, we can move this cache to be based on semantic model. unlike compilation that would be cached
-        //        in compilation cache in certain host (VS), semantic model comes and goes more frequently which will release cache more often.
         private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new();
-        private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback s_createTreeMap = c => new TreeMap();
 
-        public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol? aliasSymbol)
+        /// <summary>
+        /// Returns <see langword="true"/> if items were already cached for this <paramref name="semanticModel"/> and
+        /// <paramref name="namespaceId"/>, <see langword="false"/> otherwise.  Callers should use this value to
+        /// determine if they should call <see cref="AddAliasSymbols"/> or not.  A result of <see langword="true"/> does
+        /// *not* mean that <paramref name="aliasSymbol"/> is non-<see langword="null"/>.
+        /// </summary>
+        public static bool TryGetAliasSymbol(
+            SemanticModel semanticModel,
+            int namespaceId,
+            INamespaceOrTypeSymbol targetSymbol,
+            out IAliasSymbol? aliasSymbol)
         {
-            // TODO: given semantic model must be not speculative semantic model for now. 
-            // currently it can't be checked since it is not exposed to common layer yet.
-            // once exposed, this method itself will make sure it use original semantic model
+            semanticModel = semanticModel.GetOriginalSemanticModel();
+
             aliasSymbol = null;
             if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out var treeMap) ||
                 !treeMap.TryGetValue((semanticModel.SyntaxTree, namespaceId), out var symbolMap))
             {
+                // maps aren't available.  Caller needs to call back into us to add aliases for this scope.
                 return false;
             }
 
+            // map was available.  see if it contains an alias to this target.  This is considered successful regardless
+            // of whether we find a mapping or not.
             symbolMap.TryGetValue(targetSymbol, out aliasSymbol);
             return true;
         }
@@ -38,29 +49,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static void AddAliasSymbols(SemanticModel semanticModel, int namespaceId, IEnumerable<IAliasSymbol> aliasSymbols)
         {
             // given semantic model must be the original semantic model for now
-            var treeMap = s_treeAliasMap.GetValue(semanticModel.Compilation, s_createTreeMap);
+            var treeMap = s_treeAliasMap.GetValue(semanticModel.Compilation, static _ => new TreeMap());
 
             // check again to see whether somebody has beaten us
             var key = (tree: semanticModel.SyntaxTree, namespaceId);
             if (treeMap.ContainsKey(key))
-            {
                 return;
-            }
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
             foreach (var alias in aliasSymbols)
             {
                 if (builder.ContainsKey(alias.Target))
-                {
                     continue;
-                }
 
                 // only put the first one.
                 builder.Add(alias.Target, alias);
             }
 
-            // Use namespace id rather than holding onto namespace node directly, that will keep the tree alive as long as
-            // the compilation is alive. In the current design, a node can come and go even if compilation is alive through recoverable tree.
+            // Use namespace id rather than holding onto namespace node directly, that will keep the tree alive as long
+            // as the compilation is alive. In the current design, a node can come and go even if compilation is alive
+            // through recoverable tree.
             treeMap.TryAdd(key, builder.ToImmutable());
         }
     }

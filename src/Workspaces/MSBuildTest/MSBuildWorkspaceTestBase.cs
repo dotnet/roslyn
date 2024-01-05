@@ -152,8 +152,26 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
+            => CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, skipUnrecognizedProjects: false, additionalProperties: additionalProperties);
+
+        protected static MSBuildWorkspace CreateMSBuildWorkspace(
+            bool throwOnWorkspaceFailed = true,
+            bool skipUnrecognizedProjects = false,
+            (string key, string value)[] additionalProperties = null)
         {
-            return MSBuildWorkspace.Create(CreateProperties(additionalProperties));
+            additionalProperties ??= Array.Empty<(string key, string value)>();
+            var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
+            if (throwOnWorkspaceFailed)
+            {
+                workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            }
+
+            if (skipUnrecognizedProjects)
+            {
+                workspace.SkipUnrecognizedProjects = true;
+            }
+
+            return workspace;
         }
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(HostServices hostServices, params (string key, string value)[] additionalProperties)
@@ -172,6 +190,24 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
 
             return properties;
+        }
+
+        protected static async Task AssertThrowsExceptionForInvalidPath(Func<Task> testCode)
+        {
+#if NET
+
+            // On .NET Core, invalid file paths don't throw exceptions when calling Path manipulation APIs, they just throw FileNotFound once you
+            // actually try to use the path
+            await Assert.ThrowsAsync<FileNotFoundException>(testCode);
+
+#else
+
+            // On .NET Framework, invalid file paths throw exceptions that we caught as IOExceptions we re-raise an InvalidOperationException.
+            // We'll assert the paths we test with contain "Invalid" to have some confidence this isn't an unrelated exception being thrown.
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(testCode);
+            Assert.Contains("Invalid", exception.Message);
+
+#endif
         }
     }
 }

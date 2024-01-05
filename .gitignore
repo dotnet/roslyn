@@ -8,18 +8,20 @@
 *.sln.docstates
 *.svclog
 .vs/
+.vscode/settings.json
 
 # Build results
 [Aa]rtifacts/
 [Dd]ebug/
 [Rr]elease/
 [Bb]inaries/
-x64/
 [Bb]in/
 [Oo]bj/
 .dotnet/
 .tools/
 .packages/
+.nuget/
+.complog/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/

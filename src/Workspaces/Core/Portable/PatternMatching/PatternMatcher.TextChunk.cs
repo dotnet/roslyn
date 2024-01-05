@@ -5,7 +5,7 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
         /// character spans, one for AA and one for BB.
         /// </summary>
+        [NonCopyable]
         private struct TextChunk : IDisposable
         {
             public readonly string Text;
@@ -29,27 +30,32 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
             /// character spans, one for AA and one for BB.
             /// </summary>
-            public readonly ArrayBuilder<TextSpan> PatternHumps;
+            public TemporaryArray<TextSpan> PatternHumps;
 
-            public readonly WordSimilarityChecker SimilarityChecker;
+            /// <summary>
+            /// Not readonly as this value caches data within it, and so it needs to be able to mutate.
+            /// </summary>
+            public WordSimilarityChecker SimilarityChecker;
 
             public readonly bool IsLowercase;
 
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
-                this.PatternHumps = StringBreaker.GetCharacterParts(text);
+                PatternHumps = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddCharacterParts(text, ref PatternHumps);
+
                 this.SimilarityChecker = allowFuzzingMatching
-                    ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
-                    : null;
+                    ? new WordSimilarityChecker(text, substringsAreSimilar: false)
+                    : default;
 
                 IsLowercase = !ContainsUpperCaseLetter(text);
             }
 
             public void Dispose()
             {
-                this.PatternHumps.Free();
-                this.SimilarityChecker?.Free();
+                this.PatternHumps.Dispose();
+                this.SimilarityChecker.Dispose();
             }
         }
     }

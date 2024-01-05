@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Note that in metadata, you can encounter methods that are static (shared) or non-virtual 
                     ' (for example TLBIMP VtblGap members), even though you can't define those in source.
                     Return sym.ContainingType.IsInterfaceType() AndAlso
-                           Not sym.IsShared AndAlso Not sym.IsNotOverridable AndAlso
+                           Not sym.IsNotOverridable AndAlso
                            (sym.IsMustOverride OrElse sym.IsOverridable)
                 Case Else
                     Return False
@@ -329,6 +329,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(sym.Kind)
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' Returns the parameters of a given method or property.
+        ''' </summary>
+        <Extension()>
+        Friend Function GetParameters(sym As Symbol) As ImmutableArray(Of ParameterSymbol)
+            Select Case sym.Kind
+                Case SymbolKind.Method
+                    Return DirectCast(sym, MethodSymbol).Parameters
+                Case SymbolKind.Property
+                    Return DirectCast(sym, PropertySymbol).Parameters
+                Case Else
+                    Return ImmutableArray(Of ParameterSymbol).Empty
             End Select
         End Function
 
@@ -465,6 +480,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
             Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
+        End Function
+
+        <Extension>
+        Friend Function IsRequired(member As Symbol) As Boolean
+            Return If(TryCast(member, PropertySymbol)?.IsRequired,
+                      If(TryCast(member, FieldSymbol)?.IsRequired,
+                         False))
         End Function
     End Module
 End Namespace

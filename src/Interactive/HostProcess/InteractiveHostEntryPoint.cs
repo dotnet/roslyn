@@ -3,24 +3,36 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
     internal static class InteractiveHostEntryPoint
     {
-        [SupportedOSPlatform("windows")]
         private static async Task<int> Main(string[] args)
         {
-            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
             // Disables Windows Error Reporting for the process, so that the process fails fast.
             SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
+
+            Contract.ThrowIfFalse(args.Length == 4, "Expecting arguments: <pipe name> <client process id> <culture name> <ui culture name>");
+
+            var pipeName = args[0];
+            var clientProcessId = int.Parse(args[1], CultureInfo.InvariantCulture);
+            var culture = new CultureInfo(args[2]);
+            var uiCulture = new CultureInfo(args[3]);
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = uiCulture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = uiCulture;
 
             Control? control = null;
             using (var resetEvent = new ManualResetEventSlim(false))
@@ -43,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             try
             {
-                await InteractiveHost.Service.RunServerAsync(args, invokeOnMainThread).ConfigureAwait(false);
+                await InteractiveHost.Service.RunServerAsync(pipeName, clientProcessId, invokeOnMainThread).ConfigureAwait(false);
                 return 0;
             }
             catch (Exception e)
@@ -53,11 +65,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode SetErrorMode(ErrorMode mode);
 
-        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode GetErrorMode();
 

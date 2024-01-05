@@ -110,6 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 If Not node.IntoKeyword.IsMissing Then
                     result = HelpKeywords.QueryAggregateInto
                 End If
+
                 result = HelpKeywords.QueryAggregate
             End Sub
 
@@ -414,6 +415,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 If node.KeyKeyword.Span.IntersectsWith(_span) Then
                     result = HelpKeywords.AnonymousKey
                 End If
+            End Sub
+
+            Public Overrides Sub VisitNameOfExpression(node As NameOfExpressionSyntax)
+                result = Keyword(SyntaxKind.NameOfKeyword)
             End Sub
 
             Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)

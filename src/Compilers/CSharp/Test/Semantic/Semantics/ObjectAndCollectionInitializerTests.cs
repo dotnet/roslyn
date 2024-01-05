@@ -2854,7 +2854,7 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ',' expected
                 //         var x = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
                 // CS1513: } expected
                 //         var x = 1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 29),
@@ -2906,7 +2906,7 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
                 // CS1003: Syntax error, ',' expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
                 // CS1002: ; expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
@@ -3163,7 +3163,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 46),
                 // CS1003: Syntax error, ',' expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
                 // CS1001: Identifier expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),
@@ -3510,7 +3510,7 @@ class X : Base
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
                           "void X.Add(X x)"},
-                         symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
+                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
@@ -3777,6 +3777,77 @@ class C : System.Collections.Generic.List<C>
             {
                 symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
                 Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_NoConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<string, string> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Same(typeInfo.Type, typeInfo.ConvertedType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitReferenceConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitBoxingConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { 1, 2 } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Boxing, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
             }
         }
 

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
         }
 
-        public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception> createException = null)
+        public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception>? createException = null)
         {
             switch (mode)
             {
                 case DiagnosticReportingMode.Throw:
-                    if (createException != null)
+                    if (createException is not null)
                     {
                         throw createException(message);
                     }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid {nameof(DiagnosticReportingMode)} specified: {mode}", nameof(mode));
+                    throw new ArgumentException(string.Format(WorkspaceMSBuildResources.Invalid_0_specified_1, nameof(DiagnosticReportingMode), nameof(mode)), nameof(mode));
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _workspace.OnWorkspaceFailed(diagnostic);
         }
 
-        public void Report(DiagnosticLog log)
+        public void Report(IEnumerable<DiagnosticLogItem> log)
         {
             foreach (var logItem in log)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private static string GetMSBuildFailedMessage(string projectFilePath, string message)
-            => string.IsNullOrWhiteSpace(message)
+            => RoslynString.IsNullOrWhiteSpace(message)
                 ? string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0, projectFilePath)
                 : string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
     }

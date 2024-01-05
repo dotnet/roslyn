@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Core;
         internal override bool UseDefaultInitializationFile => false;
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53392")]
         public async Task StackOverflow()
         {
             var process = Host.TryGetProcess();

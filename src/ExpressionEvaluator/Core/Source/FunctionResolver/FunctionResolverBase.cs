@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool ShouldEnableFunctionResolver(TProcess process);
         internal abstract IEnumerable<TModule> GetAllModules(TProcess process);
         internal abstract string GetModuleName(TModule module);
-        internal abstract MetadataReader GetModuleMetadata(TModule module);
+        internal abstract unsafe bool TryGetMetadata(TModule module, out byte* pointer, out int length);
         internal abstract TRequest[] GetRequests(TProcess process);
         internal abstract string GetRequestModuleName(TRequest request);
         internal abstract RequestSignature GetParsedSignature(TRequest request);
@@ -57,13 +57,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                var reader = GetModuleMetadata(module);
+
+                var reader = GetMetadataReader(module);
                 if (reader == null)
                 {
+                    // ignore modules with bad metadata
                     continue;
                 }
-                var resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
+
+                var resolver = CreateMetadataResolver(module, reader, onFunctionResolved);
                 resolver.Resolve(request, signature);
+            }
+        }
+
+        private unsafe MetadataReader GetMetadataReader(TModule module)
+        {
+            if (!TryGetMetadata(module, out var pointer, out var length))
+            {
+                return null;
+            }
+
+            try
+            {
+                return new MetadataReader(pointer, length);
+            }
+            catch (BadImageFormatException)
+            {
+                return null;
             }
         }
 
@@ -98,12 +118,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 if (resolver == null)
                 {
-                    var reader = GetModuleMetadata(module);
+                    var reader = GetMetadataReader(module);
                     if (reader == null)
                     {
                         return;
                     }
-                    resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
+                    resolver = CreateMetadataResolver(module, reader, onFunctionResolved);
                 }
 
                 resolver.Resolve(request, signature);
@@ -111,12 +131,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private MetadataResolver<TProcess, TModule, TRequest> CreateMetadataResolver(
-            TProcess process,
             TModule module,
             MetadataReader reader,
             OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
-            return new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, IgnoreCase, onFunctionResolved);
+            return new MetadataResolver<TProcess, TModule, TRequest>(module, reader, IgnoreCase, onFunctionResolved);
         }
 
         private bool ShouldHandleRequest(TRequest request)

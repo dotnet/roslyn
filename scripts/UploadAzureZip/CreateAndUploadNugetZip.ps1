@@ -7,7 +7,7 @@ If (-Not (Test-Path $AzCopyLoc)) {
     exit 1
 }
 
-$Branch = Read-Host 'which branch is this for? [Master|Future]'
+$Branch = Read-Host 'which branch is this for? [Main|Future]'
 $Version = Read-Host 'which version of the zip file is this?'
 $AzureKey = Read-Host 'what is the azure key?'
 

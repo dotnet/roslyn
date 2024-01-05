@@ -7,7 +7,8 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -15,18 +16,9 @@
     <DeployExtension>false</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefInstalledProduct Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-                            Name="Microsoft Visual C#"
-                            DisplayName="#116"
-                            ProductDetails="#117"/>
-    <PkgDefPackageRegistration Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
-                               Name="CSharpVsInteractiveWindowPackage"
-                               Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage"
-                               AllowsBackgroundLoad="true"/>
-    <PkgDefPackageRegistration Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-                               Name="CSharpPackage"
-                               Class="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
-                               AllowsBackgroundLoad="true"/>
+    <PkgDefInstalledProduct Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" Name="Microsoft Visual C#" DisplayName="#116" ProductDetails="#117" />
+    <PkgDefPackageRegistration Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}" Name="CSharpVsInteractiveWindowPackage" Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage" AllowsBackgroundLoad="true" />
+    <PkgDefPackageRegistration Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" Name="CSharpPackage" Class="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -51,7 +43,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpVSResources.resx" GenerateSource="true" />

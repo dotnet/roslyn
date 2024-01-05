@@ -744,7 +744,331 @@ class Program
             comp.VerifyIL("Program.M4", expectedIL4);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+        public void LiftedBinaryOp_OneNonNull_Custom()
+        {
+            var source = """
+                using System;
 
+                C.M(DateTime.MaxValue);
+                C.M(default(DateTime));
+                C.M(new DateTime(42));
+                C.M(null);
+
+                class C
+                {
+                    static void Write(bool b) => Console.Write(b ? 1 : 0);
+                    public static void M(DateTime? d)
+                    {
+                        M1(d);
+                        M2(d);
+                        M3(d);
+                        Console.Write(' ');
+                    }
+                    static void M1(DateTime? d)
+                    {
+                        Write(d == DateTime.MaxValue);
+                    }
+                    static void M2(DateTime? d)
+                    {
+                        Write(d != DateTime.MaxValue);
+                    }
+                    static void M3(DateTime? d)
+                    {
+                        Write(DateTime.MaxValue != d);
+                    }
+                }
+                """;
+            var expectedOutput = "100 011 011 011";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (System.DateTime? V_0,
+                                System.DateTime V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "bool System.DateTime?.HasValue.get"
+                  IL_000f:  brtrue.s   IL_0014
+                  IL_0011:  ldc.i4.0
+                  IL_0012:  br.s       IL_0021
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001b:  ldloc.1
+                  IL_001c:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0021:  call       "void C.Write(bool)"
+                  IL_0026:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (System.DateTime V_0,
+                                System.DateTime? V_1)
+                  IL_0000:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  call       "bool System.DateTime?.HasValue.get"
+                  IL_000f:  brtrue.s   IL_0014
+                  IL_0011:  ldc.i4.1
+                  IL_0012:  br.s       IL_0021
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001c:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
+                  IL_0021:  call       "void C.Write(bool)"
+                  IL_0026:  ret
+                }
+                """);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  2
+                  .locals init (System.DateTime? V_0,
+                                System.DateTime V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+                  IL_0008:  stloc.1
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  call       "bool System.DateTime?.HasValue.get"
+                  IL_0010:  brtrue.s   IL_0015
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  br.s       IL_0022
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001c:  ldloc.1
+                  IL_001d:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0022:  call       "void C.Write(bool)"
+                  IL_0027:  nop
+                  IL_0028:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  2
+                  .locals init (System.DateTime V_0,
+                                System.DateTime? V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.0
+                  IL_0008:  stloc.1
+                  IL_0009:  ldloca.s   V_1
+                  IL_000b:  call       "bool System.DateTime?.HasValue.get"
+                  IL_0010:  brtrue.s   IL_0015
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  br.s       IL_0022
+                  IL_0015:  ldloc.0
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001d:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
+                  IL_0022:  call       "void C.Write(bool)"
+                  IL_0027:  nop
+                  IL_0028:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+        public void LiftedBinaryOp_OneNonNull_BuiltIn()
+        {
+            var source = """
+                using System;
+
+                C.M(int.MaxValue);
+                C.M(int.MinValue);
+                C.M(0);
+                C.M(42);
+                C.M(null);
+
+                class C
+                {
+                    static void Write(bool b) => Console.Write(b ? 1 : 0);
+                    public static void M(int? x)
+                    {
+                        M1(x);
+                        M2(x);
+                        M3(x);
+                        Console.Write(' ');
+                    }
+                    static void M1(int? x)
+                    {
+                        Write(x == int.MaxValue);
+                    }
+                    static void M2(int? x)
+                    {
+                        Write(x != int.MaxValue);
+                    }
+                    static void M3(int? x)
+                    {
+                        Write(int.MaxValue != x);
+                    }
+                }
+                """;
+            var expectedOutput = "100 011 011 011 011";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (int? V_0,
+                                int V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4     0x7fffffff
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "int int?.GetValueOrDefault()"
+                  IL_000f:  ldloc.1
+                  IL_0010:  ceq
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  call       "bool int?.HasValue.get"
+                  IL_0019:  and
+                  IL_001a:  call       "void C.Write(bool)"
+                  IL_001f:  ret
+                }
+                """);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  2
+                  .locals init (int? V_0,
+                                int V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldc.i4     0x7fffffff
+                  IL_0008:  stloc.1
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  call       "int int?.GetValueOrDefault()"
+                  IL_0010:  ldloc.1
+                  IL_0011:  ceq
+                  IL_0013:  ldloca.s   V_0
+                  IL_0015:  call       "bool int?.HasValue.get"
+                  IL_001a:  and
+                  IL_001b:  call       "void C.Write(bool)"
+                  IL_0020:  nop
+                  IL_0021:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+        public void LiftedBinaryOp_BothUnknown_Custom()
+        {
+            var source = """
+                using System;
+
+                C.M(DateTime.MaxValue, null);
+                C.M(null, DateTime.MinValue);
+                C.M(new DateTime(42), null);
+                C.M(null, null);
+
+                class C
+                {
+                    static void Write(bool b) => Console.Write(b ? 1 : 0);
+                    public static void M(DateTime? d1, DateTime? d2)
+                    {
+                        M1(d1, d2);
+                        M2(d1, d2);
+                        Console.Write(' ');
+                    }
+                    static void M1(DateTime? d1, DateTime? d2)
+                    {
+                        Write(d1 == d2);
+                    }
+                    static void M2(DateTime? d1, DateTime? d2)
+                    {
+                        Write(d1 != d2);
+                    }
+                }
+                """;
+            var expectedOutput = "01 01 01 10";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       60 (0x3c)
+                  .maxstack  2
+                  .locals init (System.DateTime? V_0,
+                                System.DateTime? V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  call       "bool System.DateTime?.HasValue.get"
+                  IL_000b:  ldloca.s   V_1
+                  IL_000d:  call       "bool System.DateTime?.HasValue.get"
+                  IL_0012:  beq.s      IL_0017
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  br.s       IL_0036
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "bool System.DateTime?.HasValue.get"
+                  IL_001e:  brtrue.s   IL_0023
+                  IL_0020:  ldc.i4.1
+                  IL_0021:  br.s       IL_0036
+                  IL_0023:  ldloca.s   V_0
+                  IL_0025:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_002a:  ldloca.s   V_1
+                  IL_002c:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_0031:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0036:  call       "void C.Write(bool)"
+                  IL_003b:  ret
+                }
+                """);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  2
+                  .locals init (System.DateTime? V_0,
+                                System.DateTime? V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldarg.1
+                  IL_0004:  stloc.1
+                  IL_0005:  ldloca.s   V_0
+                  IL_0007:  call       "bool System.DateTime?.HasValue.get"
+                  IL_000c:  ldloca.s   V_1
+                  IL_000e:  call       "bool System.DateTime?.HasValue.get"
+                  IL_0013:  beq.s      IL_0018
+                  IL_0015:  ldc.i4.0
+                  IL_0016:  br.s       IL_0037
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "bool System.DateTime?.HasValue.get"
+                  IL_001f:  brtrue.s   IL_0024
+                  IL_0021:  ldc.i4.1
+                  IL_0022:  br.s       IL_0037
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_002b:  ldloca.s   V_1
+                  IL_002d:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_0032:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0037:  call       "void C.Write(bool)"
+                  IL_003c:  nop
+                  IL_003d:  ret
+                }
+                """);
+        }
 
         [Fact]
         public void TestNullableComparisonOpsBothAlwaysNull()
@@ -1301,7 +1625,6 @@ Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < N4()").WithArguments("S?"
             comp.VerifyIL("Program.M6", expectedIL6);
         }
 
-
         [Fact]
         public void TestNullableComparisonOpsOneNonNullOneUnknown()
         {
@@ -1529,7 +1852,6 @@ class Program
             // And the int? t3 disappears entirely. 
             //
             // This optimization has the nice property that it composes well with itself. 
-
 
             string source = @"
 struct S
@@ -2161,7 +2483,6 @@ class Program
   IL_002d:  ret
 }";
 
-
             // TODO: Roslyn does a slightly worse job here than the native compiler does.
             // TODO: The native compiler knows that the constant need not be stored in a temporary.
             // TODO: We will clean this up in a later checkin.
@@ -2219,7 +2540,6 @@ class Program
     }
 }
 ";
-
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 42
@@ -2376,7 +2696,6 @@ class Program
     }
 }
 ";
-
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 42

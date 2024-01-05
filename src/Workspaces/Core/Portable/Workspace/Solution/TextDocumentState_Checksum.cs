@@ -21,10 +21,13 @@ namespace Microsoft.CodeAnalysis
         public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
-            var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+                static (documentStateChecksums, _) => documentStateChecksums.Checksum,
+                _lazyChecksums,
+                cancellationToken).AsTask();
         }
 
         private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -33,18 +36,18 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
+                    var serializer = solutionServices.GetRequiredService<ISerializerService>();
 
-                    var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
+                    var infoChecksum = this.Attributes.Checksum;
                     var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
                     var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
 
-                    return new DocumentStateChecksums(infoChecksum, textChecksum);
+                    return new DocumentStateChecksums(this.Id, infoChecksum, textChecksum);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

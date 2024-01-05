@@ -25,6 +25,18 @@ namespace Roslyn.Utilities
             return value;
         }
 
+        public static V GetOrAdd<K, V, TArg>(this IDictionary<K, V> dictionary, K key, Func<K, TArg, V> function, TArg arg)
+            where K : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var value))
+            {
+                value = function(key, arg);
+                dictionary.Add(key, value);
+            }
+
+            return value;
+        }
+
         public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             where TKey : notnull
         {
@@ -36,7 +48,7 @@ namespace Roslyn.Utilities
             return default!;
         }
 
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue)
             where TKey : notnull
         {
@@ -71,6 +83,18 @@ namespace Roslyn.Utilities
             }
 
             builder.Add(value);
+        }
+
+        public static void MultiAddRange<TKey, TValue>(this IDictionary<TKey, ArrayBuilder<TValue>> dictionary, TKey key, IEnumerable<TValue> values)
+            where TKey : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var builder))
+            {
+                builder = ArrayBuilder<TValue>.GetInstance();
+                dictionary.Add(key, builder);
+            }
+
+            builder.AddRange(values);
         }
 
         public static bool MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue>? comparer = null)

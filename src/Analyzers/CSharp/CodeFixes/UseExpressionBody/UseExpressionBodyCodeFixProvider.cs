@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,22 +16,21 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
     internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UseExpressionBodyCodeFixProvider()
             => FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
 
@@ -40,29 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => !diagnostic.IsSuppressed ||
                diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), c => FixAsync(context.Document, diagnostic, c));
-#else
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
-            var codeAction = new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c));
-#endif
+            var title = diagnostic.GetMessage();
 
-            context.RegisterCodeFix(
-                codeAction,
-                diagnostic);
+            RegisterCodeFix(context, title, title, priority);
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -89,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
-            var declaration = declarationLocation.FindNode(cancellationToken);
+            var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody, cancellationToken)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
@@ -101,24 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 accessorLists.Add(accessorList);
             }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
-#else
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-                Priority = priority;
-            }
-#endif
         }
     }
 }

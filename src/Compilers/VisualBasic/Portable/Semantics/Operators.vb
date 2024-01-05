@@ -214,11 +214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Friend Shared Function TryGetOperatorName(op As BinaryOperatorKind) As String
+        Friend Shared Function TryGetOperatorName(op As BinaryOperatorKind, isChecked As Boolean) As String
 
             Select Case (op And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.Add
-                    Return WellKnownMemberNames.AdditionOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedAdditionOperatorName, WellKnownMemberNames.AdditionOperatorName)
                 Case BinaryOperatorKind.Concatenate
                     Return WellKnownMemberNames.ConcatenateOperatorName
                 Case BinaryOperatorKind.Like
@@ -236,9 +236,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BinaryOperatorKind.GreaterThan
                     Return WellKnownMemberNames.GreaterThanOperatorName
                 Case BinaryOperatorKind.Subtract
-                    Return WellKnownMemberNames.SubtractionOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName)
                 Case BinaryOperatorKind.Multiply
-                    Return WellKnownMemberNames.MultiplyOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedMultiplyOperatorName, WellKnownMemberNames.MultiplyOperatorName)
                 Case BinaryOperatorKind.Power
                     Return WellKnownMemberNames.ExponentOperatorName
                 Case BinaryOperatorKind.Divide
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BinaryOperatorKind.Modulo
                     Return WellKnownMemberNames.ModulusOperatorName
                 Case BinaryOperatorKind.IntegerDivide
-                    Return WellKnownMemberNames.IntegerDivisionOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.IntegerDivisionOperatorName)
                 Case BinaryOperatorKind.LeftShift
                     Return WellKnownMemberNames.LeftShiftOperatorName
                 Case BinaryOperatorKind.RightShift
@@ -267,13 +267,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Friend Shared Function TryGetOperatorName(op As UnaryOperatorKind) As String
+        Friend Shared Function TryGetOperatorName(op As UnaryOperatorKind, isChecked As Boolean) As String
 
             Select Case (op And UnaryOperatorKind.OpMask)
                 Case UnaryOperatorKind.Plus
                     Return WellKnownMemberNames.UnaryPlusOperatorName
                 Case UnaryOperatorKind.Minus
-                    Return WellKnownMemberNames.UnaryNegationOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName)
                 Case UnaryOperatorKind.Not
                     Return WellKnownMemberNames.OnesComplementOperatorName
                 Case UnaryOperatorKind.Implicit
@@ -2307,7 +2307,6 @@ Done:
             Dim inputType As TypeSymbol = method.Parameters(0).Type
             Dim outputType As TypeSymbol = method.ReturnType
 
-
             If Not suppressViabilityChecks Then
                 If Not IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType, useSiteInfo) Then
                     conversionIn = Nothing
@@ -2348,7 +2347,7 @@ Done:
             ' Ignore user defined conversions between types that already have intrinsic conversions.
             ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
-                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
                 If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, localUseSiteInfo)) OrElse
                    Not localUseSiteInfo.Diagnostics.IsNullOrEmpty Then
                     useSiteInfo.MergeAndClear(localUseSiteInfo)
@@ -3367,7 +3366,6 @@ Next_i:
                 End Get
             End Property
 
-
             Friend Overrides ReadOnly Property HasOptionCompare As Boolean
                 Get
                     Return _parameterToLift.HasOptionCompare
@@ -3401,6 +3399,12 @@ Next_i:
             Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                 Get
                     Return _parameterToLift.IsCallerFilePath
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                Get
+                    Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 

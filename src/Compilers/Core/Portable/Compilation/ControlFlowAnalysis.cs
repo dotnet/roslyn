@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<SyntaxNode> ReturnStatements { get; }
 
         /// <summary>
-        /// Returns true iff analysis was successful.  Analysis can fail if the region does not properly span a single expression,
+        /// Returns true if and only if analysis was successful.  Analysis can fail if the region does not properly span a single expression,
         /// a single statement, or a contiguous series of statements within the enclosing block.
         /// </summary>
         public abstract bool Succeeded { get; }

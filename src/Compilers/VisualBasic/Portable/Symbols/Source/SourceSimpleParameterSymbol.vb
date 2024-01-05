@@ -129,6 +129,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Dim data = GetEarlyDecodedWellKnownAttributeData()
+                If data Is Nothing Then
+                    Return -1
+                End If
+
+                Return data.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
             Get
                 ' SourceSimpleParameterSymbol is never created for a parameter with ByRef modifier.

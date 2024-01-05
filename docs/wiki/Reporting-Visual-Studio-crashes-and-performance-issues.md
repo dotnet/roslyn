@@ -102,4 +102,4 @@ For best results in capturing the performance, follow these steps:
 
 ## Advanced Performance Traces
 
-Steps for manually recording performance traces using the PerfView tool can be found on the [Recording performance traces with PerfView](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Recording-performance-traces-with-PerfView.md) page.
+Steps for manually recording performance traces using the PerfView tool can be found on the [Recording performance traces with PerfView](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Recording-performance-traces-with-PerfView.md) page.

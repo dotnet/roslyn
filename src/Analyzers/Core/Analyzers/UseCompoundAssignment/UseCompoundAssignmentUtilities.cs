@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCompoundAssignment
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         public static void GenerateMaps<TSyntaxKind>(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds,
             out ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
-            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
+            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap) where TSyntaxKind : struct
         {
             var binaryToAssignmentBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
             var assignmentToTokenBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();

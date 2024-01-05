@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public UseSystemHashCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSystemHashCode,
                    EnforceOnBuildValues.UseSystemHashCode,
-                   CodeStyleOptions2.PreferSystemHashCode,
+                   option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_System_HashCode), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.GetHashCode_implementation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -29,19 +30,23 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.RegisterCompilationStartAction(c =>
             {
                 // var hashCodeType = c.Compilation.GetTypeByMetadataName("System.HashCode");
-                if (Analyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
+                if (HashCodeAnalyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
                 {
                     c.RegisterOperationBlockAction(ctx => AnalyzeOperationBlock(analyzer, ctx));
                 }
             });
         }
 
-        private void AnalyzeOperationBlock(Analyzer analyzer, OperationBlockAnalysisContext context)
+        private void AnalyzeOperationBlock(HashCodeAnalyzer analyzer, OperationBlockAnalysisContext context)
         {
             if (context.OperationBlocks.Length != 1)
                 return;
 
             var owningSymbol = context.OwningSymbol;
+            var diagnosticLocation = owningSymbol.Locations[0];
+            if (!context.ShouldAnalyzeSpan(diagnosticLocation.SourceSpan))
+                return;
+
             var operation = context.OperationBlocks[0];
             var (accessesBase, hashedMembers, statements) = analyzer.GetHashedMembers(owningSymbol, operation);
             var elementCount = (accessesBase ? 1 : 0) + (hashedMembers.IsDefaultOrEmpty ? 0 : hashedMembers.Length);
@@ -64,21 +69,19 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // We've got multiple members to hash, or multiple statements that can be reduced at this point.
             Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
-            var syntaxTree = operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            var option = context.Options.GetOption(CodeStyleOptions2.PreferSystemHashCode, operation.Language, syntaxTree, cancellationToken);
-            if (option?.Value != true)
+            var option = context.Options.GetIdeOptions().PreferSystemHashCode;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
+            var cancellationToken = context.CancellationToken;
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                owningSymbol.Locations[0],
-                option.Notification.Severity,
+                diagnosticLocation,
+                option.Notification,
                 new[] { operationLocation, declarationLocation },
-                ImmutableDictionary<string, string>.Empty));
+                ImmutableDictionary<string, string?>.Empty));
         }
     }
 }

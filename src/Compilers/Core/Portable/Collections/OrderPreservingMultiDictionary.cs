@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -153,6 +154,17 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        public OneOrMany<V> GetAsOneOrMany(K k)
+        {
+            if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
+            {
+                Debug.Assert(valueSet.Count >= 1);
+                return valueSet.Count == 1 ? OneOrMany.Create(valueSet[0]) : OneOrMany.Create(valueSet.Items);
+            }
+
+            return OneOrMany<V>.Empty;
+        }
+
         public bool Contains(K key, V value)
         {
             return _dictionary is object &&
@@ -168,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Collections
             get { return _dictionary is null ? s_emptyDictionary.Keys : _dictionary.Keys; }
         }
 
-        public struct ValueSet : IEnumerable<V>
+        public readonly struct ValueSet : IEnumerable<V>
         {
             /// <summary>
             /// Each value is either a single V or an <see cref="ArrayBuilder{V}"/>.

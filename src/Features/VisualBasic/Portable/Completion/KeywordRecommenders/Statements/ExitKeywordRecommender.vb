@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
             ' We know that in any executable statement context, there always must be at least one thing we can exit: the
             ' function or sub itself (except for Finally blocks)
-            Return If(context.IsSingleLineStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
+            Return If(context.IsStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
 
     End Class

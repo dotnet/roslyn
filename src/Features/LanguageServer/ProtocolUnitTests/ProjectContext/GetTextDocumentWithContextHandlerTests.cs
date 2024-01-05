@@ -8,14 +8,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
 {
     public class GetTextDocumentWithContextHandlerTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task SingleDocumentReturnsSingleContext()
+        public GetTextDocumentWithContextHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task SingleDocumentReturnsSingleContext(bool mutatingLspWorkspace)
         {
             var workspaceXml =
 @"<Workspace>
@@ -24,8 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var documentUri = locations["caret"].Single().Uri;
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
             Assert.NotNull(result);
@@ -33,12 +38,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             var context = Assert.Single(result.ProjectContexts);
 
             Assert.Equal(ProtocolConversions.ProjectIdToProjectContextId(testLspServer.GetCurrentSolution().ProjectIds.Single()), context.Id);
-            Assert.Equal(LSP.ProjectContextKind.CSharp, context.Kind);
+            Assert.Equal(LSP.VSProjectKind.CSharp, context.Kind);
             Assert.Equal("CSProj", context.Label);
         }
 
-        [Fact]
-        public async Task MultipleDocumentsReturnsMultipleContexts()
+        [Theory, CombinatorialData]
+        public async Task MultipleDocumentsReturnsMultipleContexts(bool mutatingLspWorkspace)
         {
             var workspaceXml =
 @"<Workspace>
@@ -50,8 +55,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var documentUri = locations["caret"].Single().Uri;
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
             Assert.NotNull(result);
@@ -61,8 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
                 c => Assert.Equal("CSProj2", c.Label));
         }
 
-        [Fact]
-        public async Task SwitchingContextsChangesDefaultContext()
+        [Theory, CombinatorialData]
+        public async Task SwitchingContextsChangesDefaultContext(bool mutatingLspWorkspace)
         {
             var workspaceXml =
 @"<Workspace>
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 
             // Ensure the documents are open so we can change contexts
             foreach (var document in testLspServer.TestWorkspace.Documents)
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
                 _ = document.GetOpenTextContainer();
             }
 
-            var documentUri = locations["caret"].Single().Uri;
+            var documentUri = testLspServer.GetLocations("caret").Single().Uri;
 
             foreach (var project in testLspServer.GetCurrentSolution().Projects)
             {
@@ -94,14 +99,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             }
         }
 
-        private static async Task<LSP.ActiveProjectContexts?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
+        internal static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(LSP.MSLSPMethods.ProjectContextsName,
-                           CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
+                           CreateGetProjectContextParams(uri), cancellationToken: CancellationToken.None);
         }
 
-        private static LSP.GetTextDocumentWithContextParams CreateGetProjectContextParams(Uri uri)
-            => new LSP.GetTextDocumentWithContextParams()
+        private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(Uri uri)
+            => new LSP.VSGetProjectContextsParams()
             {
                 TextDocument = new LSP.TextDocumentItem { Uri = uri }
             };

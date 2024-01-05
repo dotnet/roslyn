@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             _chooseTrackerForSymbol = chooseTrackerForSymbol;
         }
 
-        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
+        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<IdFactory, T> vertexCreator) where T : Vertex
         {
             return _chooseTrackerForSymbol(symbol).GetResultIdForSymbol(symbol, edgeKind, vertexCreator);
         }

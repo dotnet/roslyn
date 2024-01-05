@@ -4,234 +4,54 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class SyntaxComparer : AbstractSyntaxComparer
+    /// <summary>
+    /// Creates a syntax comparer
+    /// </summary>
+    /// <param name="oldRoot">The root node to start comparisons from</param>
+    /// <param name="newRoot">The new root node to compare against</param>
+    /// <param name="oldRootChildren">Child nodes that should always be compared</param>
+    /// <param name="newRootChildren">New child nodes to compare against</param>
+    /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
+    internal sealed class SyntaxComparer(
+        SyntaxNode? oldRoot,
+        SyntaxNode? newRoot,
+        IEnumerable<SyntaxNode>? oldRootChildren,
+        IEnumerable<SyntaxNode>? newRootChildren,
+        bool compareStatementSyntax) : AbstractSyntaxComparer(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
     {
-        internal static readonly SyntaxComparer TopLevel = new();
-        internal static readonly SyntaxComparer Statement = new(compareStatementSyntax: true);
+        internal static readonly SyntaxComparer TopLevel = new(null, null, null, null, compareStatementSyntax: false);
+        internal static readonly SyntaxComparer Statement = new(null, null, null, null, compareStatementSyntax: true);
 
-        private readonly SyntaxNode? _oldRoot;
-        private readonly SyntaxNode? _newRoot;
-        private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
-        private readonly IEnumerable<SyntaxNode>? _newRootChildren;
-
-        // This comparer can operate in two modes: 
-        // * Top level syntax, which looks at member declarations, but doesn't look inside method bodies etc.
-        // * Statement syntax, which looks into member bodies and descends through all statements and expressions
-        // This flag is used where there needs to be a disctinction made between how these are treated
-        private readonly bool _compareStatementSyntax;
-
-        private SyntaxComparer()
-        {
-        }
-
-        public SyntaxComparer(bool compareStatementSyntax)
-        {
-            _compareStatementSyntax = compareStatementSyntax;
-        }
-
-        /// <summary>
-        /// Creates a syntax comparer
-        /// </summary>
-        /// <param name="oldRoot">The root node to start comparisons from</param>
-        /// <param name="newRoot">The new root node to compare against</param>
-        /// <param name="oldRootChildren">Child nodes that should always be compared</param>
-        /// <param name="newRootChildren">New child nodes to compare against</param>
-        /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
-        public SyntaxComparer(
-            SyntaxNode oldRoot,
-            SyntaxNode newRoot,
-            IEnumerable<SyntaxNode> oldRootChildren,
-            IEnumerable<SyntaxNode> newRootChildren,
-            bool compareStatementSyntax = false)
-        {
-            // Set this first in case there are asserts, so they evaluate the right thing
-            _compareStatementSyntax = compareStatementSyntax;
-
-            if (!_compareStatementSyntax)
-            {
-                // for top syntax, explicitly listed roots and all their children must be labeled:
-                Debug.Assert(HasLabel(oldRoot));
-                Debug.Assert(HasLabel(newRoot));
-                Debug.Assert(oldRootChildren.All(HasLabel));
-                Debug.Assert(newRootChildren.All(HasLabel));
-            }
-
-            _oldRoot = oldRoot;
-            _newRoot = newRoot;
-            _oldRootChildren = oldRootChildren;
-            _newRootChildren = newRootChildren;
-
-            if (!_compareStatementSyntax)
-            {
-                // For top syntax the virtual parent of root children must be the respective root:
-                Debug.Assert(!TryGetParent(oldRoot, out var _));
-                Debug.Assert(!TryGetParent(newRoot, out var _));
-                Debug.Assert(oldRootChildren.All(node => TryGetParent(node, out var parent) && parent == oldRoot));
-                Debug.Assert(newRootChildren.All(node => TryGetParent(node, out var parent) && parent == newRoot));
-            }
-        }
-
-        #region Tree Traversal
-
-        protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
-        {
-            if (node == _oldRoot || node == _newRoot)
-            {
-                parent = null;
-                return false;
-            }
-
-            parent = node.Parent;
-            while (parent != null && !HasLabel(parent))
-            {
-                parent = parent.Parent;
-            }
-
-            return parent != null;
-        }
-
-        protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
-        {
-            if (node == _oldRoot)
-            {
-                return _oldRootChildren;
-            }
-
-            if (node == _newRoot)
-            {
-                return _newRootChildren;
-            }
-
-            return HasChildren(node) ? EnumerateChildren(node) : null;
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
-        {
-            foreach (var child in node.ChildNodes())
-            {
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(child))
-                {
-                    continue;
-                }
-
-                if (HasLabel(child))
-                {
-                    yield return child;
-                }
-                else if (_compareStatementSyntax)
-                {
-                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
-                    {
-                        if (HasLabel(descendant))
-                        {
-                            yield return descendant;
-                        }
-                    }
-                }
-            }
-        }
-        private bool DescendIntoChildren(SyntaxNode node)
-            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
-
-        protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
-        {
-            var rootChildren = (node == _oldRoot) ? _oldRootChildren : (node == _newRoot) ? _newRootChildren : null;
-            return (rootChildren != null) ? EnumerateDescendants(rootChildren) : EnumerateDescendants(node);
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateDescendants(IEnumerable<SyntaxNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                if (HasLabel(node))
-                {
-                    yield return node;
-                }
-
-                foreach (var descendant in EnumerateDescendants(node))
-                {
-                    if (HasLabel(descendant))
-                    {
-                        yield return descendant;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
-        {
-            foreach (var descendant in node.DescendantNodesAndTokens(
-                descendIntoChildren: child => ShouldEnumerateChildren(child),
-                descendIntoTrivia: false))
-            {
-                var descendantNode = descendant.AsNode();
-                if (descendantNode != null && HasLabel(descendantNode))
-                {
-                    if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendantNode))
-                    {
-                        yield return descendantNode;
-                    }
-                }
-            }
-
-            bool ShouldEnumerateChildren(SyntaxNode child)
-            {
-                // if we don't want to consider this nodes children, then don't
-                if (!HasChildren(child))
-                {
-                    return false;
-                }
-
-                // Always descend into the children of the node we were asked about
-                if (child == node)
-                {
-                    return true;
-                }
-
-                // otherwise, as long as we don't descend into lambdas
-                return !LambdaUtilities.IsLambdaBodyStatementOrExpression(child);
-            }
-        }
-
-        private bool HasChildren(SyntaxNode node)
-        {
-            // Leaves are labeled statements that don't have a labeled child.
-            // We also return true for non-labeled statements.
-            var label = Classify(node.Kind(), node, out var isLeaf);
-
-            // ignored should always be reported as leaves for top syntax, but for statements
-            // we want to look at all child nodes, because almost anything could have a lambda
-            if (!_compareStatementSyntax)
-            {
-                Debug.Assert(label != Label.Ignored || isLeaf);
-            }
-
-            return !isLeaf;
-        }
-
-        #endregion
+        protected override bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
+            => LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
         #region Labels
 
-        // Assumptions:
-        // - Each listed label corresponds to one or more syntax kinds.
-        // - Nodes with same labels might produce Update edits, nodes with different labels don't. 
-        // - If IsTiedToParent(label) is true for a label then all its possible parent labels must precede the label.
-        //   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
-        // - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// <summary>
+        /// Assumptions:
+        /// - Each listed label corresponds to one or more syntax kinds.
+        /// - Nodes with same labels might produce Update edits, nodes with different labels don't. 
+        /// - If <see cref="TiedToAncestor(Label)"/> is true for a label then all its possible parent labels must precede the label.
+        ///   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
+        /// - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// </summary>
         internal enum Label
         {
             // Top level syntax kinds
             CompilationUnit,
+
+            GlobalStatement,
 
             NamespaceDeclaration,
             ExternAliasDirective,              // tied to parent 
@@ -239,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TypeDeclaration,
             EnumDeclaration,
+            BaseList,                          // tied to parent
+            PrimaryConstructorBase,            // tied to parent
             DelegateDeclaration,
 
             FieldDeclaration,                  // tied to parent
@@ -254,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IndexerDeclaration,                // tied to parent
             EventDeclaration,                  // tied to parent
             EnumMemberDeclaration,             // tied to parent
+            ArrowExpressionClause,             // tied to parent
 
             AccessorList,                      // tied to parent
             AccessorDeclaration,               // tied to parent
@@ -271,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
-            UsingStatement,
+            UsingStatementWithExpression,
+            UsingStatementWithDeclarations,
             FixedStatement,
             LockStatement,
             WhileStatement,
@@ -286,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchExpressionArm,               // tied to parent
             WhenClause,                        // tied to parent
 
-            YieldStatement,                    // tied to parent
+            YieldReturnStatement,              // tied to parent
+            YieldBreakStatement,               // tied to parent
             GotoStatement,
             GotoCaseStatement,
             BreakContinueStatement,
@@ -355,9 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.ConstructorDeclaration:
                 case Label.DestructorDeclaration:
                 case Label.PropertyDeclaration:
+                case Label.ArrowExpressionClause:
                 case Label.IndexerDeclaration:
                 case Label.EventDeclaration:
                 case Label.EnumMemberDeclaration:
+                case Label.BaseList:
                 case Label.AccessorDeclaration:
                 case Label.AccessorList:
                 case Label.TypeParameterList:
@@ -382,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.CatchFilterClause:
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
-                case Label.YieldStatement:
+                case Label.YieldReturnStatement:
+                case Label.YieldBreakStatement:
                 case Label.FromClauseLambda:
                 case Label.LetClauseLambda:
                 case Label.WhereClauseLambda:
@@ -403,6 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        internal override int Classify(int kind, SyntaxNode? node, out bool isLeaf)
+            => (int)Classify((SyntaxKind)kind, node, out isLeaf);
+
         internal Label Classify(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
             isLeaf = false;
@@ -416,80 +247,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return Label.ForStatementPart;
             }
 
+            // ************************************
+            // Top and statement syntax
+            // ************************************
+
+            // These nodes can appear during top level and statement processing, so we put them in this first
+            // switch for simplicity. Statement specific, and top level specific cases are handled below.
             switch (kind)
             {
-                // ************************************
-                // Top syntax
-                // ************************************
-
                 case SyntaxKind.CompilationUnit:
                     return Label.CompilationUnit;
-
-                case SyntaxKind.GlobalStatement:
-                    // TODO:
-                    isLeaf = true;
-                    return Label.Ignored;
-
-                case SyntaxKind.ExternAliasDirective:
-                    isLeaf = true;
-                    return Label.ExternAliasDirective;
-
-                case SyntaxKind.UsingDirective:
-                    isLeaf = true;
-                    return Label.UsingDirective;
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return Label.NamespaceDeclaration;
-
-                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return Label.TypeDeclaration;
-
-                case SyntaxKind.EnumDeclaration:
-                    return Label.EnumDeclaration;
-
-                case SyntaxKind.DelegateDeclaration:
-                    return Label.DelegateDeclaration;
-
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                    return Label.FieldDeclaration;
-
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return Label.ConversionOperatorDeclaration;
-
-                case SyntaxKind.OperatorDeclaration:
-                    return Label.OperatorDeclaration;
-
-                case SyntaxKind.DestructorDeclaration:
-                    isLeaf = true;
-                    return Label.DestructorDeclaration;
-
-                case SyntaxKind.PropertyDeclaration:
-                    return Label.PropertyDeclaration;
-
-                case SyntaxKind.IndexerDeclaration:
-                    return Label.IndexerDeclaration;
-
-                case SyntaxKind.EventDeclaration:
-                    return Label.EventDeclaration;
-
-                case SyntaxKind.EnumMemberDeclaration:
-                    // not a leaf because an attribute may be applied
-                    return Label.EnumMemberDeclaration;
-
-                case SyntaxKind.AccessorList:
-                    return Label.AccessorList;
-
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    isLeaf = true;
-                    return Label.AccessorDeclaration;
 
                 case SyntaxKind.TypeParameterList:
                     return Label.TypeParameterList;
@@ -510,17 +277,40 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Parameter:
                     return Label.Parameter;
 
-                case SyntaxKind.AttributeList:
-                    return Label.AttributeList;
+                case SyntaxKind.ConstructorDeclaration:
+                    // Root when matching constructor bodies.
+                    return Label.ConstructorDeclaration;
+            }
 
-                case SyntaxKind.Attribute:
-                    isLeaf = true;
-                    return Label.Attribute;
+            if (_compareStatementSyntax)
+            {
+                return ClassifyStatementSyntax(kind, node, out isLeaf);
+            }
 
-                // ************************************
-                // Statement syntax
-                // ************************************
+            return ClassifyTopSyntax(kind, node, out isLeaf);
+        }
 
+        private static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
+        {
+            isLeaf = false;
+
+            // ************************************
+            // Statement syntax
+            // ************************************
+
+            // These nodes could potentially be seen as top level syntax, but we only want them labelled
+            // during statement syntax so they have to be kept separate.
+            //
+            // For example when top level sees something like this:
+            //
+            //      private int X => new Func(() => { return 1 })();
+            //
+            // It needs to go through the entire lambda to know if that property def has changed
+            // but if we start labelling things, like ReturnStatement in the above example, then
+            // it will stop. Given that a block bodied lambda can have any statements a user likes
+            // the whole set has to be dealt with separately.
+            switch (kind)
+            {
                 // Notes:
                 // A descendant of a leaf node may be a labeled node that we don't want to visit if 
                 // we are comparing its parent node (used for lambda bodies).
@@ -528,9 +318,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Expressions are ignored but they may contain nodes that should be matched by tree comparer.
                 // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
 
-                case SyntaxKind.ConstructorDeclaration:
-                    // Root when matching constructor bodies.
-                    return Label.ConstructorDeclaration;
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    // These declarations can come after global statements so we want to stop statement matching
+                    // because no global statements can come after them
+                    isLeaf = true;
+                    return Label.Ignored;
 
                 case SyntaxKind.LocalDeclarationStatement:
                     return Label.LocalDeclarationStatement;
@@ -567,8 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ExpressionStatement;
 
                 case SyntaxKind.YieldBreakStatement:
+                    // yield break is distinct from yield return as it does not suspend the state machine in a resumable state
+                    return Label.YieldBreakStatement;
+
                 case SyntaxKind.YieldReturnStatement:
-                    return Label.YieldStatement;
+                    return Label.YieldReturnStatement;
 
                 case SyntaxKind.DoStatement:
                     return Label.DoStatement;
@@ -584,7 +384,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ForEachStatement;
 
                 case SyntaxKind.UsingStatement:
-                    return Label.UsingStatement;
+                    // We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    // The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    // affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
+                    // with declarations entirely separately from usings with expressions.
+                    //
+                    // The parent is not available only when comparing nodes for value equality.
+                    // In that case it doesn't matter what label the node has as long as it has some.
+                    return node is UsingStatementSyntax { Declaration: not null } ? Label.UsingStatementWithDeclarations : Label.UsingStatementWithExpression;
 
                 case SyntaxKind.FixedStatement:
                     return Label.FixedStatement;
@@ -645,12 +452,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.FinallyClause:
                     return Label.FinallyClause;
-
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                    // Note: Simple lambda expression is only labeled for statements, so it is below
-                    return Label.NestedFunction;
 
                 case SyntaxKind.FromClause:
                     // The first from clause of a query is not a lambda.
@@ -734,64 +535,163 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AwaitExpression:
                     return Label.AwaitExpression;
-            }
 
-            // These nodes could be seen during top or statement processing, but need different results
-            if (_compareStatementSyntax)
-            {
-                // Statement syntax
-                switch (kind)
-                {
-                    case SyntaxKind.SimpleLambdaExpression:
-                        return Label.NestedFunction;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                    return Label.NestedFunction;
 
-                    case SyntaxKind.VariableDeclaration:
-                        return Label.LocalVariableDeclaration;
+                case SyntaxKind.VariableDeclaration:
+                    return Label.LocalVariableDeclaration;
 
-                    case SyntaxKind.VariableDeclarator:
-                        return Label.LocalVariableDeclarator;
+                case SyntaxKind.VariableDeclarator:
+                    return Label.LocalVariableDeclarator;
 
-                    case SyntaxKind.Block:
-                        return Label.Block;
-                }
-            }
-            else
-            {
-                // Top syntax
-                switch (kind)
-                {
-                    case SyntaxKind.VariableDeclaration:
-                        return Label.FieldVariableDeclaration;
-
-                    case SyntaxKind.VariableDeclarator:
-                        // For top syntax, a variable declarator is a leaf node
-                        isLeaf = true;
-                        return Label.FieldVariableDeclarator;
-
-                    case SyntaxKind.MethodDeclaration:
-                        return Label.MethodDeclaration;
-
-                    case SyntaxKind.ConstructorDeclaration:
-                        return Label.ConstructorDeclaration;
-                }
+                case SyntaxKind.Block:
+                    return Label.Block;
             }
 
             // If we got this far, its an unlabelled node. Since just about any node can
-            // contain a lambda, isLeaf must be true for statement syntax but for top
-            // syntax, we don't need to descend into any ignored nodes
-            isLeaf = !_compareStatementSyntax;
+            // contain a lambda, isLeaf must be false for statement syntax.
             return Label.Ignored;
         }
 
-        protected internal override int GetLabel(SyntaxNode node)
-            => (int)Classify(node.Kind(), node, out _);
+        private static Label ClassifyTopSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
+        {
+            isLeaf = false;
+
+            // ************************************
+            // Top syntax
+            // ************************************
+
+            // More the most part these nodes will only appear in top syntax but its easier to
+            // keep them separate so we can more easily discern was is shared, above.
+            switch (kind)
+            {
+                case SyntaxKind.GlobalStatement:
+                    isLeaf = true;
+                    return Label.GlobalStatement;
+
+                case SyntaxKind.ExternAliasDirective:
+                    isLeaf = true;
+                    return Label.ExternAliasDirective;
+
+                case SyntaxKind.UsingDirective:
+                    isLeaf = true;
+                    return Label.UsingDirective;
+
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return Label.NamespaceDeclaration;
+
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    return Label.TypeDeclaration;
+
+                case SyntaxKind.BaseList:
+                    return Label.BaseList;
+
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    // For top syntax, primary constructor base initializer is a leaf node
+                    isLeaf = true;
+                    return Label.PrimaryConstructorBase;
+
+                case SyntaxKind.MethodDeclaration:
+                    return Label.MethodDeclaration;
+
+                case SyntaxKind.EnumDeclaration:
+                    return Label.EnumDeclaration;
+
+                case SyntaxKind.DelegateDeclaration:
+                    return Label.DelegateDeclaration;
+
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    return Label.FieldDeclaration;
+
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return Label.ConversionOperatorDeclaration;
+
+                case SyntaxKind.OperatorDeclaration:
+                    return Label.OperatorDeclaration;
+
+                case SyntaxKind.DestructorDeclaration:
+                    isLeaf = true;
+                    return Label.DestructorDeclaration;
+
+                case SyntaxKind.PropertyDeclaration:
+                    return Label.PropertyDeclaration;
+
+                case SyntaxKind.IndexerDeclaration:
+                    return Label.IndexerDeclaration;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    if (node?.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
+                        return Label.ArrowExpressionClause;
+
+                    break;
+
+                case SyntaxKind.EventDeclaration:
+                    return Label.EventDeclaration;
+
+                case SyntaxKind.EnumMemberDeclaration:
+                    // not a leaf because an attribute may be applied
+                    return Label.EnumMemberDeclaration;
+
+                case SyntaxKind.AccessorList:
+                    return Label.AccessorList;
+
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    isLeaf = true;
+                    return Label.AccessorDeclaration;
+
+                // Note: These last two do actually appear as statement syntax, but mean something
+                // different and hence have a different label
+                case SyntaxKind.VariableDeclaration:
+                    return Label.FieldVariableDeclaration;
+
+                case SyntaxKind.VariableDeclarator:
+                    // For top syntax, a variable declarator is a leaf node
+                    isLeaf = true;
+                    return Label.FieldVariableDeclarator;
+
+                case SyntaxKind.AttributeList:
+                    // Only module/assembly attributes are labelled
+                    if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        return Label.AttributeList;
+                    }
+
+                    break;
+
+                case SyntaxKind.Attribute:
+                    // Only module/assembly attributes are labelled
+                    if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        isLeaf = true;
+                        return Label.Attribute;
+                    }
+
+                    break;
+            }
+
+            // If we got this far, its an unlabelled node. For top
+            // syntax, we don't need to descend into any ignored nodes
+            isLeaf = true;
+            return Label.Ignored;
+        }
 
         // internal for testing
         internal bool HasLabel(SyntaxKind kind)
             => Classify(kind, node: null, out _) != Label.Ignored;
-
-        internal bool HasLabel(SyntaxNode node)
-            => Classify(node.Kind(), node, out _) != Label.Ignored;
 
         protected internal override int LabelCount
             => (int)Label.Count;
@@ -899,27 +799,53 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.UsingStatement:
-                    var leftUsing = (UsingStatementSyntax)leftNode;
-                    var rightUsing = (UsingStatementSyntax)rightNode;
-
-                    if (leftUsing.Declaration != null && rightUsing.Declaration != null)
                     {
-                        distance = ComputeWeightedDistance(
-                            leftUsing.Declaration,
-                            leftUsing.Statement,
-                            rightUsing.Declaration,
-                            rightUsing.Statement);
-                    }
-                    else
-                    {
-                        distance = ComputeWeightedDistance(
-                            (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
-                            leftUsing.Statement,
-                            (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
-                            rightUsing.Statement);
+                        var leftUsing = (UsingStatementSyntax)leftNode;
+                        var rightUsing = (UsingStatementSyntax)rightNode;
+
+                        if (leftUsing.Declaration != null && rightUsing.Declaration != null)
+                        {
+                            distance = ComputeWeightedDistance(
+                                leftUsing.Declaration,
+                                leftUsing.Statement,
+                                rightUsing.Declaration,
+                                rightUsing.Statement);
+                        }
+                        else
+                        {
+                            distance = ComputeWeightedDistance(
+                                (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
+                                leftUsing.Statement,
+                                (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
+                                rightUsing.Statement);
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                case SyntaxKind.UsingDirective:
+                    {
+                        var leftUsing = (UsingDirectiveSyntax)leftNode;
+                        var rightUsing = (UsingDirectiveSyntax)rightNode;
+
+                        // For now, just compute the distances of both the alias and name and combine their weights
+                        // 50/50. We could consider weighting the alias more heavily.  i.e. if you have `using X = ...`
+                        // and `using X = ...` it's more likely that this is the same alias, and just the name portion
+                        // changed versus thinking that some other using became this alias.
+                        distance =
+                            ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
+                            ComputeDistance(leftUsing.NamespaceOrType, rightUsing.NamespaceOrType);
+
+                        // Consider two usings that only differ by presence/absence of 'global' to be a near match.
+                        if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        // Consider two usings that only differ by presence/absence of 'unsafe' to be a near match.
+                        if (leftUsing.UnsafeKeyword.IsKind(SyntaxKind.None) != rightUsing.UnsafeKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        return true;
+                    }
 
                 case SyntaxKind.LockStatement:
                     var leftLock = (LockStatementSyntax)leftNode;
@@ -965,12 +891,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.LocalFunctionStatement:
                     distance = ComputeWeightedDistanceOfNestedFunctions(leftNode, rightNode);
-                    return true;
-
-                case SyntaxKind.YieldBreakStatement:
-                case SyntaxKind.YieldReturnStatement:
-                    // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
-                    distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
                     return true;
 
                 case SyntaxKind.SingleVariableDesignation:
@@ -1172,6 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.Block:
                 case SyntaxKind.LabeledStatement:
+                case SyntaxKind.GlobalStatement:
                     distance = ComputeWeightedBlockDistance(leftBlock, rightBlock);
                     return true;
 
@@ -1359,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
+                if (child is LocalDeclarationStatementSyntax localDecl)
                 {
                     GetLocalNames(localDecl.Declaration, ref result);
                 }
@@ -1410,6 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
+
                     return;
 
                 default:
@@ -1432,6 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }
+
                     return;
 
                 case SyntaxKind.DiscardDesignation:
@@ -1493,15 +1416,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ExternAliasDirectiveSyntax)node).Identifier;
 
                 case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)node).Name;
+                    return ((UsingDirectiveSyntax)node).NamespaceOrType;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).Name;
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return ((BaseNamespaceDeclarationSyntax)node).Name;
 
-                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((TypeDeclarationSyntax)node).Identifier;
 
                 case SyntaxKind.EnumDeclaration:
@@ -1539,6 +1464,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.IndexerDeclaration:
                     return null;
 
+                case SyntaxKind.ArrowExpressionClause:
+                    return null;
+
                 case SyntaxKind.EventDeclaration:
                     return ((EventDeclarationSyntax)node).Identifier;
 
@@ -1573,6 +1501,170 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     return null;
             }
+        }
+
+        public sealed override double GetDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        {
+            Debug.Assert(GetLabel(oldNode) == GetLabel(newNode) && GetLabel(oldNode) != IgnoredNode);
+
+            if (oldNode == newNode)
+            {
+                return ExactMatchDist;
+            }
+
+            if (TryComputeWeightedDistance(oldNode, newNode, out var weightedDistance))
+            {
+                if (weightedDistance == ExactMatchDist && !SyntaxFactory.AreEquivalent(oldNode, newNode))
+                {
+                    weightedDistance = EpsilonDist;
+                }
+
+                return weightedDistance;
+            }
+
+            return ComputeValueDistance(oldNode, newNode);
+        }
+
+        internal static double ComputeValueDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
+        {
+            if (SyntaxFactory.AreEquivalent(oldNode, newNode))
+            {
+                return ExactMatchDist;
+            }
+
+            var distance = ComputeDistance(oldNode, newNode);
+
+            // We don't want to return an exact match, because there
+            // must be something different, since we got here 
+            return (distance == ExactMatchDist) ? EpsilonDist : distance;
+        }
+
+        internal static double ComputeDistance(SyntaxNodeOrToken oldNodeOrToken, SyntaxNodeOrToken newNodeOrToken)
+        {
+            Debug.Assert(newNodeOrToken.IsToken == oldNodeOrToken.IsToken);
+
+            double distance;
+            if (oldNodeOrToken.IsToken)
+            {
+                var leftToken = oldNodeOrToken.AsToken();
+                var rightToken = newNodeOrToken.AsToken();
+
+                distance = ComputeDistance(leftToken, rightToken);
+                Debug.Assert(!SyntaxFactory.AreEquivalent(leftToken, rightToken) || distance == ExactMatchDist);
+            }
+            else
+            {
+                var leftNode = oldNodeOrToken.AsNode();
+                var rightNode = newNodeOrToken.AsNode();
+
+                distance = ComputeDistance(leftNode, rightNode);
+                Debug.Assert(!SyntaxFactory.AreEquivalent(leftNode, rightNode) || distance == ExactMatchDist);
+            }
+
+            return distance;
+        }
+
+        /// <summary>
+        /// Enumerates tokens of all nodes in the list. Doesn't include separators.
+        /// </summary>
+        internal static IEnumerable<SyntaxToken> GetDescendantTokensIgnoringSeparators<TSyntaxNode>(SeparatedSyntaxList<TSyntaxNode> list)
+            where TSyntaxNode : SyntaxNode
+        {
+            foreach (var node in list)
+            {
+                foreach (var token in node.DescendantTokens())
+                {
+                    yield return token;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calculates the distance between two syntax nodes, disregarding trivia. 
+        /// </summary>
+        /// <remarks>
+        /// Distance is a number within [0, 1], the smaller the more similar the nodes are. 
+        /// </remarks>
+        public static double ComputeDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
+        {
+            if (oldNode == null || newNode == null)
+            {
+                return (oldNode == newNode) ? 0.0 : 1.0;
+            }
+
+            return ComputeDistance(oldNode.DescendantTokens(), newNode.DescendantTokens());
+        }
+
+        /// <summary>
+        /// Calculates the distance between two syntax tokens, disregarding trivia. 
+        /// </summary>
+        /// <remarks>
+        /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
+        /// </remarks>
+        public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
+            => LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
+
+        private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
+            => enumerable is null ? ImmutableArray<T>.Empty : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
+
+        /// <summary>
+        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
+        /// </summary>
+        /// <remarks>
+        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
+        /// </remarks>
+        public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
+            => LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens));
+
+        /// <summary>
+        /// Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
+        /// </summary>
+        /// <remarks>
+        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
+        /// </remarks>
+        public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
+            => LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldNodes), CreateArrayForDistanceCalculation(newNodes));
+
+        /// <summary>
+        /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
+        /// </summary>
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
+            => LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
+
+        /// <summary>
+        /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
+        /// </summary>
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
+            => LcsNodes.Instance.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+
+        /// <summary>
+        /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
+        /// </summary>
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
+            => LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
+
+        /// <summary>
+        /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
+        /// </summary>
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
+            => LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+
+        private sealed class LcsTokens : LongestCommonImmutableArraySubsequence<SyntaxToken>
+        {
+            internal static readonly LcsTokens Instance = new LcsTokens();
+
+            protected override bool Equals(SyntaxToken oldElement, SyntaxToken newElement)
+                => SyntaxFactory.AreEquivalent(oldElement, newElement);
+        }
+
+        private sealed class LcsNodes : LongestCommonImmutableArraySubsequence<SyntaxNode>
+        {
+            internal static readonly LcsNodes Instance = new LcsNodes();
+
+            protected override bool Equals(SyntaxNode oldElement, SyntaxNode newElement)
+                => SyntaxFactory.AreEquivalent(oldElement, newElement);
         }
 
         #endregion

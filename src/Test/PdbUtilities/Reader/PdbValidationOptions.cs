@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         ExcludeScopes = PdbToXmlOptions.ExcludeScopes,
         ExcludeNamespaces = PdbToXmlOptions.ExcludeNamespaces,
         ExcludeAsyncInfo = PdbToXmlOptions.ExcludeAsyncInfo,
-        ExcludeCustomDebugInformation = PdbToXmlOptions.ExcludeCustomDebugInformation
+        ExcludeCustomDebugInformation = PdbToXmlOptions.ExcludeCustomDebugInformation,
+        IncludeModuleDebugInfo = PdbToXmlOptions.IncludeModuleDebugInfo
     }
 
     public static class PdbValidationOptionsExtensions
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 PdbValidationOptions.ExcludeScopes |
                 PdbValidationOptions.ExcludeNamespaces |
                 PdbValidationOptions.ExcludeAsyncInfo |
-                PdbValidationOptions.ExcludeCustomDebugInformation;
+                PdbValidationOptions.ExcludeCustomDebugInformation |
+                PdbValidationOptions.IncludeModuleDebugInfo;
 
             return PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError | PdbToXmlOptions.IncludeEmbeddedSources | (PdbToXmlOptions)(options & mask);
         }

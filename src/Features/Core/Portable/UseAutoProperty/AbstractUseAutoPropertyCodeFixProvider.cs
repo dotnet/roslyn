@@ -10,14 +10,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
@@ -51,12 +53,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
-                    : CodeActionPriority.Medium;
+                    : CodeActionPriority.Default;
 
-                context.RegisterCodeFix(
-                    new UseAutoPropertyCodeAction(
+                context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
+                        equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                         priority),
                     diagnostic);
             }
@@ -85,8 +87,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var project = fieldDocument.Project;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            var renameOptions = new SymbolRenameOptions();
+
             var fieldLocations = await Renamer.FindRenameLocationsAsync(
-                solution, fieldSymbol, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
+                solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             linkedFiles.AddRange(fieldDocument.GetLinkedDocumentIds());
             linkedFiles.AddRange(propertyDocument.GetLinkedDocumentIds());
 
-            var canEdit = new Dictionary<SyntaxTree, bool>();
+            var canEdit = new Dictionary<DocumentId, bool>();
 
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
@@ -128,16 +132,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // same as the property we're trying to get the references pointing to.
 
             var filteredLocations = fieldLocations.Filter(
-                location => location.SourceTree != null &&
-                            !location.IntersectsWith(declaratorLocation) &&
-                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
+                (documentId, span) =>
+                    fieldDocument.Id == documentId ? !span.IntersectsWith(declaratorLocation.SourceSpan) : true && // The span check only makes sense if we are in the same file
+                    CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
-                propertySymbol.Name,
-                nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
-                cancellationToken).ConfigureAwait(false);
+                fieldSymbol, propertySymbol.Name,
+                nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)),
+                context.Options, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            Contract.ThrowIfFalse(resolution.IsSuccessful);
 
             solution = resolution.NewSolution;
 
@@ -189,10 +193,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (fieldDocument == propertyDocument)
             {
                 var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerFactsService>();
                 if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
-                    syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
+                    bannerService.GetLeadingBlankLines(nodeToRemove).Length == 0)
                 {
-                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
+                    updatedProperty = bannerService.GetNodeWithoutLeadingBlankLines(updatedProperty);
                 }
             }
 
@@ -202,12 +207,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 // Same file.  Have to do this in a slightly complicated fashion.
                 var declaratorTreeRoot = await fieldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace);
+                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Services);
                 editor.ReplaceNode(property, updatedProperty);
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+                newRoot = await FormatAsync(newRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
@@ -221,8 +226,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 Contract.ThrowIfNull(newFieldTreeRoot);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
-                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
+                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
+                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, context.Options, cancellationToken).ConfigureAwait(false);
 
                 var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -258,20 +263,22 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private static bool CanEditDocument(
-            Solution solution, SyntaxTree sourceTree,
+            Solution solution,
+            DocumentId documentId,
             HashSet<DocumentId> linkedDocuments,
-            Dictionary<SyntaxTree, bool> canEdit)
+            Dictionary<DocumentId, bool> canEdit)
         {
-            if (!canEdit.ContainsKey(sourceTree))
+            if (!canEdit.TryGetValue(documentId, out var canEditDocument))
             {
-                var document = solution.GetDocument(sourceTree);
-                canEdit[sourceTree] = document != null && !linkedDocuments.Contains(document.Id);
+                var document = solution.GetDocument(documentId);
+                canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
+                canEdit[documentId] = canEditDocument;
             }
 
-            return canEdit[sourceTree];
+            return canEditDocument;
         }
 
-        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
             if (formattingRules == null)
@@ -279,30 +286,31 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
+            var options = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Services, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
-            IFieldSymbol field, RenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
+            IFieldSymbol field, LightweightRenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
         {
-            var constructorNodes = field.ContainingType.GetMembers()
+            var constructorSpans = field.ContainingType.GetMembers()
                                                        .Where(m => m.IsConstructor())
                                                        .SelectMany(c => c.DeclaringSyntaxReferences)
                                                        .Select(s => s.GetSyntax(cancellationToken))
                                                        .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())
                                                        .WhereNotNull()
+                                                       .Select(d => (d.SyntaxTree.FilePath, d.Span))
                                                        .ToSet();
             return renameLocations.Locations.Any(
                 loc => IsWrittenToOutsideOfConstructorOrProperty(
-                    renameLocations.Solution, loc, propertyDeclaration, constructorNodes, cancellationToken));
+                    renameLocations.Solution, loc, propertyDeclaration, constructorSpans, cancellationToken));
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
             Solution solution,
             RenameLocation location,
             TPropertyDeclaration propertyDeclaration,
-            ISet<TConstructorDeclaration> constructorNodes,
+            ISet<(string filePath, TextSpan span)> constructorSpans,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -324,7 +332,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     return false;
                 }
 
-                if (constructorNodes.Contains(node))
+                if (constructorSpans.Contains((node.SyntaxTree.FilePath, node.Span)))
                 {
                     // Not a write outside a constructor of the field's class
                     return false;
@@ -335,17 +343,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // We do need a setter
             return true;
-        }
-
-        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
-                : base(title, createChangedSolution, title)
-            {
-                Priority = priority;
-            }
-
-            internal override CodeActionPriority Priority { get; }
         }
     }
 }

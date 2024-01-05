@@ -20,13 +20,15 @@ using Xunit;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     [UseExportProvider]
     public class ResetInteractiveTests
     {
-        private string WorkspaceXmlStr =>
+        private const string WorkspaceXmlStr =
 @"<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""ResetInteractiveVisualBasicSubproject"" CommonReferences=""true"">
         <Document FilePath=""VisualBasicDocument""></Document>
@@ -80,14 +82,14 @@ namespace ResetInteractiveTestsDocument
             void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);
             testHost.Evaluator.OnExecute += executeSubmission;
 
-            var waitIndicator = workspace.GetService<IWaitIndicator>();
-            var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
+            var uiThreadOperationExecutor = workspace.GetService<IUIThreadOperationExecutor>();
+            var editorOptionsService = workspace.GetService<EditorOptionsService>();
+            var editorOptions = editorOptionsService.Factory.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
             var resetInteractive = new TestResetInteractive(
-                waitIndicator,
-                editorOptionsFactoryService,
+                uiThreadOperationExecutor,
+                editorOptionsService,
                 CreateReplReferenceCommand,
                 CreateImport,
                 buildSucceeds: buildSucceeds)
@@ -121,6 +123,7 @@ namespace ResetInteractiveTestsDocument
             {
                 expectedSubmissions.AddRange(expectedReferences.Select(r => r + newLineCharacter));
             }
+
             if (expectedUsings.Any())
             {
                 expectedSubmissions.Add(string.Join(newLineCharacter, expectedUsings) + newLineCharacter);
@@ -137,7 +140,7 @@ namespace ResetInteractiveTestsDocument
         /// <param name="workspace">Workspace with the solution.</param>
         /// <param name="project">A project that should be built.</param>
         /// <returns>A list of paths that should be referenced.</returns>
-        private IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
+        private static IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
         {
             var metadataReferences = project.MetadataReferences.Select(r => r.Display);
             var projectReferences = project.ProjectReferences.SelectMany(p => GetProjectReferences(

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 token.Parent is ConstructorInitializerSyntax &&
                 token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration))
             {
-                var constructor = token.GetAncestor<ConstructorDeclarationSyntax>();
+                var constructor = token.GetRequiredAncestor<ConstructorDeclarationSyntax>();
                 if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
                 {
                     return false;
@@ -66,9 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier == SyntaxKind.None ||
-                    previousModifier == SyntaxKind.RefKeyword ||
-                    previousModifier == SyntaxKind.InKeyword)
+                if (previousModifier is SyntaxKind.None or
+                    SyntaxKind.RefKeyword or
+                    SyntaxKind.InKeyword or
+                    SyntaxKind.ReadOnlyKeyword)
                 {
                     if (parameterIndex == 0 &&
                         context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
-            return context.InferredTypes.Any(t => Equals(t, outerType));
+            return context.InferredTypes.Any(static (t, outerType) => Equals(t, outerType), outerType);
         }
     }
 }

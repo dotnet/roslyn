@@ -21,6 +21,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [Name(Id)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [LocalizedName(typeof(CodeLensVSResources), "CSharp_VisualBasic_References")]
+    [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.CSharp_VisualBasic_References))]
     [Priority(200)]
     [OptionUserModifiable(userModifiable: false)]
     [DetailsTemplateName("references")]
@@ -130,10 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var versionedPoints = _dataPoints.GetOrAdd(dataPoint.Descriptor.ProjectGuid, _ => (version: VersionStamp.Default.ToString(), dataPoints: new HashSet<DataPoint>()));
                 versionedPoints.dataPoints.Add(dataPoint);
 
-                if (_pollingTask is null)
-                {
-                    _pollingTask = Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
-                }
+                _pollingTask ??= Task.Run(PollForUpdatesAsync).ReportNonFatalErrorAsync();
             }
         }
 
@@ -212,14 +211,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 var referenceCount = referenceCountOpt.Value;
 
-                var referenceCountString = $"{referenceCount.Count}{(referenceCount.IsCapped ? "+" : string.Empty)}";
                 return new CodeLensDataPointDescriptor()
                 {
-                    Description = referenceCount.Count == 1
-                        ? string.Format(CodeLensVSResources._0_reference, referenceCountString)
-                        : string.Format(CodeLensVSResources._0_references, referenceCountString),
+                    Description = referenceCount.GetDescription(),
                     IntValue = referenceCount.Count,
-                    TooltipText = string.Format(CodeLensVSResources.This_0_has_1_references, codeElementKind, referenceCountString),
+                    TooltipText = referenceCount.GetToolTip(codeElementKind),
                     ImageId = null
                 };
 
@@ -228,11 +224,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     switch (kind)
                     {
                         case CodeElementKinds.Method:
-                            return CodeLensVSResources.method;
+                            return FeaturesResources.method;
                         case CodeElementKinds.Type:
-                            return CodeLensVSResources.type;
+                            return FeaturesResources.type;
                         case CodeElementKinds.Property:
-                            return CodeLensVSResources.property;
+                            return FeaturesResources.property_;
                         default:
                             // code lens engine will catch and ignore exception
                             // basically not showing data point
@@ -254,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 // Keep track of the exact reference count
                 if (referenceLocationDescriptors.HasValue)
                 {
-                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, isCapped: false, version: referenceLocationDescriptors.Value.projectVersion);
+                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, IsCapped: false, Version: referenceLocationDescriptors.Value.projectVersion);
                     if (newCount != _calculatedReferenceCount)
                     {
                         _calculatedReferenceCount = newCount;

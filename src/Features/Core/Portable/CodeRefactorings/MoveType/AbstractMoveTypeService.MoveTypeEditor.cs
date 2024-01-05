@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,15 +21,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class MoveTypeEditor : Editor
+        private sealed class MoveTypeEditor(
+            TService service,
+            State state,
+            string fileName,
+            CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
         {
-            public MoveTypeEditor(
-                TService service,
-                State state,
-                string fileName,
-                CancellationToken cancellationToken) : base(service, state, fileName, cancellationToken)
-            {
-            }
 
             /// <summary>
             /// Given a document and a type contained in it, moves the type
@@ -79,12 +76,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 Solution solution, DocumentId sourceDocumentId, DocumentId documentWithMovedTypeId)
             {
                 var documentWithMovedType = solution.GetRequiredDocument(documentWithMovedTypeId);
+                var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = documentWithMovedType.GetRequiredLanguageService<ISyntaxFactsService>();
                 var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
                 // Remove all unnecessary imports from the new document we've created.
-                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, CancellationToken).ConfigureAwait(false);
+                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, documentWithMovedTypeFormattingOptions, CancellationToken).ConfigureAwait(false);
 
                 solution = solution.WithDocumentSyntaxRoot(
                     documentWithMovedTypeId, await documentWithMovedType.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false));
@@ -97,9 +95,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // Now remove any unnecessary imports from the original doc that moved to the new doc.
                 var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
+                var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                 sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                     sourceDocument,
                     n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
+                    sourceDocumentFormattingOptions,
                     CancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(
@@ -132,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 foreach (var member in membersToRemove)
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
 
+                // Remove attributes from the root node as well, since those will apply as AttributeTarget.Assembly and
+                // don't need to be specified multiple times
+                documentEditor.RemoveAllAttributes(root);
+
                 var modifiedRoot = documentEditor.GetChangedRoot();
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
@@ -154,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
-                var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
+                var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+                var insertFinalNewLine = documentFormattingOptions.InsertFinalNewLine;
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
@@ -165,8 +169,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                         !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                     {
+                        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                        var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
+                        var endOfLine = generator.EndOfLine(lineFormattingOptions.NewLine);
                         return modifiedRoot.ReplaceToken(
                             previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));
                     }
@@ -212,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
-                    .DescendantNodes(n => spine.Contains(n))
+                    .DescendantNodes(spine.Contains)
                     .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
 
                 // diff candidates with items we want to keep.
@@ -242,9 +247,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                return node is TTypeDeclarationSyntax ||
-                       node is TMemberDeclarationSyntax ||
-                       node is TNamespaceDeclarationSyntax;
+                return node is TTypeDeclarationSyntax or
+                       TMemberDeclarationSyntax or
+                       TNamespaceDeclarationSyntax;
             }
 
             /// <summary>
@@ -260,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 foreach (var node in typeChain)
                 {
-                    var symbol = (ITypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    var symbol = (INamedTypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     Contract.ThrowIfNull(symbol);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
@@ -295,7 +300,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
+                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
+
+                var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
                 // Add an elastic marker so the formatter can add any blank lines it thinks are
                 // important to have (i.e. after a block of usings/imports).

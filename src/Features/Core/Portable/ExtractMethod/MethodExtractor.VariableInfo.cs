@@ -13,23 +13,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
-        protected class VariableInfo
+        protected class VariableInfo(
+            VariableSymbol variableSymbol,
+            VariableStyle variableStyle,
+            bool useAsReturnValue = false) : IComparable<VariableInfo>
         {
-            private readonly VariableSymbol _variableSymbol;
-            private readonly VariableStyle _variableStyle;
-            private readonly bool _useAsReturnValue;
-
-            public VariableInfo(
-                VariableSymbol variableSymbol,
-                VariableStyle variableStyle,
-                bool useAsReturnValue = false)
-            {
-                _variableSymbol = variableSymbol;
-                _variableStyle = variableStyle;
-                _useAsReturnValue = useAsReturnValue;
-            }
+            private readonly VariableSymbol _variableSymbol = variableSymbol;
+            private readonly VariableStyle _variableStyle = variableStyle;
+            private readonly bool _useAsReturnValue = useAsReturnValue;
 
             public bool UseAsReturnValue
             {
@@ -97,25 +90,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfNull(variable);
                 Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
-                Contract.ThrowIfFalse(variable.ParameterModifier == ParameterBehavior.Out || variable.ParameterModifier == ParameterBehavior.Ref);
+                Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
 
                 return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
             }
 
             public void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
 
             public string Name => _variableSymbol.Name;
 
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
+
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
-            public ITypeSymbol GetVariableType(SemanticDocument document)
-                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
+            public ITypeSymbol GetVariableType()
+                => _variableSymbol.OriginalType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
@@ -123,14 +123,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
-            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
-            {
-                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
-                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
-            }
+            public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
-            private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)
-                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol, cancellationTokenType);
+            public static void SortVariables(ArrayBuilder<VariableInfo> variables)
+                => variables.Sort();
+
+            public int CompareTo(VariableInfo other)
+                => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
         }
     }
 }

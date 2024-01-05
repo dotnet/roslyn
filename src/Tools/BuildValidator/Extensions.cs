@@ -22,12 +22,5 @@ namespace BuildValidator
             }
         }
 #endif
-
-        internal static MetadataReader GetEmbeddedPdbMetadataReader(this PEReader peReader)
-        {
-            var entry = peReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-            var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-            return provider.GetMetadataReader();
-        }
     }
 }

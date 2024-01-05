@@ -2,159 +2,114 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
+
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public class CommentTests : AbstractSyntaxStructureProviderTests
 {
-    public class CommentTests : AbstractSyntaxStructureProviderTests
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    private static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
+        SyntaxTriviaList triviaList)
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+        using var result = TemporaryArray<BlockSpan>.Empty;
+        CSharpStructureHelpers.CollectCommentBlockSpans(triviaList, ref result.AsRef());
+        return result.ToImmutableAndClear();
+    }
 
-        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
+    internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var trivia = root.FindTrivia(position, findInsideTrivia: true);
+
+        var token = trivia.Token;
+
+        if (token.LeadingTrivia.Contains(trivia))
         {
-            var root = await document.GetSyntaxRootAsync();
-            var trivia = root.FindTrivia(position, findInsideTrivia: true);
-
-            var token = trivia.Token;
-
-            if (token.LeadingTrivia.Contains(trivia))
-            {
-                return CSharpStructureHelpers.CreateCommentBlockSpan(token.LeadingTrivia);
-            }
-            else if (token.TrailingTrivia.Contains(trivia))
-            {
-                return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia);
-            }
-
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            return CreateCommentBlockSpan(token.LeadingTrivia);
+        }
+        else if (token.TrailingTrivia.Contains(trivia))
+        {
+            return CreateCommentBlockSpan(token.TrailingTrivia);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSimpleComment1()
-        {
-            const string code = @"
-{|span:// Hello
-// $$C#|}
-class C
-{
-}
-";
+        throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+    }
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Hello ...", autoCollapse: true));
-        }
+    [Fact]
+    public async Task TestSimpleComment1()
+    {
+        var code = """
+                {|span:// Hello
+                // $$C#|}
+                class C
+                {
+                }
+                """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSimpleComment2()
-        {
-            const string code = @"
-{|span:// Hello
-//
-// $$C#!|}
-class C
-{
-}
-";
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Hello ...", autoCollapse: true));
+    }
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Hello ...", autoCollapse: true));
-        }
+    [Fact]
+    public async Task TestSimpleComment2()
+    {
+        var code = """
+                {|span:// Hello
+                //
+                // $$C#!|}
+                class C
+                {
+                }
+                """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSimpleComment3()
-        {
-            const string code = @"
-{|span:// Hello
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Hello ...", autoCollapse: true));
+    }
 
-// $$C#!|}
-class C
-{
-}
-";
+    [Fact]
+    public async Task TestSimpleComment3()
+    {
+        var code = """
+                {|span:// Hello
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Hello ...", autoCollapse: true));
-        }
+                // $$C#!|}
+                class C
+                {
+                }
+                """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
-        {
-            const string code = @"
-{|span:// Hello
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Hello ...", autoCollapse: true));
+    }
 
-// $$C#!|}
-/// <summary></summary>
-class C
-{
-}
-";
+    [Fact]
+    public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
+    {
+        var code = """
+                {|span:// Hello
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "// Hello ...", autoCollapse: true));
-        }
+                // $$C#!|}
+                /// <summary></summary>
+                class C
+                {
+                }
+                """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMultilineComment1()
-        {
-            const string code = @"
-{|span:/* Hello
-$$C# */|}
-class C
-{
-}
-";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/* Hello ...", autoCollapse: true));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMultilineCommentOnOneLine()
-        {
-            const string code = @"
-{|span:/* Hello $$C# */|}
-class C
-{
-}
-";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/* Hello C# ...", autoCollapse: true));
-        }
-
-        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
-        [WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIncompleteMultilineCommentZeroSpace()
-        {
-            const string code = @"
-{|span:$$/*|}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/*  ...", autoCollapse: true));
-        }
-
-        [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
-        [WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIncompleteMultilineCommentSingleSpace()
-        {
-            const string code = @"
-{|span:$$/* |}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/*  ...", autoCollapse: true));
-        }
+        await VerifyBlockSpansAsync(code,
+            Region("span", "// Hello ...", autoCollapse: true));
     }
 }

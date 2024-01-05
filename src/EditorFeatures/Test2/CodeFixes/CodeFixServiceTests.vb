@@ -22,6 +22,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class CodeFixServiceTests
 
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -68,14 +69,17 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
                 ' Verify available codefix with a global fixer
-                Dim fixes = Await codefixService.GetFixesAsync(document,
+                Dim fixes = Await codefixService.GetFixesAsync(
+                    document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    includeConfigurationFixes:=True, cancellationToken:=CancellationToken.None)
+                    CodeActionOptions.DefaultProvider,
+                    CancellationToken.None)
+
                 Assert.Equal(0, fixes.Count())
 
                 ' Verify available codefix with a global fixer + a project fixer
@@ -86,22 +90,27 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)
                 document = project.Documents.Single()
-                fixes = Await codefixService.GetFixesAsync(document,
-                                                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                     includeConfigurationFixes:=True, cancellationToken:=CancellationToken.None)
+                fixes = Await codefixService.GetFixesAsync(
+                    document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan,
+                    CodeActionOptions.DefaultProvider,
+                    CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
                 ' Remove a project analyzer
                 project = project.RemoveAnalyzerReference(projectAnalyzerReference)
                 document = project.Documents.Single()
-                fixes = Await codefixService.GetFixesAsync(document,
-                                                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                     includeConfigurationFixes:=True, cancellationToken:=CancellationToken.None)
+                fixes = Await codefixService.GetFixesAsync(
+                    document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan,
+                    CodeActionOptions.DefaultProvider,
+                    CancellationToken.None)
+
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestDifferentLanguageProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -136,14 +145,17 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
                 ' Verify no codefix with a global fixer
-                Dim fixes = Await codefixService.GetFixesAsync(document,
-                                                         (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                         includeConfigurationFixes:=True, cancellationToken:=CancellationToken.None)
+                Dim fixes = Await codefixService.GetFixesAsync(
+                    document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan,
+                    CodeActionOptions.DefaultProvider,
+                    CancellationToken.None)
+
                 Assert.Equal(0, fixes.Count())
 
                 ' Verify no codefix with a global fixer + a project fixer
@@ -154,9 +166,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)
                 document = project.Documents.Single()
-                fixes = Await codefixService.GetFixesAsync(document,
-                                                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                     includeConfigurationFixes:=True, cancellationToken:=CancellationToken.None)
+                fixes = Await codefixService.GetFixesAsync(
+                    document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan,
+                    CodeActionOptions.DefaultProvider,
+                    CancellationToken.None)
+
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function

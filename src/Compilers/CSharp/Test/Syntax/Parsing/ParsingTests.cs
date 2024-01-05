@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (hasNext)
                 {
                     DumpAndCleanup();
-                    Assert.False(hasNext, "Test contains unconsumed syntax left over from UsingNode()");
+                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{(this._output as TestOutputHelper)?.Output}");
                 }
             }
         }
@@ -90,14 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal void UsingStatement(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseStatement(text, options: options);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
+            Validate(text, node, expectedErrors);
             UsingNode(node);
         }
 
-        internal void UsingDeclaration(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        internal void UsingDeclaration(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingDeclaration(text, offset: 0, options, consumeFullText: true, expectedErrors: expectedErrors);
         }
@@ -122,13 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
-        protected void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        protected void UsingNode(string text, CSharpSyntaxNode node, params DiagnosticDescription[] expectedErrors)
+        {
+            Validate(text, node, expectedErrors);
+            UsingNode(node);
+        }
+
+        protected void Validate(string text, CSharpSyntaxNode node, params DiagnosticDescription[] expectedErrors)
         {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
-            UsingNode(node);
         }
 
         internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
@@ -136,14 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(text, options: null, expectedErrors);
         }
 
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
+        protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            return UsingTree(text, options: null, expectedErrors);
+        }
+
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             VerifyEnumeratorConsumed();
             var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
+            var actualErrors = _node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
             var nodes = EnumerateNodes(_node, dump: false);
             _treeEnumerator = nodes.GetEnumerator();
 
@@ -187,15 +197,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             try
             {
                 Assert.True(_treeEnumerator!.MoveNext());
-                Assert.Equal(kind, _treeEnumerator.Current.Kind());
-                Assert.False(_treeEnumerator.Current.IsMissing);
+                var current = _treeEnumerator.Current;
+
+                Assert.Equal(kind, current.Kind());
+                Assert.False(current.IsMissing);
 
                 if (value != null)
                 {
-                    Assert.Equal(_treeEnumerator.Current.ToString(), value);
+                    Assert.Equal(current.ToString(), value);
                 }
 
-                return _treeEnumerator.Current;
+                return current;
             }
             catch when (DumpAndCleanup())
             {
@@ -283,11 +295,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                         if (node.IsMissing)
                         {
                             goto default;
                         }
-                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                        var value = node.ToString().Replace("\"", "\\\"");
+                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), value);
                         break;
                     default:
                         _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
@@ -317,6 +336,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (dump)
             {
                 _output.WriteLine("EOF();");
+            }
+        }
+
+        protected static void ParseIncompleteSyntax(string text)
+        {
+            var tokens = getLexedTokens(text);
+
+            var stringBuilder = new StringBuilder();
+            for (int skip = 0; skip < tokens.Length; skip++)
+            {
+                stringBuilder.Clear();
+
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    if (i == skip)
+                    {
+                        continue;
+                    }
+                    stringBuilder.Append(tokens[i].Text);
+                    stringBuilder.Append(' ');
+
+                    // Verify that we can parse and round-trip
+                    _ = SyntaxFactory.ParseSyntaxTree(stringBuilder.ToString(), TestOptions.RegularPreview);
+                }
+            }
+
+            static ImmutableArray<Syntax.InternalSyntax.SyntaxToken> getLexedTokens(string text)
+            {
+                var lexer = new Syntax.InternalSyntax.Lexer(Text.SourceText.From(text), CSharpParseOptions.Default);
+                var tokensBuilder = ArrayBuilder<Syntax.InternalSyntax.SyntaxToken>.GetInstance();
+
+                while (lexer.Lex(Syntax.InternalSyntax.LexerMode.Syntax) is var token && token.Kind != SyntaxKind.EndOfFileToken)
+                {
+                    tokensBuilder.Add(token);
+                }
+
+                return tokensBuilder.ToImmutableAndFree();
             }
         }
     }

@@ -7,8 +7,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
@@ -21,13 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             typeof(IdentifierNameSyntax));
 
         public override void AddClassifications(
-           Workspace workspace,
            SyntaxNode syntax,
+           TextSpan textSpan,
            SemanticModel semanticModel,
-           ArrayBuilder<ClassifiedSpan> result,
+           ClassificationOptions options,
+           SegmentedList<ClassifiedSpan> result,
            CancellationToken cancellationToken)
         {
-            if (syntax.IsKind(SyntaxKind.DiscardDesignation) || syntax.IsKind(SyntaxKind.DiscardPattern))
+            if (syntax.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.DiscardPattern)
             {
                 result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                 return;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
                     }
+
                     break;
 
                 case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                     }
+
                     break;
             }
         }

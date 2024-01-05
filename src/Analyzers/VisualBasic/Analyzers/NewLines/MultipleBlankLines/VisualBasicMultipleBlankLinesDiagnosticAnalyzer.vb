@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.NewLines.MultipleBlankLines
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editing
             => editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));
 
         public static void AddReturnAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
-            => editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));
+            => editor.ReplaceNode(declaration, (d, g) => g.AddReturnAttributes(d, new[] { attribute }));
 
         public static void AddAttributeArgument(this SyntaxEditor editor, SyntaxNode attributeDeclaration, SyntaxNode attributeArgument)
             => editor.ReplaceNode(attributeDeclaration, (d, g) => g.AddAttributeArguments(d, new[] { attributeArgument }));

@@ -117,33 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Regex_Comment" xml:space="preserve">
-    <value>Regex - Comment</value>
-  </data>
-  <data name="Regex_Character_Class" xml:space="preserve">
-    <value>Regex - Character Class</value>
-  </data>
-  <data name="Regex_Alternation" xml:space="preserve">
-    <value>Regex - Alternation</value>
-  </data>
-  <data name="Regex_Anchor" xml:space="preserve">
-    <value>Regex - Anchor</value>
-  </data>
-  <data name="Regex_Quantifier" xml:space="preserve">
-    <value>Regex - Quantifier</value>
-  </data>
-  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
-    <value>Regex - Self Escaped Character</value>
-  </data>
-  <data name="Regex_Grouping" xml:space="preserve">
-    <value>Regex - Grouping</value>
-  </data>
-  <data name="Regex_Text" xml:space="preserve">
-    <value>Regex - Text</value>
-  </data>
-  <data name="Regex_OtherEscape" xml:space="preserve">
-    <value>Regex - Other Escape</value>
-  </data>
   <data name="Error_performing_rename_0" xml:space="preserve">
     <value>Error performing rename: '{0}'</value>
   </data>
@@ -162,8 +135,8 @@
   <data name="The_references_command_is_not_supported_in_this_Interactive_Window_implementation" xml:space="preserve">
     <value>The references command is not supported in this Interactive Window implementation.</value>
   </data>
-  <data name="Reset_the_execution_environment_to_the_initial_state_keep_history" xml:space="preserve">
-    <value>Reset the execution environment to the initial state, keep history.</value>
+  <data name="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process" xml:space="preserve">
+    <value>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</value>
   </data>
   <data name="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script" xml:space="preserve">
     <value>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</value>
@@ -179,5 +152,17 @@
   </data>
   <data name="Interactive_host_process_platform" xml:space="preserve">
     <value>Interactive host process platform</value>
+  </data>
+  <data name="Enter_to_rename_shift_enter_to_preview" xml:space="preserve">
+    <value>Enter to rename, Shift+Enter to preview</value>
+  </data>
+  <data name="Generating_suggestions" xml:space="preserve">
+    <value>Generating suggestions...</value>
+  </data>
+  <data name="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion" xml:space="preserve">
+    <value>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</value>
+  </data>
+  <data name="Get_AI_suggestions" xml:space="preserve">
+    <value>Get AI-powered rename suggestions (Ctrl+Space)</value>
   </data>
 </root>

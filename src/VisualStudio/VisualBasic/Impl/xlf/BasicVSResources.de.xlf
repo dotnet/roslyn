@@ -7,6 +7,11 @@
         <target state="translated">Beim Einfügen fehlende import-Anweisungen hinzufügen</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Collapse_imports_on_file_open">
+        <source>Collapse Imports on file open</source>
+        <target state="translated">Importe beim Öffnen der Datei reduzieren</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">In relationalen Operatoren: = &lt;&gt; &lt; &gt; &lt;= &gt;= Like Is</target>
@@ -24,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Ausschnitt einfügen</target>
+        <target state="translated">Schnipsel einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
@@ -51,6 +56,16 @@
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">"Is Nothing" für Verweisübereinstimmungsprüfungen vorziehen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">Vereinfachte Objekterstellung bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -167,6 +182,11 @@
         <target state="translated">Import-Direktiven</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">Importe sortieren</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">Import-Direktiven für Typen in _NuGet-Paketen vorschlagen</target>
@@ -259,22 +279,22 @@
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Ausschnitte immer einschließen</target>
+        <target state="translated">Schnipsel immer einschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
+        <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="translated">Ausschnitte nie einschließen</target>
+        <target state="translated">Schnipsel nie einschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="translated">Ausschnittverhalten</target>
+        <target state="translated">Schnipselverhalten</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
@@ -290,11 +310,6 @@
       <trans-unit id="Unused_local">
         <source>Unused local</source>
         <target state="translated">Nicht verwendete lokale Variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">VB-Codierungskonvention</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

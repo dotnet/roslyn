@@ -9,10 +9,11 @@ Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <Trait(Traits.Feature, Traits.Features.QuickInfo)>
     Public Class IntellisenseQuickInfoBuilderTests_Lists
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
         Public Async Function QuickInfoForBulletedList(itemTags As String()) As Task
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
         Public Async Function QuickInfoForNumberedList(itemTags As String()) As Task
@@ -138,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function QuickInfoForBulletedTermList() As Task
             Dim workspace =
                 <Workspace>
@@ -203,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function QuickInfoForNumberedTermList() As Task
             Dim workspace =
                 <Workspace>
@@ -268,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData(New Object() {New String() {"item", "description"}})>
         <InlineData(New Object() {New String() {"item"}})>
         Public Async Function QuickInfoForNestedLists(itemTags As String()) As Task

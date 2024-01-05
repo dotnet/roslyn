@@ -14,7 +14,8 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -24,17 +25,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
-        {
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed);
-        }
-
         /// <summary>
         /// Checks a given symbol for browsability based on its declaration location, attributes 
         /// explicitly limiting browsability, and whether showing of advanced members is enabled. 
@@ -143,29 +133,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, IMethodSymbol? constructor)
         {
             if (constructor == null)
-            {
                 return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
-            }
 
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeConstructor, constructor) &&
-                    attribute.ConstructorArguments.Length == 1 &&
-                    attribute.ConstructorArguments.First().Value is int)
+                    attribute.ConstructorArguments is [{ Value: int value }])
                 {
-#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
-                    var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
-#nullable enable
-
+                    var state = (EditorBrowsableState)value;
                     if (EditorBrowsableState.Never == state)
-                    {
                         return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
-                    }
 
                     if (EditorBrowsableState.Advanced == state)
-                    {
                         return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
-                    }
                 }
             }
 
@@ -269,7 +249,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
-                catch
+                catch (XmlException)
+                {
+                    // Malformed documentation comments will produce an exception during parsing. This is not directly
+                    // actionable, so avoid the overhead of telemetry reporting for it.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1385578
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                 }
             }
@@ -331,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var container = node as XContainer;
             if (container == null)
             {
-                return new XNode[] { Copy(node, copyAttributeAnnotations: false) };
+                return [Copy(node, copyAttributeAnnotations: false)];
             }
 
             var oldNodes = container.Nodes();
@@ -347,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 container.ReplaceNodes(rewritten);
             }
 
-            return new XNode[] { container };
+            return [container];
         }
 
         private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
@@ -412,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
-                    xpathValue = BuildXPathForElement(element.Parent);
+                    xpathValue = BuildXPathForElement(element.Parent!);
                 }
                 else
                 {
@@ -424,28 +410,49 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
 
-                var loadedElements = TrySelectNodes(document, xpathValue);
-                if (loadedElements is null)
-                {
-                    return Array.Empty<XNode>();
-                }
-
-                if (loadedElements?.Length > 0)
-                {
-                    // change the current XML file path for nodes contained in the document:
-                    // prototype(inheritdoc): what should the file path be?
-                    var result = RewriteMany(symbol, visitedSymbols, compilation, loadedElements, cancellationToken);
-
-                    // The elements could be rewritten away if they are includes that refer to invalid
-                    // (but existing and accessible) XML files.  If this occurs, behave as if we
-                    // had failed to find any XPath results (as in Dev11).
-                    if (result.Length > 0)
+                // Consider the following code, we want Test<int>.Clone to say "Clones a Test<int>" instead of "Clones a int", thus
+                // we rewrite `typeparamref`s as cref pointing to the correct type:
+                /*
+                    public class Test<T> : ICloneable<Test<T>>
                     {
-                        return result;
+                        /// <inheritdoc/>
+                        public Test<T> Clone() => new();
+                    }
+
+                    /// <summary>A type that has clonable instances.</summary>
+                    /// <typeparam name="T">The type of instances that can be cloned.</typeparam>
+                    public interface ICloneable<T>
+                    {
+                        /// <summary>Clones a <typeparamref name="T"/>.</summary>
+                        public T Clone();
+                    }
+                */
+                // Note: there is no way to cref an instantiated generic type. See https://github.com/dotnet/csharplang/issues/401
+                var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
+                foreach (var typeParameterRef in typeParameterRefs)
+                {
+                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is XAttribute typeParamName)
+                    {
+                        var index = symbol.OriginalDefinition.GetAllTypeParameters().IndexOf(p => p.Name == typeParamName.Value);
+                        if (index >= 0)
+                        {
+                            var typeArgs = symbol.GetAllTypeArguments();
+                            if (index < typeArgs.Length)
+                            {
+                                var docId = typeArgs[index].GetDocumentationCommentId();
+                                if (docId != null && !docId.StartsWith("!"))
+                                {
+                                    var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
+                                    replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
+                                    typeParameterRef.ReplaceWith(replacement);
+                                }
+                            }
+                        }
                     }
                 }
 
-                return null;
+                var loadedElements = TrySelectNodes(document, xpathValue);
+                return loadedElements ?? Array.Empty<XNode>();
             }
             catch (XmlException)
             {
@@ -470,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
                 {
-                    if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor)
                     {
                         var baseType = memberSymbol.ContainingType.BaseType;
 #nullable disable // Can 'baseType' be null here? https://github.com/dotnet/roslyn/issues/39166
@@ -487,7 +494,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (typeSymbol.TypeKind == TypeKind.Class)
                     {
-                        // prototype(inheritdoc): when does base class take precedence over interface?
+                        // Classes use the base type as the default inheritance candidate. A different target (e.g. an
+                        // interface) can be provided via the 'path' attribute.
                         return typeSymbol.BaseType;
                     }
                     else if (typeSymbol.TypeKind == TypeKind.Interface)
@@ -571,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 XContainer temp = new XElement("temp");
                 temp.Add(node);
-                copy = temp.LastNode;
+                copy = temp.LastNode!;
                 temp.RemoveNodes();
             }
 
@@ -652,7 +660,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // check to see if we're referencing a symbol defined in source.
             static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray((s, arg) =>
-                (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+                // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
+                // of each namespace symbol, which might end up allocating in LOH
+                (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,
@@ -663,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            var overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new MetadataUnifyingSymbolHashSet();
 
             foreach (var symbol in symbols)
             {

@@ -77,11 +77,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
-                            {
-                                using var reader = e.CreateReader();
-                                reader.MoveToContent();
-                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                            }
+                                comments[e.Attribute("name").Value] = e.ToString();
                         }
 
                         _docComments = comments;
@@ -189,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return (object)this == obj;
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()

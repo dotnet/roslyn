@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
              ImmutableArray.Create(New RecommendedKeyword("Return", VBFeaturesResources.Returns_execution_to_the_code_that_called_the_Function_Sub_Get_Set_or_Operator_procedure_Return_or_Return_expression))
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            Return If(context.IsSingleLineStatementContext AndAlso Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock),
+            Return If(context.IsStatementContext AndAlso Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock),
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

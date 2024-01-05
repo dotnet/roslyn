@@ -9,15 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
-        [Fact]
-        public async Task TestProjectsAsync()
+        public ProjectsHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestProjectsAsync(bool mutatingLspWorkspace)
+        {
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
             var solution = testLspServer.GetCurrentSolution();
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 

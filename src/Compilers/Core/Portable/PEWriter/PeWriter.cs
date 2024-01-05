@@ -41,7 +41,6 @@ namespace Microsoft.Cci
             Func<Stream> getPeStream,
             Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
-            BlobReader? pdbOptionsBlobReader,
             string pdbPathOpt,
             bool metadataOnly,
             bool isDeterministic,
@@ -57,6 +56,7 @@ namespace Microsoft.Cci
 
             var properties = context.Module.SerializationProperties;
 
+            context.Module.TestData?.SetMetadataWriter(mdWriter);
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
             // Since we are producing a full assembly, we should not have a module version ID
@@ -74,7 +74,6 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                pdbOptionsBlobReader,
                 out mvidFixup,
                 out mvidStringFixup);
 
@@ -110,6 +109,8 @@ namespace Microsoft.Cci
                 }
 
                 nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
             Stream peStream = getPeStream();

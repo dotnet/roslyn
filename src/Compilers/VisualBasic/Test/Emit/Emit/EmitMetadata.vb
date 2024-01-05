@@ -269,7 +269,8 @@ End Class
                                         {mscorlibRef, multiModule},
                                         TestOptions.ReleaseDll)
 
-            dllImage = CompileAndVerify(c2).EmittedAssemblyData
+            ' ILVerify: The method or operation is not implemented.
+            dllImage = CompileAndVerify(c2, verify:=Verification.FailsILVerify).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.CreateFromImage(dllImage)
                 Dim emitAssemblyRefs2 As PEAssembly = metadata.GetAssembly
@@ -303,11 +304,11 @@ End Class
                                         {mscorlibRef, netModule1.GetReference(), netModule2.GetReference()},
                                         TestOptions.ReleaseDll)
 
-
             Dim class1 = c1.GlobalNamespace.GetMembers("Class1")
             Assert.Equal(1, class1.Count())
 
-            Dim manifestModule = CompileAndVerify(c1).EmittedAssemblyData
+            ' ILVerify: Assembly or module not found: netModule1
+            Dim manifestModule = CompileAndVerify(c1, verify:=Verification.FailsILVerify).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(manifestModule), netModule1, netModule2)
                 Dim emitAddModule As PEAssembly = metadata.GetAssembly
@@ -750,7 +751,6 @@ Class TC3(Of T8)
 End Class
     </file>
 </compilation>, TestOptions.ReleaseExe)
-
 
             CompileAndVerify(compilation, <![CDATA[
 TC1

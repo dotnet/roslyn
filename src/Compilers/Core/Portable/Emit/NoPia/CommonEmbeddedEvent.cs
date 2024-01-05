@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
             {
-                return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
 
             protected TEmbeddedMethod AnAccessor

@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        var ns = (NamespaceDeclarationSyntax)node;
+                        var ns = (BaseNamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members)
                         {
                             ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
@@ -97,17 +98,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
-
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {
-                            var recordDeclaration = (RecordDeclarationSyntax)node;
-                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && recordDeclaration.ParameterList is object);
+                            var typeDeclaration = (TypeDeclarationSyntax)node;
+                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && typeDeclaration.ParameterList is object);
 
-                            var codeBlocks = GetParameterListInitializersAndAttributes(recordDeclaration.ParameterList);
+                            var codeBlocks = GetParameterListInitializersAndAttributes(typeDeclaration.ParameterList);
 
-                            if (recordDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
+                            if (typeDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
                             {
                                 codeBlocks = codeBlocks.Concat(initializer);
                             }
@@ -116,10 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
 
-                        goto case SyntaxKind.ClassDeclaration;
+                        goto case SyntaxKind.InterfaceDeclaration;
                     }
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;

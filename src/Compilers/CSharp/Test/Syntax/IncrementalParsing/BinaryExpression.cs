@@ -67,6 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         }
 
         [Fact]
+        public void PlusToUnsignedRightShift()
+        {
+            MakeBinOpChange(SyntaxKind.AddExpression, SyntaxKind.UnsignedRightShiftExpression);
+        }
+
+        [Fact]
         public void PlusToLogicalOr()
         {
             MakeBinOpChange(SyntaxKind.AddExpression, SyntaxKind.LogicalOrExpression);
@@ -232,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                     return "<<";
                 case SyntaxKind.RightShiftExpression:
                     return ">>";
+                case SyntaxKind.UnsignedRightShiftExpression:
+                    return ">>>";
                 case SyntaxKind.LogicalOrExpression:
                     return "||";
                 case SyntaxKind.LogicalAndExpression:

@@ -33,7 +33,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost textViewHost, IWpfTextViewMargin containerMargin)
         {
-            if (!(textViewHost.TextView.TextBuffer is IProjectionBuffer))
+            if (textViewHost.TextView.TextBuffer is not IProjectionBuffer)
             {
                 return null;
             }

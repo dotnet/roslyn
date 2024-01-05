@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"), composition: composition);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -85,7 +87,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -177,7 +179,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -218,7 +220,7 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -260,7 +262,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -302,7 +304,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -342,7 +344,7 @@ namespace M
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -383,7 +385,7 @@ End Namespace
             Assert.Equal(implementingClassSymbol, Assert.Single(typesThatImplementInterface));
         }
 
-        [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage(TestHost host)
         {
             using var workspace = CreateWorkspace(host);
@@ -488,7 +490,7 @@ interface IOther { }
 
             Assert.NotEmpty(immediateDerived);
             AssertEx.SetEqual(immediateDerived.Select(d => d.Name),
-                new[] { "IB1", "IB2", "IB3", "IC2" });
+                ["IB1", "IB2", "IB3", "IC2"]);
             Assert.True(immediateDerived.All(d => d.Interfaces.Contains(rootType)));
 
             var transitiveDerived = await SymbolFinder.FindDerivedInterfacesAsync(
@@ -496,7 +498,7 @@ interface IOther { }
 
             Assert.NotEmpty(transitiveDerived);
             AssertEx.SetEqual(transitiveDerived.Select(d => d.Name),
-                new[] { "IB1", "IB2", "IB3", "IC1", "IC2", "IC3", "ID1" });
+                ["IB1", "IB2", "IB3", "IC1", "IC2", "IC3", "ID1"]);
             Assert.True(transitiveDerived.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
             Assert.True(transitiveDerived.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 
@@ -541,14 +543,14 @@ struct OtherStruct { }
             Assert.NotEmpty(immediateImpls);
             Assert.True(immediateImpls.All(d => d.Interfaces.Contains(rootType)));
             AssertEx.SetEqual(immediateImpls.Select(d => d.Name),
-                new[] { "B1", "B2", "B3", "C2", "S1" });
+                ["B1", "B2", "B3", "C2", "S1"]);
 
             var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
                 rootType, solution, transitive: true);
 
             Assert.NotEmpty(transitiveImpls);
             AssertEx.SetEqual(transitiveImpls.Select(d => d.Name),
-                new[] { "B1", "B2", "B3", "C1", "C2", "C3", "D1", "S1" });
+                ["B1", "B2", "B3", "C1", "C2", "C3", "D1", "S1"]);
             Assert.True(transitiveImpls.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
             Assert.True(transitiveImpls.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 
@@ -610,6 +612,184 @@ enum E
             Assert.NotEmpty(enums); // We should find enums when looking for implementations
             Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
             Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
+        public async Task DependentTypeFinderSkipsNoCompilationLanguages(TestHost host)
+        {
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
+
+            using var workspace = TestWorkspace.Create(
+@"
+<Workspace>
+    <Project Name=""TSProject"" Language=""TypeScript"">
+        <Document>
+            Dummy ts content
+        </Document>
+    </Project>
+    <Project Name=""CSProject"" Language=""C#"">
+        <Document>
+            public class Base { }
+            public class Derived : Base { } 
+        </Document>
+    </Project>
+</Workspace>", composition: composition);
+            var solution = workspace.CurrentSolution;
+
+            var csProject = solution.Projects.Single(p => p.Language == LanguageNames.CSharp);
+            var otherProject = solution.Projects.Single(p => p != csProject);
+            var csDoc = csProject.Documents.Single();
+
+            var semanticModel = await csDoc.GetSemanticModelAsync();
+            var csRoot = await csDoc.GetSyntaxRootAsync();
+
+            var firstDecl = csRoot.DescendantNodes().First(d => d is CSharp.Syntax.TypeDeclarationSyntax);
+            var firstType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstDecl);
+
+            // Should find one result in the c# project.
+            var results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(csProject), CancellationToken.None);
+            Assert.Single(results);
+            Assert.Equal("Derived", results[0].Name);
+
+            // Should find zero results in the TS project (and should not crash).
+            results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(otherProject), CancellationToken.None);
+            Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1555496")]
+        public async Task TestDerivedTypesWithIntermediaryType1(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create portable assembly with an interface
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject1", LanguageNames.CSharp, @"
+namespace N_Main
+{
+    // All these types should find T_DependProject_Class as a derived class,
+    // even if only searching the second project.
+
+    abstract public class T_BaseProject_BaseClass
+    {
+    }
+    public abstract class T_BaseProject_DerivedClass1 : T_BaseProject_BaseClass
+    {
+    }
+    public abstract class T_BaseProject_DerivedClass2 : T_BaseProject_DerivedClass1
+    {
+    }
+}
+", MscorlibRef);
+
+            var normalProject1 = solution.Projects.Single();
+
+            // create a normal assembly with a type implementing that interface
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject2", LanguageNames.CSharp, @"
+namespace N_Main
+{
+    public class T_DependProject_Class : T_BaseProject_DerivedClass2
+    {
+    }
+}
+", MscorlibRef, normalProject1.Id);
+
+            normalProject1 = solution.GetProject(normalProject1.Id);
+            var normalProject2 = solution.Projects.Single(p => p != normalProject1);
+
+            var compilation = await normalProject1.GetCompilationAsync();
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_BaseClass");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_DerivedClass1");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_DerivedClass2");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        public async Task ImplementedInterface_CSharp1(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject1", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface I
+    {
+        void M();
+    }
+}
+", MscorlibRefPortable);
+
+            var portableProject1 = solution.Projects.Single(p => p.Name == "PortableProject1");
+
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject2", LanguageNames.CSharp, @"
+using N;
+namespace M
+{
+    public class C : I
+    {
+        public void M() { }
+    }
+}
+", MscorlibRefPortable, portableProject1.Id);
+
+            // get symbols for types
+            var compilation1 = await solution.Projects.Single(p => p.Name == "PortableProject1").GetCompilationAsync();
+            var compilation2 = await solution.Projects.Single(p => p.Name == "PortableProject2").GetCompilationAsync();
+
+            var classSymbol = compilation2.GetTypeByMetadataName("M.C");
+            var methodSymbol = classSymbol.GetMembers("M").Single();
+
+            var interfaceSymbol = compilation1.GetTypeByMetadataName("N.I");
+
+            var interfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(methodSymbol, solution, CancellationToken.None);
+            var interfaceMember = Assert.Single(interfaceMembers);
+            Assert.Equal(interfaceSymbol, interfaceMember.ContainingType);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        public async Task ImplementedInterface_CSharp2(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create portable assembly with an abstract base class
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface I
+    {
+        void M();
+    }
+}
+", MscorlibRefPortable);
+
+            var portableProject1 = GetPortableProject(solution);
+
+            // get symbols for types
+            var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
+            var baseInterfaceSymbol = portableCompilation.GetTypeByMetadataName("N.I");
+            var namespaceSymbol = baseInterfaceSymbol.ContainingNamespace;
+
+            // verify that we don't crash here.
+            var implementedMembers = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(namespaceSymbol, solution, CancellationToken.None);
         }
     }
 }

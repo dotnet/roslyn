@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public static readonly IReferenceFinder Event = new EventSymbolReferenceFinder();
         public static readonly IReferenceFinder Field = new FieldSymbolReferenceFinder();
         public static readonly IReferenceFinder Label = new LabelSymbolReferenceFinder();
-        public static readonly IReferenceFinder LinkedFiles = new LinkedFileReferenceFinder();
         public static readonly IReferenceFinder Local = new LocalSymbolReferenceFinder();
         public static readonly IReferenceFinder MethodTypeParameter = new MethodTypeParameterSymbolReferenceFinder();
         public static readonly IReferenceFinder NamedType = new NamedTypeSymbolReferenceFinder();
@@ -47,7 +46,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ExplicitInterfaceMethod,
                 Field,
                 Label,
-                LinkedFiles,
                 Local,
                 MethodTypeParameter,
                 NamedType,

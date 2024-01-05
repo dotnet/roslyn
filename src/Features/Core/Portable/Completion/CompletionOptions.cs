@@ -2,85 +2,94 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Recommendations;
+using Microsoft.CodeAnalysis.Shared;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CompletionOptions
+    internal sealed record class CompletionOptions
     {
-        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
+        public bool TriggerOnTyping { get; init; } = true;
+        public bool TriggerOnTypingLetters { get; init; } = true;
+        public bool? TriggerOnDeletion { get; init; } = null;
+        public bool TriggerInArgumentLists { get; init; } = true;
+        public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
+        public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
+        public bool HideAdvancedMembers { get; init; } = false;
+        public bool ShowNameSuggestions { get; init; } = true;
+        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
+        public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
+        public bool TargetTypedCompletionFilter { get; init; } = false;
+        public bool ProvideDateAndTimeCompletions { get; init; } = true;
+        public bool ProvideRegexCompletions { get; init; } = true;
+        public bool PerformSort { get; init; } = true;
 
-        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
+        /// <summary>
+        /// Force completion APIs to produce complete results, even in cases where caches have not been pre-populated.
+        /// This is typically used for testing scenarios, and by public APIs where consumers do not have access to
+        /// other internal APIs used to control cache creation and/or wait for caches to be populated before examining
+        /// completion results.
+        /// </summary>
+        public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
 
-        public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters2 = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
+        /// <summary>
+        /// Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
+        /// (cache will always be refreshed when provider is triggered)
+        /// </summary>
+        public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
 
-#pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
-        public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = (PerLanguageOption<bool>)TriggerOnTypingLetters2!;
-#pragma warning restore RS0030 // Do not used banned APIs
+        /// <summary>
+        /// Whether completion can add import statement as part of committed change.
+        /// For example, adding import is not allowed in debugger view.
+        /// </summary>
+        public bool CanAddImportStatement { get; init; } = true;
 
-        public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new(nameof(CompletionOptions), nameof(TriggerOnDeletion), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
+        public bool FilterOutOfScopeLocals { get; init; } = true;
+        public bool ShowXmlDocCommentCompletion { get; init; } = true;
+        public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
+        public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
+        public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
+        public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
-        public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior =
-            new(nameof(CompletionOptions), nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
+        public static readonly CompletionOptions Default = new();
 
-        public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior =
-            new(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
+        public RecommendationServiceOptions ToRecommendationServiceOptions()
+            => new()
+            {
+                FilterOutOfScopeLocals = FilterOutOfScopeLocals,
+                HideAdvancedMembers = HideAdvancedMembers
+            };
 
-        // Dev15 options
-        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters = new(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
+        /// <summary>
+        /// Whether items from unimported namespaces should be included in the completion list.
+        /// </summary>
+        public bool ShouldShowItemsFromUnimportedNamespaces
+            => !ShowItemsFromUnimportedNamespaces.HasValue || ShowItemsFromUnimportedNamespaces.Value;
 
-        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems = new(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
-
-        public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new(
-            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
-
-#pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
-        public static readonly PerLanguageOption<bool> BlockForCompletionItems = (PerLanguageOption<bool>)BlockForCompletionItems2!;
-#pragma warning restore RS0030 // Do not used banned APIs
-
-        public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
-            new(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
-
-        //Dev16 options
-
-        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces =
-            new(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
-
-        public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
-            new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
-
-        // Test-only options
-
-        // This option is associated with the Roslyn.LSP.Completion flag and should be removed once the flag is removed.
-        // It is intended for testing purposes only.
-        public static readonly PerLanguageOption2<bool> ForceRoslynLSPCompletionExperiment =
-            new(nameof(CompletionOptions), nameof(ForceRoslynLSPCompletionExperiment), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ForceRoslynLSPCompletionExperiment"));
-
-        public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
+        /// <summary>
+        /// Whether items from new snippet experience should be included in the completion list.
+        /// This takes into consideration the experiment we are running in addition to the value
+        /// from user facing options.
+        /// </summary>
+        public bool ShouldShowNewSnippetExperience(Document document)
         {
-            yield return ShowCompletionItemFilters;
-            yield return HighlightMatchingPortionsOfCompletionListItems;
-        }
-    }
+            // Will be removed once semantic snippets will be added to razor.
+            var solution = document.Project.Solution;
+            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
+            if (!documentSupportsFeatureService.SupportsSemanticSnippets(document))
+            {
+                return false;
+            }
 
-    internal static class CompletionControllerOptions
-    {
-        public static readonly Option2<bool> FilterOutOfScopeLocals = new(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
-        public static readonly Option2<bool> ShowXmlDocCommentCompletion = new(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
+            if (document.IsRazorDocument())
+            {
+                return false;
+            }
+
+            // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
+            return ShowNewSnippetExperienceUserOption ?? ShowNewSnippetExperienceFeatureFlag;
+        }
     }
 }

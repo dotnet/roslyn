@@ -4,12 +4,11 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
@@ -22,20 +21,44 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ParseOptions parseOptions = null,
             string[] files = null,
+            string[] sourceGeneratedFiles = null,
             string[] metadataReferences = null,
             string extension = null,
-            bool commonReferences = true)
+            bool commonReferences = true,
+            bool isMarkup = true,
+            string[] fileContainingFolders = null)
         {
             var documentElements = new List<XElement>();
 
+            var index = 0;
+            extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                var index = 0;
-                extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
-
-                foreach (var file in files)
+                // Each document is expecting to have a containing folder if it is not null.
+                if (fileContainingFolders != null)
                 {
-                    documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify containing folder for each file.");
+                    foreach (var (file, folders) in files.Zip(fileContainingFolders, (file, containingFolders) => (file, containingFolders)))
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, Path.Combine(folders, GetDefaultTestSourceDocumentName(index++, extension)), folders: folders, parseOptions: parseOptions, isMarkup: isMarkup));
+                    }
+                }
+                else
+                {
+                    foreach (var file in files)
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions: parseOptions, isMarkup: isMarkup));
+                    }
+                }
+            }
+
+            if (sourceGeneratedFiles != null)
+            {
+                foreach (var file in sourceGeneratedFiles)
+                {
+                    documentElements.Add(CreateDocumentFromSourceGeneratorElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
                 }
             }
 
@@ -163,12 +186,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static XElement CreateMetadataReference(string path)
             => new XElement(MetadataReferenceElementName, path);
 
-        protected static XElement CreateDocumentElement(string code, string filePath, ParseOptions parseOptions = null)
+        protected static XElement CreateDocumentElement(
+            string code, string filePath, string folders = null, ParseOptions parseOptions = null, bool isMarkup = true)
         {
-            return new XElement(DocumentElementName,
+            var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                new XAttribute(NormalizeAttributeName, false),
                 CreateParseOptionsElement(parseOptions),
-                code.Replace("\r\n", "\n"));
+                code);
+
+            if (folders != null)
+                element.Add(new XAttribute(FoldersAttributeName, folders));
+
+            if (!isMarkup)
+                element.Add(new XAttribute(MarkupAttributeName, isMarkup));
+
+            return element;
+        }
+
+        protected static XElement CreateDocumentFromSourceGeneratorElement(string code, string hintName, ParseOptions parseOptions = null)
+        {
+            return new XElement(DocumentFromSourceGeneratorElementName,
+                new XAttribute(FilePathAttributeName, hintName),
+                new XAttribute(NormalizeAttributeName, false),
+                CreateParseOptionsElement(parseOptions),
+                code);
         }
 
         private static XElement CreateParseOptionsElement(ParseOptions parseOptions)

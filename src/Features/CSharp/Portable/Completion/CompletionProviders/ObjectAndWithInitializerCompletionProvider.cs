@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public ObjectAndWithInitializerCompletionProvider()
         {
         }
+
+        internal override string Language => LanguageNames.CSharp;
 
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // initializer. Since we don't know which the user will use, we'll be non-exclusive, so
             // the other providers can help the user write the collection initializer, if they want
             // to.
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-        protected override Tuple<ITypeSymbol, Location> GetInitializedType(
+        protected override Tuple<ITypeSymbol, Location>? GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var tree = semanticModel.SyntaxTree;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.CommaToken && token.Kind() != SyntaxKind.OpenBraceToken)
+            if (token.Kind() is not SyntaxKind.CommaToken and not SyntaxKind.OpenBraceToken)
             {
                 return null;
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
             if (token.Kind() == SyntaxKind.CommaToken &&
-                !token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
+                token.Parent.Kind() is not (SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression))
             {
                 return null;
             }
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Tuple.Create(type, token.GetLocation());
         }
 
-        private static ITypeSymbol GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ITypeSymbol? GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var parent = token.Parent.Parent;
+            var parent = token.Parent?.Parent;
 
             // new() { $$
             // new Goo { $$
-            if (parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression))
+            if (parent is (kind: SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }
@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
+                var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>()!;
                 return typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
             }
 
             // expr with { $$
-            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
+            if (parent is WithExpressionSyntax withExpression)
             {
                 return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             .GetPreviousTokenIfTouchingWord(position);
 
             // We should have gotten back a { or ,
-            if (token.Kind() == SyntaxKind.CommaToken || token.Kind() == SyntaxKind.OpenBraceToken)
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 if (token.Parent != null)
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             {
                 return false;
             }

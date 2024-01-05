@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConsecutiveBracePlacement), Shared]
     internal sealed class ConsecutiveBracePlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => UpdateDocumentAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    CSharpCodeFixesResources.Remove_blank_lines_between_braces,
+                    c => UpdateDocumentAsync(document, diagnostic, c),
+                    nameof(CSharpCodeFixesResources.Remove_blank_lines_between_braces)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
         public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var tokenToToken);
 
@@ -94,13 +97,5 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Remove_blank_lines_between_braces, createChangedDocument, CSharpCodeFixesResources.Remove_blank_lines_between_braces)
-            {
-            }
-        }
     }
 }

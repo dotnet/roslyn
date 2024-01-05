@@ -1,0 +1,14 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.DebuggerFindReferencesService
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.DebuggerFindReferencesService.DebuggerFindReferencesService(Microsoft.CodeAnalysis.Editor.Shared.Utilities.IThreadingContext! threadingContext, System.Lazy<Microsoft.CodeAnalysis.Editor.Host.IStreamingFindUsagesPresenter!>! streamingPresenter) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.DebuggerFindReferencesService.FindSymbolReferencesAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.CommitSolutionUpdate() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.DiscardSolutionUpdate() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.EndDebuggingSession() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.EnterBreakState() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.ExitBreakState() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.GetUpdatesAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadUpdates>
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.GlassTestsHotReloadService(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadService! debuggerService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.OnCapabilitiesChanged() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Debugger.GlassTestsHotReloadService.StartSessionAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!

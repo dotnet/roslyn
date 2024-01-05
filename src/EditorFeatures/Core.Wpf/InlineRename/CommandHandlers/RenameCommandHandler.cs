@@ -4,15 +4,16 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-
-#if !COCOA
-using System.Linq;
-#endif
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -31,45 +32,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(IThreadingContext threadingContext, InlineRenameService renameService)
-            : base(threadingContext, renameService)
+        public RenameCommandHandler(
+            IThreadingContext threadingContext,
+            InlineRenameService renameService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
         {
         }
 
-#if !COCOA
-        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetDashboard(textView) is { } dashboard && dashboard.ShouldReceiveKeyboardNavigation;
+        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
+            => GetAdornment(textView) switch
+            {
+                RenameDashboard dashboard => dashboard.ShouldReceiveKeyboardNavigation,
+                RenameFlyout => true, // Always receive keyboard navigation for the inline adornment
+                _ => false
+            };
 
         protected override void SetFocusToTextView(ITextView textView)
         {
             (textView as IWpfTextView)?.VisualElement.Focus();
         }
 
-        protected override void SetFocusToDashboard(ITextView textView)
+        protected override void SetFocusToAdornment(ITextView textView)
         {
-            if (GetDashboard(textView) is { } dashboard)
+            if (GetAdornment(textView) is { } adornment)
             {
-                dashboard.Focus();
+                adornment.Focus();
             }
         }
 
-        protected override void SetDashboardFocusToNextElement(ITextView textView)
+        protected override void SetAdornmentFocusToNextElement(ITextView textView)
         {
-            if (GetDashboard(textView) is { } dashboard)
-            {
-                dashboard.FocusNextElement();
-            }
-        }
-
-        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
-        {
-            if (GetDashboard(textView) is { } dashboard)
+            if (GetAdornment(textView) is RenameDashboard dashboard)
             {
                 dashboard.FocusNextElement();
             }
         }
 
-        private static Dashboard? GetDashboard(ITextView textView)
+        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
+        {
+            if (GetAdornment(textView) is RenameDashboard dashboard)
+            {
+                dashboard.FocusNextElement();
+            }
+        }
+
+        private static InlineRenameAdornment? GetAdornment(ITextView textView)
         {
             // If our adornment layer somehow didn't get composed, GetAdornmentLayer will throw.
             // Don't crash if that happens.
@@ -77,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var adornment = ((IWpfTextView)textView).GetAdornmentLayer("RoslynRenameDashboard");
                 return adornment.Elements.Any()
-                    ? adornment.Elements[0].Adornment as Dashboard
+                    ? adornment.Elements[0].Adornment as InlineRenameAdornment
                     : null;
             }
             catch (ArgumentOutOfRangeException)
@@ -85,29 +93,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
         }
-#else
-        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
-            => false;
 
-        protected override void SetFocusToTextView(ITextView textView)
+        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
         {
-            // No action taken for Cocoa
-        }
+            try
+            {
+                base.Commit(activeSession, textView);
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = activeSession.Workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = activeSession.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
 
-        protected override void SetFocusToDashboard(ITextView textView)
-        {
-            // No action taken for Cocoa
+                errorReportingService.ShowGlobalErrorInfo(
+                    message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    TelemetryFeatureName.InlineRename,
+                    ex,
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            }
         }
-
-        protected override void SetDashboardFocusToNextElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-#endif
     }
 }

@@ -187,7 +187,6 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-
     <file name="b.vb">
 Namespace A.B
 End Namespace
@@ -198,7 +197,6 @@ End Namespace
 Namespace e
 End Namespace
     </file>
-
     <file name="c.vb">
 Namespace A.b.D
 End Namespace
@@ -571,6 +569,18 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
     Public T as Task
                 ~~~~
                 </expected>)
+        End Sub
+
+        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        Public Sub RetargetableAttributeIsRespectedInSource()
+            Dim code = <![CDATA[
+Imports System.Reflection
+<Assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)>
+]]>
+
+            Dim comp = CreateCompilation(code.Value)
+            Assert.True(comp.Assembly.Identity.IsRetargetable)
+            AssertTheseEmitDiagnostics(comp)
         End Sub
 
     End Class

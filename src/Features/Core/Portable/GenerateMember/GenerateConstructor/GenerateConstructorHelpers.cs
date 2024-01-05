@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             if (symbol == null)
                 return false;
 
-            if (symbol is IPropertySymbol { SetMethod: { } setMethod } property &&
+            if (symbol is IPropertySymbol { SetMethod: { } setMethod } &&
                 !IsSymbolAccessible(compilation, setMethod))
             {
                 return false;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // However, theoretically the public type from A could have a user-defined conversion.
                 // The alternative approach might be to map the type of the parameters back into B, and then
                 // classify the conversions in Project B, but that'll run into other issues if the experssions
-                // don't have a natural type (like default). We choose to ignore all potentially crazy cases here.
+                // don't have a natural type (like default). We choose to ignore all complicated cases here.
                 return false;
             }
 
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (constructorParameter == null)
                     return false;
 
-                // In VB the argument may not have been specified at all if the parameter is optional
-                if (expressions[i] is null && constructorParameter.IsOptional)
+                var expression = expressions[i];
+                if (expression is null)
                     continue;
 
-                var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
+                var conversion = semanticFacts.ClassifyConversion(semanticModel, expression, constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;
             }

@@ -5,152 +5,173 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
-    internal partial class CSharpMethodExtractor : MethodExtractor
+    internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+        : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool localFunction)
-            : base(result, localFunction)
-        {
-        }
+        protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
+            => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
 
-        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
+        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken)
+        protected override SyntaxNode GetInsertionPointNode(
+            AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
             var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
-            var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var basePosition = root.FindToken(originalSpanStart);
+            var document = this.OriginalSelectionResult.SemanticDocument;
+            var root = document.Root;
 
             if (LocalFunction)
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localFunctionNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => (node.Body != null && node.Body.Span.Contains(OriginalSelectionResult.OriginalSpan)) ||
-                                                                                                       (node.ExpressionBody != null && node.ExpressionBody.Span.Contains(OriginalSelectionResult.OriginalSpan)));
-                if (localFunctionNode is object)
+                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                var baseNode = outermostCapturedVariable != null
+                    ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
+                    : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
+
+                if (baseNode is CompilationUnitSyntax)
                 {
-                    return await InsertionPoint.CreateAsync(document, localFunctionNode, cancellationToken).ConfigureAwait(false);
+                    // In some sort of global statement.  Have to special case these a bit for script files.
+                    var globalStatement = root.FindToken(originalSpanStart).GetAncestor<GlobalStatementSyntax>();
+                    if (globalStatement is null)
+                        return null;
+
+                    return GetInsertionPointForGlobalStatement(globalStatement, globalStatement);
                 }
+
+                var currentNode = baseNode;
+                while (currentNode is not null)
+                {
+                    if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
+                    {
+                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                            return currentNode;
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    if (currentNode is LocalFunctionStatementSyntax localFunction)
+                    {
+                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                            return currentNode;
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    if (currentNode is AccessorDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is BaseMethodDeclarationSyntax)
+                        return currentNode;
+
+                    if (currentNode is GlobalStatementSyntax globalStatement)
+                    {
+                        // check whether the global statement is a statement container
+                        if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                        {
+                            // The extracted function will be a new global statement
+                            return globalStatement.Parent;
+                        }
+
+                        return globalStatement.Statement;
+                    }
+
+                    currentNode = currentNode.Parent;
+                }
+
+                return null;
             }
-
-            var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
-            Contract.ThrowIfNull(memberNode);
-            Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
-
-            if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
+            else
             {
-                var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
-                if (accessorNode is object)
-                {
-                    return await InsertionPoint.CreateAsync(document, accessorNode, cancellationToken).ConfigureAwait(false);
-                }
+                var baseToken = root.FindToken(originalSpanStart);
+                var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
+                Contract.ThrowIfNull(memberNode);
+                Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
+
+                if (memberNode is GlobalStatementSyntax globalStatement)
+                    return GetInsertionPointForGlobalStatement(globalStatement, memberNode);
+
+                return memberNode;
             }
 
-            if (memberNode is GlobalStatementSyntax globalStatement)
+            SyntaxNode GetInsertionPointForGlobalStatement(GlobalStatementSyntax globalStatement, MemberDeclarationSyntax memberNode)
             {
                 // check whether we are extracting whole global statement out
                 if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
-                {
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
-                }
+                    return globalStatement.Parent;
 
                 // check whether the global statement is a statement container
                 if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
                 {
                     // The extracted function will be a new global statement
-                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                    return globalStatement.Parent;
                 }
 
-                return await InsertionPoint.CreateAsync(document, globalStatement.Statement, cancellationToken).ConfigureAwait(false);
+                return globalStatement.Statement;
             }
-
-            return await InsertionPoint.CreateAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+        private bool OriginalSelectionWithin(SyntaxNode node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
+        }
+
+        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
             => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
-        protected override async Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken)
-        {
-            var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<ExpressionSyntax>().LastOrDefault();
-            if (lastExpression == null)
-            {
-                return selection.SemanticDocument;
-            }
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
+            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
-            var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
-        }
+        protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
+            => FormattingRule.Instance;
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
-            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
+        protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
+            => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-            => SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
+        protected override SyntaxNode ParseTypeName(string name)
+            => SyntaxFactory.ParseTypeName(name);
 
-        protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
-            => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
-
-        protected override async Task<OperationStatus> CheckTypeAsync(
+        protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
-            SyntaxNode contextNode,
-            Location location,
-            ITypeSymbol type,
-            CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(type);
-
-            // this happens when there is no return type
-            if (type.SpecialType == SpecialType.System_Void)
-            {
-                return OperationStatus.Succeeded;
-            }
-
-            if (type.TypeKind == TypeKind.Error ||
-                type.TypeKind == TypeKind.Unknown)
-            {
-                return OperationStatus.ErrorOrUnknownType;
-            }
-
-            // if it is type parameter, make sure we are getting same type parameter
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var typeParameter in TypeParameterCollector.Collect(type))
-            {
-                var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
-                var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
-                {
-                    return new OperationStatus(OperationStatusFlag.BestEffort,
-                        string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
-                }
-            }
-
-            return OperationStatus.Succeeded;
-        }
-
-        protected override async Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
-            Document document,
-            SyntaxToken methodName,
+            SyntaxToken? invocationNameToken,
             SyntaxNode methodDefinition,
             CancellationToken cancellationToken)
         {
@@ -159,17 +180,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+                var newLine = Options.LineFormattingOptions.NewLine;
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+
+                if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+                {
+                    // Add a second new line since there were no line endings in the original form
+                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                }
 
                 // Generating the new document and associated variables.
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 document = document.WithSyntaxRoot(root.ReplaceNode(originalMethodDefinition, methodDefinition));
 
                 var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                methodName = newRoot.FindToken(methodName.SpanStart);
+
+                if (invocationNameToken != null)
+                    invocationNameToken = newRoot.FindToken(invocationNameToken.Value.SpanStart);
             }
 
-            return (document, methodName, methodDefinition);
+            return (document, invocationNameToken);
         }
     }
 }

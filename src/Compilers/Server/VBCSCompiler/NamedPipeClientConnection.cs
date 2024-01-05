@@ -22,15 +22,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public NamedPipeServerStream Stream { get; }
         public ICompilerServerLogger Logger { get; }
-        public string LoggingIdentifier { get; }
         public bool IsDisposed { get; private set; }
 
         public Task DisconnectTask => DisconnectTaskCompletionSource.Task;
 
-        internal NamedPipeClientConnection(NamedPipeServerStream stream, string loggingIdentifier, ICompilerServerLogger logger)
+        internal NamedPipeClientConnection(NamedPipeServerStream stream, ICompilerServerLogger logger)
         {
             Stream = stream;
-            LoggingIdentifier = loggingIdentifier;
             Logger = logger;
         }
 
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogException(ex, $"Error closing client connection {LoggingIdentifier}");
+                    Logger.LogException(ex, $"Error closing client connection");
                 }
 
                 IsDisposed = true;
@@ -65,19 +63,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // The result is deliberately discarded here. The idea is to kick off the monitor code and 
             // when it completes it will trigger the task. Don't want to block on that here.
-            _ = MonitorDisconnect();
+            _ = MonitorDisconnectAsync();
 
             return request;
 
-            async Task MonitorDisconnect()
+            async Task MonitorDisconnectAsync()
             {
                 try
                 {
-                    await BuildServerConnection.MonitorDisconnectAsync(Stream, LoggingIdentifier, Logger, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
+                    await BuildServerConnection.MonitorDisconnectAsync(Stream, request.RequestId, Logger, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogException(ex, $"Error monitoring disconnect {LoggingIdentifier}");
+                    Logger.LogException(ex, $"Error monitoring disconnect {request.RequestId}");
                 }
                 finally
                 {

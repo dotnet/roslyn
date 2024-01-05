@@ -33,10 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency

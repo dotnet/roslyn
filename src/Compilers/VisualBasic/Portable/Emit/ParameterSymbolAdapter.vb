@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
                 Return AdaptedParameterSymbol.CustomModifiers.As(Of Cci.ICustomModifier)
@@ -39,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IParameterTypeInformationGetType(context As EmitContext) As ITypeReference Implements IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim paramType As TypeSymbol = AdaptedParameterSymbol.Type
-            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements IParameterListEntry.Index
@@ -55,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetMetadataConstantValue(context As EmitContext) As MetadataConstant
             If AdaptedParameterSymbol.HasMetadataConstantValue Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(AdaptedParameterSymbol.Type, AdaptedParameterSymbol.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(AdaptedParameterSymbol.Type, AdaptedParameterSymbol.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Else
                 Return Nothing
             End If
@@ -184,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
+                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(AttributeDescription.OptionalAttribute))
             End Get
         End Property
 

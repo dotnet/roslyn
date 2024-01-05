@@ -55,7 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Public SymbolMap As ConcurrentDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
         End Structure
 
-
         Friend ReadOnly RetargetingTranslator As RetargetingSymbolTranslator
 
         ''' <summary>
@@ -291,5 +290,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return _underlyingModule.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingModule.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

@@ -3,7 +3,7 @@ Default Interface Implementation
 
 The *Default Interface Implementation* feature enables a default implementation of an interface member to be provided as part of the interface declaration. 
 
-Here is a link to the proposal https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/default-interface-methods.md. 
+Here is a link to the proposal https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/default-interface-methods.md. 
 
 **What is supported:**
 - Supplying an implementation along with declaration of a regular interface method and recognizing that implementation as default implementation for the method when a type implements the interface. 
@@ -90,7 +90,7 @@ In metadata, methods representing re-abstraction have all three flags `abstract`
 - Declaring operators ```+ - ! ~ ++ -- true false * / % & | ^ << >> > < >= <=``` in interfaces.
 
 - Base access
-The following forms of base-access are added (https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-11-14.md)
+The following forms of base-access are added (https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-11-14.md)
 ```
     base ( <type-syntax> )  .   identifier
     base ( <type-syntax> )   [   argument-list   ]

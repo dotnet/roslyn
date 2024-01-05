@@ -6,153 +6,105 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    /// <remarks>
+    /// This isn't a <see cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}" /> because it could return null.
+    /// </remarks>
+    [Method(LSP.Methods.TextDocumentCompletionResolveName)]
+    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
         private readonly CompletionListCache _completionListCache;
-
-        public string Method => LSP.Methods.TextDocumentCompletionResolveName;
+        private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public CompletionResolveHandler(CompletionListCache completionListCache)
+        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
         {
+            _globalOptions = globalOptions;
             _completionListCache = completionListCache;
         }
 
-        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
-        {
-            Contract.ThrowIfNull(request.Data);
-
-            return ((JToken)request.Data).ToObject<CompletionResolveData>();
-        }
-
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => GetCompletionResolveData(request).TextDocument;
+            => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            if (document == null)
+            var cacheEntry = GetCompletionListCacheEntry(completionItem);
+            if (cacheEntry == null)
             {
+                // Don't have a cache associated with this completion item, cannot resolve.
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 
-            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var data = GetCompletionResolveData(completionItem);
-
-            CompletionList? list = null;
-
-            // See if we have a cache of the completion list we need
-            if (data.ResultId.HasValue)
-            {
-                list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (list == null)
-            {
-                // We don't have a cache, so we need to recompute the list
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-                var completionOptions = await CompletionHandler.GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-
-                list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (list == null)
-                {
-                    return completionItem;
-                }
-            }
+            var document = context.GetRequiredDocument();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             // Find the matching completion item in the completion list
-            var selectedItem = list.Items.FirstOrDefault(
-                i => data.DisplayText == i.DisplayText &&
-                    completionItem.Label.StartsWith(i.DisplayTextPrefix) &&
-                    completionItem.Label.EndsWith(i.DisplayTextSuffix));
+            var selectedItem = cacheEntry.CompletionList.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
 
-            if (selectedItem == null)
+            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
+            var symbolDescriptionOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+
+            if (selectedItem is not null)
             {
-                return completionItem;
+                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
+                await creationService.ResolveAsync(
+                    completionItem,
+                    selectedItem,
+                    cacheEntry.TextDocument,
+                    document,
+                    new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
+                    completionService,
+                    completionOptions,
+                    symbolDescriptionOptions,
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
-
-            if (completionItem is LSP.VSCompletionItem vsCompletionItem)
-            {
-                vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
-                    .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
-            }
-
-            // We compute the TextEdit resolves for override and partial method completions here.
-            // Lazily resolving TextEdits is technically a violation of the LSP spec, but is
-            // currently supported by the VS client anyway. Once the VS client adheres to the spec,
-            // this logic will need to change and VS will need to provide official support for
-            // TextEdit resolution in some form.
-            if (completionItem.InsertText == null && completionItem.TextEdit == null)
-            {
-                var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-
-                completionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
-            }
-
-            completionItem.Detail = description.TaggedParts.GetFullText();
             return completionItem;
         }
 
-        // Internal for testing
-        internal static async Task<LSP.TextEdit> GenerateTextEditAsync(
-            Document document,
-            CompletionService completionService,
-            CompletionItem selectedItem,
-            bool snippetsSupported,
-            CancellationToken cancellationToken)
+        private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            // We want to make sure we are resolving the same unimported item in case we have multiple with same name
+            // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
+            // compare SortText instead when it's set (which is when label != SortText)
+            return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
+                && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
+        }
 
-            var completionChange = await completionService.GetChangeAsync(
-                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var completionChangeSpan = completionChange.TextChange.Span;
-            var newText = completionChange.TextChange.NewText;
-            Contract.ThrowIfNull(newText);
-
-            // If snippets are supported, that means we can move the caret (represented by $0) to
-            // a new location.
-            if (snippetsSupported)
+        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
+            if (resolveData?.ResultId == null)
             {
-                var caretPosition = completionChange.NewPosition;
-                if (caretPosition.HasValue)
-                {
-                    // caretPosition is the absolute position of the caret in the document.
-                    // We want the position relative to the start of the snippet.
-                    var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
-
-                    // The caret could technically be placed outside the bounds of the text
-                    // being inserted. This situation is currently unsupported in LSP, so in
-                    // these cases we won't move the caret.
-                    if (relativeCaretPosition >= 0 && relativeCaretPosition <= newText.Length)
-                    {
-                        newText = newText.Insert(relativeCaretPosition, "$0");
-                    }
-                }
+                Contract.Fail("Result id should always be provided when resolving a completion item we returned.");
+                return null;
             }
 
-            var textEdit = new LSP.TextEdit()
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
+            if (cacheEntry == null)
             {
-                NewText = newText,
-                Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-            };
+                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
+                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
+            }
 
-            return textEdit;
+            return cacheEntry;
         }
     }
 }

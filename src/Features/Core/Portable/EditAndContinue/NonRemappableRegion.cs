@@ -4,47 +4,43 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
+    internal readonly struct NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion) : IEquatable<NonRemappableRegion>
     {
         /// <summary>
-        /// Pre-remap span.
+        /// PDB span in pre-remap method version.
         /// </summary>
-        public readonly LinePositionSpan Span;
+        /// <remarks>
+        /// When a thread is executing in an old version of a method before it is remapped to the new version
+        /// its active statement needs to be mapped from <see cref="OldSpan"/> in the old version 
+        /// to <see cref="NewSpan"/> in the new version of the method.
+        /// </remarks>
+        public readonly SourceFileSpan OldSpan = oldSpan;
 
         /// <summary>
-        /// Difference between new span and pre-remap span (new = old + delta).
+        /// PDB span in the new method version.
         /// </summary>
-        public readonly int LineDelta;
+        public readonly SourceFileSpan NewSpan = newSpan;
 
         /// <summary>
         /// True if the region represents an exception region, false if it represents an active statement.
         /// </summary>
-        public readonly bool IsExceptionRegion;
-
-        public NonRemappableRegion(LinePositionSpan span, int lineDelta, bool isExceptionRegion)
-        {
-            Span = span;
-            LineDelta = lineDelta;
-            IsExceptionRegion = isExceptionRegion;
-        }
+        public readonly bool IsExceptionRegion = isExceptionRegion;
 
         public override bool Equals(object? obj)
             => obj is NonRemappableRegion region && Equals(region);
 
         public bool Equals(NonRemappableRegion other)
-            => Span.Equals(other.Span) &&
-               LineDelta == other.LineDelta &&
+            => OldSpan.Equals(other.OldSpan) &&
+               NewSpan.Equals(other.NewSpan) &&
                IsExceptionRegion == other.IsExceptionRegion;
 
         public override int GetHashCode()
-            => Hash.Combine(Span.GetHashCode(), Hash.Combine(IsExceptionRegion, LineDelta));
+            => Hash.Combine(OldSpan.GetHashCode(), Hash.Combine(IsExceptionRegion, NewSpan.GetHashCode()));
 
         public static bool operator ==(NonRemappableRegion left, NonRemappableRegion right)
             => left.Equals(right);
@@ -52,10 +48,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static bool operator !=(NonRemappableRegion left, NonRemappableRegion right)
             => !(left == right);
 
-        public NonRemappableRegion WithLineDelta(int value)
-            => new(Span, value, IsExceptionRegion);
+        public NonRemappableRegion WithNewSpan(SourceFileSpan newSpan)
+            => new(OldSpan, newSpan, IsExceptionRegion);
 
         internal string GetDebuggerDisplay()
-            => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} δ={LineDelta}";
+            => $"{(IsExceptionRegion ? "ER" : "AS")} {OldSpan} => {NewSpan.Span}";
     }
 }

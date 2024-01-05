@@ -1650,18 +1650,15 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
-                // (9,28): error CS1593: Delegate 'Action<string>' does not take 0 arguments
+                // (9,31): error CS1593: Delegate 'Action<string>' does not take 0 arguments
                 //         Action<string> a = () => {
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, @"() => {
-            var v = s_data;
-            v = GetNullableString();
-        }").WithArguments("System.Action<string>", "0").WithLocation(9, 28));
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action<string>", "0").WithLocation(9, 31));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -2331,7 +2328,6 @@ class C
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
-
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
@@ -2527,7 +2523,7 @@ class C
     void M(object o1, object? o2)
     {
         foreach ((var o3, object? o4) in GetList(o1)) {}
-        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); }
+        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
         o1 = null;
         foreach ((var o3, object o4) in GetList(o1)) {}
         _  = o2 ?? throw null!;
@@ -2536,15 +2532,16 @@ class C
 }";
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,56): warning CS8602: Dereference of a possibly null reference.
+                //         foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o3").WithLocation(10, 56));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
-
-            // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
@@ -2570,6 +2567,38 @@ class C
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
                 }
+            }
+        }
+
+        [Fact]
+        public void GetForeachInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string?[] nullableStrings, string[] strings)
+    {
+        foreach (var o in nullableStrings) {}
+        foreach (var o in strings) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedElementTypeAnnotation)
+            {
+                var foreachInfo = model.GetForEachStatementInfo(foreachStatement);
+                Assert.Equal(expectedElementTypeAnnotation, foreachInfo.ElementType.NullableAnnotation);
             }
         }
 
@@ -3875,7 +3904,6 @@ class C
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
-
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
@@ -4080,7 +4108,6 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
-
 
             var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
             var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
@@ -4970,15 +4997,6 @@ namespace System
                 // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(17, 16),
-                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
                 // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = 2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)
@@ -4989,6 +5007,158 @@ namespace System
 
             var tupleLiteral = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        public void LambdaInBadExpression()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public C(int i) {}
+
+    static void M1()
+    {
+        string s = null;
+        C c = new C(() =>
+        { 
+            M2();
+            _ = s;
+            s = """";
+            _ = s;
+        });
+    }
+
+    static void M2() {}
+}
+", options: WithNullableEnable());
+
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         string s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 20),
+                // (9,24): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         C c = new C(() =>
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(9, 24));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var constructor = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            AssertEx.Equal("C..ctor(System.Int32 i)", model.GetSymbolInfo(constructor).CandidateSymbols[0].ToTestDisplayString());
+
+            var assignmentsInLambda = constructor.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
+            AssertEx.Equal("_ = s", assignmentsInLambda[0].ToString());
+            AssertEx.Equal("_ = s", assignmentsInLambda[2].ToString());
+            AssertEx.Equal("System.String?", model.GetTypeInfo(assignmentsInLambda[0].Right).Type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal("System.String!", model.GetTypeInfo(assignmentsInLambda[2].Right).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void FreshSemanticModelDoesNotCacheSwitchExpressionInput()
+        {
+            var comp = CreateCompilation(@"string s = """" switch { _ => string.Empty };", options: WithNullableEnable(TestOptions.ReleaseExe));
+
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            var switchExpressionInput = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single().GoverningExpression;
+
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+
+            // New model should be able to get info, including nullability, without issue
+            model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_01()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_02()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c)
+    {
+        object? x = ""a"";
+        if (c?.M(x = null) == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_03()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public bool M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == c!.M(x))
+        {
+            x.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
         }
     }
 }

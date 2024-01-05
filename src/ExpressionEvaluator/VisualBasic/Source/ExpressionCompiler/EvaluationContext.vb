@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim localNames = debugInfo.LocalVariableNames.WhereAsArray(
-                Function(name) name Is Nothing OrElse Not name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal))
+                Function(name) name Is Nothing OrElse Not name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix, StringComparison.Ordinal))
 
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing, debugInfo.TupleLocalMap)
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             For Each localName In allLocalNames
                 Dim hoistedLocalName As String = Nothing
                 Dim hoistedLocalSlot As Integer = 0
-                If localName IsNot Nothing AndAlso GeneratedNames.TryParseStateMachineHoistedUserVariableName(localName, hoistedLocalName, hoistedLocalSlot) Then
+                If localName IsNot Nothing AndAlso GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(localName, hoistedLocalName, hoistedLocalSlot) Then
                     builder.Add(hoistedLocalSlot)
                 End If
             Next
@@ -263,13 +263,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Try
                     For Each typeDefHandle In metadataReader.TypeDefinitions
                         Dim typeDef = metadataReader.GetTypeDefinition(typeDefHandle)
+                        Dim foundAttributeType = False
 
                         ' VB does ignores the StandardModuleAttribute on interfaces and nested
                         ' or generic types (see PENamedTypeSymbol.TypeKind).
                         If Not PEModule.IsNested(typeDef.Attributes) AndAlso
                             typeDef.GetGenericParameters().Count = 0 AndAlso
                             (typeDef.Attributes And TypeAttributes.[Interface]) = 0 AndAlso
-                            PEModule.FindTargetAttribute(metadataReader, typeDefHandle, AttributeDescription.StandardModuleAttribute).HasValue Then
+                            PEModule.FindTargetAttribute(metadataReader, typeDefHandle, AttributeDescription.StandardModuleAttribute, foundAttributeType).HasValue Then
 
                             Dim namespaceName = metadataReader.GetString(typeDef.Namespace)
                             [imports].Add(namespaceName)
@@ -326,7 +327,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 tupleLocalMap:=Nothing,
                 localVariableNames:=ImmutableArray(Of String).Empty,
                 localConstants:=ImmutableArray(Of LocalSymbol).Empty,
-                reuseSpan:=Nothing)
+                reuseSpan:=Nothing,
+                containingDocumentName:=Nothing,
+                isPrimaryConstructor:=False)
         End Function
 
         Friend Function CreateCompilationContext(withSyntax As Boolean) As CompilationContext
@@ -376,7 +379,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
-                        pdbOptionsBlobReader:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
@@ -426,7 +428,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
-                        pdbOptionsBlobReader:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
@@ -477,7 +478,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
-                        pdbOptionsBlobReader:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim methodName As String = Nothing
                 Dim methodSignature As String = Nothing
                 Dim localName As String = Nothing
-                If GeneratedNames.TryParseStaticLocalFieldName(member.Name, methodName, methodSignature, localName) AndAlso
+                If GeneratedNameParser.TryParseStaticLocalFieldName(member.Name, methodName, methodSignature, localName) AndAlso
                     String.Equals(methodName, method.Name, StringComparison.Ordinal) AndAlso
                     String.Equals(methodSignature, GetMethodSignatureString(metadataDecoder, methodHandle), StringComparison.Ordinal) Then
                     builder.Add(New EEStaticLocalSymbol(method, DirectCast(member, FieldSymbol), localName))
@@ -640,13 +640,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function IsValidMissingAssemblyIdentity(identity As AssemblyIdentity) As Boolean
             Return identity IsNot Nothing AndAlso Not identity.Equals(MissingCorLibrarySymbol.Instance.Identity)
         End Function
-
-        Private Shared Function GetSynthesizedMethod(moduleBuilder As CommonPEModuleBuilder) As MethodSymbol
-            Dim method = DirectCast(moduleBuilder, EEAssemblyBuilder).Methods.Single(Function(m) m.MetadataName = s_methodName)
-            Debug.Assert(method.ContainingType.MetadataName = s_typeName)
-            Return method
-        End Function
-
     End Class
 
 End Namespace

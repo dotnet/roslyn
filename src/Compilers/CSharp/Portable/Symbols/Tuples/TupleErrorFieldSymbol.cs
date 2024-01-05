@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _tupleElementIndex >= 0 && !_isImplicitlyDeclared;
+            }
+        }
+
         public override FieldSymbol TupleUnderlyingField
         {
             get
@@ -146,6 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
@@ -196,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newOwner,
                 Name,
                 TupleElementIndex,
-                _locations.IsEmpty ? null : Locations[0],
+                _locations.IsEmpty ? null : GetFirstLocation(),
                 newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
                 _useSiteDiagnosticInfo,
                 _isImplicitlyDeclared,

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns whether this method is generic; i.e., does it have any type parameters?
         ''' </summary>
-        Public Overridable ReadOnly Property IsGenericMethod As Boolean
+        Public Overridable ReadOnly Property IsGenericMethod As Boolean Implements IMethodSymbolInternal.IsGenericMethod
             Get
                 Return Arity <> 0
             End Get
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters. 
-        ''' If nothing has been substituted for a give type parameters,
+        ''' If nothing has been substituted for a given type parameter,
         ''' then the type parameter itself is consider the type argument.
         ''' </summary>
         Public MustOverride ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
@@ -181,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The default implementation is always correct, but may be unnecessarily slow.
         ''' </remarks>
-        Friend Overridable ReadOnly Property ParameterCount As Integer
+        Friend Overridable ReadOnly Property ParameterCount As Integer Implements IMethodSymbolInternal.ParameterCount
             Get
                 Return Me.Parameters.Length
             End Get
@@ -272,6 +273,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property MetadataSignatureHandle As BlobHandle Implements IMethodSymbolInternal.MetadataSignatureHandle
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         ''' <summary>
         ''' True if this symbol has a special name (metadata flag SpecialName is set).
         ''' </summary>
@@ -280,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' as well as in special synthetic methods such as lambdas.
         ''' Also set for methods marked with System.Runtime.CompilerServices.SpecialNameAttribute.
         ''' </remarks>
-        Friend MustOverride ReadOnly Property HasSpecialName As Boolean
+        Friend MustOverride ReadOnly Property HasSpecialName As Boolean Implements IMethodSymbolInternal.HasSpecialName
 
         ''' <summary>
         ''' If this method has MethodKind of MethodKind.PropertyGet or MethodKind.PropertySet,
@@ -345,7 +352,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' Returns interface methods explicitly implemented by this method.
         ''' </summary>
@@ -380,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Misc implementation metadata flags (ImplFlags in metadata).
         ''' </summary>
-        Friend MustOverride ReadOnly Property ImplementationAttributes As System.Reflection.MethodImplAttributes
+        Friend MustOverride ReadOnly Property ImplementationAttributes As System.Reflection.MethodImplAttributes Implements IMethodSymbolInternal.ImplementationAttributes
 
         ''' <summary>
         ''' Declaration security information associated with this method, or null if there is none.
@@ -390,7 +396,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' True if the method has declarative security information (HasSecurity flags).
         ''' </summary>
-        Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean
+        Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean Implements IMethodSymbolInternal.HasDeclarativeSecurity
+
+        ''' <summary>
+        ''' True if the method calls another method containing security code (metadata flag RequiresSecurityObject is set).
+        ''' </summary>
+        Friend Overridable ReadOnly Property RequiresSecurityObject As Boolean Implements IMethodSymbolInternal.RequiresSecurityObject
+            Get
+                CheckDefinitionInvariant()
+                Return False
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns true if this method is an extension method from the VB language perspective; 
@@ -538,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim firstType = Parameters(0).Type
-            If firstType.TypeKind <> TYPEKIND.Array Then
+            If firstType.TypeKind <> TypeKind.Array Then
                 Return False
             End If
 
@@ -633,36 +649,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.ReturnType))
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency)
 
-            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.ReturnType)) Then
                 Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
             Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return refModifiersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, refModifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
             Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers, allowIsExternalInit:=IsInitOnly)
 
-            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return typeModifiersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, typeModifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
             ' Check parameters.
             Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
 
-            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return parametersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, parametersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
-            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
-                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
-                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
-                                                 parametersUseSiteInfo.DiagnosticInfo)))
+            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
@@ -694,16 +707,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedMethod1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedMethod1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedMethod1
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedMethod1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -875,6 +886,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend MustOverride ReadOnly Property HasSetsRequiredMembers As Boolean
+
 #Region "IMethodSymbol"
 
         Private ReadOnly Property IMethodSymbol_Arity As Integer Implements IMethodSymbol.Arity
@@ -961,6 +974,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbolInternal_Parameters As ImmutableArray(Of IParameterSymbolInternal) Implements IMethodSymbolInternal.Parameters
+            Get
+                Return ImmutableArray(Of IParameterSymbolInternal).CastUp(Me.Parameters)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this symbol is defined outside of the compilation.
         ''' For instance if the method is <c>Declare Sub</c>.
@@ -1010,7 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
+        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid, IMethodSymbolInternal.ReturnsVoid
             Get
                 Return Me.IsSub
             End Get
@@ -1142,6 +1161,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IMethodSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_PartialDefinitionPart As IMethodSymbolInternal Implements IMethodSymbolInternal.PartialDefinitionPart
+            Get
+                Return Me.PartialDefinitionPart
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_PartialImplementationPart As IMethodSymbolInternal Implements IMethodSymbolInternal.PartialImplementationPart
+            Get
+                Return Me.PartialImplementationPart
+            End Get
+        End Property
+
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function
@@ -1155,6 +1192,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(ByVal visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitMethod(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitMethod(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

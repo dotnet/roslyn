@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Create an instance of the proxy type, and make sure we can access all of the instance properties
             // on the type without exception
-            object proxyInstance = Activator.CreateInstance(proxyType, obj) ?? throw ExceptionUtilities.Unreachable;
+            object proxyInstance = Activator.CreateInstance(proxyType, obj) ?? throw ExceptionUtilities.Unreachable();
             IEnumerable<PropertyInfo> properties = GetDebuggerVisibleProperties(proxyType);
             return new DebuggerAttributeInfo(proxyInstance, properties);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private static Type GetProxyType(Type type, Type[] genericTypeArguments)
         {
-            // Get the DebuggerTypeProxyAttibute for obj
+            // Get the DebuggerTypeProxyAttribute for obj
             var attrs =
                 type.GetTypeInfo().CustomAttributes
                 .Where(a => a.AttributeType == typeof(DebuggerTypeProxyAttribute))

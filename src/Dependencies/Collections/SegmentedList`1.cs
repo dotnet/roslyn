@@ -73,6 +73,13 @@ namespace Microsoft.CodeAnalysis.Collections
             if (collection == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
 
+            if (collection is SegmentedList<T> segmentedList)
+            {
+                _items = (SegmentedArray<T>)segmentedList._items.Clone();
+                _size = segmentedList._size;
+                return;
+            }
+
             if (collection is ICollection<T> c)
             {
                 var count = c.Count;
@@ -679,6 +686,17 @@ namespace Microsoft.CodeAnalysis.Collections
             return SegmentedArray.IndexOf(_items, item, index, count);
         }
 
+        public int IndexOf(T item, int index, int count, IEqualityComparer<T>? comparer)
+        {
+            if (index > _size)
+                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+
+            if (count < 0 || index > _size - count)
+                ThrowHelper.ThrowCountArgumentOutOfRange_ArgumentOutOfRange_Count();
+
+            return SegmentedArray.IndexOf(_items, item, index, count, comparer);
+        }
+
         // Inserts an element into this list at a given index. The size of the list
         // is increased by one. If required, the capacity of the list is doubled
         // before inserting the new element.
@@ -827,19 +845,20 @@ namespace Microsoft.CodeAnalysis.Collections
         //
         public int LastIndexOf(T item, int index, int count)
         {
-            if ((Count != 0) && (index < 0))
+            if (_size == 0)
+            {
+                // Special case for empty list
+                return -1;
+            }
+
+            if (index < 0)
             {
                 ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
             }
 
-            if ((Count != 0) && (count < 0))
+            if (count < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
-            }
-
-            if (_size == 0)
-            {  // Special case for empty list
-                return -1;
             }
 
             if (index >= _size)
@@ -853,6 +872,37 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             return SegmentedArray.LastIndexOf(_items, item, index, count);
+        }
+
+        public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? comparer)
+        {
+            if (_size == 0)
+            {
+                // Special case for empty list
+                return -1;
+            }
+
+            if (index < 0)
+            {
+                ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
+            }
+
+            if (count < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+            }
+
+            if (index >= _size)
+            {
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_BiggerThanCollection);
+            }
+
+            if (count > index + 1)
+            {
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_BiggerThanCollection);
+            }
+
+            return SegmentedArray.LastIndexOf(_items, item, index, count, comparer);
         }
 
         // Removes the element at the given index. The size of the list is
@@ -1057,11 +1107,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (_size > 1)
             {
-#if NET
-                _items.AsSpan(0, _size).Sort(comparison);
-#else
                 SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
-#endif
             }
             _version++;
         }
@@ -1091,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Collections
         //
         public void TrimExcess()
         {
-            var threshold = (int)(((double)_items.Length) * 0.9);
+            var threshold = (int)(_items.Length * 0.9);
             if (_size < threshold)
             {
                 Capacity = _size;
@@ -1130,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -1159,9 +1205,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return false;
             }
 
-            public T Current => _current!;
+            public readonly T Current => _current!;
 
-            object? IEnumerator.Current
+            readonly object? IEnumerator.Current
             {
                 get
                 {

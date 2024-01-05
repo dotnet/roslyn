@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-# nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 private readonly ImmutableDictionary<string, HashSet<int>> _pathToIndicesMap;
 
                 /// <summary>
-                /// A set of indeces into <see cref="_metadataReferences"/> that are to be removed.
+                /// A set of indices into <see cref="_metadataReferences"/> that are to be removed.
                 /// </summary>
                 private readonly HashSet<int> _indicesToRemove;
 
@@ -85,15 +81,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 private static string? GetFilePath(MetadataReference metadataReference)
                 {
-                    switch (metadataReference)
+                    return metadataReference switch
                     {
-                        case PortableExecutableReference portableExecutableReference:
-                            return portableExecutableReference.FilePath;
-                        case UnresolvedMetadataReference unresolvedMetadataReference:
-                            return unresolvedMetadataReference.Reference;
-                        default:
-                            return null;
-                    }
+                        PortableExecutableReference portableExecutableReference => portableExecutableReference.FilePath,
+                        UnresolvedMetadataReference unresolvedMetadataReference => unresolvedMetadataReference.Reference,
+                        _ => null,
+                    };
                 }
 
                 public void AddProjectReference(ProjectReference projectReference)
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 /// <summary>
                 /// Returns true if a metadata reference with the given file path is contained within this list.
                 /// </summary>
-                public bool Contains(string filePath)
+                public bool Contains(string? filePath)
                     => filePath != null
                     && _pathToIndicesMap.ContainsKey(filePath);
 
@@ -187,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     => _projectReferences.ToImmutable();
 
                 public ResolvedReferences ToResolvedReferences()
-                    => new ResolvedReferences(GetProjectReferences(), GetMetadataReferences());
+                    => new(GetProjectReferences(), GetMetadataReferences());
             }
 
             private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
@@ -195,12 +188,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // First, gather all of the metadata references from the command-line arguments.
                 var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
                     new WorkspaceMetadataFileReferenceResolver(
-                        metadataService: GetWorkspaceService<IMetadataService>(),
+                        metadataService: _solutionServices.GetRequiredService<IMetadataService>(),
                         pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
 
                 var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
                 var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
+                RoslynDebug.AssertNotNull(projectDirectory);
 
                 // Next, iterate through all project references in the file and create project references.
                 foreach (var projectFileReference in projectFileInfo.ProjectReferences)
@@ -332,11 +326,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private bool IsProjectLoadable(string projectPath)
-                => _projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+                => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var (buildHost, _) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return outputFilePath != null
                     && builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);

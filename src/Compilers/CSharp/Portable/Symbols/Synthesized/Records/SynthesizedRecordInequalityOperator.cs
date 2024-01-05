@@ -2,23 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
-    /// 
-    /// public static bool operator==(R? r1, R? r2)
-    ///      => (object) r1 == r2 || ((object)r1 != null &amp;&amp; r1.Equals(r2));
-    /// public static bool operator !=(R? r1, R? r2)
-    ///      => !(r1 == r2);
-    ///        
+    ///
+    /// For record class:
+    /// public static bool operator==(R? left, R? right)
+    ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
+    /// public static bool operator !=(R? left, R? right)
+    ///      => !(left == right);
+    ///
+    /// For record struct:
+    /// public static bool operator==(R left, R right)
+    ///      => left.Equals(right);
+    /// public static bool operator !=(R left, R right)
+    ///      => !(left == right);
+    ///
     ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
     ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
     /// </summary>
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                // => !(r1 == r2);
+                // => !(left == right);
                 F.CloseMethod(F.Block(F.Return(F.Not(F.Call(receiver: null, ContainingType.GetMembers(WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single(),
                                                             F.Parameter(Parameters[0]), F.Parameter(Parameters[1]))))));
             }

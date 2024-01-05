@@ -11,11 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class MethodDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of MethodStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(methodDeclaration As MethodStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  methodDeclaration As MethodStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(methodDeclaration, spans, optionProvider)
+            CollectCommentsRegions(methodDeclaration, spans, options)
 
             Dim block = TryCast(methodDeclaration.Parent, MethodBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then

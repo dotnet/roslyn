@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IInstanceReferenceTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -66,7 +66,6 @@ IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKi
 
             VerifyOperationTreeAndDiagnosticsForTest<BaseExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
 
     }
 }

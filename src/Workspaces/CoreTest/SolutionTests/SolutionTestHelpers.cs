@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
@@ -16,40 +14,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
-        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
 
-        public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
-        {
-            var workspace = CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
-            });
+        public static Workspace CreateWorkspaceWithNormalText()
+            => CreateWorkspace(
+            [
+                typeof(TestTemporaryStorageServiceFactory)
+            ]);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return workspace;
-        }
+        public static Workspace CreateWorkspaceWithRecoverableText()
+            => CreateWorkspace();
 
-        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
-        {
-            var id = ProjectId.CreateNewId();
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    id,
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: languageName)).GetRequiredProject(id);
-        }
+        public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics([typeof(TestTemporaryStorageServiceFactory)], testHost);
 
 #nullable disable
 
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {
-            Assert.NotEqual<TValue>(default, validNonDefaultValue);
+            Assert.NotEqual(getter(instance), validNonDefaultValue);
 
             var instanceWithValue = factory(instance, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(instanceWithValue));
@@ -106,7 +91,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
-
-#nullable enable
     }
 }

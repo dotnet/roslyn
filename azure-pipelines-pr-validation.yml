@@ -1,0 +1,274 @@
+resources:
+- repo: self
+  clean: true
+
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: test
+#  IbcDrop: 'default'
+
+parameters:
+- name: PRNumber
+  type: number
+- name: CommitSHA
+  type: string
+- name: VisualStudioBranchName
+  type: string
+  default: default
+- name: OptionalTitlePrefix
+  type: string
+  default: '[PR Validation]'
+- name: InsertToolset
+  type: boolean
+  default: true
+- name: SkipApplyOptimizationData
+  type: boolean
+  default: false
+
+# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
+variables:
+  - name: _DotNetArtifactsCategory
+    value: .NETCore
+  - name: _DotNetValidationArtifactsCategory
+    value: .NETCoreValidation
+  - group: DotNet-Roslyn-SDLValidation-Params
+  - group: DotNet-Roslyn-Insertion-Variables
+
+  # To retrieve OptProf data we need to authenticate to the VS drop storage.
+  # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
+  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
+  - group: DotNet-GitHub-Versions-Repo-Write
+  - name: _DevDivDropAccessToken
+    value: $(System.AccessToken)
+
+stages:
+- stage: build
+  displayName: Build and Test
+
+  jobs:
+
+  - job: PRValidationBuild
+    displayName: PR Validation Build
+    timeoutInMinutes: 360
+    # Conditionally set build pool so we can share this YAML when building with different pipeline
+    pool:
+      name: VSEngSS-MicroBuild2022-1ES
+      demands:
+      - msbuild
+      - visualstudio
+      - DotNetFramework
+
+    steps:
+    - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+      displayName: Setting SourceBranchName variable
+      condition: succeeded()
+
+    - task: tagBuildOrRelease@0
+      displayName: Tag PR validation build
+      inputs:
+        type: 'Build'
+        tags: |
+          PRValidationBuild
+          PRNumber:${{ parameters.PRNumber }}
+          CommitSHA:${{ parameters.CommitSHA }}
+      condition: succeeded()
+
+    - task: PowerShell@2
+      displayName: Setup branch for insertion validation
+      inputs:
+        filePath: 'eng\setup-pr-validation.ps1'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }}'
+      condition: succeeded()
+
+    - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
+      displayName: Setting VisualStudio.DropName variable
+
+    - task: NuGetToolInstaller@0
+      inputs:
+        versionSpec: '4.9.2'
+
+    # Authenticate with service connections to be able to publish packages to external nuget feeds.
+    - task: NuGetAuthenticate@1
+      inputs:
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+
+    # Needed because the build fails the NuGet Tools restore without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
+    - task: NuGetCommand@2
+      displayName: Restore internal tools
+      inputs:
+        command: restore
+        feedsToUse: config
+        restoreSolution: 'eng\common\internal\Tools.csproj'
+        nugetConfigPath: 'NuGet.config'
+        restoreDirectory: '$(Build.SourcesDirectory)\.packages'
+
+    - task: MicroBuildSigningPlugin@2
+      inputs:
+        signType: $(SignType)
+        zipSources: false
+      condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+
+    - task: PowerShell@2
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci
+                   -prepareMachine
+                   -restore
+                   -build
+                   -pack
+                   -sign
+                   -publish
+                   -bootstrap
+                   -binaryLog
+                   -configuration $(BuildConfiguration)
+                   -officialBuildId $(Build.BuildNumber)
+                   -officialSkipTests $(SkipTests)
+                   -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                   -officialSourceBranchName $(SourceBranchName)
+                   -officialIbcDrop $(IbcDrop)
+                   -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
+                   /p:RepositoryName=$(Build.Repository.Name)
+                   /p:VisualStudioDropName=$(VisualStudio.DropName)
+                   /p:DotNetSignType=$(SignType)
+                   /p:DotNetPublishToBlobFeed=false
+                   /p:PublishToSymbolServer=false
+                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                   /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                   /p:DotnetPublishUsingPipelines=false
+                   /p:IgnoreIbcMergeErrors=true
+                   /p:PreReleaseVersionLabel=pr-validation
+                   /p:IgnoreIbcMergeErrors=true
+      condition: succeeded()
+
+    - template: eng\common\templates\steps\generate-sbom.yml
+
+    - task: PowerShell@2
+      displayName: Publish Assets
+      inputs:
+        filePath: 'eng\publish-assets.ps1'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+      condition: succeeded()
+
+    # Publish OptProf configuration files
+    - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+      inputs:
+        dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+        toLowerCase: false
+        usePat: true
+        AccessToken: $(_DevDivDropAccessToken)
+        retentionDays: 90
+      displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+      condition: succeeded()
+
+    # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+    # a build execution.
+    - task: PublishBuildArtifacts@1
+      displayName: Publish OptProf Data Files
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+        ArtifactName: 'OptProf Data Files'
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
+        ArtifactName: 'Build Diagnostic Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Ngen Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
+        ArtifactName: 'NGen Logs'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeeded()
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Unit Tests'
+      condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+
+    # Publishes setup VSIXes to a drop.
+    # Note: The insertion tool looks for the display name of this task in the logs.
+    - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
+      displayName: Upload VSTS Drop
+      inputs:
+        DropName: $(VisualStudio.DropName)
+        DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+        AccessToken: $(_DevDivDropAccessToken)
+      condition: succeeded()
+
+    # Publish insertion packages to CoreXT store.
+    - task: NuGetCommand@2
+      displayName: Publish CoreXT Packages
+      inputs:
+        command: push
+        packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
+        allowPackageConflicts: true
+        feedsToUse: config
+        publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
+      condition: succeeded()
+
+    # Publish an artifact that the RoslynInsertionTool is able to find by its name.
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact VSSetup
+      inputs:
+        PathtoPublish: 'artifacts\VSSetup\$(BuildConfiguration)'
+        ArtifactName: 'VSSetup'
+      condition: succeeded()
+
+    - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
+      displayName: Perform Cleanup Tasks
+      condition: succeededOrFailed()
+
+- stage: insert
+  displayName: Create Insertion
+  dependsOn:
+    - build
+
+  jobs:
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      vmImage: windows-2019
+    steps:
+    - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+      displayName: Setting SourceBranchName variable
+      condition: succeeded()
+
+    - template: eng/pipelines/insert.yml
+      parameters:
+        createDraftPR: true
+        autoComplete: false
+        insertToolset: ${{ parameters.InsertToolset }}
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+        vsBranchName: ${{ parameters.VisualStudioBranchName }}
+        titlePrefix: ${{ parameters.OptionalTitlePrefix }}
+        sourceBranch: $(SourceBranchName)
+        publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+        queueSpeedometerValidation: true
+

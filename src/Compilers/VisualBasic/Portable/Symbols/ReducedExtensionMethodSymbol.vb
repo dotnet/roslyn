@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim typeParametersToFixArray As ImmutableArray(Of TypeParameterSymbol) = Nothing
             Dim fixWithArray As ImmutableArray(Of TypeSymbol) = Nothing
-            Dim reducedUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
+            Dim reducedUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
             If hashSetOfTypeParametersToFix.Count > 0 Then
                 ' Try to infer type parameters from the supplied instanceType.
@@ -103,7 +103,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                useSiteInfo:=reducedUseSiteInfo,
                                                diagnostic:=inferenceDiagnostic,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
-
 
                 parameterToArgumentMap.Free()
 
@@ -848,6 +847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
         End Class
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend MustInherit Class ReducedParameterSymbolBase
@@ -944,6 +949,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
                 Return m_CurriedFromParameter.IsCallerFilePath
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return m_CurriedFromParameter.CallerArgumentExpressionParameterIndex - 1
             End Get
         End Property
 

@@ -311,7 +311,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private struct BitSet
+        private readonly struct BitSet
         {
             internal BitSet(BitAccess bits)
             {
@@ -344,12 +344,14 @@ namespace Roslyn.Test.PdbUtilities
 
         private class IntHashTable
         {
-            private static readonly int[] s_primes = {
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+            private static readonly int[] s_primes = [
                 3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
                 1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
                 17519, 21023, 25229, 30293, 36353, 43627, 52361, 62851, 75431, 90523, 108631, 130363, 156437,
                 187751, 225307, 270371, 324449, 389357, 467237, 560689, 672827, 807403, 968897, 1162687, 1395263,
-                1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369};
+                1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369];
+#pragma warning restore format
 
             private static int GetPrime(int minSize)
             {
@@ -372,7 +374,7 @@ namespace Roslyn.Test.PdbUtilities
 
             // The hash table data.
             // This cannot be serialized
-            private struct bucket
+            private struct @bucket
             {
                 internal int key;
                 internal int hash_coll;   // Store hash code; sign bit means there was a collision.
@@ -404,7 +406,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
-                if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
+                if (loadFactorPerc is not (>= 10 and <= 100))
                     throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), "ArgumentOutOfRange_IntHashTableLoadFactor");
 
                 // Based on perf work, .72 is the optimal load factor for this table.
@@ -651,7 +653,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private struct DbiSecCon
+        private readonly struct DbiSecCon
         {
             internal DbiSecCon(BitAccess bits)
             {
@@ -721,7 +723,7 @@ namespace Roslyn.Test.PdbUtilities
             internal readonly string objectName;
         }
 
-        private struct DbiHeader
+        private readonly struct DbiHeader
         {
             internal DbiHeader(BitAccess bits)
             {
@@ -769,7 +771,7 @@ namespace Roslyn.Test.PdbUtilities
             internal readonly int reserved;                   // 60..63
         }
 
-        private struct DbiDbgHdr
+        private readonly struct DbiDbgHdr
         {
             internal DbiDbgHdr(BitAccess bits)
             {
@@ -1188,7 +1190,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             string result = token.ToString("X8");
             if (maskToken)
-                result = result.Substring(0, 2) + "xxxxxx";
+                result = result[..2] + "xxxxxx";
             return "0x" + result;
         }
 
@@ -1223,7 +1225,7 @@ namespace Roslyn.Test.PdbUtilities
                         dir.streams[module.stream].Read(reader, bits);
                         if (module.moduleName == "TokenSourceLineInfo")
                         {
-                            LoadTokenToSourceInfo(bits, module, names, dir, nameIndex, reader, tokenToSourceMapping);
+                            LoadTokenToSourceInfo(bits, module, names, tokenToSourceMapping);
                         }
                     }
                 }
@@ -1287,8 +1289,7 @@ namespace Roslyn.Test.PdbUtilities
             new Guid(unchecked((int)0xc6ea3fc9), 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
 
         private static void LoadTokenToSourceInfo(
-            BitAccess bits, DbiModuleInfo module, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
+            BitAccess bits, DbiModuleInfo module, IntHashTable names, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
         {
             bits.Position = 0;
             bits.ReadInt32(out var sig);
@@ -1357,7 +1358,7 @@ namespace Roslyn.Test.PdbUtilities
 
             bits.Position = module.cbSyms + module.cbOldLines;
             int limit = module.cbSyms + module.cbOldLines + module.cbLines;
-            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names, dir, nameIndex, reader);
+            IntHashTable sourceFiles = ReadSourceFileInfo(bits, (uint)limit, names);
             foreach (var tokenLine in tokenToSourceMapping.Values)
             {
                 tokenLine.sourceFile = (PdbSource)sourceFiles[(int)tokenLine.file_id];
@@ -1366,9 +1367,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private static readonly Guid s_symDocumentTypeGuid = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
 
-        private static IntHashTable ReadSourceFileInfo(
-            BitAccess bits, uint limit, IntHashTable names, MsfDirectory dir,
-            Dictionary<string, int> nameIndex, PdbReader reader)
+        private static IntHashTable ReadSourceFileInfo(BitAccess bits, uint limit, IntHashTable names)
         {
             IntHashTable checks = new IntHashTable();
 

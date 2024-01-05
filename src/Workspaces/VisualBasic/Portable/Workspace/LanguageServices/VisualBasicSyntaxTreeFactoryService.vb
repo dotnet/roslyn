@@ -9,12 +9,11 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageServiceFactory(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
-        Implements ILanguageServiceFactory
+    <ExportLanguageService(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
+    Partial Friend Class VisualBasicSyntaxTreeFactoryService
+        Inherits AbstractSyntaxTreeFactoryService
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
 
@@ -23,67 +22,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New()
         End Sub
 
-        Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(provider)
+        Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
+            Return VisualBasicParseOptions.Default
         End Function
 
-        Partial Friend Class VisualBasicSyntaxTreeFactoryService
-            Inherits AbstractSyntaxTreeFactoryService
+        Public Overrides Function TryParsePdbParseOptions(metadata As IReadOnlyDictionary(Of String, String)) As ParseOptions
+            Dim langVersionString As String = Nothing
+            Dim langVersion As LanguageVersion = Nothing
 
-            Public Sub New(languageServices As HostLanguageServices)
-                MyBase.New(languageServices)
-            End Sub
+            If Not metadata.TryGetValue("language-version", langVersionString) OrElse
+                   Not TryParse(langVersionString, langVersion) Then
+                langVersion = LanguageVersion.[Default]
+            End If
 
-            Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
-                Return VisualBasicParseOptions.Default
-            End Function
+            Dim defineString As String = Nothing
+            If Not metadata.TryGetValue("define", defineString) Then
+                Return Nothing
+            End If
 
-            Public Overloads Overrides Function GetDefaultParseOptionsWithLatestLanguageVersion() As ParseOptions
-                Return _parseOptionsWithLatestLanguageVersion
-            End Function
+            Dim diagnostics As IEnumerable(Of Diagnostic) = Nothing
+            Dim preprocessorSymbols = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineString, diagnostics)
+            If diagnostics Is Nothing Then
+                Return Nothing
+            End If
 
-            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
-                If options Is Nothing Then
-                    options = GetDefaultParseOptions()
-                End If
+            Return New VisualBasicParseOptions(languageVersion:=langVersion, preprocessorSymbols:=preprocessorSymbols)
+        End Function
 
-                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
-            End Function
+        Public Overrides Function OptionsDifferOnlyByPreprocessorDirectives(options1 As ParseOptions, options2 As ParseOptions) As Boolean
+            Dim vbOptions1 = DirectCast(options1, VisualBasicParseOptions)
+            Dim vbOptions2 = DirectCast(options2, VisualBasicParseOptions)
 
-            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
-                If options Is Nothing Then
-                    options = GetDefaultParseOptions()
-                End If
+            ' The easy way to figure out if these only differ by a single field is to update one with the preprocessor symbols of the
+            ' other, and then do an equality check from there; this is future proofed if another value is ever added.
+            Return vbOptions1.WithPreprocessorSymbols(vbOptions2.PreprocessorSymbols) = vbOptions2
+        End Function
 
-                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding)
-            End Function
+        Public Overloads Overrides Function GetDefaultParseOptionsWithLatestLanguageVersion() As ParseOptions
+            Return _parseOptionsWithLatestLanguageVersion
+        End Function
 
-            Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
-                Dim cu = TryCast(root, CompilationUnitSyntax)
-                Return MyBase.CanCreateRecoverableTree(root) AndAlso cu IsNot Nothing AndAlso cu.Attributes.Count = 0
-            End Function
+        Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
+            If options Is Nothing Then
+                options = GetDefaultParseOptions()
+            End If
 
-            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId,
-                                                            filePath As String,
-                                                            optionsOpt As ParseOptions,
-                                                            text As ValueSource(Of TextAndVersion),
-                                                            encoding As Encoding,
-                                                            root As SyntaxNode) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
+        End Function
 
-                Debug.Assert(CanCreateRecoverableTree(root))
-                Return RecoverableSyntaxTree.CreateRecoverableTree(
-                    Me,
-                    cacheKey,
-                    filePath,
-                    If(optionsOpt, GetDefaultParseOptions()),
-                    text,
-                    encoding,
-                    DirectCast(root, CompilationUnitSyntax))
-            End Function
+        Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, checksumAlgorithm As SourceHashAlgorithm, root As SyntaxNode) As SyntaxTree
+            If options Is Nothing Then
+                options = GetDefaultParseOptions()
+            End If
 
-            Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode
-                Return VisualBasicSyntaxNode.DeserializeFrom(stream, cancellationToken)
-            End Function
-        End Class
+            Return New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
+        End Function
     End Class
 End Namespace

@@ -146,7 +146,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return False
             End Function
 
-            Private Function GetValidMembers(node As SyntaxNode) As IReadOnlyList(Of DeclarationStatementSyntax)
+            Private Shared Function GetValidMembers(node As SyntaxNode) As IReadOnlyList(Of DeclarationStatementSyntax)
                 Return VisualBasicCodeModelService _
                     .GetChildMemberNodes(node) _
                     .Where(Function(m) IsValidTopLevelDeclaration(m)) _
@@ -159,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     .ToArray()
             End Function
 
-            Private Function GetParameters(parameterList As ParameterListSyntax) As SeparatedSyntaxList(Of ParameterSyntax)
+            Private Shared Function GetParameters(parameterList As ParameterListSyntax) As SeparatedSyntaxList(Of ParameterSyntax)
                 Return If(parameterList IsNot Nothing,
                           parameterList.Parameters,
                           Nothing)
@@ -215,7 +215,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Not hasChanges
             End Function
 
-            Private Function CompareAttributeTargets(oldAttributeTarget As AttributeTargetSyntax, newAttributeTarget As AttributeTargetSyntax) As Boolean
+            Private Shared Function CompareAttributeTargets(oldAttributeTarget As AttributeTargetSyntax, newAttributeTarget As AttributeTargetSyntax) As Boolean
                 If oldAttributeTarget Is Nothing OrElse newAttributeTarget Is Nothing Then
                     Return oldAttributeTarget Is newAttributeTarget
                 End If
@@ -339,7 +339,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     eventQueue)
             End Function
 
-            Private Function TypeKindChanged(oldType As DeclarationStatementSyntax, newType As DeclarationStatementSyntax) As Boolean
+            Private Shared Function TypeKindChanged(oldType As DeclarationStatementSyntax, newType As DeclarationStatementSyntax) As Boolean
                 ' Several differences in member kind should not cause an add/remove event pair. For example, changing a Sub to a Function.
 
                 If oldType.IsKind(SyntaxKind.DeclareFunctionStatement, SyntaxKind.DelegateSubStatement) AndAlso
@@ -507,7 +507,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Not hasChanges
             End Function
 
-            Private Function MemberKindChanged(oldMember As StatementSyntax, newMember As StatementSyntax) As Boolean
+            Private Shared Function MemberKindChanged(oldMember As StatementSyntax, newMember As StatementSyntax) As Boolean
                 ' Several differences in member kind should not cause an add/remove event pair. For example, changing a Sub to a Function.
 
                 If oldMember.IsKind(SyntaxKind.SubStatement, SyntaxKind.FunctionStatement, SyntaxKind.SubBlock, SyntaxKind.FunctionBlock) AndAlso
@@ -944,11 +944,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return True
             End Function
 
-            Private Function CompareModifiers(oldMember As StatementSyntax, newMember As StatementSyntax) As Boolean
+            Private Shared Function CompareModifiers(oldMember As StatementSyntax, newMember As StatementSyntax) As Boolean
                 Return oldMember.GetModifierFlags() = newMember.GetModifierFlags()
             End Function
 
-            Private Function CompareModifiers(oldParameter As ParameterSyntax, newParameter As ParameterSyntax) As Boolean
+            Private Shared Function CompareModifiers(oldParameter As ParameterSyntax, newParameter As ParameterSyntax) As Boolean
                 Return oldParameter.GetModifierFlags() = newParameter.GetModifierFlags()
             End Function
 
@@ -1104,7 +1104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 CompareCompilationUnits(DirectCast(oldRoot, CompilationUnitSyntax), DirectCast(newRoot, CompilationUnitSyntax), eventQueue)
             End Sub
 
-            Private Function GetValidParentNode(node As SyntaxNode) As SyntaxNode
+            Private Shared Function GetValidParentNode(node As SyntaxNode) As SyntaxNode
                 If TypeOf node Is TypeStatementSyntax AndAlso
                    TypeOf node.Parent Is TypeBlockSyntax Then
 

@@ -6,13 +6,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 {
     internal static class LanguageVersionExtensions
     {
-        public static bool IsCSharp9OrAbove(this LanguageVersion languageVersion)
-            => languageVersion >= LanguageVersion.CSharp9;
+        public static bool IsCSharp12OrAbove(this LanguageVersion languageVersion)
+            => languageVersion >= LanguageVersion.CSharp12;
 
-        public static bool IsCSharp10OrAbove(this LanguageVersion languageVersion)
-            => languageVersion >= LanguageVersion.Preview;
+        public static bool IsCSharp11OrAbove(this LanguageVersion languageVersion)
+            => languageVersion >= LanguageVersion.CSharp11;
 
         public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
-            => languageVersion.IsCSharp10OrAbove();
+            => languageVersion >= LanguageVersion.CSharp10;
+
+        public static bool SupportsCollectionExpressions(this LanguageVersion languageVersion)
+            => languageVersion.IsCSharp12OrAbove();
+
+        public static bool SupportsPrimaryConstructors(this LanguageVersion languageVersion)
+            => languageVersion.IsCSharp12OrAbove();
+
+        /// <remarks>
+        /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.
+        /// </remarks>
+        internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
     }
 }

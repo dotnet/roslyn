@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 [assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
@@ -51,7 +52,18 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        public override Workspace Workspace => _workspace;
+        internal string WorkspaceKind => _workspace.Kind;
+
+        public override Workspace Workspace
+        {
+            get
+            {
+                //#if !CODE_STYLE
+                //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
+                //#endif
+                return _workspace;
+            }
+        }
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
@@ -196,15 +208,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
             => _languageServicesMap.TryGetValue(languageName, out languageServices);
 
-        internal sealed class LazyServiceMetadataDebuggerProxy
+        internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-            private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
-
-            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services) =>
-                _services = services;
-
             public (string type, string layer)[] Metadata
-                => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+                => services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
         }
     }
 }

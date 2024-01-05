@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             UnableToLoadAnalyzer = 1,
             UnableToCreateAnalyzer = 2,
             NoAnalyzers = 3,
-            ReferencesFramework = 4
+            ReferencesFramework = 4,
+            ReferencesNewerCompiler = 5
         }
 
         /// <summary>
@@ -37,9 +38,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Exception? Exception { get; }
 
+        /// <summary>
+        /// If <see cref="ErrorCode"/> is <see cref="FailureErrorCode.ReferencesNewerCompiler"/>, returns the compiler version referenced by the analyzer assembly. Otherwise, returns null.
+        /// </summary>
+        public Version? ReferencedCompilerVersion { get; internal init; }
+
         public AnalyzerLoadFailureEventArgs(FailureErrorCode errorCode, string message, Exception? exceptionOpt = null, string? typeNameOpt = null)
         {
-            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.ReferencesFramework)
+            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.ReferencesNewerCompiler)
             {
                 throw new ArgumentOutOfRangeException(nameof(errorCode));
             }

@@ -8,10 +8,12 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
@@ -23,10 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxToken lessThanToken,
+            TextSpan textSpan,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
+            if (identifier.Parent is not IdentifierNameSyntax identifierName)
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;

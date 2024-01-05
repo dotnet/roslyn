@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,9 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WeakReference<ExecutableCodeBinder>? _weakBodyBinder;
         private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
-        internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, ImmutableArray.Create(declaration.SyntaxReference.GetLocation()), isIterator: declaration.IsIterator)
+        internal SynthesizedSimpleProgramEntryPointSymbol(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, declaration.SyntaxReference.GetLocation(), isIterator: declaration.IsIterator,
+                   MakeModifiersAndFlags(containingType, declaration))
         {
+            Debug.Assert(declaration.SyntaxReference.GetSyntax() is CompilationUnitSyntax);
             _declaration = declaration;
 
             bool hasAwait = declaration.HasAwaitExpressions;
@@ -50,19 +53,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
-            this.MakeFlags(
-                MethodKind.Ordinary,
-                DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
-                returnsVoid: !hasAwait && !hasReturnWithExpression,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: false);
-
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
                               TypeWithAnnotations.Create(
                                   ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly,
                                       TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
+        }
+
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration)
+        {
+            bool hasAwait = declaration.HasAwaitExpressions;
+            bool hasReturnWithExpression = declaration.HasReturnWithExpression;
+
+            DeclarationModifiers declarationModifiers = DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None);
+            CSharpCompilation compilation = containingType.DeclaringCompilation;
+            var compilationUnit = (CompilationUnitSyntax)declaration.SyntaxReference.GetSyntax();
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, compilationUnit);
+            Flags flags = MakeFlags(
+                                    MethodKind.Ordinary,
+                                    RefKind.None,
+                                    declarationModifiers,
+                                    returnsVoid: !hasAwait && !hasReturnWithExpression,
+                                    returnsVoidIsSet: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                    isVarArg: false,
+                                    isExplicitInterfaceImplementation: false,
+                                    hasThisInitializer: false);
+
+            return (declarationModifiers, flags);
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
+        {
+            var type = GetSimpleProgramNamedTypeSymbol(compilation);
+            if (type is null)
+            {
+                return null;
+            }
+
+            ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> entryPoints = type.GetSimpleProgramEntryPoints();
+
+            foreach (var entryPoint in entryPoints)
+            {
+                if (entryPoint.SyntaxTree == compilationUnit.SyntaxTree && entryPoint.SyntaxNode == compilationUnit)
+                {
+                    return entryPoint;
+                }
+            }
+
+            return fallbackToMainEntryPoint ? entryPoints[0] : null;
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
+        {
+            return GetSimpleProgramNamedTypeSymbol(compilation)?.GetSimpleProgramEntryPoints().First();
+        }
+
+        private static SourceNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
+        {
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
         }
 
         public override string Name
@@ -76,14 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get { return default(System.Reflection.MethodImplAttributes); }
-        }
-
-        public override bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -107,22 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _parameters;
-            }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return Accessibility.Private;
-            }
-        }
-
-        public override RefKind RefKind
-        {
-            get
-            {
-                return RefKind.None;
             }
         }
 
@@ -173,8 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override bool IsExpressionBodied => false;
-
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
             => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 
@@ -194,13 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpCompilation compilation = DeclaringCompilation;
 
-            Binder result = new BuckStopsHereBinder(compilation);
-            result = new InContainerBinder(compilation.GlobalNamespace, result, SyntaxNode, inUsing: false);
+            var syntaxNode = SyntaxNode;
+            Binder result = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxNode.SyntaxTree, compilation.Options.SourceReferenceResolver));
+            var globalNamespace = compilation.GlobalNamespace;
+            var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
+            result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));
+            result = new InContainerBinder(globalNamespace, result);
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);
             result = result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None);
 
-            return new ExecutableCodeBinder(SyntaxNode, this, result);
+            return new ExecutableCodeBinder(syntaxNode, this, result);
         }
 
         internal ExecutableCodeBinder GetBodyBinder(bool ignoreAccessibility)
@@ -223,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
             if (_declaration.SyntaxReference.SyntaxTree == tree)
             {

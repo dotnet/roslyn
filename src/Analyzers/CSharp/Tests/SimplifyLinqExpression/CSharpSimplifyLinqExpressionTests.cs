@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
         CSharpSimplifyLinqExpressionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
     public partial class CSharpSimplifyLinqExpressionTests
     {
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public static async Task TestAllowedMethodTypes(
             [CombinatorialValues(
                 "x => x==1",
@@ -76,7 +77,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public static async Task TestWhereWithIndexMethodTypes(
             [CombinatorialValues(
                 "(x, index) => x==index",
@@ -114,7 +115,7 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(testCode);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public async Task TestQueryComprehensionSyntax(
             [CombinatorialValues(
                 "x => x==1",
@@ -156,7 +157,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -216,7 +217,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First", "string")]
         [InlineData("Last", "string")]
         [InlineData("Single", "string")]
@@ -262,7 +263,7 @@ class Test
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -292,7 +293,7 @@ namespace demo
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory, CombinatorialData]
         public async Task TestNestedLambda(
             [CombinatorialValues(
                 "First",
@@ -346,7 +347,7 @@ class Test
                 fixedCode);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -390,43 +391,44 @@ class Test
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestUserDefinedWhere()
         {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        public class TestClass4
-        {
-            private string test;
-            public TestClass4() => test = ""hello"";
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                namespace demo
+                {
+                    class Test
+                    {
+                        public class TestClass4
+                        {
+                            private string test;
+                            public TestClass4() => test = "hello";
 
-            public TestClass4 Where(Func<string, bool> input)
-            {
-                return this;
-            }
+                            public TestClass4 Where(Func<string, bool> input)
+                            {
+                                return this;
+                            }
 
-            public string Single()
-            {
-                return test;
-            }
-        }
-        static void Main()
-        {
-            TestClass4 Test1 = new TestClass4();
-            TestClass4 test = Test1.Where(y => true);
-        }
-    }
-}";
+                            public string Single()
+                            {
+                                return test;
+                            }
+                        }
+                        static void Main()
+                        {
+                            TestClass4 Test1 = new TestClass4();
+                            TestClass4 test = Test1.Where(y => true);
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Theory]
         [InlineData("First")]
         [InlineData("Last")]
         [InlineData("Single")]
@@ -453,57 +455,59 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestUnsupportedFunction()
         {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static List<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-        int test2 = test1.Where(x => x > 0).Count();
-    }
-}";
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                namespace demo
+                {
+                    class Test
+                    {
+                        static List<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
+                        int test2 = test1.Where(x => x > 0).Count();
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [Fact]
         public async Task TestExpressionTreeInput()
         {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
 
-class Test
-{
-    void Main()
-    {
-        string[] places = { ""Beach"", ""Pool"", ""Store"", ""House"",
-                   ""Car"", ""Salon"", ""Mall"", ""Mountain""};
+                class Test
+                {
+                    void Main()
+                    {
+                        string[] places = { "Beach", "Pool", "Store", "House",
+                                   "Car", "Salon", "Mall", "Mountain"};
 
-        IQueryable<String> queryableData = places.AsQueryable<string>();
-        ParameterExpression pe = Expression.Parameter(typeof(string), ""place"");
+                        IQueryable<String> queryableData = places.AsQueryable<string>();
+                        ParameterExpression pe = Expression.Parameter(typeof(string), "place");
 
-        Expression left = Expression.Call(pe, typeof(string).GetMethod(""ToLower"", System.Type.EmptyTypes));
-        Expression right = Expression.Constant(""coho winery"");
-        Expression e1 = Expression.Equal(left, right);
+                        Expression left = Expression.Call(pe, typeof(string).GetMethod("ToLower", System.Type.EmptyTypes));
+                        Expression right = Expression.Constant("coho winery");
+                        Expression e1 = Expression.Equal(left, right);
 
-        left = Expression.Property(pe, typeof(string).GetProperty(""Length""));
-        right = Expression.Constant(16, typeof(int));
-        Expression e2 = Expression.GreaterThan(left, right);
+                        left = Expression.Property(pe, typeof(string).GetProperty("Length"));
+                        right = Expression.Constant(16, typeof(int));
+                        Expression e2 = Expression.GreaterThan(left, right);
 
-        Expression predicateBody = Expression.OrElse(e1, e2);
-        Expression<Func<int, bool>> lambda1 = num => num < 5;
+                        Expression predicateBody = Expression.OrElse(e1, e2);
+                        Expression<Func<int, bool>> lambda1 = num => num < 5;
 
-        string result = queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
-    }
-}";
+                        string result = queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
     }

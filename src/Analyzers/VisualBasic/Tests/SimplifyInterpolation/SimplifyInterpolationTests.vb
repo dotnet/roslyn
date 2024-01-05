@@ -148,19 +148,13 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        Public Async Function PadLeftWithComplexConstantExpression() As Task
-            Await TestInRegularAndScriptAsync("
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49712")>
+        Public Async Function PadLeftWithNonLiteralConstantExpression() As Task
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue{|Unnecessary:[||].PadLeft(|}CByte(3.3) + someConstant{|Unnecessary:)|}} suffix""
-    End Sub
-End Class", "
-Class C
-    Sub M(someValue As String)
-        Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue,CByte(3.3) + someConstant} suffix""
+        Dim v = $""prefix {someValue[||].PadLeft(someConstant)} suffix""
     End Sub
 End Class")
         End Function
@@ -215,19 +209,13 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        Public Async Function PadRightWithComplexConstantExpressionRequiringParentheses() As Task
-            Await TestInRegularAndScriptAsync("
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49712")>
+        Public Async Function PadRightWithNonLiteralConstantExpression() As Task
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue{|Unnecessary:[||].PadRight(|}CByte(3.3) + someConstant{|Unnecessary:)|}} suffix""
-    End Sub
-End Class", "
-Class C
-    Sub M(someValue As String)
-        Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue,-(CByte(3.3) + someConstant)} suffix""
+        Dim v = $""prefix {someValue[||].PadRight(someConstant)} suffix""
     End Sub
 End Class")
         End Function
@@ -427,7 +415,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnImplicitToStringReceiver() As Task
             Await TestMissingAsync("
 Class C
@@ -441,7 +429,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnImplicitToStringReceiverWithArg() As Task
             Await TestMissingAsync("
 Class C
@@ -455,7 +443,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnStaticToStringReceiver() As Task
             Await TestMissingAsync("
 Class C
@@ -469,7 +457,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnStaticToStringReceiverWithArg() As Task
             Await TestMissingAsync("
 Class C
@@ -483,7 +471,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnImplicitPadLeft() As Task
             Await TestMissingAsync("
 Class C
@@ -497,7 +485,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41381")>
         Public Async Function MissingOnStaticPadLeft() As Task
             Await TestMissingAsync("
 Class C
@@ -511,7 +499,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")>
         Public Async Function MissingOnBaseToString() As Task
             Await TestMissingAsync(
 "Class C
@@ -521,7 +509,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")>
         Public Async Function MissingOnBaseToStringEvenWhenNotOverridden() As Task
             Await TestMissingAsync(
 "Class C
@@ -531,7 +519,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")>
         Public Async Function MissingOnBaseToStringWithArgument() As Task
             Await TestMissingAsync(
 "Class Base
@@ -549,7 +537,7 @@ Class Derived
 End Class")
         End Function
 
-        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42669")>
         Public Async Function PadLeftSimplificationIsStillOfferedOnBaseToString() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -564,7 +552,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")>
         Public Async Function FormatComponentSimplificationIsNotOfferedOnNonIFormattableType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -580,7 +568,7 @@ Structure TypeNotImplementingIFormattable
 End Structure")
         End Function
 
-        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")>
         Public Async Function FormatComponentSimplificationIsOfferedIFormattableType() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -623,7 +611,7 @@ Structure TypeImplementingIFormattable
 End Structure")
         End Function
 
-        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")>
         Public Async Function ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -650,7 +638,7 @@ Structure TypeNotImplementingIFormattable
 End Structure")
         End Function
 
-        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42887")>
         Public Async Function PadLeftSimplificationIsStillOfferedOnNonIFormattableType() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

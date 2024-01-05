@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
@@ -388,7 +389,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { return this.ToArray(); }
         }
@@ -448,7 +451,9 @@ namespace Microsoft.CodeAnalysis
             return _node?.GetHashCode() ?? 0;
         }
 
-        public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxList<TNode> op_Implicit(SyntaxList<SyntaxNode> nodes)
         {
             return new SyntaxList<TNode>(nodes._node);
         }
@@ -456,6 +461,11 @@ namespace Microsoft.CodeAnalysis
         public static implicit operator SyntaxList<SyntaxNode>(SyntaxList<TNode> nodes)
         {
             return new SyntaxList<SyntaxNode>(nodes.Node);
+        }
+
+        public static explicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
+        {
+            return new SyntaxList<TNode>(nodes._node);
         }
 
         /// <summary>

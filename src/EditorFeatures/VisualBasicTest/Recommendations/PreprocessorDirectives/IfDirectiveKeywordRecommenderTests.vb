@@ -3,18 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class IfDirectiveKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Inherits RecommenderTests
+
+        <Fact>
         Public Sub HashIfInFileTest()
             VerifyRecommendationsContain(<File>|</File>, "#If")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub HashIfInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#If")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NotInEnumBlockMemberDeclarationTest()
             VerifyRecommendationsMissing(<File>
                                              Enum goo
@@ -23,8 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
                                          </File>, "#If")
         End Sub
 
-        <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6389")>
         Public Sub NotAfterHashRegionTest()
             VerifyRecommendationsMissing(<File>
                                          Class C

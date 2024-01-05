@@ -14,10 +14,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -71,21 +73,6 @@ End Module")
 
         #region Helpers
 
-        private static IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
-        {
-            vars = vars ?? new KeyValuePair<string, string>[] { };
-            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
-            {
-                var list = vars.ToList();
-                list.Add(new KeyValuePair<string, string>(
-                    "RoslynCommandLineLogFile",
-                    typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log"));
-                return list;
-            }
-
-            return vars;
-        }
-
         private static void CheckForBadShared(List<string> arguments)
         {
             bool hasShared;
@@ -112,7 +99,7 @@ End Module")
         {
 #if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
-            File.WriteAllBytes(filePath, TestMetadata.ResourcesNetStandard20.netstandard);
+            File.WriteAllBytes(filePath, NetStandard20.Resources.netstandard);
             arguments.Add("/nostdlib");
             arguments.Add("/r:netstandard.dll");
 #endif
@@ -205,11 +192,7 @@ End Module")
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
 
-            // Create a client to run the build.  Infinite timeout is used to account for the
-            // case where these tests are run under extreme load.  In high load scenarios the
-            // client will correctly drop down to a local compilation if the server doesn't respond
-            // fast enough.
-            var client = ServerUtil.CreateBuildClient(language, _logger, timeoutOverride: Timeout.Infinite);
+            var client = ServerUtil.CreateBuildClient(language, _logger);
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
 
@@ -252,9 +235,9 @@ End Module")
                         currentDirectory: tempDir);
                     if (result.ExitCode != 0)
                     {
-                        AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
+                        AssertEx.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
                     }
-                    var listener = await serverData.Complete().ConfigureAwait(false);
+                    var listener = await serverData.Complete();
                     Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
@@ -307,7 +290,7 @@ End Module")
             var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
             await ApplyEnvironmentVariables(
                 new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
-                async () =>
+                async () => await Task.Run(async () =>
             {
                 using var serverData = await ServerUtil.CreateServer(_logger);
                 var result = RunCommandLineCompiler(
@@ -318,9 +301,9 @@ End Module")
                     shouldRunOnServer: true);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
 
-                var listener = await serverData.Complete().ConfigureAwait(false);
+                var listener = await serverData.Complete();
                 Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
-            });
+            }));
         }
 
         [Fact]
@@ -332,7 +315,7 @@ End Module")
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs, shouldRunOnServer: false);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -348,7 +331,7 @@ End Module")
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -370,7 +353,7 @@ End Module")
                 result.Output.Trim().Replace(srcFile, "test.cs"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -394,7 +377,7 @@ End Module")
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -418,7 +401,7 @@ End Module")
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -431,7 +414,7 @@ End Module")
             var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb", _tempDirectory, s_helloWorldSrcVb, shouldRunOnServer: false);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
         }
 
@@ -444,7 +427,7 @@ End Module")
 
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -456,7 +439,7 @@ End Module")
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"-shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -466,8 +449,11 @@ End Module")
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
             var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             Assert.NotEqual(ProcessorArchitecture.X86,
                 AssemblyName.GetAssemblyName(compilerServerExecutable).ProcessorArchitecture);
+#pragma warning restore SYSLIB0037
         }
 
         /// <summary>
@@ -488,7 +474,7 @@ End Module")
                                                 _tempDirectory,
                                                 files);
             VerifyResult(result);
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -503,7 +489,7 @@ End Module")
                                                 _tempDirectory,
                                                 files);
             VerifyResult(result);
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -517,7 +503,7 @@ End Module")
                                                 _tempDirectory,
                                                 s_helloWorldSrcCs);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -531,7 +517,7 @@ End Module")
                                                 _tempDirectory,
                                                 s_helloWorldSrcVb);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -545,7 +531,7 @@ End Module")
                 _tempDirectory,
                 s_helloWorldSrcVb);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -572,7 +558,7 @@ class Hello
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -602,7 +588,7 @@ End Class"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -619,7 +605,7 @@ End Class"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -637,7 +623,7 @@ End Class"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -662,7 +648,7 @@ End Class"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -680,7 +666,7 @@ End Class"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -709,7 +695,7 @@ End Module"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -738,7 +724,7 @@ End Module"}};
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -851,7 +837,7 @@ End Module
                     }
                 }
 
-                var listener = await serverData.Complete().ConfigureAwait(false);
+                var listener = await serverData.Complete();
                 Assert.Equal(5, listener.CompletionDataList.Count);
                 Assert.All(listener.CompletionDataList, completionData => Assert.Equal(CompletionReason.RequestCompleted, completionData.Reason));
             }
@@ -952,8 +938,9 @@ class Hello
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.Output);
-                            Assert.Equal(0, result.ExitCode);
+                            // Instrumenting to assist investigation of flakiness. Tracked by https://github.com/dotnet/roslyn/issues/19763
+                            RoslynDebug.AssertOrFailFast("" == result.Output);
+                            RoslynDebug.AssertOrFailFast(0 == result.ExitCode);
 
                             // Run hello3.exe. Should work.
                             RunCompilerOutput(hello3_file, "Hello3 from library3");
@@ -964,7 +951,7 @@ class Hello
                     }
                 }
 
-                var listener = await serverData.Complete().ConfigureAwait(false);
+                var listener = await serverData.Complete();
                 Assert.Equal(5, listener.CompletionDataList.Count);
                 Assert.All(listener.CompletionDataList, completionData => Assert.Equal(CompletionReason.RequestCompleted, completionData.Reason));
             }
@@ -1049,7 +1036,7 @@ End Module";
 
             await Task.WhenAll(tasks);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(numberOfCompiles, listener.CompletionDataList.Count);
         }
 
@@ -1098,7 +1085,7 @@ public static void Main()
 
             var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
@@ -1149,7 +1136,7 @@ End Module
             Assert.Equal(0, result.ExitCode);
 
             var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
@@ -1171,7 +1158,7 @@ End Module
                 result.Output.Trim());
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1198,7 +1185,7 @@ End Module
                         result.Output.Trim().Replace(srcFile, "SRC.VB"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1220,7 +1207,7 @@ End Module
                 result.Output.Trim());
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1247,7 +1234,7 @@ End Module
                         result.Output.Trim().Replace(srcFile, "SRC.VB"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1304,7 +1291,7 @@ static void Main(string[] args)
             Assert.Equal("", result.Output);
             Assert.Equal(0, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
@@ -1328,7 +1315,7 @@ static void Main(string[] args)
                 result.Output.Trim());
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1354,7 +1341,7 @@ static void Main(string[] args)
 ~", result.Output.Trim().Replace(srcFile, "src.vb"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1428,7 +1415,7 @@ static void Main(string[] args)
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(0, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1462,7 +1449,7 @@ static void Main(string[] args)
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(0, result.ExitCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(2, listener.CompletionDataList.Count);
         }
 
@@ -1494,14 +1481,14 @@ static void Main(string[] args)
                 throw new FileNotFoundException();
             });
 
-            using var serverData = await ServerUtil.CreateServer(_logger, compilerServerHost: host).ConfigureAwait(false);
-            var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
+            using var serverData = await ServerUtil.CreateServer(_logger, compilerServerHost: host);
+            var request = new BuildRequest(RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
             var compileTask = serverData.SendAsync(request);
-            var response = await compileTask.ConfigureAwait(false);
+            var response = await compileTask;
             Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
             Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
-            var listener = await serverData.Complete().ConfigureAwait(false);
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
@@ -1519,7 +1506,7 @@ static void Main(string[] args)
             {
                 if (first[i] != second[i])
                 {
-                    AssertEx.Fail($"Bytes were different at position { i } ({ first[i] } vs { second[i] }).  Flags used were (\"{ finalFlags1 }\" vs \"{ finalFlags2 }\")");
+                    AssertEx.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
                 }
             }
         }

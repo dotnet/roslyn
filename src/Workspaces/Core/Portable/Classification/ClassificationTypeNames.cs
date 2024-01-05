@@ -11,11 +11,90 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <summary>
         /// Additive classifications types supply additional context to other classifications.
         /// </summary>
-        /// <remarks>
-        /// NOTE: Any updates to this class should also be reflected in LSP - see
-        /// Features/LanguageServer/Protocol/Handler/SemanticTokens/SemanticTokensHelpers.cs
-        /// </remarks>
-        public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol);
+        public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol, ReassignedVariable, TestCode);
+
+        public static ImmutableArray<string> AllTypeNames { get; } = ImmutableArray.Create(
+            Comment,
+            ExcludedCode,
+            Identifier,
+            Keyword,
+            ControlKeyword,
+            NumericLiteral,
+            Operator,
+            OperatorOverloaded,
+            PreprocessorKeyword,
+            StringLiteral,
+            WhiteSpace,
+            Text,
+            ReassignedVariable,
+            StaticSymbol,
+            PreprocessorText,
+            Punctuation,
+            VerbatimStringLiteral,
+            StringEscapeCharacter,
+            ClassName,
+            RecordClassName,
+            DelegateName,
+            EnumName,
+            InterfaceName,
+            ModuleName,
+            StructName,
+            RecordStructName,
+            TypeParameterName,
+            FieldName,
+            EnumMemberName,
+            ConstantName,
+            LocalName,
+            ParameterName,
+            MethodName,
+            ExtensionMethodName,
+            PropertyName,
+            EventName,
+            NamespaceName,
+            LabelName,
+            XmlDocCommentAttributeName,
+            XmlDocCommentAttributeQuotes,
+            XmlDocCommentAttributeValue,
+            XmlDocCommentCDataSection,
+            XmlDocCommentComment,
+            XmlDocCommentDelimiter,
+            XmlDocCommentEntityReference,
+            XmlDocCommentName,
+            XmlDocCommentProcessingInstruction,
+            XmlDocCommentText,
+            XmlLiteralAttributeName,
+            XmlLiteralAttributeQuotes,
+            XmlLiteralAttributeValue,
+            XmlLiteralCDataSection,
+            XmlLiteralComment,
+            XmlLiteralDelimiter,
+            XmlLiteralEmbeddedExpression,
+            XmlLiteralEntityReference,
+            XmlLiteralName,
+            XmlLiteralProcessingInstruction,
+            XmlLiteralText,
+            RegexComment,
+            RegexCharacterClass,
+            RegexAnchor,
+            RegexQuantifier,
+            RegexGrouping,
+            RegexAlternation,
+            RegexText,
+            RegexSelfEscapedCharacter,
+            RegexOtherEscape,
+            JsonComment,
+            JsonNumber,
+            JsonString,
+            JsonKeyword,
+            JsonText,
+            JsonOperator,
+            JsonPunctuation,
+            JsonArray,
+            JsonObject,
+            JsonPropertyName,
+            JsonConstructorName,
+            TestCode,
+            TestCodeMarkdown);
 
         public const string Comment = "comment";
         public const string ExcludedCode = "excluded code";
@@ -30,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        internal const string ReassignedVariable = "reassigned variable";
         public const string StaticSymbol = "static symbol";
 
         public const string PreprocessorText = "preprocessor text";
@@ -44,7 +124,11 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string InterfaceName = "interface name";
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
+        public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
+
+        internal const string TestCode = "roslyn test code";
+        internal const string TestCodeMarkdown = "roslyn test code markdown";
 
         public const string FieldName = "field name";
         public const string EnumMemberName = "enum member name";
@@ -90,5 +174,17 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string RegexText = "regex - text";
         public const string RegexSelfEscapedCharacter = "regex - self escaped character";
         public const string RegexOtherEscape = "regex - other escape";
+
+        internal const string JsonComment = "json - comment";
+        internal const string JsonNumber = "json - number";
+        internal const string JsonString = "json - string";
+        internal const string JsonKeyword = "json - keyword";
+        internal const string JsonText = "json - text";
+        internal const string JsonOperator = "json - operator";
+        internal const string JsonPunctuation = "json - punctuation";
+        internal const string JsonArray = "json - array";
+        internal const string JsonObject = "json - object";
+        internal const string JsonPropertyName = "json - property name";
+        internal const string JsonConstructorName = "json - constructor name";
     }
 }

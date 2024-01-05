@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             get
             {
-                if (index < 0 || index > _count)
+                if (index < 0 || index >= _count)
                 {
                     throw new IndexOutOfRangeException();
                 }

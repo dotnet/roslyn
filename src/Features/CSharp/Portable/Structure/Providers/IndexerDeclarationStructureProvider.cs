@@ -12,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class IndexerDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<IndexerDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             IndexerDeclarationSyntax indexerDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(indexerDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(indexerDeclaration, ref spans, options);
 
             // fault tolerance
             if (indexerDeclaration.AccessorList == null ||
@@ -34,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Indexers are grouped together with properties in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
-                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration));
+            var compressEmptyLines = options.IsMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.Kind() is SyntaxKind.IndexerDeclaration or SyntaxKind.PropertyDeclaration);
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 indexerDeclaration,

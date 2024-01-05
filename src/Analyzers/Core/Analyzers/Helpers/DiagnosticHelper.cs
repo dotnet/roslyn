@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="notificationOption">Notification option for the diagnostic.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -40,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            ReportDiagnostic effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
+            NotificationOption2 notificationOption,
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             if (descriptor == null)
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message = new LocalizableStringWithArguments(descriptor.MessageFormat, messageArgs);
             }
 
-            return CreateWithMessage(descriptor, location, effectiveSeverity, additionalLocations, properties, message);
+            return CreateWithMessage(descriptor, location, notificationOption, additionalLocations, properties, message);
         }
 
         /// <summary>
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="notificationOption">Notification option of the diagnostic.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -85,14 +84,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Diagnostic CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
-            ReportDiagnostic effectiveSeverity,
+            NotificationOption2 notificationOption,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
             params object[] messageArgs)
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+                return Create(descriptor, location, notificationOption, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -100,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return CreateWithLocationTags(
                 descriptor,
                 location,
-                effectiveSeverity,
+                notificationOption,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
-                ImmutableDictionary<string, string>.Empty,
+                ImmutableDictionary<string, string?>.Empty,
                 messageArgs);
         }
 
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="notificationOption">Notification option for the diagnostic.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -133,15 +132,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Diagnostic CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
-            ReportDiagnostic effectiveSeverity,
+            NotificationOption2 notificationOption,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+                return Create(descriptor, location, notificationOption, additionalLocations, properties, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return CreateWithLocationTags(
                 descriptor,
                 location,
-                effectiveSeverity,
+                notificationOption,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
                 properties,
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="notificationOption">Notification option for the diagnostic.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -179,19 +178,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static Diagnostic CreateWithLocationTags(
             DiagnosticDescriptor descriptor,
             Location location,
-            ReportDiagnostic effectiveSeverity,
+            NotificationOption2 notificationOption,
             IEnumerable<Location> additionalLocations,
             IDictionary<string, IEnumerable<int>> tagIndices,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
         {
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());
             Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
-            properties ??= ImmutableDictionary<string, string>.Empty;
-            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
+            properties ??= ImmutableDictionary<string, string?>.Empty;
+            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
-            return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
+            return Create(descriptor, location, notificationOption, additionalLocations, properties, messageArgs);
 
             static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
             {
@@ -213,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="notificationOption">Notification option for the diagnostic.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -229,9 +228,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Diagnostic CreateWithMessage(
             DiagnosticDescriptor descriptor,
             Location location,
-            ReportDiagnostic effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
+            NotificationOption2 notificationOption,
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             LocalizableString message)
         {
             if (descriptor == null)
@@ -239,6 +238,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            var effectiveSeverity = notificationOption.Severity;
             return Diagnostic.Create(
                 descriptor.Id,
                 descriptor.Category,
@@ -253,30 +253,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptor.HelpLinkUri,
                 location,
                 additionalLocations,
-                descriptor.CustomTags,
+                GetEffectiveCustomTags(descriptor, notificationOption),
                 properties);
+
+            static IEnumerable<string> GetEffectiveCustomTags(DiagnosticDescriptor descriptor, NotificationOption2 notificationOption)
+            {
+                var isCustomConfigured = notificationOption.IsExplicitlySpecified;
+                var hasCustomConfigurableTag = false;
+                foreach (var customTag in descriptor.CustomTags)
+                {
+                    if (customTag == WellKnownDiagnosticTags.CustomSeverityConfigurable)
+                    {
+                        hasCustomConfigurableTag = true;
+                        if (!isCustomConfigured)
+                            continue;
+                    }
+
+                    yield return customTag;
+                }
+
+                if (isCustomConfigured && !hasCustomConfigurableTag)
+                    yield return WellKnownDiagnosticTags.CustomSeverityConfigurable;
+            }
         }
 
-        public static string GetHelpLinkForDiagnosticId(string id)
+        public static string? GetHelpLinkForDiagnosticId(string id)
         {
+            // TODO: Add documentation for Regex and Json analyzer
+            // Tracked with https://github.com/dotnet/roslyn/issues/48530
             if (id == "RE0001")
+                return null;
+
+            if (id.StartsWith("JSON", StringComparison.Ordinal))
+                return null;
+
+            // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
+            if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||
+                id == "IDE0005_gen")
             {
-                // TODO: Add documentation for Regex analyzer
-                // Tracked with https://github.com/dotnet/roslyn/issues/48530
                 return null;
             }
 
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
-            return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
+            return $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
-        public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable
+        public sealed class LocalizableStringWithArguments : LocalizableString
         {
             private readonly LocalizableString _messageFormat;
             private readonly string[] _formatArguments;
-
-            static LocalizableStringWithArguments()
-                => ObjectBinder.RegisterTypeReader(typeof(LocalizableStringWithArguments), reader => new LocalizableStringWithArguments(reader));
 
             public LocalizableStringWithArguments(LocalizableString messageFormat, params object[] formatArguments)
             {
@@ -298,49 +323,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private LocalizableStringWithArguments(ObjectReader reader)
-            {
-                _messageFormat = (LocalizableString)reader.ReadValue();
-
-                var length = reader.ReadInt32();
-                if (length == 0)
-                {
-                    _formatArguments = Array.Empty<string>();
-                }
-                else
-                {
-                    using var argumentsBuilderDisposer = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
-                    for (var i = 0; i < length; i++)
-                    {
-                        argumentsBuilder.Add(reader.ReadString());
-                    }
-
-                    _formatArguments = argumentsBuilder.ToArray();
-                }
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => false;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                writer.WriteValue(_messageFormat);
-                var length = _formatArguments.Length;
-                writer.WriteInt32(length);
-                for (var i = 0; i < length; i++)
-                {
-                    writer.WriteString(_formatArguments[i]);
-                }
-            }
-
-            protected override string GetText(IFormatProvider formatProvider)
+            protected override string GetText(IFormatProvider? formatProvider)
             {
                 var messageFormat = _messageFormat.ToString(formatProvider);
-                return messageFormat != null ?
-                    (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat) :
-                    string.Empty;
+                return messageFormat != null
+                    ? (_formatArguments.Length > 0 ? string.Format(formatProvider, messageFormat, _formatArguments) : messageFormat)
+                    : string.Empty;
             }
 
-            protected override bool AreEqual(object other)
+            protected override bool AreEqual(object? other)
             {
                 return other is LocalizableStringWithArguments otherResourceString &&
                     _messageFormat.Equals(otherResourceString._messageFormat) &&

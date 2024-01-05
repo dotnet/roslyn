@@ -5,13 +5,16 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
@@ -40,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             If kind = TestKind.API Then
-                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
+                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly)
             Else
                 Assert.Equal(TestKind.StreamingFeature, kind)
                 Await TestStreamingFeature(definition, host, searchSingleFileOnly, uiVisibleOnly)
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                    Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -169,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     propertyValues = New HashSet(Of String)()
                     additionalPropertiesMap.Add(propertyName, propertyValues)
                 End If
+
                 propertyValues.Add(propertyValue)
             Next
 
@@ -223,6 +227,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
             Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
 
+            Public Sub New()
+            End Sub
+
+            Public Overrides Function GetOptionsAsync(language As String, cancellationToken As CancellationToken) As ValueTask(Of FindUsagesOptions)
+                Return ValueTaskFactory.FromResult(FindUsagesOptions.Default)
+            End Function
+
             Public Function ShouldShow(definition As DefinitionItem) As Boolean
                 If References.Any(Function(r) r.Definition Is definition) Then
                     Return True
@@ -231,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As ValueTask
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
@@ -239,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As ValueTask
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
@@ -252,24 +263,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 definition As XElement,
                 host As TestHost,
                 Optional searchSingleFileOnly As Boolean = False,
-                Optional uiVisibleOnly As Boolean = False,
-                Optional options As FindReferencesSearchOptions = Nothing) As Task
+                Optional uiVisibleOnly As Boolean = False) As Task
 
-            Await TestAPI(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
-            Await TestAPI(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, New FindReferencesSearchOptions(Explicit:=False))
+            Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, New FindReferencesSearchOptions(Explicit:=True))
         End Function
 
         Private Async Function TestAPI(
                 definition As XElement,
                 host As TestHost,
-                explicit As Boolean,
                 searchSingleFileOnly As Boolean,
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
-            options = If(options, FindReferencesSearchOptions.Default)
-            options = options.With(explicit:=explicit)
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
-                workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
+
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+                workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -304,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-
-                        Dim expected = If(doc.AnnotatedSpans.ContainsKey(DefinitionKey), doc.AnnotatedSpans(DefinitionKey), ImmutableArray(Of TextSpan).Empty).Order()
+                        Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                        Dim expected = If(doc.AnnotatedSpans.TryGetValue(DefinitionKey, spans), spans, ImmutableArray(Of TextSpan).Empty).Order()
                         Dim actual = actualDefinitions(GetFilePathAndProjectLabel(doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
@@ -438,6 +446,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 builder.Append(suffix)
                 position = span.End
             Next
+
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
             Return instance.ToStringAndFree()
@@ -505,6 +514,107 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Shared Function GetFilePathAndProjectLabel(hostDocument As TestHostDocument) As String
             Return $"{hostDocument.Project.Name}: {hostDocument.FilePath}"
+        End Function
+
+        <Fact>
+        Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
+            Using workspace = TestWorkspace.Create("
+<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+partial class C
+{
+    int i;
+
+    public int P { get { return i; } }
+
+    public C()
+    {
+        this.i = 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj2' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>")
+
+                Dim solution = workspace.CurrentSolution
+                Dim document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+                Dim text1 = Await document1.GetTextAsync()
+
+                Dim linkedDocuments = document1.GetLinkedDocumentIds()
+                Assert.Equal(1, linkedDocuments.Length)
+
+                Dim document2 = solution.GetDocument(linkedDocuments.Single())
+                Assert.NotSame(document1, document2)
+
+                ' ensure we normally have two linked symbols when the files are the same.
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=2)
+
+                ' now change the linked file and run again.
+                solution = solution.WithDocumentText(document2.Id, SourceText.From(""))
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=1)
+
+                ' changing the contents back to the original should return us to two symbols
+                solution = solution.WithDocumentText(document2.Id, text1)
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=2)
+
+                ' changing `int i` to `int j` should give us 1 symbol.  the text lengths are the same, but the symbols
+                ' have changed.
+                solution = solution.WithDocumentText(document2.Id, SourceText.From(text1.ToString().Replace("int i", "int j")))
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=1)
+            End Using
+        End Function
+
+        Private Shared Async Function LinkedFileTestHelper(solution As Solution, expectedLinkedSymbolCount As Integer) As Task
+            Dim document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+
+            Dim linkedDocuments = document1.GetLinkedDocumentIds()
+            Assert.Equal(1, linkedDocuments.Length)
+
+            Dim document2 = solution.GetDocument(linkedDocuments.Single())
+            Assert.NotSame(document1, document2)
+
+            Dim semanticModel1 = Await document1.GetSemanticModelAsync()
+            Dim root1 = Await semanticModel1.SyntaxTree.GetRootAsync()
+            Dim declarator1 = root1.DescendantNodes().OfType(Of VariableDeclaratorSyntax).First()
+            Dim symbol1 = semanticModel1.GetDeclaredSymbol(declarator1)
+            Assert.NotNull(symbol1)
+
+            Dim linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
+            Assert.Equal(expectedLinkedSymbolCount, linkedSymbols.Length)
+        End Function
+
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
+        Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
+            Using workspace = TestWorkspace.Create("
+<Workspace>
+    <Project Language=""NoCompilation"" AssemblyName=""NoCompilationAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+            var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferencesPortable=""true"">
+        <Document>
+class C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+", composition:=s_composition)
+                Dim solution = workspace.CurrentSolution
+                Dim csProject = solution.Projects.Single(Function(p) p.SupportsCompilation)
+                Dim compilation = Await csProject.GetCompilationAsync()
+                Dim symbol = compilation.GetTypeByMetadataName("C")
+
+                Dim progress = New StreamingFindReferencesProgressAdapter(NoOpFindReferencesProgress.Instance)
+                Await SymbolFinder.FindReferencesInDocumentsInCurrentProcessAsync(
+                    symbol, solution, progress, solution.Projects.SelectMany(Function(p) p.Documents).ToImmutableHashSet(),
+                    FindReferencesSearchOptions.Default, cancellationToken:=Nothing)
+            End Using
         End Function
     End Class
 End Namespace

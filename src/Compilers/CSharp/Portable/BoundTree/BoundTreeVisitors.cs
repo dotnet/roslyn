@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (recursionDepth > 1 || !ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException())
             {
-                StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+                EnsureSufficientExecutionStack(recursionDepth);
 
                 result = VisitExpressionWithoutStackGuard(node);
             }
@@ -221,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             recursionDepth--;
             return result;
+        }
+
+        protected virtual void EnsureSufficientExecutionStack(int recursionDepth)
+        {
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
         }
 
         protected virtual bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -246,6 +251,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// We should be intentional about behavior of derived classes regarding guarding against stack overflow.
         /// </summary>
         protected abstract BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node);
-#nullable disable
     }
 }

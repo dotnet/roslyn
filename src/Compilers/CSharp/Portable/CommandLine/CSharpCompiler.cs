@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
         private readonly string? _tempDirectory;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
-            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null, ICommonCompilerFileSystem? fileSystem = null)
+            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache, fileSystem)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.GetFirstLocation().SourceTree!.FilePath);
             return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 
@@ -333,11 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
         {
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, out analyzers, out generators);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, compilationOptions, skipAnalyzers, out analyzers, out generators);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -372,12 +373,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag diagnostics)
+        private protected override GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            var driver = CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigProvider);
-            driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var generatorDiagnostics);
-            diagnostics.AddRange(generatorDiagnostics);
-            return compilationOut;
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider);
+        }
+
+        private protected override void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)
+        {
+            DiagnosticBag newDiagnostics = DiagnosticBag.GetInstance();
+            foreach (var diag in diagnostics)
+            {
+                var symbol = diag switch
+                {
+                    { Code: (int)ErrorCode.ERR_BadAccess, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleGetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleSetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, Arguments: [_, Symbol s, _] } => s,
+                    _ => null
+                };
+
+                if (symbol is null || ReferenceEquals(compilation.Assembly, symbol.ContainingAssembly))
+                {
+                    // Can't be IVT related
+                    continue;
+                }
+
+                // '{0}' is defined in assembly '{1}'.
+                newDiagnostics.Add(new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly),
+                    diag.Location));
+            }
+
+            ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation);
         }
     }
 }

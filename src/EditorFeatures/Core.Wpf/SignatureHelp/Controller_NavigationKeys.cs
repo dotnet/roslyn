@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
@@ -12,19 +13,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal bool TryHandleUpKey()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return ChangeSelection(() => sessionOpt.PresenterSession.SelectPreviousItem());
         }
 
         internal bool TryHandleDownKey()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return ChangeSelection(() => sessionOpt.PresenterSession.SelectNextItem());
         }
 
         private bool ChangeSelection(Action computationAction)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!IsSessionActive)
             {

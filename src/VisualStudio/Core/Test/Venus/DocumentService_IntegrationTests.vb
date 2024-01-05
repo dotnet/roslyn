@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -35,12 +35,13 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Public Class DocumentService_IntegrationTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -67,7 +68,8 @@ class {|Definition:C1|}
             Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim context = presenter.StartSearch("test", supportsReferences:=True, CancellationToken.None)
+                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -76,7 +78,7 @@ class {|Definition:C1|}
                 Assert.NotNull(startDocument)
 
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -111,7 +113,7 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestCodeLensIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -133,7 +135,7 @@ class {|Definition:C1|}
 
             Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
-                Dim codelensService = New RemoteCodeLensReferencesService()
+                Dim codelensService = New RemoteCodeLensReferencesService(workspace.GlobalOptions)
 
                 Dim originalDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Original"))
 
@@ -164,7 +166,7 @@ class {|Definition:C1|}
 
         <InlineData(True)>
         <InlineData(False)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory>
         Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -204,7 +206,7 @@ class C { }
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestDocumentOperationCanApplySupportDiagnostics() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -236,7 +238,9 @@ class { }
                 diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' confirm that IDE doesn't report the diagnostics
-                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(workspace.CurrentSolution, documentId:=document.Id)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(workspace.CurrentSolution, projectId:=Nothing, documentId:=document.Id,
+                                                                              includeSuppressedDiagnostics:=False, includeNonLocalDocumentDiagnostics:=True,
+                                                                              CancellationToken.None)
                 Assert.False(diagnostics.Any())
             End Using
         End Function
@@ -290,6 +294,12 @@ class { }
 
                     Return results.ToImmutableArray()
                 End Function
+
+                Public Function GetMappedTextChangesAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) _
+                    As Task(Of ImmutableArray(Of (mappedFilePath As String, mappedTextChange As Microsoft.CodeAnalysis.Text.TextChange))) _
+                    Implements ISpanMappingService.GetMappedTextChangesAsync
+                    Throw New NotImplementedException()
+                End Function
             End Class
 
             Private Class Excerpter
@@ -297,7 +307,7 @@ class { }
 
                 Public Shared ReadOnly Instance As Excerpter = New Excerpter()
 
-                Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
+                Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, classificationOptions As ClassificationOptions, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 

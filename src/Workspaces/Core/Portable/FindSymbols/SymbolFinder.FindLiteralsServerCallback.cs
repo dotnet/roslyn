@@ -2,38 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        internal sealed class FindLiteralsServerCallback
+        internal sealed class FindLiteralsServerCallback(
+            Solution solution,
+            IStreamingFindLiteralReferencesProgress progress)
         {
-            private readonly Solution _solution;
-            private readonly IStreamingFindLiteralReferencesProgress _progress;
+            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+                => progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-            public FindLiteralsServerCallback(
-                Solution solution,
-                IStreamingFindLiteralReferencesProgress progress)
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
+
+            public async ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
             {
-                _solution = solution;
-                _progress = progress;
-            }
-
-            public ValueTask AddItemsAsync(int count)
-                => _progress.ProgressTracker.AddItemsAsync(count);
-
-            public ValueTask ItemCompletedAsync()
-                => _progress.ProgressTracker.ItemCompletedAsync();
-
-            public async ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span)
-            {
-                var document = _solution.GetDocument(documentId);
-                await _progress.OnReferenceFoundAsync(document, span).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                await progress.OnReferenceFoundAsync(document, span, cancellationToken).ConfigureAwait(false);
             }
         }
     }

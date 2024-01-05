@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 => GetEnumerator();
 
             void ICollection<TValue>.CopyTo(TValue[] array, int arrayIndex)
-                => ((ICollection<TValue>)_dictionary._dictionary.Values).CopyTo(array, arrayIndex);
+                => _dictionary._dictionary.Values.CopyTo(array, arrayIndex);
 
             void ICollection.CopyTo(Array array, int index)
                 => ((ICollection)_dictionary._dictionary.Values).CopyTo(array, index);
@@ -53,6 +53,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
             bool ICollection<TValue>.Remove(TValue item)
                 => throw new NotSupportedException();
+
+            public bool All<TArg>(Func<TValue, TArg, bool> predicate, TArg arg)
+            {
+                foreach (var item in this)
+                {
+                    if (!predicate(item, arg))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

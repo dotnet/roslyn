@@ -5,10 +5,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
@@ -17,6 +22,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
             = new();
+
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> _processBatchAsync;
+        private readonly CancellationToken _disposalToken;
+
+        protected AbstractImportCompletionCacheServiceFactory(
+            IAsynchronousOperationListenerProvider listenerProvider,
+            Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> processBatchAsync
+            , CancellationToken disposalToken)
+        {
+            _listenerProvider = listenerProvider;
+            _processBatchAsync = processBatchAsync;
+            _disposalToken = disposalToken;
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -30,7 +49,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 }
             }
 
-            return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache);
+            var workQueue = new AsyncBatchingWorkQueue<Project>(
+                    TimeSpan.FromSeconds(1),
+                    _processBatchAsync,
+                    _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+                    _disposalToken);
+
+            return new ImportCompletionCacheService(
+                _peItemsCache, _projectItemsCache, workQueue);
         }
 
         private void OnCacheFlushRequested(object? sender, EventArgs e)
@@ -39,19 +65,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             _projectItemsCache.Clear();
         }
 
-        private class ImportCompletionCacheService : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
+        private class ImportCompletionCacheService(
+            ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
+            ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
+            AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
         {
-            public IDictionary<string, TMetadataCacheEntry> PEItemsCache { get; }
+            public IDictionary<string, TMetadataCacheEntry> PEItemsCache { get; } = peCache;
 
-            public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; }
+            public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; } = projectCache;
 
-            public ImportCompletionCacheService(
-                ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
-                ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache)
-            {
-                PEItemsCache = peCache;
-                ProjectItemsCache = projectCache;
-            }
+            public AsyncBatchingWorkQueue<Project> WorkQueue { get; } = workQueue;
         }
     }
 }

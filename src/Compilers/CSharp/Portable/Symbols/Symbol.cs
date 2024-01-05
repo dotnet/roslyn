@@ -9,11 +9,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -87,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Name;
             }
         }
+
+        /// <summary>
+        /// Gets the token for this symbol as it appears in metadata. Most of the time this is 0,
+        /// as it is when the symbol is not loaded from metadata.
+        /// </summary>
+        public virtual int MetadataToken => 0;
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -181,6 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                if (!this.IsDefinition)
+                {
+                    return OriginalDefinition.DeclaringCompilation;
+                }
+
                 switch (this.Kind)
                 {
                     case SymbolKind.ErrorType:
@@ -193,8 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                 }
 
-                var sourceModuleSymbol = this.ContainingModule as SourceModuleSymbol;
-                return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
+                switch (this.ContainingModule)
+                {
+                    case SourceModuleSymbol sourceModuleSymbol:
+                        return sourceModuleSymbol.DeclaringCompilation;
+
+                    case PEModuleSymbol:
+                        // A special handling for EE.
+                        return ContainingSymbol?.DeclaringCompilation;
+                }
+
+                return null;
             }
         }
 
@@ -204,6 +226,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         string ISymbolInternal.Name => this.Name;
 
         string ISymbolInternal.MetadataName => this.MetadataName;
+
+        public Cci.TypeMemberVisibility MetadataVisibility
+        {
+            get
+            {
+                //
+                // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                //
+                // Top-level:
+                //   private                       -> public
+                //   protected                     -> public (compiles with a warning)
+                //   public
+                //   internal                      -> public
+                //
+                // In a nested class:
+                //
+                //   private
+                //   protected
+                //   public
+                //   internal                      -> public
+                //
+                switch (DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                        return Cci.TypeMemberVisibility.Public;
+
+                    case Accessibility.Private:
+                        if (ContainingType?.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level private member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Private;
+                        }
+
+                    case Accessibility.Internal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Assembly;
+                        }
+
+                    case Accessibility.Protected:
+                        if (ContainingType.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level protected member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Family;
+                        }
+
+                    case Accessibility.ProtectedAndInternal:
+                        Debug.Assert(ContainingType.TypeKind != TypeKind.Submission);
+                        return Cci.TypeMemberVisibility.FamilyAndAssembly;
+
+                    case Accessibility.ProtectedOrInternal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested protected internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.FamilyOrAssembly;
+                        }
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility);
+                }
+            }
+        }
 
         ISymbolInternal ISymbolInternal.ContainingSymbol => this.ContainingSymbol;
 
@@ -297,10 +398,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
+            var firstLocation = this.TryGetFirstLocation();
+            if (firstLocation is null)
+                return LexicalSortKey.NotInSource;
+
             var declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
+            return new LexicalSortKey(firstLocation, declaringCompilation);
         }
 
         /// <summary>
@@ -309,6 +413,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// location.
         /// </summary>
         public abstract ImmutableArray<Location> Locations { get; }
+
+#nullable enable
+
+        public virtual Location? TryGetFirstLocation()
+        {
+            // Simple (but allocating) impl that can be overridden in subtypes if they show up in traces.
+            var locations = this.Locations;
+            return locations.IsEmpty ? null : locations[0];
+        }
+
+        public Location GetFirstLocation()
+            => TryGetFirstLocation() ?? throw new InvalidOperationException("Symbol has no locations");
+
+        public Location GetFirstLocationOrNone()
+            => TryGetFirstLocation() ?? Location.None;
+
+        /// <summary>
+        /// Determines if there is a location (see <see cref="Locations"/>) for this symbol whose span is in <paramref
+        /// name="tree"/> and is contained within <paramref name="declarationSpan"/>.  Subclasses can override this to
+        /// be more efficient if desired (especially if avoiding allocations of the <see cref="Locations"/> array is
+        /// desired).
+        /// </summary>
+        public virtual bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            foreach (var loc in this.Locations)
+            {
+                if (IsLocationContainedWithin(loc, tree, declarationSpan, out wasZeroWidthMatch))
+                    return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+        protected static bool IsLocationContainedWithin(Location loc, SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
+        {
+            if (loc.IsInSource && loc.SourceTree == tree && declarationSpan.Contains(loc.SourceSpan))
+            {
+                wasZeroWidthMatch = loc.SourceSpan.IsEmpty && loc.SourceSpan.End == declarationSpan.Start;
+                return true;
+            }
+
+            wasZeroWidthMatch = false;
+            return false;
+        }
+
+#nullable disable
 
         /// <summary>
         /// <para>
@@ -320,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <para>
         /// Note that for namespace symbol, the declaring syntax might be declaring a nested
         /// namespace. For example, the declaring syntax node for N1 in "namespace N1.N2 {...}" is
-        /// the entire <see cref="NamespaceDeclarationSyntax"/> for N1.N2. For the global namespace, the declaring
+        /// the entire <see cref="BaseNamespaceDeclarationSyntax"/> for N1.N2. For the global namespace, the declaring
         /// syntax will be the <see cref="CompilationUnitSyntax"/>.
         /// </para>
         /// </summary>
@@ -655,6 +806,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
+        public bool Equals(Symbol other)
+        {
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
+        }
+
         bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
@@ -745,7 +901,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.ContainingModule.DefaultMarshallingCharSet;
         }
 
-
         internal bool IsFromCompilation(CSharpCompilation compilation)
         {
             Debug.Assert(compilation != null);
@@ -772,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.DeclaringCompilation != null; }
         }
 
-        internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             var declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
@@ -784,8 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree == tree &&
-                    (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)))
+                if (IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan))
                 {
                     return true;
                 }
@@ -793,6 +947,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        protected static bool IsDefinedInSourceTree(SyntaxReference syntaxRef, SyntaxTree tree, TextSpan? definedWithinSpan)
+            => syntaxRef.SyntaxTree == tree &&
+                (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
         internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
         {
@@ -826,6 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable 
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -834,18 +993,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">Optionally, allow cancellation of documentation comment retrieval.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
         public virtual string GetDocumentationCommentXml(
-            CultureInfo preferredCulture = null,
+            CultureInfo? preferredCulture = null,
             bool expandIncludes = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return "";
         }
+#nullable disable
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
             SymbolDisplayFormat.TestFormat
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
                     | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
 
         internal virtual string GetDebuggerDisplay()
         {
@@ -889,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
+        /// Returns diagnostic info that should be reported at the use site of the symbol, or default if there is none.
         /// </summary>
         internal virtual UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
@@ -911,16 +1071,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is the highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
-        protected virtual int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -959,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (info.Severity == DiagnosticSeverity.Error && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == Int32.MaxValue))
+            if (info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -1093,7 +1247,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
 
         [Flags]
         internal enum AllowedRequiredModifierType
@@ -1236,6 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+#nullable enable
         /// <summary>
         /// True if this symbol has been marked with the <see cref="ObsoleteAttribute"/> attribute. 
         /// This property returns <see cref="ThreeState.Unknown"/> if the <see cref="ObsoleteAttribute"/> attribute hasn't been cracked yet.
@@ -1247,12 +1401,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (ObsoleteKind)
                 {
                     case ObsoleteAttributeKind.None:
+                    case ObsoleteAttributeKind.WindowsExperimental:
                     case ObsoleteAttributeKind.Experimental:
                         return ThreeState.False;
                     case ObsoleteAttributeKind.Uninitialized:
                         return ThreeState.Unknown;
                     default:
                         return ThreeState.True;
+                }
+            }
+        }
+
+        /// <summary>
+        /// True if this symbol has been marked with the System.Diagnostics.CodeAnalysis.ExperimentalAttribute attribute. 
+        /// This property returns <see cref="ThreeState.Unknown"/> if the attribute hasn't been cracked yet.
+        /// </summary>
+        internal ThreeState ExperimentalState
+        {
+            get
+            {
+                switch (ObsoleteKind)
+                {
+                    case ObsoleteAttributeKind.Experimental:
+                        return ThreeState.True;
+                    case ObsoleteAttributeKind.Uninitialized:
+                        return ThreeState.Unknown;
+                    default:
+                        return ThreeState.False;
                 }
             }
         }
@@ -1267,32 +1442,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/>/Experimental attribute or null if there is no <see cref="ObsoleteAttribute"/>/Experimental attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal abstract ObsoleteAttributeData ObsoleteAttributeData { get; }
-
-        /// <summary>
-        /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        /// the string might be null or an invalid guid representation. False, 
-        /// if there is no <see cref="GuidAttribute"/> with string argument.
-        /// </summary>
-        internal bool GetGuidStringDefaultImplementation(out string guidString)
-        {
-            foreach (var attrData in this.GetAttributes())
-            {
-                if (attrData.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
-                {
-                    if (attrData.TryGetGuidAttributeValue(out guidString))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            guidString = null;
-            return false;
-        }
+        internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
+#nullable disable
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
@@ -1356,6 +1510,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullablePublicOnlyAttribute = 1 << 8,
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
+            RequiredMemberAttribute = 1 << 11,
+            ScopedRefAttribute = 1 << 12,
+            RefSafetyRulesAttribute = 1 << 13,
+            RequiresLocationAttribute = 1 << 14,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1363,14 +1521,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attribute = arguments.Attribute;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
+            Debug.Assert(attribute is SourceAttributeData);
+
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.RequiresLocationAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresLocationAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
@@ -1382,12 +1546,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -1405,10 +1569,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
+                attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.ScopedRefAttribute) != 0 &&
+                attribute.IsTargetAttribute(AttributeDescription.ScopedRefAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
+            {
             }
             else
             {
@@ -1418,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
             {
-                if (attribute.IsTargetAttribute(this, attributeDescription))
+                if (attribute.IsTargetAttribute(attributeDescription))
                 {
                     // Do not use '{FullName}'. This is reserved for compiler usage.
                     diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
@@ -1509,6 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value != containingValue;
         }
 
+#nullable enable
         /// <summary>
         /// True if the symbol is declared outside of the scope of the containing
         /// symbol
@@ -1569,6 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+#nullable disable
 
         bool ISymbolInternal.IsStatic
         {
@@ -1592,6 +1774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.IsAbstract;
             }
         }
+
+        bool ISymbolInternal.IsExtern
+            => IsExtern;
 
         Accessibility ISymbolInternal.DeclaredAccessibility
         {

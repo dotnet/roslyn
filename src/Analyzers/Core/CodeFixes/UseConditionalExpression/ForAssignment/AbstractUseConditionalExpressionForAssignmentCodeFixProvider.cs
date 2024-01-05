@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -45,9 +45,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
+                ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
+                : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+
+            RegisterCodeFix(context, title, key);
             return Task.CompletedTask;
         }
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// </summary>
         protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation,
+                    syntaxFacts, ifOperation, out var isRef,
                     out var trueStatement, out var falseStatement,
                     out var trueAssignment, out var falseAssignment))
             {
@@ -78,7 +80,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueAssignment?.Value ?? trueStatement,
                 falseAssignment?.Value ?? falseStatement,
-                trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
+                isRef,
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return true;
         }
 
-        private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
+        private static bool TryFindMatchingLocalDeclarationImmediatelyAbove(
             IConditionalOperation ifOperation,
             ISimpleAssignmentOperation? trueAssignment,
             ISimpleAssignmentOperation? falseAssignment,
@@ -159,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ILocalSymbol? local = null;
             if (trueAssignment != null)
             {
-                if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal))
+                if (trueAssignment.Target is not ILocalReferenceOperation trueLocal)
                     return false;
 
                 local = trueLocal.Local;
@@ -167,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseAssignment != null)
             {
-                if (!(falseAssignment.Target is ILocalReferenceOperation falseLocal))
+                if (falseAssignment.Target is not ILocalReferenceOperation falseLocal)
                     return false;
 
                 // See if both assignments are to the same local.
@@ -182,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
 
             // If so, see if that local was declared immediately above the if-statement.
-            if (!(ifOperation.Parent is IBlockOperation parentBlock))
+            if (ifOperation.Parent is not IBlockOperation parentBlock)
             {
                 return false;
             }
@@ -227,11 +231,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)
             {
-                var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
+                var unwrapped = variableInitializer.Value.UnwrapImplicitConversion();
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
-                if (!(unwrapped is ILiteralOperation) &&
-                    !(unwrapped is IDefaultValueOperation))
+                if (unwrapped is not ILiteralOperation and
+                    not IDefaultValueOperation)
                 {
                     return false;
                 }
@@ -242,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return !ReferencesLocalVariable(ifOperation.Condition, variable);
         }
 
-        private bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
+        private static bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
         {
             if (operation is ILocalReferenceOperation localReference &&
                 Equals(variable, localReference.Local))
@@ -250,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return true;
             }
 
-            foreach (var child in operation.Children)
+            foreach (var child in operation.ChildOperations)
             {
                 if (ReferencesLocalVariable(child, variable))
                 {
@@ -259,14 +263,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId)
-            {
-            }
         }
     }
 }

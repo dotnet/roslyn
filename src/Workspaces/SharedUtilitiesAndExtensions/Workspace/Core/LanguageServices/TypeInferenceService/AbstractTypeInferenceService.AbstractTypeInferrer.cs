@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
+namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
 {
     internal partial class AbstractTypeInferenceService : ITypeInferenceService
     {

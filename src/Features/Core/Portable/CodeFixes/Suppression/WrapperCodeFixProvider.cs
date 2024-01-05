@@ -11,16 +11,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class WrapperCodeFixProvider : CodeFixProvider
+    internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds) : CodeFixProvider
     {
-        private readonly ImmutableArray<string> _originalDiagnosticIds;
-        private readonly IConfigurationFixProvider _suppressionFixProvider;
-
-        public WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds)
-        {
-            _suppressionFixProvider = suppressionFixProvider;
-            _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
-        }
+        private readonly ImmutableArray<string> _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
+        private readonly IConfigurationFixProvider _suppressionFixProvider = suppressionFixProvider;
 
         public IConfigurationFixProvider SuppressionFixProvider => _suppressionFixProvider;
         public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;
@@ -32,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
             if (!documentDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.Options, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
 
             var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
             if (!projectDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.Options, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
         }

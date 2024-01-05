@@ -98,10 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return false;
         }
 
-        INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)
+#nullable enable
+        INamedTypeSymbol? IAssemblySymbol.GetTypeByMetadataName(string metadataName)
         {
             return UnderlyingAssemblySymbol.GetTypeByMetadataName(metadataName).GetPublicSymbol();
         }
+#nullable disable
 
         #region ISymbol Members
 
@@ -113,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitAssembly(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAssembly(this, argument);
         }
 
         #endregion

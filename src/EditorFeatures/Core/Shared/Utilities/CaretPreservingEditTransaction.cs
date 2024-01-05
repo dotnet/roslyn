@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             _editorOperations.AddAfterTextBufferChangePrimitive();
-            if (_transaction != null)
-            {
-                _transaction.Complete();
-            }
+            _transaction?.Complete();
 
             EndTransaction();
         }
@@ -73,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
             }
 
-            if (_transaction != null)
-            {
-                _transaction.Cancel();
-            }
+            _transaction?.Cancel();
 
             EndTransaction();
         }

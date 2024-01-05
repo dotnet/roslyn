@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ChainedFormattingRules _formattingRules;
         private readonly int _tabSize;
         private readonly int _indentationSize;
-        private readonly ISyntaxFacts _syntaxFacts;
+        private readonly IHeaderFacts _headerFacts;
 
         public BottomUpBaseIndentationFinder(
             ChainedFormattingRules formattingRules,
             int tabSize,
             int indentationSize,
             TokenStream? tokenStream,
-            ISyntaxFacts syntaxFacts)
+            IHeaderFacts headerFacts)
         {
             Contract.ThrowIfNull(formattingRules);
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _tabSize = tabSize;
             _indentationSize = indentationSize;
             _tokenStream = tokenStream;
-            _syntaxFacts = syntaxFacts;
+            _headerFacts = headerFacts;
         }
 
         public int? FromIndentBlockOperations(
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var baseIndentation = tokenColumnGetter(baseToken);
-                var delta = operation.GetAdjustedIndentationDelta(_syntaxFacts, root, baseToken);
+                var delta = operation.GetAdjustedIndentationDelta(_headerFacts, root, baseToken);
                 return Math.Max(0, baseIndentation + (indentationLevel + delta) * _indentationSize);
             }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return Math.Max(0, indentationLevel + extraSpaces);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(

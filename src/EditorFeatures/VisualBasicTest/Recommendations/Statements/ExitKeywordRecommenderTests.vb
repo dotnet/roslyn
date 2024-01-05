@@ -3,9 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ExitKeywordRecommenderTests
+        Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInSubBodyTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Sub Goo()
@@ -13,7 +15,7 @@ Sub Goo()
 End Sub</ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInFunctionTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Sub Goo()
@@ -21,7 +23,7 @@ Sub Goo()
 End Sub</ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInPropertyGetTest()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -33,7 +35,7 @@ End Property
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInPropertySetTest()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -45,7 +47,7 @@ End Property
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitNotInAddHandlerTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -62,7 +64,7 @@ End Event
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLambdaInAddHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -81,7 +83,7 @@ End Event
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitNotInRemoveHandlerTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -99,7 +101,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLambdaInRemoveHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -119,7 +121,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitNotInRaiseEventTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -137,7 +139,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLambdaInRaiseEventTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -157,7 +159,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLoopInAddHandler1Test()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -179,7 +181,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLoopInAddHandler2Test()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -198,7 +200,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLoopInAddHandler3Test()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -217,7 +219,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInForLoopInAddHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -236,7 +238,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInForEachLoopInAddHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -255,7 +257,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInTryInAddHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -275,7 +277,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInCatchInAddHandlerTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -295,7 +297,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitNotInOperatorTest()
             VerifyRecommendationsMissing(<File>
 Class Goo
@@ -306,7 +308,7 @@ End Class
 </File>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInWhileLoopInAddHandlerTest()
             VerifyRecommendationsContain(<MethodBody>
 While True
@@ -315,7 +317,7 @@ End While
                                                </MethodBody>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInLoopInClassDeclarationLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -327,7 +329,7 @@ End Sub
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInClassDeclarationLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -336,14 +338,14 @@ End Sub
                                          </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitInClassDeclarationSingleLineLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub() |
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub ExitNotInFinallyBlockTest()
             Dim code =
 <MethodBody>

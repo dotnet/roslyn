@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -25,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
-        Private ReadOnly _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
                asmRef.Identity.ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
-                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries
                 ' built for platforms that don't support strong names.
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
             End If
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me,
                                                                                            isRefAssembly,
                                                                                            emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
+            Return SourceModule.GetCustomAttributesToEmit(Me)
         End Function
 
         Public NotOverridable Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Case SymbolKind.Namespace
                         location = GetSmallestSourceLocationOrNull(symbol)
 
-                        ' filtering out synthesized symbols not having real source 
+                        ' filtering out synthesized symbols not having real source
                         ' locations such as anonymous types, my types, etc...
                         If location IsNot Nothing Then
                             For Each member In symbol.GetMembers()
@@ -319,6 +319,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return Nothing
+        End Function
+
+        Friend Overridable Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return New MethodInstrumentation() With {.Kinds = EmitOptions.InstrumentationKinds}
         End Function
 
         Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
@@ -441,9 +445,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Continue For
                 End If
 
+                ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference)))
+                    Cci.MetadataWriter.GetMetadataName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then
@@ -636,6 +641,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
+        Public Overrides Iterator Function GetTypeToDebugDocumentMap(context As EmitContext) As IEnumerable(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
+            Dim typesToProcess = ArrayBuilder(Of Cci.ITypeDefinition).GetInstance()
+            Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
+            Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
+
+            Dim namespacesAndTopLevelTypesToProcess = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace)
+
+            While namespacesAndTopLevelTypesToProcess.Count > 0
+                Dim symbol = namespacesAndTopLevelTypesToProcess.Pop()
+
+                If symbol.Locations.Length = 0 Then
+                    Continue While
+                End If
+
+                Select Case symbol.Kind
+                    Case SymbolKind.Namespace
+                        Dim location = GetSmallestSourceLocationOrNull(symbol)
+
+                        ' filtering out synthesized symbols not having real source
+                        ' locations such as anonymous types, my types, etc...
+                        If location IsNot Nothing Then
+                            For Each member In symbol.GetMembers()
+                                Select Case member.Kind
+                                    Case SymbolKind.Namespace, SymbolKind.NamedType
+                                        namespacesAndTopLevelTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
+                                    Case Else
+                                        Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+                                End Select
+                            Next
+                        End If
+
+                    Case SymbolKind.NamedType
+                        ' We only process top level types in this method, and only return documents for types if there are no
+                        ' methods that would refer to the same document, either in the type or in any nested type.
+                        Debug.Assert(debugDocuments.Count = 0)
+                        Debug.Assert(methodDocumentList.Count = 0)
+                        Debug.Assert(typesToProcess.Count = 0)
+
+                        Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
+                        typesToProcess.Push(typeDefinition)
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context)
+
+                        For Each loc In symbol.Locations
+                            If Not loc.IsInSource Then
+                                Continue For
+                            End If
+
+                            Dim span = loc.GetLineSpan()
+                            Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
+
+                            If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
+                                debugDocuments.Add(debugDocument)
+                            End If
+                        Next
+
+                        If debugDocuments.Count > 0 Then
+                            Yield (typeDefinition, debugDocuments.ToImmutable())
+                        End If
+                        debugDocuments.Clear()
+                        methodDocumentList.Clear()
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
+                End Select
+            End While
+
+            namespacesAndTopLevelTypesToProcess.Free()
+            debugDocuments.Free()
+            methodDocumentList.Free()
+            typesToProcess.Free()
+        End Function
+
+        Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
+            Debug.Assert(Not context.MetadataOnly)
+
+            While typesToProcess.Count > 0
+                Dim definition = typesToProcess.Pop()
+
+                Dim typeMethods = definition.GetMethods(context)
+                For Each method In typeMethods
+                    Dim body = method.GetBody(context)
+                    If body Is Nothing Then
+                        Continue For
+                    End If
+
+                    For Each point In body.SequencePoints
+                        documentList.Add(point.Document)
+                    Next
+                Next
+
+                Dim nestedTypes = definition.GetNestedTypes(context)
+                For Each nestedTypeDefinition In nestedTypes
+                    typesToProcess.Push(nestedTypeDefinition)
+                Next
+            End While
+        End Sub
+
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)
             Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
 
@@ -643,12 +745,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Function JITOptimizationIsDisabled(methodSymbol As MethodSymbol) As Boolean
-            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
+            Debug.Assert(methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-        Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
-            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter()
+        Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
+            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, GetPrivateImplClass(syntaxOpt, diagnostics), GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter()
         End Function
 
         Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)

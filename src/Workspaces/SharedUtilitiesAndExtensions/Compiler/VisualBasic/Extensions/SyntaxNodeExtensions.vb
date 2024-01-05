@@ -6,9 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -221,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxKind.SingleLineSubLambdaExpression
                     Return True
             End Select
+
             Return False
         End Function
 
@@ -419,9 +420,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                     Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
-                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                    If directives.Any() Then
                         If Not textSpan.Contains(directives(0).SpanStart) OrElse
-                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                           Not textSpan.Contains(directives.Last().SpanStart) Then
                             ' This else/elif belongs to a pp span that isn't 
                             ' entirely within this node.
                             Return True
@@ -435,32 +436,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
         Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>
@@ -572,35 +573,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Returns child node or token that contains given position.
-        ''' </summary>
-        ''' <remarks>
-        ''' This is a copy of <see cref="SyntaxNode.ChildThatContainsPosition"/>  that also returns the index of the child node.
-        ''' </remarks>
-        <Extension>
-        Friend Function ChildThatContainsPosition(self As SyntaxNode, position As Integer, ByRef childIndex As Integer) As SyntaxNodeOrToken
-            Dim childList = self.ChildNodesAndTokens()
-            Dim left As Integer = 0
-            Dim right As Integer = childList.Count - 1
-            While left <= right
-                Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList(middle)
-                Dim span = node.FullSpan
-                If position < span.Start Then
-                    right = middle - 1
-                ElseIf position >= span.End Then
-                    left = middle + 1
-                Else
-                    childIndex = middle
-                    Return node
-                End If
-            End While
-
-            Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
         <Extension()>
@@ -1238,6 +1210,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case Else
                     Return Nothing
             End Select
+        End Function
+
+        ''' <summary>
+        ''' If "node" is the begin statement of a declaration block, return that block, otherwise
+        ''' return node.
+        ''' </summary>
+        <Extension>
+        Public Function GetBlockFromBegin(node As SyntaxNode) As SyntaxNode
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+
+                    Case SyntaxKind.VariableDeclarator
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
+                End Select
+            End If
+
+            If begin Is node Then
+                Return parent
+            Else
+                Return node
+            End If
+        End Function
+
+        <Extension>
+        Public Function GetDeclarationBlockFromBegin(node As DeclarationStatementSyntax) As DeclarationStatementSyntax
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+                End Select
+            End If
+
+            If begin Is node Then
+                ' Every one of these parent casts is of a subtype of DeclarationStatementSyntax
+                ' So if the cast worked above, it will work here
+                Return DirectCast(parent, DeclarationStatementSyntax)
+            Else
+                Return node
+            End If
         End Function
     End Module
 End Namespace

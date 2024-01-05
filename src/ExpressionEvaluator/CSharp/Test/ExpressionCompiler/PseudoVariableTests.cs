@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// <summary>
         /// Dev12 syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         public void ObjectId_EarlierSyntax()
         {
             var source =
@@ -323,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
         public void NestedGenericValueType()
         {
             var source =
@@ -681,7 +680,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
         public void PassByRef()
         {
             var source =
@@ -906,7 +905,7 @@ class C
         /// Assembly-qualified type names from the debugger refer to runtime assemblies
         /// which may be different versions than the assembly references in metadata.
         /// </summary>
-        [WorkItem(1087458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")]
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DifferentAssemblyVersion()
         {
@@ -993,7 +992,7 @@ class C
         /// The assembly-qualified type may reference an assembly
         /// outside of the current module and its references.
         /// </summary>
-        [WorkItem(1092680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")]
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void TypeOutsideModule()
         {
@@ -1094,8 +1093,7 @@ IL_0010:  ret
 }");
         }
 
-        [WorkItem(1140387, "DevDiv")]
-        [Fact]
+        [Fact, WorkItem(1140387, "DevDiv")]
         public void ReturnValueOfPointerType()
         {
             var source =

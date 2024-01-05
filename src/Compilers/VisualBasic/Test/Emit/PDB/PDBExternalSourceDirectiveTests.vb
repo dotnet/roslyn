@@ -53,6 +53,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="2"/>
@@ -124,6 +131,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main">
             <customDebugInfo>
                 <encLocalSlotMap>
@@ -362,6 +376,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
@@ -424,6 +445,13 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
+        <method containingType="C1" name="FooInvisible">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+        </method>
         <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x23">
                 <namespace name="System" importlevel="file"/>
@@ -477,7 +505,6 @@ end Class
 #ExternalChecksum("C:\Abc\ACTUAL.vb", "{406EA660-64CF-4C82-B6F0-42D48172A799}", "6789")
 
     </file>
-
     <file name="b.vb">
 Option strict on
 imports system

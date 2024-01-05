@@ -116,7 +116,7 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=38)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPointExplicitlyImplementedEvent()
             Dim code =
@@ -255,7 +255,7 @@ class C
                      TextPoint(line:=7, lineOffset:=6, absoluteOffset:=96, lineLength:=5)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPointExplicitlyImplementedEvent()
             Dim code =
@@ -399,7 +399,7 @@ class C
             TestFullName(code, "C.F")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ExplicitlyImplementedEvent()
             Dim code =
@@ -523,7 +523,7 @@ class C
             TestName(code, "F")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ExplicitlyImplementedEvent()
             Dim code =
@@ -557,7 +557,7 @@ class C1 : I1
 
 #Region "OverrideKind tests"
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
@@ -574,7 +574,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Sub
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Virtual()
             Dim code =
@@ -596,7 +596,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Sub
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_None()
             Dim code =
@@ -926,7 +926,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =

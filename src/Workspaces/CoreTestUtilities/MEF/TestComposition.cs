@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -122,10 +123,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public bool IsRemote
-            => Assemblies.Contains(typeof(Remote.ServiceBase).Assembly);
+            => Assemblies.Contains(typeof(Remote.BrokeredServiceBase).Assembly);
 
         private ComposableCatalog GetCatalog()
-            => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
+        {
+            // Compositions should not be realized if they contain the same part in both the explicit include list and
+            // the explicit exclude list.
+            var configurationOverlap = Parts.Intersect(ExcludedPartTypes);
+            Assert.Empty(configurationOverlap);
+
+            return ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
+        }
+
+        public CompositionConfiguration GetCompositionConfiguration()
+            => CompositionConfiguration.Create(GetCatalog());
 
         public TestComposition Add(TestComposition composition)
             => AddAssemblies(composition.Assemblies).AddParts(composition.Parts).AddExcludedPartTypes(composition.ExcludedPartTypes);

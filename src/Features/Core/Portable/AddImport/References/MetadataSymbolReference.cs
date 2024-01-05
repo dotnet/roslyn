@@ -9,6 +9,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,21 +19,14 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private partial class MetadataSymbolReference : SymbolReference
+        private partial class MetadataSymbolReference(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+            ProjectId referenceProjectId,
+            PortableExecutableReference reference) : SymbolReference(provider, symbolResult)
         {
-            private readonly ProjectId _referenceProjectId;
-            private readonly PortableExecutableReference _reference;
-
-            public MetadataSymbolReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SymbolResult<INamespaceOrTypeSymbol> symbolResult,
-                ProjectId referenceProjectId,
-                PortableExecutableReference reference)
-                : base(provider, symbolResult)
-            {
-                _referenceProjectId = referenceProjectId;
-                _reference = reference;
-            }
+            private readonly ProjectId _referenceProjectId = referenceProjectId;
+            private readonly PortableExecutableReference _reference = reference;
 
             /// <summary>
             /// If we're adding a metadata-reference, then we always offer to do the add,
@@ -40,10 +35,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override bool ShouldAddWithExistingImport(Document document) => true;
 
             protected override (string description, bool hasExistingImport) GetDescription(
-                Document document, SyntaxNode node,
+                Document document, CodeCleanupOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return (null, false);

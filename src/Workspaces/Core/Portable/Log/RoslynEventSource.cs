@@ -74,11 +74,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(() => Task.Run(SendFunctionDefinitions));
+                    Task.Yield().GetAwaiter().OnCompleted(FireAndForgetSendFunctionDefinitions);
                     return;
                 }
 
                 SendFunctionDefinitions();
+            }
+
+            // Cannot inline this local function as a lambda because we need NonEventAttribute applied.
+            [NonEvent]
+            void FireAndForgetSendFunctionDefinitions()
+            {
+                _ = Task.Run(SendFunctionDefinitions);
             }
         }
 

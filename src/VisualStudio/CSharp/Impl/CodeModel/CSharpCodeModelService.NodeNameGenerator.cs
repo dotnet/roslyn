@@ -144,11 +144,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var name = "#op_" + kind.ToString();
                 if (name.EndsWith("Keyword", StringComparison.Ordinal))
                 {
-                    name = name.Substring(0, name.Length - 7);
+                    name = name[..^7];
                 }
                 else if (name.EndsWith("Token", StringComparison.Ordinal))
                 {
-                    name = name.Substring(0, name.Length - 5);
+                    name = name[..^5];
                 }
 
                 builder.Append(name);
@@ -164,12 +164,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 switch (node.Kind())
                 {
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)node;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)node;
                         AppendName(builder, namespaceDeclaration.Name);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                         var typeDeclaration = (TypeDeclarationSyntax)node;
                         builder.Append(typeDeclaration.Identifier.ValueText);

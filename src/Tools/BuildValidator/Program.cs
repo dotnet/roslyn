@@ -4,20 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 namespace BuildValidator
 {
@@ -26,56 +22,93 @@ namespace BuildValidator
     /// from the PE and attempts to rebuild the source using that information. It then checks
     /// that the new build output is the same as the original build
     /// </summary>
-    class Program
+    internal class Program
     {
-        const int ExitSuccess = 0;
-        const int ExitFailure = 1;
-
-        private static readonly Regex[] s_ignorePatterns = new Regex[]
-        {
-            new Regex(@"\\runtimes?\\"),
-            new Regex(@"\\ref\\"),
-            new Regex(@"\.resources?\.")
-        };
+        internal const int ExitSuccess = 0;
+        internal const int ExitFailure = 1;
 
         static int Main(string[] args)
         {
-            var rootCommand = new RootCommand
+            System.Diagnostics.Trace.Listeners.Clear();
+
+            var assembliesPath = new CliOption<string[]>("--assembliesPath")
             {
-                new Option<string>(
-                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
-                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
-                new Option<string>(
-                    "--sourcePath", "Path to sources to use in rebuild"
-                ) { IsRequired = true },
-                new Option<string>(
-                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
-                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
-                new Option<bool>(
-                    "--verbose", "Output verbose log information"
-                ),
-                new Option<bool>(
-                    "--quiet", "Do not output log information to console"
-                ),
-                new Option<bool>(
-                    "--debug", "Output debug info when rebuild is not equal to the original"
-                ),
-                new Option<string?>(
-                    "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
-                )
+                Description = BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times,
+                Required = true,
+                Arity = ArgumentArity.OneOrMore,
             };
-            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
-            return rootCommand.Invoke(args);
+            var exclude = new CliOption<string[]>("--exclude")
+            {
+                Description = BuildValidatorResources.Assemblies_to_be_excluded_substring_match,
+                Arity = ArgumentArity.ZeroOrMore,
+            };
+            var source = new CliOption<string>("--sourcePath")
+            {
+                Description = BuildValidatorResources.Path_to_sources_to_use_in_rebuild,
+                Required = true,
+            };
+            var referencesPath = new CliOption<string[]>("--referencesPath")
+            {
+                Description = BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times,
+                Arity = ArgumentArity.ZeroOrMore,
+            };
+            var verbose = new CliOption<bool>("--verbose")
+            {
+                Description = BuildValidatorResources.Output_verbose_log_information
+            };
+            var quiet = new CliOption<bool>("--quiet")
+            {
+                Description = BuildValidatorResources.Do_not_output_log_information_to_console
+            };
+            var debug = new CliOption<bool>("--debug")
+            {
+                Description = BuildValidatorResources.Output_debug_info_when_rebuild_is_not_equal_to_the_original
+            };
+            var debugPath = new CliOption<string?>("--debugPath")
+            {
+                Description = BuildValidatorResources.Path_to_output_debug_info
+            };
+
+            var rootCommand = new CliRootCommand
+            {
+                assembliesPath,
+                exclude,
+                source,
+                referencesPath,
+                verbose,
+                quiet,
+                debug,
+                debugPath,
+            };
+
+            rootCommand.SetAction(parseResult =>
+            {
+                return HandleCommand(
+                    assembliesPath: parseResult.GetValue(assembliesPath)!,
+                    exclude: parseResult.GetValue(exclude),
+                    sourcePath: parseResult.GetValue(source)!,
+                    referencesPath: parseResult.GetValue(referencesPath),
+                    verbose: parseResult.GetValue(verbose),
+                    quiet: parseResult.GetValue(quiet),
+                    debug: parseResult.GetValue(debug),
+                    debugPath: parseResult.GetValue(debugPath));
+            });
+
+            return rootCommand.Parse(args).Invoke();
         }
 
-        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string[]? exclude, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
             referencesPath ??= Array.Empty<string>();
 
-            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
+            var excludes = new List<string>(exclude ?? Array.Empty<string>());
+            excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
+            excludes.Add(@".resources.dll");
+
+            var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
 
             // TODO: remove the DemoLoggerProvider or convert it to something more permanent
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -113,19 +146,26 @@ namespace BuildValidator
                     }
                 }
 
-                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
-                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
+                var assemblyInfos = GetAssemblyInfos(
+                    options.AssembliesPaths,
+                    options.Excludes,
+                    logger);
 
-                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
+                logAssemblyInfos();
 
-                var filesToValidate = artifactsDirs.SelectMany(dir =>
-                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
-                    .Distinct(FileNameEqualityComparer.Instance);
+                var success = ValidateFiles(assemblyInfos, options, loggerFactory);
 
-                var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
+
+                void logAssemblyInfos()
+                {
+                    logger.LogInformation("Assemblies to be validated");
+                    foreach (var assemblyInfo in assemblyInfos)
+                    {
+                        logger.LogInformation($"\t{assemblyInfo.FilePath} - {assemblyInfo.Mvid}");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -134,21 +174,84 @@ namespace BuildValidator
             }
         }
 
-        // TODO: it feels like "logger" and "options" should be instance variables of something
-        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static AssemblyInfo[] GetAssemblyInfos(
+            IEnumerable<string> assemblySearchPaths,
+            IEnumerable<string> excludes,
+            ILogger logger)
         {
-            var assembliesCompiled = new List<CompilationDiff>();
-            foreach (var file in originalBinaries)
+            var map = new Dictionary<Guid, AssemblyInfo>();
+            foreach (var directory in assemblySearchPaths)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, logger, options);
-
-                if (compilationDiff is null)
+                foreach (var filePath in getAssemblyPaths(directory))
                 {
-                    logger.LogInformation($"Ignoring {file.FullName}");
-                    continue;
-                }
+                    if (excludes.Any(x => filePath.IndexOf(x, FileNameEqualityComparer.StringComparison) >= 0))
+                    {
+                        logger.LogInformation($"Skipping excluded file {filePath}");
+                        continue;
+                    }
 
+                    if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
+                    {
+                        logger.LogInformation($"Skipping non-pe file {filePath}");
+                        continue;
+                    }
+
+                    if (peInfo.IsReadyToRun)
+                    {
+                        logger.LogInformation($"Skipping ReadyToRun file {filePath}");
+                        continue;
+                    }
+
+                    if (peInfo.IsReferenceAssembly)
+                    {
+                        logger.LogInformation($"Skipping reference assembly {filePath}");
+                        continue;
+                    }
+
+                    if (map.TryGetValue(peInfo.Mvid, out var assemblyInfo))
+                    {
+                        // It's okay for the assembly to be duplicated in the search path.
+                        logger.LogInformation("Duplicate assembly path have same MVID");
+                        logger.LogInformation($"\t{filePath}");
+                        logger.LogInformation($"\t{assemblyInfo.FilePath}");
+                        continue;
+                    }
+
+                    map[peInfo.Mvid] = new AssemblyInfo(filePath, peInfo.Mvid);
+                }
+            }
+
+            return map.Values.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer).ToArray();
+
+            static IEnumerable<string> getAssemblyPaths(string directory)
+            {
+                var exePaths = Directory.EnumerateFiles(directory, "*.exe", SearchOption.AllDirectories);
+                var dllPaths = Directory.EnumerateFiles(directory, "*.dll", SearchOption.AllDirectories);
+                return Enumerable.Concat(exePaths, dllPaths);
+            }
+        }
+
+        private static bool ValidateFiles(IEnumerable<AssemblyInfo> assemblyInfos, Options options, ILoggerFactory loggerFactory)
+        {
+            var logger = loggerFactory.CreateLogger<Program>();
+            var referenceResolver = LocalReferenceResolver.Create(options, loggerFactory);
+
+            var assembliesCompiled = new List<CompilationDiff>();
+            foreach (var assemblyInfo in assemblyInfos)
+            {
+                var compilationDiff = ValidateFile(options, assemblyInfo, logger, referenceResolver);
                 assembliesCompiled.Add(compilationDiff);
+
+                if (!compilationDiff.Succeeded)
+                {
+                    logger.LogError($"Validation failed for {assemblyInfo.FilePath}");
+                    var debugPath = Path.Combine(
+                        options.DebugPath,
+                        assemblyInfo.TargetFramework,
+                        Path.GetFileNameWithoutExtension(assemblyInfo.FileName));
+                    logger.LogInformation($@"Writing diffs to ""{Path.GetFullPath(debugPath)}""");
+                    compilationDiff.WriteArtifacts(debugPath, logger);
+                }
             }
 
             bool success = true;
@@ -156,36 +259,44 @@ namespace BuildValidator
             using var summary = logger.BeginScope("Summary");
             using (logger.BeginScope("Successful rebuilds"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.Success))
                 {
-                    logger.LogInformation($"\t{diff.OriginalPath}");
-                }
-            }
-
-            using (logger.BeginScope("Rebuilds with configuration issues"))
-            {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual is null && a.Diagnostics.IsDefaultOrEmpty))
-                {
-                    logger.LogError($"{diff.OriginalPath} was missing required metadata for rebuilding. Was it built with a recent enough compiler with the required settings?");
-                    // dependencies which don't have the required metadata have a way of sneaking into the obj folder.
-                    // for now, let's not let presence of these assemblies cause the rebuild to fail.
+                    logger.LogInformation($"\t{diff.AssemblyInfo.FilePath}");
                 }
             }
 
             using (logger.BeginScope("Rebuilds with output differences"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.BinaryDifference))
                 {
-                    // TODO: can we include the path to any diff artifacts?
-                    logger.LogWarning($"\t{diff.OriginalPath}");
+                    logger.LogWarning($"\t{diff.AssemblyInfo.FilePath}");
                     success = false;
                 }
             }
+
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => !a.Diagnostics.IsDefaultOrEmpty))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.CompilationError))
                 {
-                    logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
+                    logger.LogError($"\t{diff.AssemblyInfo.FilePath} had {diff.Diagnostics.Length} diagnostics.");
+                    success = false;
+                }
+            }
+
+            using (logger.BeginScope("Rebuilds with missing references"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.MissingReferences))
+                {
+                    logger.LogError($"\t{diff.AssemblyInfo.FilePath}");
+                    success = false;
+                }
+            }
+
+            using (logger.BeginScope("Rebuilds with other issues"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.MiscError))
+                {
+                    logger.LogError($"{diff.AssemblyInfo.FilePath} {diff.MiscErrorMessage}");
                     success = false;
                 }
             }
@@ -193,71 +304,98 @@ namespace BuildValidator
             return success;
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static CompilationDiff ValidateFile(
+            Options options,
+            AssemblyInfo assemblyInfo,
+            ILogger logger,
+            LocalReferenceResolver referenceResolver)
         {
-            if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
+            // Find the embedded pdb
+            using var originalPeReader = new PEReader(File.OpenRead(assemblyInfo.FilePath));
+            var originalBinary = new FileInfo(assemblyInfo.FilePath);
+
+            var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
+                peImagePath: assemblyInfo.FilePath,
+                filePath => File.Exists(filePath) ? new MemoryStream(File.ReadAllBytes(filePath)) : null,
+                out var pdbReaderProvider,
+                out var pdbPath);
+
+            if (!pdbOpened || pdbReaderProvider is null)
             {
-                logger.LogTrace($"Ignoring {originalBinary.FullName}");
-                return null;
+                logger.LogError($"Could not find pdb for {originalBinary.FullName}");
+                return CompilationDiff.CreateMiscError(assemblyInfo, "Could not find pdb");
             }
 
-            MetadataReaderProvider? pdbReaderProvider = null;
+            using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
 
+            var pdbReader = pdbReaderProvider.GetMetadataReader();
+            var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
+            if (!optionsReader.HasMetadataCompilationOptions)
+            {
+                return CompilationDiff.CreateMiscError(assemblyInfo, "Missing metadata compilation options");
+            }
+
+            var sourceLinks = ResolveSourceLinks(optionsReader, logger);
+            var sourceResolver = new LocalSourceResolver(options, sourceLinks, logger);
+            var artifactResolver = new RebuildArtifactResolver(sourceResolver, referenceResolver);
+
+            CompilationFactory compilationFactory;
             try
             {
-                // Find the embedded pdb
-                using var originalBinaryStream = originalBinary.OpenRead();
-                using var originalPeReader = new PEReader(originalBinaryStream);
+                compilationFactory = CompilationFactory.Create(
+                    originalBinary.Name,
+                    optionsReader);
 
-                var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
-                    peImagePath: originalBinary.FullName,
-                    filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
-                    out pdbReaderProvider,
-                    out var pdbPath);
+                return CompilationDiff.Create(
+                    assemblyInfo,
+                    compilationFactory,
+                    artifactResolver,
+                    logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
+            }
+        }
 
-                if (!pdbOpened || pdbReaderProvider is null)
+        private static ImmutableArray<SourceLinkEntry> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader, ILogger logger)
+        {
+            using var _ = logger.BeginScope("Source Links");
+
+            var sourceLinkUtf8 = compilationOptionsReader.GetSourceLinkUtf8();
+            if (sourceLinkUtf8 is null)
+            {
+                logger.LogInformation("No source link cdi found in pdb");
+                return ImmutableArray<SourceLinkEntry>.Empty;
+            }
+
+            var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUtf8), new { documents = (Dictionary<string, string>?)null })?.documents
+                ?? throw new InvalidOperationException("Failed to deserialize source links.");
+
+            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
+
+            if (sourceLinks.IsDefault)
+            {
+                logger.LogInformation("Empty source link cdi found in pdb");
+                sourceLinks = ImmutableArray<SourceLinkEntry>.Empty;
+            }
+            else
+            {
+                foreach (var link in sourceLinks)
                 {
-                    logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return CompilationDiff.CreatePlaceholder(originalBinary);
-                }
-
-                using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
-
-                var pdbReader = pdbReaderProvider.GetMetadataReader();
-                var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
-
-                var compilation = buildConstructor.CreateCompilation(
-                    optionsReader,
-                    originalBinary.Name);
-                if (compilation is null)
-                {
-                    return CompilationDiff.CreatePlaceholder(originalBinary);
-                }
-
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
-                return compilationDiff;
-
-                IMethodSymbol? getDebugEntryPoint()
-                {
-                    if (optionsReader.GetMainTypeName() is { } mainTypeName &&
-                        optionsReader.GetMainMethodName() is { } mainMethodName)
-                    {
-                        var typeSymbol = compilation.GetTypeByMetadataName(mainTypeName);
-                        if (typeSymbol is object)
-                        {
-                            var methodSymbols = typeSymbol
-                                .GetMembers(mainMethodName)
-                                .OfType<IMethodSymbol>();
-                            return methodSymbols.FirstOrDefault();
-                        }
-                    }
-
-                    return null;
+                    logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
                 }
             }
-            finally
+            return sourceLinks;
+
+            static SourceLinkEntry makeSourceLink(KeyValuePair<string, string> entry)
             {
-                pdbReaderProvider?.Dispose();
+                // TODO: determine if this subsitution is correct
+                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
+                var prefix = key.Remove(key.LastIndexOf("*"));
+                var replace = value.Remove(value.LastIndexOf("*"));
+                return new SourceLinkEntry(prefix, replace);
             }
         }
     }

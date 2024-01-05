@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
@@ -28,22 +29,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly ImmutableArray<byte> PdbDelta;
         internal readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
 
         internal CompilationDifference(
             ImmutableArray<byte> metadata,
             ImmutableArray<byte> il,
             ImmutableArray<byte> pdb,
             CompilationTestData testData,
-            EmitDifferenceResult result,
-            ImmutableArray<MethodDefinitionHandle> methodHandles)
+            EmitDifferenceResult result)
         {
             MetadataDelta = metadata;
             ILDelta = il;
             PdbDelta = pdb;
             TestData = testData;
             EmitResult = result;
-            UpdatedMethods = methodHandles;
         }
 
         public EmitBaseline NextGeneration
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string callerPath = null)
         {
             string actualIL = ILDelta.GetMethodIL();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         public void VerifyLocalSignature(
@@ -93,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!methodToken.IsNil)
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
+                sequencePointMarkers = ILValidation.GetSequencePointMarkers(XElement.Parse(actualPdb));
 
                 Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
         {
             var actual = EmitResult.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
-            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
         }
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             AssertEx.Equal(
                 expectedMethodTokens,
-                UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
+                EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
         }
     }
 }

@@ -2,44 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal sealed class TokenRenameInfo
+    internal sealed class TokenRenameInfo(bool hasSymbols, IEnumerable<ISymbol> symbols, bool isMemberGroup)
     {
-        public bool HasSymbols { get; private set; }
-        public IEnumerable<ISymbol> Symbols { get; private set; }
-        public bool IsMemberGroup { get; private set; }
+        public bool HasSymbols { get; private set; } = hasSymbols;
+        public IEnumerable<ISymbol> Symbols { get; private set; } = symbols;
+        public bool IsMemberGroup { get; private set; } = isMemberGroup;
 
         public static TokenRenameInfo CreateMemberGroupTokenInfo(IEnumerable<ISymbol> symbols)
         {
             return new TokenRenameInfo
-            {
-                HasSymbols = true,
-                IsMemberGroup = true,
-                Symbols = symbols
-            };
+            (
+                hasSymbols: true,
+                isMemberGroup: true,
+                symbols: symbols
+            );
         }
 
         public static TokenRenameInfo CreateSingleSymbolTokenInfo(ISymbol symbol)
         {
             return new TokenRenameInfo
-            {
-                HasSymbols = true,
-                IsMemberGroup = false,
-                Symbols = SpecializedCollections.SingletonEnumerable(symbol)
-            };
+            (
+                hasSymbols: true,
+                isMemberGroup: false,
+                symbols: SpecializedCollections.SingletonEnumerable(symbol)
+            );
         }
 
-        public static TokenRenameInfo NoSymbolsTokenInfo = new()
-        {
-            HasSymbols = false,
-            IsMemberGroup = false,
-            Symbols = SpecializedCollections.EmptyEnumerable<ISymbol>()
-        };
+        public static TokenRenameInfo NoSymbolsTokenInfo = new
+        (
+            hasSymbols: false,
+            isMemberGroup: false,
+            symbols: SpecializedCollections.EmptyEnumerable<ISymbol>()
+        );
     }
 }

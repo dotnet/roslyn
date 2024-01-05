@@ -21,34 +21,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         /// Represents a switch-section constructed from a series of
         /// if-conditions, possibly combined with logical-or operator
         /// </summary>
-        internal sealed class AnalyzedSwitchSection
+        internal sealed class AnalyzedSwitchSection(ImmutableArray<AnalyzedSwitchLabel> labels, IOperation body, SyntaxNode syntaxToRemove)
         {
-            public readonly ImmutableArray<AnalyzedSwitchLabel> Labels;
-            public readonly IOperation Body;
-            public readonly SyntaxNode SyntaxToRemove;
-
-            public AnalyzedSwitchSection(ImmutableArray<AnalyzedSwitchLabel> labels, IOperation body, SyntaxNode syntaxToRemove)
-            {
-                Labels = labels;
-                Body = body;
-                SyntaxToRemove = syntaxToRemove;
-            }
+            public readonly ImmutableArray<AnalyzedSwitchLabel> Labels = labels;
+            public readonly IOperation Body = body;
+            public readonly SyntaxNode SyntaxToRemove = syntaxToRemove;
         }
 
         /// <summary>
         /// Represents a switch-label constructed from a series of
         /// if-conditions, possibly combined by logical-and operator
         /// </summary>
-        internal sealed class AnalyzedSwitchLabel
+        internal sealed class AnalyzedSwitchLabel(AnalyzedPattern pattern, ImmutableArray<TExpressionSyntax> guards)
         {
-            public readonly AnalyzedPattern Pattern;
-            public readonly ImmutableArray<TExpressionSyntax> Guards;
-
-            public AnalyzedSwitchLabel(AnalyzedPattern pattern, ImmutableArray<TExpressionSyntax> guards)
-            {
-                Pattern = pattern;
-                Guards = guards;
-            }
+            public readonly AnalyzedPattern Pattern = pattern;
+            public readonly ImmutableArray<TExpressionSyntax> Guards = guards;
         }
 
         /// <summary>
@@ -63,79 +50,52 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// <summary>
             /// Represents a type-pattern, constructed from is-expression
             /// </summary>
-            internal sealed class Type : AnalyzedPattern
+            internal sealed class Type(TIsExpressionSyntax expression) : AnalyzedPattern
             {
-                public readonly TIsExpressionSyntax IsExpressionSyntax;
-
-                public Type(TIsExpressionSyntax expression)
-                    => IsExpressionSyntax = expression;
+                public readonly TIsExpressionSyntax IsExpressionSyntax = expression;
             }
 
             /// <summary>
             /// Represents a source-pattern constructed from C# patterns
             /// </summary>
-            internal sealed class Source : AnalyzedPattern
+            internal sealed class Source(TPatternSyntax patternSyntax) : AnalyzedPattern
             {
-                public readonly TPatternSyntax PatternSyntax;
-
-                public Source(TPatternSyntax patternSyntax)
-                    => PatternSyntax = patternSyntax;
+                public readonly TPatternSyntax PatternSyntax = patternSyntax;
             }
 
             /// <summary>
             /// Represents a constant-pattern constructed from an equality check
             /// </summary>
-            internal sealed class Constant : AnalyzedPattern
+            internal sealed class Constant(TExpressionSyntax expression) : AnalyzedPattern
             {
-                public readonly TExpressionSyntax ExpressionSyntax;
-
-                public Constant(TExpressionSyntax expression)
-                    => ExpressionSyntax = expression;
+                public readonly TExpressionSyntax ExpressionSyntax = expression;
             }
 
             /// <summary>
             /// Represents a relational-pattern constructed from comparison operators
             /// </summary>
-            internal sealed class Relational : AnalyzedPattern
+            internal sealed class Relational(BinaryOperatorKind operatorKind, TExpressionSyntax value) : AnalyzedPattern
             {
-                public readonly BinaryOperatorKind OperatorKind;
-                public readonly TExpressionSyntax Value;
-
-                public Relational(BinaryOperatorKind operatorKind, TExpressionSyntax value)
-                {
-                    OperatorKind = operatorKind;
-                    Value = value;
-                }
+                public readonly BinaryOperatorKind OperatorKind = operatorKind;
+                public readonly TExpressionSyntax Value = value;
             }
 
             /// <summary>
             /// Represents a range-pattern constructed from a couple of comparison operators
             /// </summary>
-            internal sealed class Range : AnalyzedPattern
+            internal sealed class Range(TExpressionSyntax lowerBound, TExpressionSyntax higherBound) : AnalyzedPattern
             {
-                public readonly TExpressionSyntax LowerBound;
-                public readonly TExpressionSyntax HigherBound;
-
-                public Range(TExpressionSyntax lowerBound, TExpressionSyntax higherBound)
-                {
-                    LowerBound = lowerBound;
-                    HigherBound = higherBound;
-                }
+                public readonly TExpressionSyntax LowerBound = lowerBound;
+                public readonly TExpressionSyntax HigherBound = higherBound;
             }
 
             /// <summary>
             /// Represents an and-pattern, constructed from two other patterns.
             /// </summary>
-            internal sealed class And : AnalyzedPattern
+            internal sealed class And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern) : AnalyzedPattern
             {
-                public readonly AnalyzedPattern LeftPattern;
-                public readonly AnalyzedPattern RightPattern;
-
-                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
-                {
-                    LeftPattern = leftPattern;
-                    RightPattern = rightPattern;
-                }
+                public readonly AnalyzedPattern LeftPattern = leftPattern;
+                public readonly AnalyzedPattern RightPattern = rightPattern;
             }
         }
     }

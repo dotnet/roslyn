@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    internal partial class Worker
+    internal ref partial struct Worker
     {
         private void ClassifyDocumentationComment(DocumentationCommentTriviaSyntax documentationComment)
         {

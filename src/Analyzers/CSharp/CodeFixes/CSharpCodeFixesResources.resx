@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Remove_Unnecessary_Usings" xml:space="preserve">
-    <value>Remove Unnecessary Usings</value>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
   </data>
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
@@ -141,7 +141,120 @@
   <data name="Remove_blank_lines_between_braces" xml:space="preserve">
     <value>Remove blank line between braces</value>
   </data>
-  <data name="Place_colon_on_following_line" xml:space="preserve">
-    <value>Place colon on following line</value>
+  <data name="Fix_record_declaration" xml:space="preserve">
+    <value>Fix record declaration</value>
+  </data>
+  <data name="Fix_constraint" xml:space="preserve">
+    <value>Fix constraint</value>
+  </data>
+  <data name="Change_return_type_from_0_to_1" xml:space="preserve">
+    <value>Change return type from {0} to {1}</value>
+  </data>
+  <data name="Hide_base_member" xml:space="preserve">
+    <value>Hide base member</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add [Obsolete]</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Unseal_class_0" xml:space="preserve">
+    <value>Unseal class '{0}'</value>
+  </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_to_0" xml:space="preserve">
+    <value>Assign to '{0}'</value>
+  </data>
+  <data name="Compare_to_0" xml:space="preserve">
+    <value>Compare to '{0}'</value>
+  </data>
+  <data name="Fix_return_type" xml:space="preserve">
+    <value>Fix return type</value>
+  </data>
+  <data name="Replace_return_with_yield_return" xml:space="preserve">
+    <value>Replace return with yield return</value>
+  </data>
+  <data name="Declare_as_nullable" xml:space="preserve">
+    <value>Declare as nullable</value>
+  </data>
+  <data name="Place_token_on_following_line" xml:space="preserve">
+    <value>Place token on following line</value>
+  </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
+    <value>Add parentheses</value>
+  </data>
+  <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
+    <value>Make {0} return Task instead of void.</value>
+  </data>
+  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
+    <value>Allow unsafe code in this project</value>
+  </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make 'ref struct'</value>
+    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="Remove_unused_function" xml:space="preserve">
+    <value>Remove unused function</value>
+  </data>
+  <data name="Upgrade_all_csharp_projects_to_language_version_0" xml:space="preserve">
+    <value>Upgrade all C# projects to language version '{0}'</value>
+  </data>
+  <data name="Upgrade_this_project_to_csharp_language_version_0" xml:space="preserve">
+    <value>Upgrade this project to C# language version '{0}'</value>
+  </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use '{0}'</value>
+  </data>
+  <data name="Remove_in_keyword" xml:space="preserve">
+    <value>Remove 'in' keyword</value>
+    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
+  <data name="Convert_to_positional_record" xml:space="preserve">
+    <value>Convert to positional record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_method_async" xml:space="preserve">
+    <value>Make method async</value>
+  </data>
+  <data name="Make_method_async_remain_void" xml:space="preserve">
+    <value>Make method async (stay void)</value>
+  </data>
+  <data name="Make_field_required" xml:space="preserve">
+    <value>Make field 'required'</value>
+    <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_property_required" xml:space="preserve">
+    <value>Make property 'required'</value>
+    <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Use_primary_constructor_and_remove_members" xml:space="preserve">
+    <value>Use primary constructor (and remove members)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_fields" xml:space="preserve">
+    <value>Use primary constructor (and remove fields)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_properties" xml:space="preserve">
+    <value>Use primary constructor (and remove properties)</value>
+  </data>
+  <data name="Use_collection_expression" xml:space="preserve">
+    <value>Use collection expression</value>
   </data>
 </root>

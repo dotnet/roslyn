@@ -9,8 +9,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         internal abstract TestWorkspace GetWorkspace(string markup, TestComposition composition);
 
         protected void ToggleComment(string markup, string expected)
-            => ToggleCommentMultiple(markup, new string[] { expected });
+            => ToggleCommentMultiple(markup, [expected]);
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
         {
-            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
 
             Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
 

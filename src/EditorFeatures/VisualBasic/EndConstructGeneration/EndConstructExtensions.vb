@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             If snapshot Is Nothing Then
                 Throw New ArgumentNullException(NameOf(snapshot))
             End If
+
             Dim line = snapshot.GetLineFromPosition(position)
             Dim precedingText = snapshot.GetText(Span.FromBounds(line.Start, position))
 

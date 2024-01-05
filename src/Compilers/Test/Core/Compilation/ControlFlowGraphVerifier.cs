@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -62,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 case IParameterInitializerOperation parameterInitializerOperation:
                     graph = ControlFlowGraph.Create(parameterInitializerOperation);
+                    break;
+
+                case IAttributeOperation attributeOperation:
+                    graph = ControlFlowGraph.Create(attributeOperation);
                     break;
 
                 default:
@@ -310,7 +315,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, nextBranch);
                 }
 
-
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
                     leaveRegions(block.EnclosingRegion, block.Ordinal);
@@ -500,7 +504,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             if (referencedInLastOperation.Contains(id) ||
                                 longLivedIds.Contains(id) ||
-                                isCSharpEmptyObjectInitializerCapture(region, block, id) ||
                                 isWithStatementTargetCapture(region, block, id) ||
                                 isSwitchTargetCapture(region, block, id) ||
                                 isForEachEnumeratorCapture(region, block, id) ||
@@ -526,43 +529,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     referencedInLastOperation.Free();
                 }
-            }
-
-            bool isCSharpEmptyObjectInitializerCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
-            {
-                if (graph.OriginalOperation.Language != LanguageNames.CSharp)
-                {
-                    return false;
-                }
-
-                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
-                {
-                    if (candidate.Id.Equals(id))
-                    {
-                        CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
-                        CSharpSyntaxNode parent = syntax;
-
-                        do
-                        {
-                            parent = parent.Parent;
-                        }
-                        while (parent != null && parent.Kind() != CSharp.SyntaxKind.SimpleAssignmentExpression);
-
-                        if (parent is AssignmentExpressionSyntax assignment &&
-                            assignment.Parent?.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
-                            assignment.Left.DescendantNodesAndSelf().Contains(syntax) &&
-                            assignment.Right is InitializerExpressionSyntax initializer &&
-                            initializer.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
-                            !initializer.Expressions.Any())
-                        {
-                            return true;
-                        }
-
-                        break;
-                    }
-                }
-
-                return false;
             }
 
             bool isWithStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
@@ -807,6 +773,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                 {
                     CaptureId id = reference.Id;
+
+                    if (reference.IsInitialization)
+                    {
+                        AssertTrueWithGraph(state.Add(id), $"Multiple initialization of [{id}]", finalGraph);
+                        AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id), $"Flow capture initialization [{id}] should come from the containing region.", finalGraph);
+                        continue;
+                    }
+
                     referencedIds.Add(id);
 
                     if (isLongLivedCaptureReference(reference, block.EnclosingRegion))
@@ -819,14 +793,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
                     // or they should come from the enclosing region.
-                    AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
-                                ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
-                                     isIncrementedNullableForToLoopControlVariable(reference) ||
-                                     isConditionalAccessReceiver(reference) ||
-                                     isCoalesceAssignmentTarget(reference) ||
-                                     isObjectInitializerInitializedObjectTarget(reference)) &&
-                                 block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    if (block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id))
+                    {
+                        continue;
+                    }
+
+                    if (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id))
+                    {
+                        AssertTrueWithGraph(
+                            isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference)
+                            || isIncrementedNullableForToLoopControlVariable(reference)
+                            || isConditionalAccessReceiver(reference)
+                            || isCoalesceAssignmentTarget(reference)
+                            || isObjectInitializerInitializedObjectTarget(reference)
+                            || isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else if (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false)
+                    {
+                        AssertTrueWithGraph(
+                            isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else
+                    {
+                        AssertTrueWithGraph(false, $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
                 }
             }
 
@@ -890,6 +884,59 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Parent: InitializerExpressionSyntax { Parent: CSharp.Syntax.ObjectCreationExpressionSyntax },
                     Left: var left
                 } && left == referenceSyntax;
+            }
+
+            bool isInterpolatedStringArgumentCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                IOperation containingArgument = reference;
+                do
+                {
+                    containingArgument = containingArgument.Parent;
+                }
+                while (containingArgument is not (null or IArgumentOperation));
+
+#pragma warning disable IDE0055 // Fix formatting
+                return containingArgument is
+                       {
+                           Parent: IObjectCreationOperation
+                           {
+                               Parent: IFlowCaptureOperation,
+                               Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
+                               Arguments: { Length: >= 3 } arguments,
+                               Syntax: CSharpSyntaxNode syntax
+                           }
+                       }
+                       && applyParenthesizedOrNullSuppressionIfAnyCS(syntax) is CSharp.Syntax.InterpolatedStringExpressionSyntax or CSharp.Syntax.BinaryExpressionSyntax
+                       && ctorContainingType.GetSymbol().IsInterpolatedStringHandlerType
+                       && arguments[0].Value.Type.SpecialType == SpecialType.System_Int32
+                       && arguments[1].Value.Type.SpecialType == SpecialType.System_Int32;
+#pragma warning restore IDE0055
+            }
+
+            bool isInterpolatedStringHandlerCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+#pragma warning disable IDE0055 // Fix formatting
+                return reference is
+                       {
+                           Parent: IInvocationOperation
+                           {
+                               Instance: { } instance,
+                               TargetMethod: { Name: BoundInterpolatedString.AppendFormattedMethod or BoundInterpolatedString.AppendLiteralMethod, ContainingType: INamedTypeSymbol containingType }
+                           }
+                       }
+                       && ReferenceEquals(instance, reference)
+                       && containingType.GetSymbol().IsInterpolatedStringHandlerType;
+#pragma warning restore IDE0055
             }
 
             bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
@@ -1058,6 +1105,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.CollectionExpression:
+                                    if (((CSharp.Syntax.CollectionExpressionSyntax)syntax).Elements.Any())
+                                    {
+                                        return true;
+                                    }
+                                    break;
+                            }
+
+                            if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
+                                && withExpr.Initializer.Expressions.Any()
+                                && withExpr.Expression == (object)syntax)
+                            {
+                                return true;
                             }
 
                             syntax = applyParenthesizedOrNullSuppressionIfAnyCS(syntax);
@@ -1094,35 +1154,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
 
                                 case CSharp.SyntaxKind.LockStatement:
-                                    if (((LockStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((LockStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.UsingStatement:
-                                    if (((CSharp.Syntax.UsingStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.UsingStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchStatement:
-                                    if (((CSharp.Syntax.SwitchStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.SwitchStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchExpression:
-                                    if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
+                                    if (((CSharp.Syntax.SwitchExpressionSyntax)parent).GoverningExpression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.CoalesceAssignmentExpression:
-                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    if (((AssignmentExpressionSyntax)parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.SpreadElement:
+                                    if (((SpreadElementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
@@ -1818,6 +1885,9 @@ endRegion:
                     var instanceReference = (IInstanceReferenceOperation)n;
                     return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
                         instanceReference.ReferenceKind == InstanceReferenceKind.PatternInput ||
+                        // Will be removed when CFG support for interpolated string handlers is implemented, tracked by
+                        // https://github.com/dotnet/roslyn/issues/54718
+                        instanceReference.ReferenceKind == InstanceReferenceKind.InterpolatedStringHandler ||
                         (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                          n.Type.IsAnonymousType &&
                          n.Parent is IPropertyReferenceOperation propertyReference &&
@@ -1829,12 +1899,14 @@ endRegion:
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
 
+                case OperationKind.FunctionPointerInvocation:
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
                 case OperationKind.Stop:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
+                case OperationKind.Utf8String:
                 case OperationKind.Conversion:
                 case OperationKind.Invocation:
                 case OperationKind.ArrayElementReference:
@@ -1897,6 +1969,16 @@ endRegion:
                 case OperationKind.NegatedPattern:
                 case OperationKind.BinaryPattern:
                 case OperationKind.TypePattern:
+                case OperationKind.InterpolatedStringAppendFormatted:
+                case OperationKind.InterpolatedStringAppendLiteral:
+                case OperationKind.InterpolatedStringAppendInvalid:
+                case OperationKind.SlicePattern:
+                case OperationKind.ListPattern:
+                case OperationKind.ImplicitIndexerReference:
+                case OperationKind.Attribute:
+                case OperationKind.InlineArrayAccess:
+                case OperationKind.CollectionExpression:
+                case OperationKind.Spread:
                     return true;
             }
 
@@ -1906,18 +1988,17 @@ endRegion:
 
 #nullable enable
         private static bool IsTopLevelMainMethod([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol
+        {
+            return symbol is IMethodSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
-                ContainingType: { } containingType
-            } && containingType.IsTopLevelMainType();
-
-        private static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol
-            {
-                Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                ContainingType: null,
-                ContainingNamespace: { IsGlobalNamespace: true }
+                ContainingType: INamedTypeSymbol
+                {
+                    Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                    ContainingType: null,
+                    ContainingNamespace: { IsGlobalNamespace: true }
+                }
             };
+        }
     }
 }

@@ -164,7 +164,7 @@ End Module"
                 GetName(source, "Module1.VB$StateMachine_0_M.MoveNext", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types))
         End Sub
 
-        <Fact, WorkItem(1107977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107977")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107977")>
         Public Sub GetNameGenericAsync()
             Dim source = "
 Imports System.Threading.Tasks
@@ -330,7 +330,7 @@ End Module"
                 GetName(source, "Module1.M2", DkmVariableInfoFlags.None))
         End Sub
 
-        <Fact, WorkItem(1107978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107978")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107978")>
         Public Sub GetNameRefAndOutParameters()
             Dim source = "
 Imports System.Runtime.InteropServices
@@ -374,7 +374,7 @@ End Class"
                 GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names))
         End Sub
 
-        <Fact, WorkItem(1154945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154945")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154945")>
         Public Sub GetNameIncorrectNumberOfArgumentValues()
             Dim source = "
 Class C

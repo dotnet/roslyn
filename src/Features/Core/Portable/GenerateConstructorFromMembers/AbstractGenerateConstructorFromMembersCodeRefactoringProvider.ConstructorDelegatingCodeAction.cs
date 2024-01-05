@@ -2,40 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private class ConstructorDelegatingCodeAction : CodeAction
+        private sealed class ConstructorDelegatingCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            State state,
+            bool addNullChecks,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _addNullChecks;
-
-            public ConstructorDelegatingCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                State state,
-                bool addNullChecks)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _addNullChecks = addNullChecks;
-            }
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly bool _addNullChecks = addNullChecks;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -46,20 +40,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var project = _document.Project;
-                var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+                var languageServices = project.Solution.Services.GetLanguageServices(_state.ContainingType.Language);
 
-                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var factory = languageServices.GetService<SyntaxGenerator>();
-                var codeGenerationService = languageServices.GetService<ICodeGenerationService>();
+                var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var factory = languageServices.GetRequiredService<SyntaxGenerator>();
+                var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
+                Contract.ThrowIfNull(_state.DelegatedConstructor);
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var useThrowExpressions = _service.PrefersThrowExpression(options);
+                var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
@@ -76,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         nullCheckStatements, assignStatements);
                 }
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await _document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 
@@ -88,7 +82,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                            afterThisLocation: afterThisLocation),
+                        _fallbackOptions),
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
                         attributes: default,
@@ -98,9 +97,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationOptions(
-                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

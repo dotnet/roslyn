@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -236,8 +240,24 @@ namespace Microsoft.CodeAnalysis
 
             public ImmutableArray<byte> ToImmutableArray()
             {
-                var array = ToArray();
-                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
+                // ImmutableArray only supports int-sized arrays
+                var count = checked((int)Length);
+                var builder = ImmutableArray.CreateBuilder<byte>(count);
+
+                var chunkIndex = 0;
+                while (count > 0)
+                {
+                    var chunk = chunks[chunkIndex];
+                    var copyCount = Math.Min(chunk.Length, count);
+
+                    builder.AddRange(chunk, copyCount);
+                    count -= copyCount;
+                    chunkIndex++;
+                }
+
+                Debug.Assert(count == 0);
+
+                return builder.MoveToImmutable();
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }
@@ -271,13 +291,8 @@ namespace Microsoft.CodeAnalysis
                 => throw new NotSupportedException();
         }
 
-        private class ReadStream : PooledStream
+        private class ReadStream(long length, byte[][] chunks) : PooledStream(length, new List<byte[]>(chunks))
         {
-            public ReadStream(long length, byte[][] chunks)
-                : base(length, new List<byte[]>(chunks))
-            {
-
-            }
         }
 
         private class ReadWriteStream : PooledStream

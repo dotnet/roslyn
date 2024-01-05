@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
+    internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
     {
         public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
             NavigateToItemKind.Class,
-            NavigateToItemKind.Record,
             NavigateToItemKind.Constant,
             NavigateToItemKind.Delegate,
             NavigateToItemKind.Enum,
@@ -29,59 +31,34 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
+            Solution solution, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
+            return async item =>
             {
-                var solution = document.Project.Solution;
+                // This must succeed.  We should always be searching for items that correspond to documents/projects in
+                // the host side solution.  Note: this even includes 'cached' items.  While those may correspond to
+                // stale versions of a document, it should still be for documents that the host has asked about.
+                var project = solution.GetRequiredProject(item.DocumentId.ProjectId);
 
-                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
-            }
-
-            return await SearchDocumentInCurrentProcessAsync(
-                document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
+                if (result != null)
+                    await onResultFound(project, result).ConfigureAwait(false);
+            };
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        private static PooledDisposer<PooledHashSet<T>> GetPooledHashSet<T>(IEnumerable<T> items, out PooledHashSet<T> instance)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var solution = project.Solution;
-                var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
-            }
-
-            return await SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+            var disposer = PooledHashSet<T>.GetInstance(out instance);
+            instance.AddRange(items);
+            return disposer;
         }
 
-        private static ValueTask<ImmutableArray<INavigateToSearchResult>> RehydrateAsync(
-            Optional<ImmutableArray<SerializableNavigateToSearchResult>> result,
-            Solution solution,
-            CancellationToken cancellationToken)
+        private static PooledDisposer<PooledHashSet<T>> GetPooledHashSet<T>(ImmutableArray<T> items, out PooledHashSet<T> instance)
         {
-            if (result.HasValue)
-            {
-                return result.Value.SelectAsArrayAsync(r => r.RehydrateAsync(solution, cancellationToken));
-            }
-            else
-            {
-                return ValueTaskFactory.FromResult(ImmutableArray<INavigateToSearchResult>.Empty);
-            }
+            var disposer = PooledHashSet<T>.GetInstance(out instance);
+            instance.AddRange(items);
+            return disposer;
         }
     }
 }

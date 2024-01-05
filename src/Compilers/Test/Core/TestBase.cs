@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +16,9 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
 using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Basic.Reference.Assemblies;
+using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Roslyn.Test.Utilities
 {
@@ -26,10 +27,24 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public abstract class TestBase : IDisposable
     {
-        private TempRoot _temp;
+        private TempRoot? _temp;
+        private readonly CultureInfo? _originalUICulture;
 
         protected TestBase()
         {
+            // Force the UI culture to be the same as current culture. This will more fully exercise our
+            // localization paths on machines that aren't en-US.
+            // 
+            // Consider as an example our test infrastructure which runs machines in the es-ES locale. The 
+            // machine setup is such that CurrentCulture is es-ES but CurrentUICUlture is en-US. That means 
+            // our test infra isn't actually testing anything with respect to resource strings as they 
+            // all load with CurrentUICulture. This normalization means that when running on a machine 
+            // that doesn't use en-US we fully test our capabilities here.
+            if (CultureInfo.CurrentUICulture != CultureInfo.CurrentCulture)
+            {
+                _originalUICulture = CultureInfo.CurrentUICulture;
+                CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
+            }
         }
 
         public static string GetUniqueName()
@@ -52,6 +67,11 @@ namespace Roslyn.Test.Utilities
 
         public virtual void Dispose()
         {
+            if (_originalUICulture != null)
+            {
+                CultureInfo.CurrentUICulture = _originalUICulture;
+            }
+
             if (_temp != null)
             {
                 _temp.Dispose();
@@ -59,19 +79,6 @@ namespace Roslyn.Test.Utilities
         }
 
         #region Metadata References
-
-        /// <summary>
-        /// Helper for atomically acquiring and saving a metadata reference. Necessary
-        /// if the acquired reference will ever be used in object identity comparisons.
-        /// </summary>
-        private static MetadataReference GetOrCreateMetadataReference(ref MetadataReference field, Func<MetadataReference> getReference)
-        {
-            if (field == null)
-            {
-                Interlocked.CompareExchange(ref field, getReference(), null);
-            }
-            return field;
-        }
 
         private static readonly Lazy<MetadataReference[]> s_lazyDefaultVbReferences = new Lazy<MetadataReference[]>(
             () => new[] { Net40.mscorlib, Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic },
@@ -150,8 +157,13 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v4_0_30319_17929 => s_systemCoreRef_v4_0_30319_17929.Value;
 
+        private static readonly Lazy<MetadataReference> s_systemRuntimeSerializationRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+        public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
+
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.SystemCore.ImageBytes).GetReference(display: "System.Core.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v46 => s_systemCoreRef_v4_0_30319_17929.Value;
 
@@ -184,7 +196,7 @@ namespace Roslyn.Test.Utilities
             () =>
             {
                 var source = TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928_cs;
-                var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(source);
+                var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default));
 
                 var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -208,7 +220,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference MscorlibRef_v4_0_30316_17626 => Net451.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v46 => s_mscorlibRef_v46.Value;
 
@@ -238,7 +250,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            () => AssemblyMetadata.CreateFromImage(NetStandard20.Resources.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
@@ -249,18 +261,13 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
 
-        private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference SystemDynamicRuntimeRef => s_systemDynamicRuntimeRef.Value;
-
         private static readonly Lazy<MetadataReference> s_systemRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(ResourcesNet451.System).GetReference(display: "System.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef => s_systemRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet461.System).GetReference(display: "System.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.References.System.ImageBytes).GetReference(display: "System.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef_v46 => s_systemRef_v46.Value;
 
@@ -327,10 +334,10 @@ namespace Roslyn.Test.Utilities
 
         internal static DiagnosticDescription Diagnostic(
             object code,
-            string squiggledText = null,
-            object[] arguments = null,
+            string? squiggledText = null,
+            object[]? arguments = null,
             LinePosition? startLocation = null,
-            Func<SyntaxNode, bool> syntaxNodePredicate = null,
+            Func<SyntaxNode, bool>? syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false,
             bool isSuppressed = false)
         {
@@ -347,9 +354,9 @@ namespace Roslyn.Test.Utilities
         internal static DiagnosticDescription Diagnostic(
            object code,
            XCData squiggledText,
-           object[] arguments = null,
+           object[]? arguments = null,
            LinePosition? startLocation = null,
-           Func<SyntaxNode, bool> syntaxNodePredicate = null,
+           Func<SyntaxNode, bool>? syntaxNodePredicate = null,
            bool argumentOrderDoesNotMatter = false,
            bool isSuppressed = false)
         {

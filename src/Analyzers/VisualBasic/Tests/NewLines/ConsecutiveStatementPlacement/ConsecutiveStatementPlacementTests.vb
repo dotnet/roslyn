@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.Consecuti
                 .FixedCode = fixedCode
                 }
 
-            test.Options.Add(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement)
+            test.Options.Add(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement)
             Await test.RunAsync()
         End Function
 
@@ -430,6 +430,18 @@ class C
         end if
     end sub
 end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestClassWithEndOfLine() As Task
+            Dim code = "
+class C
+    sub M()
+    end sub
+end class
+"
+
+            Await TestWithOptionOn(code, code)
         End Function
     End Class
 End Namespace

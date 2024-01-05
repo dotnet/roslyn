@@ -841,9 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberTypeAccessibility(diagnostics, node, methodOrProperty)
             End If
 
-            If bestResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
-            End If
+            diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
 
             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node, bestResult, boundArguments, diagnostics)
             boundArguments = argumentInfo.Arguments
@@ -857,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = CheckSharedSymbolAccess(target, methodOrProperty.IsShared, receiver, group.QualificationKind, diagnostics)  ' give diagnostics if sharedness is wrong.
             End If
 
-            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodOrProperty, node)
+            ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodOrProperty, node)
 
             hasErrors = hasErrors Or group.HasErrors
 
@@ -1762,7 +1760,6 @@ ProduceBoundNode:
             Return If(commonReturnType, ErrorTypeSymbol.UnknownResultType)
         End Function
 
-
         Private Shared Sub ReportUnspecificProcedures(
             diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1823,8 +1820,6 @@ ProduceBoundNode:
                                                     ))
         End Sub
 
-
-
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
             node As SyntaxNode,
             diagnosticLocation As Location,
@@ -1838,7 +1833,7 @@ ProduceBoundNode:
             queryMode As Boolean,
             callerInfoOpt As SyntaxNode
         )
-            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
@@ -1937,7 +1932,7 @@ ProduceBoundNode:
         End Sub
 
         Private Shared Function ReportCommonErrorsFromLambdas(
-            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))),
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))),
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As BindingDiagnosticBag
         ) As Boolean
@@ -2199,9 +2194,7 @@ ProduceBoundNode:
                 Next
 
                 ' Check whether type inference failed
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                    diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
-                End If
+                diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
 
                 If candidate.IsGeneric AndAlso candidateAnalysisResult.State = OverloadResolution.CandidateAnalysisResultState.TypeInferenceFailed Then
                     ' Bug 122092: AddressOf doesn't want detailed info on which parameters could not be
@@ -2256,8 +2249,7 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
-                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
                             ' Already reported some errors, let's not report a general inference error
                             Return
                         End If
@@ -2287,8 +2279,7 @@ ProduceBoundNode:
                     Return
                 End If
 
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                   candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
+                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
                     Return
                 End If
 
@@ -2321,7 +2312,6 @@ ProduceBoundNode:
                         ElseIf someParamArrayArgumentsBad Then
                             Continue For
                         End If
-
 
                         If paramArrayItems.Count = 1 Then
                             Dim paramArrayArgument = arguments(paramArrayItems(0))
@@ -2424,7 +2414,9 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt)
+                        ' reducedExtensionReceiverOpt is used to determine the default value of a CallerArgumentExpression when it refers to the first parameter of an extension method.
+                        ' Don't bother with correctly determining the correct value for this case since we're in an error case anyway.
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, reducedExtensionReceiverOpt:=Nothing)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
@@ -2539,7 +2531,6 @@ ProduceBoundNode:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByValParameter.
@@ -2798,7 +2789,6 @@ ProduceBoundNode:
             parameterToArgumentMap.Free()
             Return (argumentsInOrder.ToImmutableAndFree(), defaultArguments)
         End Function
-
 
         Private Function PassArgument(
             argument As BoundExpression,
@@ -3098,7 +3088,13 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol,
+                                                            syntax As SyntaxNode,
+                                                            diagnostics As BindingDiagnosticBag,
+                                                            callerInfoOpt As SyntaxNode,
+                                                            parameterToArgumentMap As ArrayBuilder(Of Integer),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            reducedExtensionReceiverOpt As BoundExpression) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3114,8 +3110,11 @@ ProduceBoundNode:
                     Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
                     Dim isCallerMemberName As Boolean = param.IsCallerMemberName
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
+                    Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
+                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
+
+                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
@@ -3149,14 +3148,30 @@ ProduceBoundNode:
                             If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
                                 callerInfoValue = ConstantValue.Create(container.Name)
                             End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
+                        ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                        Else
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2))
+
+                            Dim argumentSyntax As SyntaxNode = Nothing
+                            If callerArgumentExpressionParameterIndex = -1 Then
+                                argumentSyntax = reducedExtensionReceiverOpt.Syntax
+                            Else
+                                Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+                                Debug.Assert(argumentIndex < arguments.Length)
+                                If argumentIndex > -1 Then
+                                    argumentSyntax = arguments(argumentIndex).Syntax
+                                End If
+                            End If
+
+                            If argumentSyntax IsNot Nothing Then
+                                callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
+                            End If
                         End If
 
                         If callerInfoValue IsNot Nothing Then
                             ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                             Dim literal As BoundLiteral
 
                             If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then

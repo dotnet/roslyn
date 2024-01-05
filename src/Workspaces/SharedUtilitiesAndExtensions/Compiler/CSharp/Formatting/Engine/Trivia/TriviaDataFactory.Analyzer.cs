@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         }
 
                         // Finally hit the first previous token with non-zero full width.
-                        if (previousToken.TrailingTrivia.Count > 0 &&
-                            previousToken.TrailingTrivia.Last().Kind() == SyntaxKind.EndOfLineTrivia)
-                        {
+                        if (previousToken.TrailingTrivia is [.., (kind: SyntaxKind.EndOfLineTrivia)])
                             result.LineBreaks = 1;
-                        }
 
                         break;
                     }
@@ -117,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasSkippedTokens = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia ||
-                             trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    else if (trivia.Kind() is SyntaxKind.DisabledTextTrivia or
+                             SyntaxKind.PreprocessingMessageTrivia)
                     {
                         result.HasSkippedOrDisabledText = true;
                     }

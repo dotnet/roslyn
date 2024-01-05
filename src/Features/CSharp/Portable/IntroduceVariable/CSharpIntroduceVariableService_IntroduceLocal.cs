@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
+                s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // If we're inserting into a multi-line parent, then add a newline after the local-var
             // we're adding.  That way we don't end up having it and the starting statement be on
             // the same line (which will cause indentation to be computed incorrectly).
-            var text = await document.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
             {
                 declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
-                    var createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = true;
+
+                    if (method is not null)
+                        createReturnStatement = !method.ReturnsVoid && !method.IsAsyncReturningVoidTask(document.SemanticModel.Compilation);
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -292,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
             var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
-            if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
+            if (localFunction != null && !localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
             }
@@ -436,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 });
         }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
         private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
             => blockLike switch

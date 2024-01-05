@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
     internal class CSharpSyntaxContextService : ISyntaxContextService
     {
         [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSyntaxContextService()
         {
         }
 
-        public SyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+        public SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
     }
 }

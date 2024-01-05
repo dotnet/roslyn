@@ -46,13 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        /// <summary>
+        /// Returns the original syntax nodes for this type declaration across all its parts.  If
+        /// <paramref name="quickAttributes"/> is provided, attributes will not be returned if it
+        /// is certain there are none that could match the request.  This prevents going back to 
+        /// source unnecessarily.
+        /// </summary>
+        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
             foreach (var decl in _declarations)
             {
                 if (!decl.HasAnyAttributes)
+                {
+                    continue;
+                }
+
+                if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
                 {
                     continue;
                 }
@@ -66,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -117,6 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasPrimaryConstructor
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.HasPrimaryConstructor)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool AnyMemberHasAttributes
         {
             get
@@ -142,25 +168,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sortKey;
         }
 
-        public ImmutableArray<SourceLocation> NameLocations
+        public OneOrMany<SourceLocation> NameLocations
         {
             get
             {
                 if (Declarations.Length == 1)
-                {
-                    return ImmutableArray.Create(Declarations[0].NameLocation);
-                }
-                else
-                {
-                    var builder = ArrayBuilder<SourceLocation>.GetInstance();
-                    foreach (var decl in Declarations)
-                    {
-                        SourceLocation loc = decl.NameLocation;
-                        if (loc != null)
-                            builder.Add(loc);
-                    }
-                    return builder.ToImmutableAndFree();
-                }
+                    return OneOrMany.Create(Declarations[0].NameLocation);
+
+                var builder = ArrayBuilder<SourceLocation>.GetInstance(Declarations.Length);
+                foreach (var decl in Declarations)
+                    builder.AddIfNotNull(decl.NameLocation);
+
+                return builder.ToOneOrManyAndFree();
             }
         }
 
@@ -224,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Value);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

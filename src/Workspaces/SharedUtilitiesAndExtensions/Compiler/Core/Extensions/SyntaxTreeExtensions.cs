@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // implements the ASP.NET IsHidden rule
                     var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
-                    return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+                    return lineVisibility is LineVisibility.Hidden or LineVisibility.BeforeFirstLineDirective;
                 },
                 cancellationToken);
         }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(syntaxTree);
 
-            if (position >= syntaxTree.Length)
+            if (position > syntaxTree.Length)
             {
                 return default;
             }
@@ -240,6 +240,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Otherwise, fallback to generated code heuristic.
             return GeneratedCodeUtilities.IsGeneratedCode(
                 syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds the node in the given <paramref name="syntaxTree"/> corresponding to the given <paramref name="span"/>.
+        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the root node of the tree.
+        /// </summary>
+        public static SyntaxNode FindNode(this SyntaxTree syntaxTree, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+        {
+            var root = syntaxTree.GetRoot(cancellationToken);
+            return root.FindNode(span, findInTrivia, getInnermostNodeForTie);
         }
     }
 }

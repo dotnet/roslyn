@@ -4,9 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
-    internal struct ForEachSymbols
+    internal readonly struct ForEachSymbols
     {
         public readonly IMethodSymbol GetEnumeratorMethod;
         public readonly IMethodSymbol MoveNextMethod;

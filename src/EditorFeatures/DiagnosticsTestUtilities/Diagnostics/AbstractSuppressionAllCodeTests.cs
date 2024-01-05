@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         continue;
                     }
 
-                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
+                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult();
                     if (fixes == null || fixes.Count() <= 0)
                     {
                         continue;
@@ -105,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         continue;
                     }
 
-                    var operations = fix.GetOperationsAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    var operations = fix.GetOperationsAsync(
+                        document.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None).GetAwaiter().GetResult();
 
                     var applyChangesOperation = operations.OfType<ApplyChangesOperation>().Single();
                     var newDocument = applyChangesOperation.ChangedSolution.Projects.Single().Documents.Single();
@@ -139,9 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {
             private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options) => false;
+            public bool IsHighPriority => false;
+
+            public bool OpenFileOnly(SimplifierOptions options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

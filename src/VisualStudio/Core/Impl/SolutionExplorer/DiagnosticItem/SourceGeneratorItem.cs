@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
@@ -13,14 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal sealed partial class SourceGeneratorItem : BaseItem
     {
         public ProjectId ProjectId { get; }
-        public ISourceGenerator Generator { get; }
+        public SourceGeneratorIdentity Identity { get; }
         public AnalyzerReference AnalyzerReference { get; }
 
         public SourceGeneratorItem(ProjectId projectId, ISourceGenerator generator, AnalyzerReference analyzerReference)
-            : base(name: generator.GetType().FullName)
+            : base(name: SourceGeneratorIdentity.GetGeneratorTypeName(generator))
         {
             ProjectId = projectId;
-            Generator = generator;
+            Identity = SourceGeneratorIdentity.Create(generator, analyzerReference);
             AnalyzerReference = analyzerReference;
         }
 

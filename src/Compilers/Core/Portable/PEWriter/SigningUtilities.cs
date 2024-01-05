@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
             if (keySize == 0 && privateKey.HasValue)
             {
-                keySize = privateKey.Value.Modulus.Length;
+                keySize = privateKey.Value.Modulus!.Length;
             }
 
             if (keySize == 0)

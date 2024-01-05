@@ -4,12 +4,22 @@
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
-        <target state="new">Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</target>
+        <target state="translated">La propriété d'initialisation uniquement '{0}' peut uniquement être affectée par un initialiseur de membre d'objet, ou sur 'Me', 'MyClass` ou 'MyBase' dans un constructeur d'instance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Impossible d’accéder à un membre d’interface virtuelle ou abstrait partagé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Erreur de syntaxe de ligne de commande : '{0}' est une valeur non valide pour l'option '{1}'. La valeur doit se présenter sous la forme '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Impossible d'hériter de '{0}' car il a requis des membres.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -22,24 +32,54 @@
         <target state="translated">Impossible d'incorporer le type '{0}', car il a un membre non abstrait. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">« System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute » est réservé à l’utilisation du compilateur uniquement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' est réservé à l'usage du compilateur uniquement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Plusieurs fichiers config d'analyseur ne peuvent pas figurer dans le même répertoire ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' ne peut pas satisfaire la contrainte 'Nouveau' sur le paramètre '{1}' dans le type ou la méthode générique '{0}' car '{2}' a des membres requis.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
         <source>'{0}' cannot override init-only '{1}'.</source>
-        <target state="new">'{0}' cannot override init-only '{1}'.</target>
+        <target state="translated">'{0}' ne peut pas substituer le '{1}' d'initialisation uniquement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
         <source>Init-only '{0}' cannot be implemented.</source>
-        <target state="new">Init-only '{0}' cannot be implemented.</target>
+        <target state="translated">Impossible d'implémenter le '{0}' d'initialisation uniquement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Impossible d'incorporer le type '{0}', car il a une nouvelle abstraction d'un membre de l'interface de base. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">Le membre requis '{0}' doit être défini dans l'initialiseur d'objet ou les arguments d'attribut.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">La liste des membres requis pour «{0}» est incorrecte et ne peut pas être interprétée.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -54,12 +94,37 @@
       </trans-unit>
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
-        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <target state="translated">Les événements des variables WithEvents partagées ne peuvent pas être pris en charge par des méthodes dans un autre type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' est défini dans l'assemblage '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} '{1}' ne peut pas mettre en œuvre l'interface '{3}' car elle contient des données abstraites ou virtuelles partagées '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">L'attribut 'UnmanagedCallersOnly' n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">'{0}' nécessite la fonctionnalité de compilateur '{1}', qui n’est pas prise en charge par cette version du compilateur Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Un appel à une méthode ou une propriété qui retourne par référence ne peut pas être utilisé comme expression d'instruction 'With' dans une méthode asynchrone ou itérateur, ou s'il est référencé implicitement dans un lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">expression d’argument de l’appelant</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -69,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
-        <target state="new">assigning to or passing 'ByRef' properties with init-only setters</target>
+        <target state="translated">affectation ou passage de propriétés 'ByRef' avec des méthodes setter d'initialisation uniquement</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -206,6 +271,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -230,11 +297,14 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -245,166 +315,171 @@
         <target state="translated">                  Options du compilateur Visual Basic
 
                                   - FICHIER DE SORTIE -
--out:&lt;fichier&gt;                    Spécifie le nom du fichier de sortie.
+-out:&lt;file&gt;                       Spécifie le nom du fichier de sortie.
 -target:exe                       Créer une application console (par défaut).
-                                  (Forme abrégée : -t)
+                                  (Forme courte : -t)
 -target:winexe                    Créer une application Windows.
--target:library                   Créer un assembly de bibliothèque.
--target:module                    Créer un module qui peut être ajouté à un
-                                  assembly.
+-target:library                   Créer un assemblage de bibliothèque.
+-target:module                    Créer un module qui peut être ajouté à une
+                                  assemblée.
 -target:appcontainerexe           Créer une application Windows qui s'exécute dans
                                   AppContainer.
 -target:winmdobj                  Créer un fichier intermédiaire de métadonnées Windows
 -doc[+|-]                         Génère un fichier de documentation XML.
--doc:&lt;fichier&gt;                    Génère un fichier de documentation XML dans &lt;fichier&gt;.
--refout:&lt;fichier&gt;                 Sortie de l'assembly de référence à générer
+-doc:&lt;file&gt;            Générer le fichier de documentation XML pour &lt;fichier&gt;.
+-refout:&lt;file&gt;            Sortie d’assemblée de référence pour produire
 
-                                  - FICHIERS D'ENTRÉE -
--addmodule:&lt;liste_fichiers&gt;       Référencer les métadonnées à partir des modules spécifiés
--link:&lt;liste_fichiers&gt;            Incorporer les métadonnées à partir de
-                                  l'assembly d'interopérabilité spécifié. (Forme abrégée : -l)
--recurse:&lt;générique&gt;              Inclure tous les fichiers dans le répertoire
-                                  et les sous-répertoires actifs en fonction des
-                                  spécifications des caractères génériques.
--reference:&lt;liste_fichiers&gt;       Référencer les métadonnées à partir de
-                                  l'assembly spécifié. (Forme abrégée : -r)
--analyzer:&lt;liste_fichiers&gt;        Exécuter les analyseurs à partir de cet assembly
-                                  (Forme abrégée : -a)
--additionalfile:&lt;liste_fichiers&gt;     Fichiers supplémentaires qui n'affectent pas directement
-                                  la génération de code mais qui peuvent être utilisés par les analyseurs pour produire
-                                  des erreurs ou des avertissements.
+                                  - FICHIERS D'ENTRÉE -
+-addmodule:&lt;file_list&gt;            Métadonnées de référence des modules spécifiés
+-link:&lt;file_list&gt;                 Incorporer les métadonnées de l'interopérabilité spécifiée
+                                  assemblée. (Forme courte : -l)
+-recurse:&lt;wildcard&gt;               Inclure tous les fichiers du répertoire courant
+                                  et sous-répertoires selon les
+                                  spécifications génériques.
+-reference:&lt;file_list&gt;            Métadonnées de référence à partir de la spécifiée
+                                  assemblée. (Forme courte : -r)
+-analyzer:&lt;file_list&gt;             Exécutez les analyseurs à partir de cet assemblage
+                                  (Forme courte : -a)
+-additionalfile:&lt;file list&gt;       Fichiers supplémentaires qui n'affectent pas directement la génération
+                                  du code mais peut être utilisé par les analyseurs pour produire
+                                  erreurs ou avertissements.
 
-                                  - RESSOURCES -
--linkresource:&lt;resinfo&gt;           Lie le fichier spécifié sous forme de
-                                  ressource d'assembly externe.
-                                  resinfo:&lt;fichier&gt;[,&lt;nom&gt;[,public|private]]
-                                  (Forme abrégée : -linkres)
--nowin32manifest                  Le manifeste par défaut ne doit pas être incorporé
-                                  dans la section manifest du PE de sortie.
--resource:&lt;resinfo&gt;               Ajoute le fichier spécifié en tant que
-                                  ressource d'assembly incorporée.
-                                  resinfo:&lt;fichier&gt;[,&lt;nom&gt;[,public|private]]
-                                  (Forme abrégée : -res)
--win32icon:&lt;fichier&gt;              Spécifie un fichier icône Win32 (.ico) pour les
+                                  - RESSOURCES -
+-linkresource:&lt;resinfo&gt;           Lie le fichier spécifié en tant que ressource
+                                  de l’assemblée externe.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Forme courte : -linkres)
+-nowin32manifest                  Le manifeste par défaut ne doit pas être intégré
+                                  dans la section manifeste du PE de sortie.
+-resource:&lt;resinfo&gt;               Ajoute le fichier spécifié en tant que ressource
+                                  de l’assemblée intégrée.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Forme courte : -res)
+-win32icon:&lt;file&gt;                 Spécifie un fichier d'icône Win32 (.ico) pour les
                                   ressources Win32 par défaut.
--win32manifest:&lt;fichier&gt;          Le fichier fourni est incorporé dans la section manifest
-                                  du PE de sortie.
--win32resource:&lt;fichier&gt;          Spécifie un fichier de ressources Win32 (.res).
+-win32manifest:&lt;file&gt;             Le fichier fourni est intégré dans
+                                  la section manifeste du PE de sortie.
+-win32resource:&lt;file&gt;             Spécifie un fichier de ressources Win32 (.res).
 
-                                  - GÉNÉRATION DE CODE -
+                                  - GÉNÉRATION DE CODE -
 -optimize[+|-]                    Activer les optimisations.
--removeintchecks[+|-]             Supprimer les contrôles sur les entiers. La valeur par défaut est off.
+-removeintchecks[+|-]             Supprimer les vérifications d'entiers. Désactivé par défaut.
 -debug[+|-]                       Émettre des informations de débogage.
 -debug:full                       Émettre des informations de débogage complètes (par défaut).
 -debug:pdbonly                    Émettre des informations de débogage complètes.
--debug:portable                   Émettre des informations de débogage multiplateformes.
--debug:embedded                   Émettre des informations de débogage multiplateformes dans
-                                  le fichier .dll ou .exe cible.
--deterministic                    Produire un assembly déterministe
-                                  (en incluant le GUID et l'horodatage de la version du module)
--refonly                          Produire un assembly de référence à la place de la sortie principale
--instrument:TestCoverage          Produire un assembly instrumenté pour collecter
-                                  les informations de couverture
--sourcelink:&lt;fichier&gt;             Informations du lien source à incorporer dans le fichier PDB.
+-debug:portable                   Émettre des informations de débogage multiplateforme.
+-debug:embedded                   Émettre des informations de débogage multiplateforme dans
+                                  la cible .dll ou .exe.
+-deterministic                    Produire un assemblage déterministe
+                                  (y compris le GUID et l'horodatage de la version du module)
+-refonly                          Produire un assemblage de référence à la place de la sortie principale
+-instrument:TestCoverage          Réaliser un assemblage instrumenté pour encaisser
+                                  des informations sur la couverture
+-sourcelink:&lt;file&gt;                Informations sur le lien source à intégrer dans PDB.
 
-                                  - ERREURS ET AVERTISSEMENTS -
+                                  - ERREURS ET AVERTISSEMENTS -
 -nowarn                           Désactiver tous les avertissements.
--nowarn:&lt;liste_numéros&gt;           Désactiver une liste d'avertissements individuels.
+-nowarn:&lt;number_list&gt;             Désactiver une liste d'avertissements individuels.
 -warnaserror[+|-]                 Traiter tous les avertissements comme des erreurs.
--warnaserror[+|-]:&lt;liste_numéros&gt; Traiter une liste d'avertissements comme des erreurs.
--ruleset:&lt;fichier&gt;                Spécifier un fichier ruleset qui désactive des
+-warnaserror[+|-]:&lt;number_list&gt;   Traiter une liste d'avertissements comme des erreurs.
+-ruleset:&lt;file&gt;                   Spécifiez un fichier d'ensemble de règles qui désactive des
                                   diagnostics spécifiques.
--errorlog:&lt;fichier&gt;[,version=&lt;version_sarif&gt;]         
-                                  Spécifier un fichier pour journaliser tous les diagnostics du compilateur
-                                  et de l'analyseur au format SARIF.
-                                  version_sarif :{1|2|2.1} La valeur par défaut est 1. 2 et 2.1
-                                  Les deux signifient SARIF version 2.1.0.
--reportanalyzer                   Signaler des informations supplémentaires sur l'analyseur, par exemple
-                                  la durée d'exécution.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Spécifiez un fichier pour consigner tous les diagnostics du compilateur et de l'analyseur
+                                  au format SARIF.
+                                  sarif_version:{1|2|2.1} La valeur par défaut est 1. 2 et 2.1
+                                  les deux signifient SARIF version 2.1.0.
+-reportanalyzer                   Signalez des informations supplémentaires sur l'analyseur, telles que
+                                  le temps d'exécution.
 -skipanalyzers[+|-]               Ignorer l'exécution des analyseurs de diagnostic.
 
-                                  - LANGAGE -
--define:&lt;liste_symboles&gt;          Déclarer des symboles de compilation
-                                  conditionnelle globale. liste_symboles:name=value,...
-                                  (Forme abrégée : -d)
--imports:&lt;liste_importations&gt;     Déclarer des importations globales pour les espaces de noms dans
+                                  - LANGUE -
+-define:&lt;symbol_list&gt;             Déclarer le(s) symbole(s) de compilation conditionnelle
+                                  globale. symbol_list:name=value,...
+                                  (Forme courte : -d)
+-imports:&lt;import_list&gt;            Déclarez des importations globales pour les espaces de noms dans
                                   les fichiers de métadonnées référencés.
-                                  liste_importations:namespace,...
--langversion:?                    Afficher les valeurs autorisées pour la version du langage
--langversion:&lt;chaîne&gt;             Spécifier la version du langage, par exemple
-                                  'default' (dernière version principale) ou
-                                  'latest' (dernière version, en incluant les versions mineures),
-                                  ou des versions spécifiques comme '14' ou '15.3'
--optionexplicit[+|-]              Imposer une déclaration explicite des variables.
+                                  import_list:namespace,...
+-langversion:?                    Afficher les valeurs autorisées pour la version linguistique
+-langversion:&lt;string&gt;             Spécifiez la version de langue telle que
+                                  `default` (dernière version majeure) ou
+                                  `latest` (dernière version, y compris les versions mineures),
+                                  ou des versions spécifiques comme `14` ou `15.3`
+-optionexplicit[+|-]              Exiger une déclaration explicite des variables.
 -optioninfer[+|-]                 Autoriser l'inférence de type des variables.
--rootnamespace:&lt;chaîne&gt;           Spécifie l'espace de noms racine pour toutes les
+-rootnamespace:&lt;string&gt;           Spécifie l'espace de noms racine pour toutes les
                                   déclarations de type.
--optionstrict[+|-]                Appliquer une sémantique stricte du langage.
--optionstrict:custom              Avertir quand la sémantique stricte du langage n'est pas
+-optionstrict[+|-]                Appliquez une sémantique stricte du langage.
+-optionstrict:custom              Avertir lorsque la sémantique stricte du langage n'est pas
                                   respectée.
 -optioncompare:binary             Spécifie des comparaisons de chaînes de style binaire.
-                                  Il s'agit de la valeur par défaut.
--optioncompare:text               Spécifie des comparaisons de chaînes de style texte.
+                                  C'est la valeur par défaut.
+-optioncompare:text               Spécifie les comparaisons de chaînes de style texte.
 
-                                  - DIVERS -
--help                             Afficher ce message d'utilisation. (Forme abrégée : -?)
--noconfig                         Ne pas inclure automatiquement un fichier VBC.RSP.
+                                  - DIVERS -
+-help                             Afficher ce message d'utilisation. (Forme courte : -?)
+-noconfig                         Ne pas inclure automatiquement le fichier VBC.RSP.
 -nologo                           Ne pas afficher la bannière de copyright du compilateur.
 -quiet                            Mode de sortie silencieux.
--verbose                          Afficher des messages documentés.
--parallel[+|-]                    Build simultanée.
--version                          Afficher le numéro de version du compilateur et quitter le processus.
+-verbose                          Affichez des messages détaillés.
+-parallel[+|-]                    Construction simultanée.
+-version                          Affichez le numéro de version du compilateur et quittez.
 
-                                  - AVANCÉ -
--baseaddress:&lt;numéro&gt;             Adresse de base d'une bibliothèque ou d'un module
-                                  (en hexadécimal).
--checksumalgorithm:&lt;alg&gt;          Spécifier l'algorithme de calcul de la somme de contrôle
-                                  de fichier source stockée dans le fichier PDB. Valeurs prises en charge :
+                                  - AVANCÉ -
+-baseaddress:&lt;number&gt;             L'adresse de base d'une bibliothèque ou d'un module
+                                  (hex).
+-checksumalgorithm:&lt;alg&gt;          Spécifier l'algorithme pour calculer la somme de contrôle du fichier
+                                  source stocké dans PDB. Les valeurs prises en charge sont :
                                   SHA1 ou SHA256 (par défaut).
--codepage:&lt;numéro&gt;                Spécifie la page de codes à utiliser à l'ouverture
-                                  des fichiers sources.
--delaysign[+|-]                   Différer la signature de l'assembly en utilisant uniquement
+-codepage:&lt;number&gt;                Spécifie la page de code à utiliser lors de l'ouverture
+                                  des fichiers source.
+-delaysign[+|-]                   Retardez la signature de l’assemblée en utilisant uniquement
                                   la partie publique de la clé de nom fort.
--publicsign[+|-]                  Signer publiquement l'assembly en utilisant uniquement
+-publicsign[+|-]                  Signature publique de l’assemblée en utilisant uniquement
                                   la partie publique de la clé de nom fort.
--errorreport:&lt;chaîne&gt;             Spécifie comment prendre en charge les erreurs internes du
-                                  compilateur ; doit avoir la valeur prompt, send, none ou queue
+-errorreport:&lt;string&gt;             Spécifie comment gérer
+                                  les erreurs internes du compilateur ; doit être prompt, envoyer, none ou queue
                                   (par défaut).
--filealign:&lt;numéro&gt;               Spécifier l'alignement utilisé pour les
-                                  sections du fichier de sortie.
--highentropyva[+|-]               Activer la randomisation du format d'espace d'adresse d'entropie élevée.
--keycontainer:&lt;chaîne&gt;            Spécifie un conteneur de clé de nom fort.
--keyfile:&lt;fichier&gt;                Spécifie un fichier de clé de nom fort.
--libpath:&lt;liste_chemins&gt;          Liste de répertoires où rechercher des
-                                  références de métadonnées. (Valeurs délimitées par des points-virgules.)
--main:&lt;classe&gt;                    Spécifie la classe ou le module qui contient
+-generatedfilesout:&lt;dir&gt;          Place les fichiers générés lors de la compilation dans le
+                                  répertoire spécifié.
+-filealign:&lt;number&gt;               Spécifiez l'alignement utilisé pour les sections du fichier
+                                  de sortie.
+-highentropyva[+|-]               Activer l'ASLR à haute entropie.
+-keycontainer:&lt;string&gt;            Spécifie un conteneur de clé de nom fort.
+-keyfile:&lt;file&gt;                   Spécifie un fichier de clé de nom fort.
+-libpath:&lt;path_list&gt;              Liste des répertoires pour rechercher des références
+                                  de métadonnées. (Délimité par des points-virgules.)
+-main:&lt;class&gt;                     Spécifie la classe ou le module qui contient
                                   Sub Main. Il peut également s'agir d'une classe qui
                                   hérite de System.Windows.Forms.Form.
-                                  (Forme abrégée : -m)
--moduleassemblyname:&lt;chaîne&gt;      Nom de l'assembly dont ce module
-                                  doit faire partie.
--netcf                            Cibler le .NET Compact Framework.
+                                  (Forme courte : -m)
+-moduleassemblyname:&lt;string&gt;      Nom de l'assemblage dont
+                                  ce module fera partie.
+-netcf                            Ciblez le .NET Compact Framework.
 -nostdlib                         Ne pas référencer les bibliothèques standard
-                                  (fichiers system.dll et VBC.RSP).
+                                  (system.dll et fichier VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Spécifier un mappage pour les noms de chemins sources sortis par
+                                  Spécifiez un mappage pour les noms de chemin source générés par
                                   le compilateur.
--platform:&lt;chaîne&gt;                Limiter les plateformes sur lesquelles ce code peut s'exécuter ;
-                                  doit correspondre à x86, x64, Itanium, arm, arm64
+-platform:&lt;string&gt;                Limitez les plates-formes sur lesquelles ce code peut s'exécuter ;
+                                  doit être x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred ou anycpu (par défaut).
--preferreduilang                  Spécifier le nom du langage de sortie préféré.
--nosdkpath                        Désactivez la recherche du chemin du kit SDK par défaut pour les assemblys de bibliothèque standard.
--sdkpath:&lt;chemin&gt;                 Emplacement du répertoire du SDK .NET Framework
+-preferreduilang                  Spécifiez le nom de la langue de sortie préférée.
+-nosdkpath                        Désactiver la recherche du chemin SDK par défaut pour les assemblées de bibliothèque standard.
+-reportivts[+|-]                  Générez des informations sur tous les IVT accordés à cette
+                                  assemblée par toutes les dépendances et annotez les erreurs
+                                  d'accessibilité d’assemblée étranger avec l’assemblée d'où elles proviennent.
+-sdkpath:&lt;path&gt;                   Emplacement du répertoire du SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Spécifier la version du sous-système du PE de sortie.
-                                  version:&lt;numéro&gt;[.&lt;numéro&gt;]
--utf8output[+|-]                  Émettre la sortie du compilateur au format
-                                  d'encodage de caractères UTF8.
-@&lt;fichier&gt;                        Insérer les paramètres de ligne de commande à partir d'un fichier texte
--vbruntime[+|-|*]                 Compiler avec/sans le
-                                  runtime Visual Basic par défaut.
--vbruntime:&lt;fichier&gt;              Compiler avec le
-                                  runtime Visual Basic de remplacement dans &lt;fichier&gt;.
+-subsystemversion:&lt;version&gt;       Spécifiez la version du sous-système du PE de sortie.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Émettre la sortie du compilateur en codage de
+                                  caractères UTF-8.
+@&lt;file&gt;                           Insérer des paramètres de ligne de commande à partir d'un fichier texte
+-vbruntime[+|-|*]                 Compiler avec/sans le runtime Visual Basic
+                                  par défaut.
+-vbruntime:&lt;file&gt;                 Compiler avec le runtime Visual Basic
+                                  alternatif dans &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -503,17 +578,55 @@
         <target state="translated">L'assembly chargé référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Le générateur '{0}' n'a pas pu générer la source. Dans la mesure où il ne va pas contribuer à la sortie, des erreurs de compilation peuvent se produire. Exception levée de type '{1}' avec le message '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
+        <note />
       </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Le générateur a levé l'exception suivante :
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">L'assembly de l'analyseur fait référence à une version plus récente du compilateur que la version en cours d'exécution.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet, car il est auto-référentiel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre n’aura aucun effet, car il est auto-référentiel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Référence de l’analyseur '{0}' spécifiée plusieurs fois</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Référence de l’analyseur spécifiée plusieurs fois</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Le générateur « {0} » n'a pas réussi à générer la source. Cela ne contribuera pas à la sortie et des erreurs de compilation pourraient en résulter. L'exception était de type « {1} » avec le message « {2} ».
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -521,16 +634,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Échec de l'initialisation du générateur '{0}'. Dans la mesure où il ne va pas contribuer à la sortie, des erreurs de compilation peuvent se produire. Exception levée de type '{1}' avec le message '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Le générateur a levé l'exception suivante :
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Le générateur « {0} » n'a pas pu s'initialiser. Cela ne contribuera pas à la sortie et des erreurs de compilation pourraient en résulter. L'exception était de type « {1} » avec le message « {2} ».
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -3957,7 +4068,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' fermant attendu pour une section CDATA XML.</target>
+        <target state="translated">']]&gt;' fermant attendu pour une section CDATA XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -3972,7 +4083,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">&lt;' ouvrant attendu pour une balise XML.</target>
+        <target state="translated">'&lt;' ouvrant attendu pour une balise XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">

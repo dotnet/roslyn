@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// This wrapper is only used on platforms where System.IntPtr isn't considered
+    /// a numeric type (as indicated by a RuntimeFeature flag).
+    /// </summary>
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
 #if !DEBUG
         , Cci.IReference
@@ -27,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
+            Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);
         }
 
@@ -45,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SpecialType SpecialType => _underlyingType.SpecialType;
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
@@ -70,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> makeMembers(ImmutableArray<Symbol> underlyingMembers)
             {
                 var builder = ArrayBuilder<Symbol>.GetInstance();
-                builder.Add(new SynthesizedInstanceConstructor(this));
                 foreach (var underlyingMember in underlyingMembers)
                 {
                     Debug.Assert(_underlyingType.Equals(underlyingMember.ContainingSymbol));
@@ -103,6 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             break;
                                     }
                                     break;
+
+                                case MethodKind.Constructor:
+                                    if (underlyingMethod.ParameterCount == 0)
+                                    {
+                                        builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
+                                    }
+                                    break;
                             }
                             break;
                         case PropertySymbol underlyingProperty:
@@ -128,25 +141,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => _underlyingType.GetDeclaredBaseType(basesBeingResolved);
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => GetInterfaces(basesBeingResolved);
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => throw ExceptionUtilities.Unreachable();
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => throw ExceptionUtilities.Unreachable;
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => throw ExceptionUtilities.Unreachable();
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => GetInterfaces(basesBeingResolved);
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable();
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
@@ -155,15 +168,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return useSiteInfo;
         }
 
-        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
 
-        internal override bool IsNativeIntegerType => true;
+        internal override bool IsNativeIntegerWrapperType => true;
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
+        // note: there is no supported way to create a native integer type whose underlying type is file-local.
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
         internal sealed override bool IsRecord => false;
+        internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
@@ -180,18 +198,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+
             return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other.IsNativeIntegerType;
+                other.IsNativeIntegerWrapperType;
         }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
-
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif 
 
@@ -251,6 +269,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(symbolA.Equals(symbolB, TypeCompareKind.IgnoreNativeIntegers));
             Debug.Assert(symbolB.Equals(symbolA, TypeCompareKind.IgnoreNativeIntegers));
             Debug.Assert(symbolA.GetHashCode() == symbolB.GetHashCode());
+        }
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
@@ -331,10 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol.UnderlyingMethod);
 
@@ -344,9 +386,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif 
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
@@ -359,6 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NativeIntegerParameterSymbol(NativeIntegerTypeSymbol containingType, NativeIntegerMethodSymbol container, ParameterSymbol underlyingParameter) : base(underlyingParameter)
         {
+            Debug.Assert(container != null);
+
             _containingType = containingType;
             _container = container;
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingParameter);
@@ -370,6 +420,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingParameter.RefCustomModifiers;
 
+        internal override bool IsCallerLineNumber => _underlyingParameter.IsCallerLineNumber;
+
+        internal override bool IsCallerFilePath => _underlyingParameter.IsCallerFilePath;
+
+        internal override bool IsCallerMemberName => _underlyingParameter.IsCallerMemberName;
+
+        internal override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingParameter);
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
@@ -378,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif
     }
@@ -427,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             // Emit should use underlying symbol only.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif
     }

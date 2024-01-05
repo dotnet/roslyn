@@ -15,6 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         Implements Cci.IEventDefinition
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Iterator Function IEventDefinitionAccessors(context As EmitContext) As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.GetAccessors
             CheckDefinitionInvariant()
 
@@ -81,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Overloads Function IEventDefinitionGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IEventDefinition.GetType
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IEventDefinitionContainingTypeDefinition As Cci.ITypeDefinition Implements Cci.IEventDefinition.ContainingTypeDefinition
@@ -95,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IEventDefinitionVisibility As Cci.TypeMemberVisibility Implements Cci.IEventDefinition.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedEventSymbol)
+                Return AdaptedEventSymbol.MetadataVisibility
             End Get
 
         End Property
@@ -121,7 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedEventSymbol.MetadataName
             End Get
         End Property
-
     End Class
 
     Partial Friend Class EventSymbol

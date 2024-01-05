@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly IVsHierarchyItem _item;
         private readonly string _projectDirectoryPath;
 
+        /// <summary>
+        /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned null again.
+        /// </summary>
         private AnalyzerReference? _analyzerReference;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -31,9 +34,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
             if (_analyzerReference == null)
             {
-                // The workspace doesn't know about the project and/or the analyzer yet.
-                // Hook up an event handler so we can update when it does.
-                Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                // The ProjectId that was given to us was found by enumerating the list of projects in the solution, thus the project must have already
+                // been added to the workspace at some point. As long as the project is still there, we're going to assume the reason we don't have the reference
+                // yet is because while we have a project, we don't have all the references added yet. We'll wait until we see the reference and then connect to it.
+                if (workspace.CurrentSolution.ContainsProject(projectId))
+                {
+                    Workspace.WorkspaceChanged += OnWorkspaceChangedLookForAnalyzer;
+                    item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
+
+                    // Now that we've subscribed, check once more in case we missed the event
+                    var analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
+
+                    if (analyzerReference != null)
+                    {
+                        _analyzerReference = analyzerReference;
+                        UnsubscribeFromEvents();
+                    }
+                }
+            }
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+            _item.PropertyChanged -= IVsHierarchyItem_PropertyChanged;
+        }
+
+        private void IVsHierarchyItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // IVsHierarchyItem implements ISupportDisposalNotification, which allows us to know when it's been removed
+            if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed))
+            {
+                UnsubscribeFromEvents();
             }
         }
 
@@ -45,38 +77,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
         {
-            if (e.Kind == WorkspaceChangeKind.SolutionCleared ||
-                e.Kind == WorkspaceChangeKind.SolutionReloaded ||
-                e.Kind == WorkspaceChangeKind.SolutionRemoved)
+            // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
+            if (!e.NewSolution.ContainsProject(ProjectId))
             {
-                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                UnsubscribeFromEvents();
+                return;
             }
-            else if (e.Kind == WorkspaceChangeKind.SolutionAdded)
+
+            // Was this a change to our project, or a global change?
+            if (e.ProjectId == ProjectId ||
+                e.Kind == WorkspaceChangeKind.SolutionChanged)
             {
-                _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
-                if (_analyzerReference != null)
+                var analyzerReference = TryGetAnalyzerReference(e.NewSolution);
+                if (analyzerReference != null)
                 {
-                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
+                    _analyzerReference = analyzerReference;
+                    UnsubscribeFromEvents();
 
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-                }
-            }
-            else if (e.ProjectId == ProjectId)
-            {
-                if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
-                {
-                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
-                }
-                else if (e.Kind == WorkspaceChangeKind.ProjectAdded
-                         || e.Kind == WorkspaceChangeKind.ProjectChanged)
-                {
-                    _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
-                    if (_analyzerReference != null)
-                    {
-                        Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
-
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-                    }
                 }
             }
         }

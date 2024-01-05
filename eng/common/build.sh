@@ -19,6 +19,9 @@ usage()
   echo "Actions:"
   echo "  --restore                  Restore dependencies (short: -r)"
   echo "  --build                    Build solution (short: -b)"
+  echo "  --sourceBuild              Source-build the solution (short: -sb)"
+  echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
+  echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
   echo "  --rebuild                  Rebuild solution"
   echo "  --test                     Run all unit tests in the solution (short: -t)"
   echo "  --integrationTest          Run all integration tests in the solution"
@@ -26,11 +29,13 @@ usage()
   echo "  --pack                     Package build outputs into NuGet packages and Willow components"
   echo "  --sign                     Sign build outputs"
   echo "  --publish                  Publish artifacts (e.g. symbols)"
+  echo "  --clean                    Clean the solution"
   echo ""
 
   echo "Advanced settings:"
   echo "  --projects <value>       Project or solution file(s) to build"
   echo "  --ci                     Set when running on CI server"
+  echo "  --excludeCIBinarylog     Don't output binary log (short: -nobl)"
   echo "  --prepareMachine         Prepare machine for CI run, clean up processes after build"
   echo "  --nodeReuse <value>      Sets nodereuse msbuild parameter ('true' or 'false')"
   echo "  --warnAsError <value>    Sets warnaserror msbuild parameter ('true' or 'false')"
@@ -53,6 +58,7 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
 restore=false
 build=false
+source_build=false
 rebuild=false
 test=false
 integration_test=false
@@ -62,25 +68,31 @@ publish=false
 sign=false
 public=false
 ci=false
+clean=false
 
 warn_as_error=true
 node_reuse=true
 binary_log=false
+exclude_ci_binary_log=false
 pipelines_log=false
 
 projects=''
-configuration='Debug'
+configuration=''
 prepare_machine=false
 verbosity='minimal'
+runtime_source_feed=''
+runtime_source_feed_key=''
 
 properties=''
-
 while [[ $# > 0 ]]; do
-  opt="$(echo "${1/#--/-}" | awk '{print tolower($0)}')"
+  opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
   case "$opt" in
     -help|-h)
       usage
       exit 0
+      ;;
+    -clean)
+      clean=true
       ;;
     -configuration|-c)
       configuration=$2
@@ -92,6 +104,9 @@ while [[ $# > 0 ]]; do
       ;;
     -binarylog|-bl)
       binary_log=true
+      ;;
+    -excludeCIBinarylog|-nobl)
+      exclude_ci_binary_log=true
       ;;
     -pipelineslog|-pl)
       pipelines_log=true
@@ -106,6 +121,12 @@ while [[ $# > 0 ]]; do
       rebuild=true
       ;;
     -pack)
+      pack=true
+      ;;
+    -sourcebuild|-sb)
+      build=true
+      source_build=true
+      restore=true
       pack=true
       ;;
     -test|-t)
@@ -141,6 +162,14 @@ while [[ $# > 0 ]]; do
       node_reuse=$2
       shift
       ;;
+    -runtimesourcefeed)
+      runtime_source_feed=$2
+      shift
+      ;;
+     -runtimesourcefeedkey)
+      runtime_source_feed_key=$2
+      shift
+      ;;
     *)
       properties="$properties $1"
       ;;
@@ -149,10 +178,16 @@ while [[ $# > 0 ]]; do
   shift
 done
 
+if [[ -z "$configuration" ]]; then
+  if [[ "$source_build" = true ]]; then configuration="Release"; else configuration="Debug"; fi
+fi
+
 if [[ "$ci" == true ]]; then
   pipelines_log=true
-  binary_log=true
   node_reuse=false
+  if [[ "$exclude_ci_binary_log" == false ]]; then
+    binary_log=true
+  fi
 fi
 
 . "$scriptroot/tools.sh"
@@ -184,6 +219,7 @@ function Build {
     /p:RepoRoot="$repo_root" \
     /p:Restore=$restore \
     /p:Build=$build \
+    /p:ArcadeBuildFromSource=$source_build \
     /p:Rebuild=$rebuild \
     /p:Test=$test \
     /p:Pack=$pack \
@@ -196,20 +232,15 @@ function Build {
   ExitWithExitCode 0
 }
 
-# Import custom tools configuration, if present in the repo.
-configure_toolset_script="$eng_root/configure-toolset.sh"
-if [[ -a "$configure_toolset_script" ]]; then
-  . "$configure_toolset_script"
+if [[ "$clean" == true ]]; then
+  if [ -d "$artifacts_dir" ]; then
+    rm -rf $artifacts_dir
+    echo "Artifacts directory deleted."
+  fi
+  exit 0
 fi
 
-# TODO: https://github.com/dotnet/arcade/issues/1468
-# Temporary workaround to avoid breaking change.
-# Remove once repos are updated.
-if [[ -n "${useInstalledDotNetCli:-}" ]]; then
-  use_installed_dotnet_cli="$useInstalledDotNetCli"
-fi
-
-if [[ "$restore" == true && -z ${DisableNativeToolsetInstalls:-} ]]; then
+if [[ "$restore" == true ]]; then
   InitializeNativeTools
 fi
 

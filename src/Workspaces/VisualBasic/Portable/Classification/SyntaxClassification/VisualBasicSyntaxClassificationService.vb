@@ -3,54 +3,52 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
-Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
+    <ExportLanguageService(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSyntaxClassificationService
         Inherits AbstractSyntaxClassificationService
 
-        Private ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier)
+        Private ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier) = ImmutableArray.Create(Of ISyntaxClassifier)(
+            New NameSyntaxClassifier(),
+            New ImportAliasClauseSyntaxClassifier(),
+            New IdentifierNameSyntaxClassifier(),
+            New OperatorOverloadSyntaxClassifier())
 
-        <Obsolete(MefConstruction.FactoryMethodMessage, True)>
-        Public Sub New(languageServices As HostLanguageServices)
-            Dim syntaxClassifiers = ImmutableArray(Of ISyntaxClassifier).Empty
-            Dim embeddedLanguagesProvider = languageServices.GetService(Of IEmbeddedLanguagesProvider)()
-            If embeddedLanguagesProvider IsNot Nothing Then
-                syntaxClassifiers = syntaxClassifiers.Add(New EmbeddedLanguagesClassifier(embeddedLanguagesProvider))
-            End If
-
-            s_defaultSyntaxClassifiers = syntaxClassifiers.AddRange(
-                {
-                    New NameSyntaxClassifier(),
-                    New ImportAliasClauseSyntaxClassifier(),
-                    New IdentifierNameSyntaxClassifier(),
-                    New OperatorOverloadSyntaxClassifier()
-                })
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)
             Return s_defaultSyntaxClassifiers
         End Function
 
-        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim root = syntaxTree.GetRoot(cancellationToken)
-            Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpans As ImmutableArray(Of TextSpan), result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            For Each textSpan In textSpans
+                Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+            Next
         End Sub
 
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
             Return ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan)
+        End Function
+
+        Public Overrides Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
+            Return ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier)
         End Function
     End Class
 End Namespace

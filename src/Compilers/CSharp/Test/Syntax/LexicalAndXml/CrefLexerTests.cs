@@ -231,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertTokens("<=", Token(SyntaxKind.BadToken, "<"), Token(SyntaxKind.EqualsToken));
             AssertTokens(">", Token(SyntaxKind.GreaterThanToken));
             AssertTokens(">>", Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanToken));
+            AssertTokens(">>>", Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanToken));
             AssertTokens(">=", Token(SyntaxKind.GreaterThanEqualsToken));
             AssertTokens("=", Token(SyntaxKind.EqualsToken));
             AssertTokens("==", Token(SyntaxKind.EqualsEqualsToken));
@@ -302,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertTokens("!!=", Token(SyntaxKind.ExclamationToken), Token(SyntaxKind.ExclamationEqualsToken));
             AssertTokens("&lt;&lt;=", Token(SyntaxKind.LessThanLessThanToken, "&lt;&lt;", "<<"), Token(SyntaxKind.EqualsToken));
             AssertTokens(">>=", Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanEqualsToken)); //fixed up by parser
+            AssertTokens(">>>=", Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanToken), Token(SyntaxKind.GreaterThanEqualsToken)); //fixed up by parser
 
             AssertTokens("!==", Token(SyntaxKind.ExclamationEqualsToken), Token(SyntaxKind.EqualsToken));
             AssertTokens("&lt;==", Token(SyntaxKind.LessThanEqualsToken, "&lt;=", "<="), Token(SyntaxKind.EqualsToken));

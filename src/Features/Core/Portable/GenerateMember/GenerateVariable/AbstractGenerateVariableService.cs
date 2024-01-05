@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,9 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
@@ -33,11 +35,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isinConditionalAccessExpression);
 
-        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
+        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
 
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
             SyntaxNode node,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateVariable, cancellationToken))
@@ -61,26 +64,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     var name = state.IdentifierToken.ValueText;
                     if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                     {
-                        AddPropertyCodeActions(actions, semanticDocument, state);
-                        AddFieldCodeActions(actions, semanticDocument, state);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                        AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
                     }
                     else
                     {
-                        AddFieldCodeActions(actions, semanticDocument, state);
-                        AddPropertyCodeActions(actions, semanticDocument, state);
+                        AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                AddLocalCodeActions(actions, document, state);
-                AddParameterCodeActions(actions, document, state);
+                await AddLocalCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                await AddParameterCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 if (actions.Count > 1)
                 {
                     // Wrap the generate variable actions into a single top level suggestion
                     // so as to not clutter the list.
-                    return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                    return ImmutableArray.Create(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutable()));
+                        actions.ToImmutable(),
+                        isInlinable: true));
                 }
 
                 return actions.ToImmutable();
@@ -90,57 +94,71 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => false;
 
-        private static void AddPropertyCodeActions(
-            ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static async Task AddPropertyCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.IsInOutContext)
-            {
                 return;
-            }
 
             if (state.IsConstant)
-            {
                 return;
-            }
 
             if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface && state.IsStatic)
+                return;
+
+            // Don't generate properties with a `_` prefix unless that's what the user really wants as their naming style.
+            if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                    document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), fallbackOptions, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
             var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
-
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
             {
                 result.Add(new GenerateVariableCodeAction(
-                    document, state, generateProperty: true, isReadonly: true, isConstant: false,
-                    refKind: GetRefKindFromContext(state)));
+                    document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state), fallbackOptions));
             }
 
-            GenerateWritableProperty(result, document, state);
+            GenerateWritableProperty(result, document, state, fallbackOptions);
         }
 
-        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
+            Document document, State state, SymbolKind kind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        {
+            // Check If the user explicitly used _ as the start of the name they're generating.  Don't offer to generate
+            // a non-field symbol unless that's genuinely the naming style they have setup.
+            if (state.IdentifierToken.ValueText.StartsWith("_"))
+            {
+                var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                if (namingStyle.NamingStyle.Prefix != "_")
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: true, isReadonly: false, isConstant: false,
-                refKind: GetRefKindFromContext(state)));
+                refKind: GetRefKindFromContext(state), fallbackOptions));
         }
 
-        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
                 if (state.IsConstant)
                 {
                     result.Add(new GenerateVariableCodeAction(
-                        document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None));
+                        document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None, fallbackOptions));
                 }
                 else
                 {
                     if (!state.OfferReadOnlyFieldFirst)
                     {
-                        GenerateWriteableField(result, document, state);
+                        GenerateWriteableField(result, document, state, fallbackOptions);
                     }
 
                     // If we haven't written to the field, or we're in the constructor for the type
@@ -148,39 +166,90 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     if (!state.IsWrittenTo || state.IsInConstructor)
                     {
                         result.Add(new GenerateVariableCodeAction(
-                            document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None));
+                            document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None, fallbackOptions));
                     }
 
                     if (state.OfferReadOnlyFieldFirst)
                     {
-                        GenerateWriteableField(result, document, state);
+                        GenerateWriteableField(result, document, state, fallbackOptions);
                     }
                 }
             }
         }
 
-        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
-                document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
+                document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None, fallbackOptions));
         }
 
-        private void AddLocalCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private async Task AddLocalCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateLocal())
             {
-                result.Add(new GenerateLocalCodeAction((TService)this, document, state));
+                // Don't generate locals with a `_` prefix unless that's what the user really wants as their naming style.
+                if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                        document, state, SymbolKind.Local, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
+                result.Add(new GenerateLocalCodeAction((TService)this, document, state, fallbackOptions));
             }
         }
 
-        private static void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private static async Task AddParameterCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateParameter())
             {
-                result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
+                // Don't generate parameters with a `_` prefix unless that's what the user really wants as their naming style.
+                if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                        document, state, SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
 
-                if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
-                    result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
+                var containingMethod = state.ContainingMethod;
+                var parameterIndex = containingMethod.Parameters.Length;
+
+                if (containingMethod.Parameters.Length > 0)
+                {
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var cancellationTokenType = compilation.CancellationTokenType();
+
+                    for (var i = containingMethod.Parameters.Length - 1; i >= 0; i--)
+                    {
+                        var parameter = containingMethod.Parameters[i];
+
+                        // Keep moving the insertion position for the generated parameter backwards
+                        // until we get to a parameter that does not need to be at the end of the
+                        // parameter list.
+                        if (parameter.HasExplicitDefaultValue ||
+                           parameter.IsParams ||
+                           parameter.RefKind is RefKind.Out ||
+                           Equals(parameter.Type, cancellationTokenType))
+                        {
+                            parameterIndex = i;
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    // If we are in an extension method, then we want to make sure to insert after
+                    // the first parameter.
+                    if (containingMethod.IsExtensionMethod && parameterIndex == 0)
+                    {
+                        parameterIndex = 1;
+                    }
+                }
+
+                result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false, parameterIndex));
+
+                if (AddParameterService.HasCascadingDeclarations(state.ContainingMethod))
+                    result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true, parameterIndex));
             }
         }
 
@@ -197,14 +266,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             else
             {
                 return RefKind.None;
-            }
-        }
-
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
-            {
             }
         }
     }

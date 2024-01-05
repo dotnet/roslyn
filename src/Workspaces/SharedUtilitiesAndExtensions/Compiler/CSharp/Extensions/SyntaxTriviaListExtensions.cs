@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -15,19 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxTriviaListExtensions
     {
-        public static bool Any(this SyntaxTriviaList triviaList, params SyntaxKind[] kinds)
-        {
-            foreach (var trivia in triviaList)
-            {
-                if (trivia.MatchesKind(kinds))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
         {
             return triviaList
@@ -44,8 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
+            if (triviaList.Count == 0)
+                return null;
+
             return triviaList
-                .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
+                .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
                 .LastOrNull();
         }
 
@@ -62,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
                     var currentLineIsBlank = currentLine.All(static t =>
-                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                        t.Kind() is SyntaxKind.EndOfLineTrivia or
+                        SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)
                     {
                         break;

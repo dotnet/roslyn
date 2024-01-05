@@ -10,24 +10,38 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.Utilities
 Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
-
     Friend Class VisualBasicContainedLanguage
         Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
+        <Obsolete("Use the constructor that omits the IVsHierarchy and UInteger parameters instead.", True)>
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualStudioProject,
+                project As ProjectSystemProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
+                languageServiceGuid As Guid)
+
+            Me.New(
+                bufferCoordinator,
+                componentModel,
+                project,
+                languageServiceGuid)
+        End Sub
+
+        Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
+                componentModel As IComponentModel,
+                project As ProjectSystemProject,
                 languageServiceGuid As Guid)
 
             MyBase.New(
@@ -36,7 +50,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 componentModel.GetService(Of VisualStudioWorkspace)(),
                 project.Id,
                 project,
-                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
                 languageServiceGuid,
                 VisualBasicHelperFormattingRule.Instance)
         End Sub
@@ -45,14 +58,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszUniqueMemberID As String,
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=False,
                 action:=Sub(c)
                             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.AddStaticEventBinding(
-                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
+                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.UserCancellationToken)
                         End Sub)
             Return VSConstants.S_OK
         End Function
@@ -85,6 +100,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
+                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
@@ -100,12 +116,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrDisplayNames As IntPtr,
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=Nothing,
                 action:=Sub(c)
                             Dim eventNamesAndMemberNamesAndIds = ContainedLanguageStaticEventBinding.GetStaticEventBindings(
-                                GetThisDocument(), pszClassName, pszObjectName, c.CancellationToken)
+                                GetThisDocument(), pszClassName, pszObjectName, c.UserCancellationToken)
                             members = eventNamesAndMemberNamesAndIds.Count()
                             CreateBSTRArray(ppbstrEventNames, eventNamesAndMemberNamesAndIds.Select(Function(e) e.Item1))
                             CreateBSTRArray(ppbstrDisplayNames, eventNamesAndMemberNamesAndIds.Select(Function(e) e.Item2))
@@ -121,14 +139,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszObjectName As String,
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=Nothing,
                 action:=Sub(c)
                             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.RemoveStaticEventBinding(
-                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
+                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.UserCancellationToken)
                         End Sub)
             Return VSConstants.S_OK
         End Function

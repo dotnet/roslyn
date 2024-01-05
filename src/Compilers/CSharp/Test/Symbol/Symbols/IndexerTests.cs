@@ -145,7 +145,7 @@ class C : IB, IC
             var sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("B");
             CheckIndexer(sourceType.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            var bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(2, bridgeMethods.Length);
             Assert.True(bridgeMethods.Select(GetPairForSynthesizedExplicitImplementation).SetEquals(new[]
             {
@@ -156,7 +156,7 @@ class C : IB, IC
             sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("C");
             CheckIndexer(sourceType.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(3, bridgeMethods.Length);
             Assert.True(bridgeMethods.Select(GetPairForSynthesizedExplicitImplementation).SetEquals(new[]
             {
@@ -236,7 +236,7 @@ class C : IB, IC
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
+                // (9,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("2", "C", "int").WithLocation(10, 18),
@@ -335,7 +335,7 @@ class C : I1, I2
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-            var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+            var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods;
             Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
             Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
@@ -417,7 +417,7 @@ class C : I1, I2
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-                var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+                var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods;
                 Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
@@ -484,7 +484,7 @@ class C : I1
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[0]));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[1]));
 
-                var synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).Single();
+                var synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods.Single();
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementation.ImplementingMethod);
 
@@ -524,14 +524,14 @@ class C : I1
 } // end of class I1
 ";
 
-            var csharp = @"
+            var csharp1 = @"
 class C : I1
 {
     int I1.this[int x] { get { return 0; } }
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp1, il).VerifyDiagnostics(
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
@@ -551,6 +551,15 @@ class C : I1
             var indexer1Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[1]);
             Assert.True(indexer0Impl == classIndexer ^ indexer1Impl == classIndexer);
             Assert.True(indexer0Impl == null ^ indexer1Impl == null);
+
+            var csharp2 = @"
+class C : I1
+{
+    public int this[int x] { get { return 0; } }
+}
+";
+
+            compilation = CreateCompilationWithILAndMscorlib40(csharp2, il).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -834,7 +843,7 @@ class Derived : Base
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, long]'
                 //         c[0] = c[0, 0, 0]; //wrong number of arguments
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments
@@ -1946,12 +1955,12 @@ class B<T> where T : Q
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
-                // (18,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant1)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (24,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(18, 18),
+                // (24,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"));
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(24, 18));
         }
 
         [Fact]
@@ -2118,7 +2127,7 @@ class Program
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
             Assert.Equal("A", indexer.MetadataName);
-            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
+            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(AttributeDescription.IndexerNameAttribute));
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {
@@ -2920,6 +2929,42 @@ class C
                 // (5,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(F)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = new A()[1]) { }
+
+                    public int this[int i] { get => 0; set { } }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,27): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     public A(int x, A a = new A()[1]) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new A()[1]").WithArguments("a").WithLocation(8, 27));
         }
     }
 }

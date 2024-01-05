@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static bool IsNullableAnalysisEnabled(CSharpCompilation compilation)
         {
-            var type = compilation.GlobalNamespace.GetMembers().OfType<SimpleProgramNamedTypeSymbol>().Single();
+            var type = compilation.GlobalNamespace.GetTypeMember("Program");
             var methods = type.GetMembers().OfType<SynthesizedSimpleProgramEntryPointSymbol>();
             return methods.Any(m => m.IsNullableAnalysisEnabled());
         }
@@ -39,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"System.Console.WriteLine(""Hi!"");";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Hi!");
             Assert.Same(entryPoint, comp.GetEntryPoint(default));
             Assert.False(entryPoint.CanBeReferencedByName);
-            Assert.False(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.True(entryPoint.ContainingType.CanBeReferencedByName);
             Assert.Equal("<Main>$", entryPoint.Name);
-            Assert.Equal("<Program>$", entryPoint.ContainingType.Name);
+            Assert.Equal("Program", entryPoint.ContainingType.Name);
         }
 
         private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)
@@ -73,7 +75,7 @@ Console.Write(""async main"");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -704,6 +706,7 @@ System.Console.WriteLine(s);
             Assert.Equal(SymbolKind.Method, local.ContainingSymbol.Kind);
             Assert.False(local.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
+            Assert.Equal("Program", local.ContainingSymbol.ContainingSymbol.Name);
             Assert.False(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
         }
@@ -1081,7 +1084,7 @@ System.Console.WriteLine(await);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 31)
                 );
 
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnType.IsErrorType());
             AssertEntryPointParameter(entryPoint);
@@ -3858,7 +3861,7 @@ using alias1 = args;
 
 System.Console.WriteLine(args);
 
-class args {}
+class @args {}
 
 class Derived : args
 {
@@ -4007,7 +4010,7 @@ System.Console.WriteLine(args);
             var text2 = @"
 using alias1 = args;
 
-class args {}
+class @args {}
 
 class Derived : args
 {
@@ -4299,12 +4302,24 @@ interface I1
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,6): error CS0540: '<invalid-global-code>.I1.local()': containing type does not implement interface 'I1'
+                // (4,1): error CS1547: Keyword 'void' cannot be used in this context
                 // void I1.local()
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("<invalid-global-code>.I1.local()", "I1").WithLocation(4, 6),
-                // (4,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 1),
+                // (4,6): warning CS0168: The variable 'I1' is declared but never used
                 // void I1.local()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 9)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "I1").WithArguments("I1").WithLocation(4, 6),
+                // (4,8): error CS1003: Syntax error, ',' expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(4, 8),
+                // (4,9): error CS1002: ; expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "local").WithLocation(4, 9),
+                // (4,9): error CS0103: The name 'local' does not exist in the current context
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(4, 9),
+                // (4,16): error CS1002: ; expected
+                // void I1.local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 16)
                 );
         }
 
@@ -5020,7 +5035,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+partial class Program
 {
     static async Task Main()
     {
@@ -5052,7 +5067,7 @@ using System.Threading.Tasks;
 await Task.Factory.StartNew(() => 5);
 System.Console.Write(""Hi!"");
 
-class Program
+partial class Program
 {
     static async Task Main()
     {
@@ -5084,7 +5099,7 @@ using System.Threading.Tasks;
 await Task.Factory.StartNew(() => 5);
 System.Console.Write(""Hi!"");
 
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -5110,7 +5125,7 @@ class Program
             var text = @"
 System.Console.Write(""Hi!"");
 
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -5139,7 +5154,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main(string[] args)
     {
@@ -5158,12 +5173,12 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static void Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(9, 17),
-                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(9, 17),
+                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(14, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(14, 23)
                 );
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -5179,7 +5194,7 @@ using System.Threading.Tasks;
 await Task.Factory.StartNew(() => 5);
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main()
     {
@@ -5197,12 +5212,12 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static void Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
-                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(10, 17),
+                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(15, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(15, 23)
                 );
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -5267,7 +5282,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main()
     {
@@ -5279,7 +5294,7 @@ class Program
     }
 }
 
-class Program2
+class Program3
 {
     static void Main(string[] args)
     {
@@ -5287,14 +5302,14 @@ class Program2
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions);
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
                 Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
-                // (12,23): warning CS8892: Method 'Program.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program.Main()' was found.
+                // (12,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program.Main(string[])", "Program.Main()").WithLocation(12, 23)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(12, 23)
                 );
         }
 
@@ -5306,7 +5321,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+partial class Program
 {
     static void Main()
     {
@@ -5612,6 +5627,22 @@ static void local()
 
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void ExplicitMain_24()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial class Program
+{
+    static partial void Main(string[] args);
+}
+";
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6106,6 +6137,7 @@ static extern void local1();
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: DefaultParseOptions,
                 symbolValidator: validate,
+                sourceSymbolValidator: validate,
                 verify: Verification.Skipped);
 
             var comp = verifier.Compilation;
@@ -6121,15 +6153,30 @@ static extern void local1();
 
             void validate(ModuleSymbol module)
             {
-                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
-                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(cClass.GetAttributes().As<CSharpAttributeData>()));
+                var fromSource = module is SourceModuleSymbol;
 
-                Assert.Empty(cClass.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
+                var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
+                var programAttributes = GetAttributeNames(program.GetAttributes().As<CSharpAttributeData>());
+                Assert.False(program.IsImplicitlyDeclared);
+                if (fromSource)
+                {
+                    Assert.Empty(programAttributes);
+                }
+                else
+                {
+                    Assert.Equal(new[] { "CompilerGeneratedAttribute" }, programAttributes);
+                }
 
-                var localFn1 = cClass.GetMethod("<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__local1|0_0");
+                MethodSymbol method = program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
+                Assert.Empty(method.GetAttributes());
+                Assert.False(method.IsImplicitlyDeclared);
 
-                Assert.Empty(localFn1.GetAttributes());
-                validateLocalFunction(localFn1);
+                if (!fromSource)
+                {
+                    var localFn1 = program.GetMethod("<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__local1|0_0");
+                    Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(localFn1.GetAttributes().As<CSharpAttributeData>()));
+                    validateLocalFunction(localFn1);
+                }
             }
 
             static void validateLocalFunction(MethodSymbol localFunction)
@@ -6341,8 +6388,6 @@ class B : A
             Assert.Equal(0, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(0, analyzer.FireCount4);
-            Assert.Equal(1, analyzer.FireCount5);
-            Assert.Equal(0, analyzer.FireCount6);
 
             var text2 = @"System.Console.WriteLine(2);";
 
@@ -6354,8 +6399,6 @@ class B : A
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(1, analyzer.FireCount4);
-            Assert.Equal(1, analyzer.FireCount5);
-            Assert.Equal(1, analyzer.FireCount6);
         }
 
         private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
@@ -6364,8 +6407,6 @@ class B : A
             public int FireCount2;
             public int FireCount3;
             public int FireCount4;
-            public int FireCount5;
-            public int FireCount6;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -6404,7 +6445,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[globalStatement.Parent];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(globalStatement.Statement));
             }
@@ -6418,10 +6459,10 @@ class B : A
                 switch (unit.ToString())
                 {
                     case "System.Console.WriteLine(1);":
-                        Interlocked.Increment(ref context.ContainingSymbol.Kind == SymbolKind.Namespace ? ref FireCount5 : ref FireCount3);
+                        Interlocked.Increment(ref FireCount3);
                         break;
                     case "System.Console.WriteLine(2);":
-                        Interlocked.Increment(ref context.ContainingSymbol.Kind == SymbolKind.Namespace ? ref FireCount6 : ref FireCount4);
+                        Interlocked.Increment(ref FireCount4);
                         break;
                     default:
                         Assert.True(false);
@@ -6430,16 +6471,6 @@ class B : A
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "<top-level-statements-entry-point>":
-                        Assert.Same(unit.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
-                        Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(unit));
-
-                        MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
-
-                        Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
-
-                        Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
-                        break;
                     case "<global namespace>":
                         break;
                     default:
@@ -6892,7 +6923,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -6960,7 +6991,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -6989,7 +7020,6 @@ class Test
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
-            Assert.Equal(1, analyzer.FireCount4);
 
             analyzer = new AnalyzerActions_09_Analyzer();
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
@@ -6997,8 +7027,7 @@ class Test
 
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
-            Assert.Equal(1, analyzer.FireCount3);
-            Assert.Equal(2, analyzer.FireCount4);
+            Assert.Equal(2, analyzer.FireCount3);
         }
 
         private class AnalyzerActions_09_Analyzer : DiagnosticAnalyzer
@@ -7006,7 +7035,6 @@ class Test
             public int FireCount1;
             public int FireCount2;
             public int FireCount3;
-            public int FireCount4;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -7049,7 +7077,7 @@ class Test
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[decl];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
             }
@@ -7062,20 +7090,8 @@ class Test
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case @"<top-level-statements-entry-point>":
-                        Interlocked.Increment(ref FireCount3);
-
-                        Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(node));
-
-                        MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[node];
-
-                        Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
-
-                        Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
-                        break;
-
                     case "<global namespace>":
-                        Interlocked.Increment(ref FireCount4);
+                        Interlocked.Increment(ref FireCount3);
                         break;
 
                     default:
@@ -7118,7 +7134,6 @@ class MyAttribute : System.Attribute
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(1, analyzer.FireCount4);
-            Assert.Equal(1, analyzer.FireCount5);
 
             analyzer = new AnalyzerActions_10_Analyzer();
             comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
@@ -7127,8 +7142,7 @@ class MyAttribute : System.Attribute
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
-            Assert.Equal(1, analyzer.FireCount4);
-            Assert.Equal(3, analyzer.FireCount5);
+            Assert.Equal(3, analyzer.FireCount4);
         }
 
         private class AnalyzerActions_10_Analyzer : DiagnosticAnalyzer
@@ -7137,7 +7151,6 @@ class MyAttribute : System.Attribute
             public int FireCount2;
             public int FireCount3;
             public int FireCount4;
-            public int FireCount5;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -7182,12 +7195,8 @@ class MyAttribute : System.Attribute
             {
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case @"<top-level-statements-entry-point>":
-                        Interlocked.Increment(ref FireCount4);
-                        break;
-
                     case @"<global namespace>":
-                        Interlocked.Increment(ref FireCount5);
+                        Interlocked.Increment(ref FireCount4);
                         break;
 
                     default:
@@ -7423,12 +7432,16 @@ class C1
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Object' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
+                // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // return;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "return").WithArguments("System.Object").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.String' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.String").WithLocation(1, 1),
+                // (1,1): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // return;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "return").WithArguments("object", "0").WithLocation(1, 1)
                 );
         }
 
@@ -7462,7 +7475,7 @@ return 10;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7484,7 +7497,7 @@ return 11;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7522,7 +7535,7 @@ return 11;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7549,7 +7562,7 @@ return 11;
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>[missing]", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyEmitDiagnostics(
@@ -7579,7 +7592,7 @@ System.Console.WriteLine();
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.MakeTypeMissing(SpecialType.System_String);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.String[missing][] args", entryPoint.Parameters.Single().ToTestDisplayString());
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'System.String' is not defined or imported
@@ -7596,7 +7609,7 @@ return;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7611,9 +7624,9 @@ return;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" name=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7643,7 +7656,7 @@ return 10;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7658,9 +7671,9 @@ return 10;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" name=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7690,7 +7703,7 @@ return;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7705,11 +7718,13 @@ return;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""33"" offset=""76"" />
@@ -7728,10 +7743,14 @@ return;
         <entry offset=""0xa9"" hidden=""true"" document=""1"" />
         <entry offset=""0xc1"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xd6"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
-        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -7753,7 +7772,7 @@ return 11;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
@@ -7768,11 +7787,13 @@ return 11;
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""20"" offset=""2"" />
@@ -7792,10 +7813,14 @@ return 11;
         <entry offset=""0xac"" hidden=""true"" document=""1"" />
         <entry offset=""0xc6"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xdc"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
-        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}"" methodName=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName)}+&lt;{EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)}&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -7812,7 +7837,7 @@ return ""error"";
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7835,7 +7860,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7854,7 +7879,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7873,7 +7898,7 @@ d(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7893,7 +7918,7 @@ local(0);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
@@ -7911,7 +7936,7 @@ else
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7933,7 +7958,7 @@ else
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             comp.VerifyDiagnostics(
@@ -7953,7 +7978,7 @@ System.Console.WriteLine(2);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
                 // (4,1): warning CS0162: Unreachable code detected
@@ -7972,7 +7997,7 @@ System.Console.WriteLine(2);
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "1", expectedReturnCode: 13).VerifyDiagnostics(
                 // (4,1): warning CS0162: Unreachable code detected
@@ -7990,7 +8015,7 @@ return default;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 0);
@@ -8010,7 +8035,7 @@ return default;
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 0);
@@ -8526,12 +8551,34 @@ catch
             var text = @"
 #nullable enable
 System.Console.WriteLine(args.Length == 0 ? 0 : -args[0].Length);
+System.Console.Write("""");
+
+System.Console.Write("""");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
-            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
             AssertEntryPointParameter(entryPoint);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+            var symbols = model.LookupSymbols(invocations[0].Position, name: "args");
+            Assert.Empty(symbols);
+            symbols = model.LookupSymbols(invocations[0].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+
+            symbols = model.LookupSymbols(invocations[1].Position, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            symbols = model.LookupSymbols(invocations[1].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+
+            symbols = model.LookupSymbols(invocations[2].Position, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            symbols = model.LookupSymbols(invocations[2].SpanStart, name: "args");
+            Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
         }
 
         [Fact]
@@ -8579,6 +8626,70 @@ lambda();
         }
 
         [Fact]
+        public void Args_05()
+        {
+            var text = @"
+ar
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Args_06()
+        {
+            var text = @"
+ar
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ar").Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Args_07()
+        {
+            var text =
+@"// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");
+ar
+";
+
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var id = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "ar").Single();
+
+            for (int i = id.SpanStart; i <= id.Span.End; i++)
+            {
+                var symbols = model.LookupSymbols(i, name: "args");
+                Assert.Equal("System.String[] args", symbols.Single().ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void Span_01()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -8610,9 +8721,9 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
 ", options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (7,13): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,13): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //     outer = inner;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(7, 13)
                 );
         }
 
@@ -8662,13 +8773,13 @@ return Task.WhenAll(
     Task.WhenAll(this.c01234567890123456789.Select(v01234567 => v01234567.U0123456789012345678901234())));
 ";
 
-            var newText = Microsoft.CodeAnalysis.Text.StringText.From(text2, System.Text.Encoding.UTF8);
-            using var lexer = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer(newText, TestOptions.RegularDefault);
-            using var parser = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser(lexer,
-                                       (CSharpSyntaxNode)oldTree.GetRoot(), new[] { new Microsoft.CodeAnalysis.Text.TextChangeRange(new Microsoft.CodeAnalysis.Text.TextSpan(282, 0), 1) });
+            var newText = SourceText.From(text2, Encoding.UTF8, SourceHashAlgorithms.Default);
+            using var lexer = new Syntax.InternalSyntax.Lexer(newText, TestOptions.RegularDefault);
+            using var parser = new Syntax.InternalSyntax.LanguageParser(lexer,
+                                       (CSharpSyntaxNode)oldTree.GetRoot(), new[] { new TextChangeRange(new TextSpan(282, 0), 1) });
 
             var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-            var tree = CSharpSyntaxTree.Create(compilationUnit, TestOptions.RegularDefault, encoding: System.Text.Encoding.UTF8);
+            var tree = CSharpSyntaxTree.Create(compilationUnit, TestOptions.RegularDefault, path: "", Encoding.UTF8, SourceHashAlgorithms.Default);
             Assert.Equal(text2, tree.GetText().ToString());
             tree.VerifySource();
 
@@ -8818,6 +8929,889 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ");
+        }
+
+        [Fact]
+        public void EmptyStatements_01()
+        {
+            var text = @";";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmptyStatements_02()
+        {
+            var text = @";;
+
+
+;;
+;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void EmptyStatements_03()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+;;
+;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_04()
+        {
+            var text = @"
+;;
+;
+System.Console.WriteLine(""Hi!"");";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_05()
+        {
+            var text = @"
+;
+System.Console.WriteLine(""Hi!"");
+;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void EmptyStatements_06()
+        {
+            var text =
+@"
+using System;
+;
+
+class Program2
+{
+    static void Main(String[] args) {}
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS8937: At least one top-level statement must be non-empty.
+                // ;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(3, 1),
+                // (7,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
+                //     static void Main(String[] args) {}
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "Hi!", sourceSymbolValidator: validate, symbolValidator: validate);
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.True(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.Equal("<Main>$", entryPoint.Name);
+            Assert.Equal("Program", entryPoint.ContainingType.Name);
+            Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+
+            void validate(ModuleSymbol module)
+            {
+                bool fromSource = module is SourceModuleSymbol;
+                var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
+                Assert.False(program.IsImplicitlyDeclared);
+                if (fromSource)
+                {
+                    Assert.Empty(program.GetAttributes().As<CSharpAttributeData>());
+                }
+                else
+                {
+                    Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(program.GetAttributes().As<CSharpAttributeData>()));
+                }
+                Assert.Empty(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
+
+                if (fromSource)
+                {
+                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                }
+                else
+                {
+                    Assert.Equal(new[] { "void Program.<Main>$(System.String[] args)", "Program..ctor()" }, program.GetMembers().ToTestDisplayStrings());
+                }
+            }
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsPartial()
+        {
+            var text = @"
+M();
+
+public partial class Program
+{
+    private static void M()
+    {
+        System.Console.WriteLine(""Hi!"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            AssertEntryPointParameter(entryPoint);
+            CompileAndVerify(comp, expectedOutput: "Hi!", sourceSymbolValidator: validate, symbolValidator: validate);
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.True(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.Equal("<Main>$", entryPoint.Name);
+            Assert.Equal("Program", entryPoint.ContainingType.Name);
+            Assert.Equal(Accessibility.Public, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+
+            void validate(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
+                Assert.Empty(program.GetAttributes().As<CSharpAttributeData>());
+                Assert.False(program.IsImplicitlyDeclared);
+                Assert.Empty(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes().As<CSharpAttributeData>());
+            }
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsNotPartial()
+        {
+            var text = @"
+M();
+
+public class Program
+{
+    private static void M()
+    {
+        System.Console.WriteLine(""Hi!"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
+                // public class Program
+                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(4, 14)
+                );
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            AssertEntryPointParameter(entryPoint);
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.True(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.Equal("<Main>$", entryPoint.Name);
+            Assert.Equal("Program", entryPoint.ContainingType.Name);
+            Assert.Equal(Accessibility.Public, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsInternal()
+        {
+            var text = @"
+M();
+
+internal partial class Program
+{
+    private static void M()
+    {
+        System.Console.WriteLine(""Hi!"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramWithoutDeclaredAccessibility()
+        {
+            var text = @"
+M();
+
+partial class Program
+{
+    private static void M()
+    {
+        System.Console.WriteLine(""Hi!"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsStruct()
+        {
+            var text = @"
+M();
+
+partial struct Program
+{
+    private static void M()
+    {
+        System.Console.WriteLine(""Hi!"");
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // M();
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "M").WithArguments("Program").WithLocation(2, 1),
+                // (2,1): error CS0103: The name 'M' does not exist in the current context
+                // M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(2, 1)
+                );
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+            Assert.True(entryPoint.ContainingType.IsReferenceType);
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsRecord()
+        {
+            var text = @"
+M();
+
+partial record Program
+{
+    private static void M()
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // M();
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "M").WithArguments("Program").WithLocation(2, 1),
+                // (2,1): error CS0103: The name 'M' does not exist in the current context
+                // M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsInterface()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial interface Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0261: Partial declarations of 'Program' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "System").WithArguments("Program").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramCallsMain()
+        {
+            var text = @"
+M(args);
+
+partial class Program
+{
+    private static void M(string[] args)
+    {
+        Main();
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0103: The name 'Main' does not exist in the current context
+                //         Main();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Main").WithArguments("Main").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramHasBaseList()
+        {
+            var text = @"
+new Program().M();
+
+class Base
+{
+    public void M()
+    {
+        System.Console.Write(42);
+    }
+}
+
+partial class Program : Base
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+            var entryPoint = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal(Accessibility.Private, entryPoint.DeclaredAccessibility);
+            Assert.True(entryPoint.IsStatic);
+
+            Assert.Equal("Base", entryPoint.ContainingType.BaseType().ToTestDisplayString());
+            Assert.Equal(Accessibility.Internal, entryPoint.ContainingType.DeclaredAccessibility);
+            Assert.False(entryPoint.ContainingType.IsStatic);
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramImplementsInterface()
+        {
+            var text = @"
+((Interface)new Program()).M();
+
+interface Interface
+{
+    void M();
+}
+
+partial class Program : Interface
+{
+    void Interface.M()
+    {
+        System.Console.Write(42);
+    }
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsAbstractPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+abstract partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsSealedPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+sealed partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsStaticPartial()
+        {
+            var text = @"
+System.Console.Write(42);
+
+static partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsObsolete()
+        {
+            var text = @"
+System.Console.Write(42);
+
+[System.Obsolete(""error"")]
+public partial class Program
+{
+}
+
+public class C
+{
+    public Program f;
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (11,12): warning CS0618: 'Program' is obsolete: 'error'
+                //     public Program f;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Program").WithArguments("Program", "error").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramIsObsolete_UsedWithinProgram()
+        {
+            var text = @"
+Program p = new Program();
+
+[System.Obsolete(""error"")]
+public partial class Program
+{
+}
+";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramHasMain()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial class Program
+{
+    public static void Main(string[] args) { }
+}
+";
+            var comp = CreateCompilation(text);
+
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                //     public static void Main(string[] args) { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(6, 24)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramHasMain_DifferentSignature()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial class Program
+{
+    public static void Main() { }
+}
+";
+            var comp = CreateCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyDiagnostics(
+                // (6,24): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                //     public static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(6, 24)
+                );
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_ProgramHasBackingField()
+        {
+            var text = @"
+System.Console.Write(42);
+
+partial class Program
+{
+    public int Property { get; set; }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+            comp.VerifyEmitDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                bool fromSource = module is SourceModuleSymbol;
+                var field = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetField("<Property>k__BackingField");
+                Assert.False(field.ContainingType.IsImplicitlyDeclared);
+                var fieldAttributes = GetAttributeNames(field.GetAttributes().As<CSharpAttributeData>());
+                if (fromSource)
+                {
+                    Assert.Empty(fieldAttributes);
+
+                    Assert.Equal(new[] { "<top-level-statements-entry-point>", "System.Int32 Program.<Property>k__BackingField",
+                            "System.Int32 Program.Property { get; set; }", "System.Int32 Program.Property.get",
+                            "void Program.Property.set", "Program..ctor()" },
+                        field.ContainingType.GetMembers().ToTestDisplayStrings());
+                }
+                else
+                {
+                    Assert.Equal(new[] { "CompilerGeneratedAttribute", "DebuggerBrowsableAttribute" }, fieldAttributes);
+
+                    Assert.Equal(new[] { "System.Int32 Program.<Property>k__BackingField", "void Program.<Main>$(System.String[] args)",
+                            "System.Int32 Program.Property.get", "void Program.Property.set",
+                            "Program..ctor()", "System.Int32 Program.Property { get; set; }" },
+                        field.ContainingType.GetMembers().ToTestDisplayStrings());
+                }
+            }
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_XmlDoc()
+        {
+            var src = @"
+System.Console.Write(42);
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal("", cMember.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_XmlDoc_ProgramIsPartial()
+        {
+            var src = @"
+System.Console.Write(42);
+
+/// <summary>Summary</summary>
+public partial class Program { }
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal(
+@"<member name=""T:Program"">
+    <summary>Summary</summary>
+</member>
+", cMember.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_XmlDoc_ProgramIsPartial_NotCommented()
+        {
+            var src = @"
+System.Console.Write(42);
+
+public partial class Program { }
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (4,22): warning CS1591: Missing XML comment for publicly visible type or member 'Program'
+                // public partial class Program { }
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Program").WithArguments("Program").WithLocation(4, 22)
+                );
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Program");
+            Assert.Equal("", cMember.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void SpeakableEntryPoint_TypeOf()
+        {
+            var src = @"
+C.M();
+
+public class C
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(Program));
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Program");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Ordering_InFileScopedNamespace_01()
+        {
+            var src = @"
+namespace NS;
+System.Console.Write(42);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Write").WithLocation(3, 16),
+                // (3,22): error CS1026: ) expected
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "42").WithLocation(3, 22),
+                // (3,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void Ordering_InFileScopedNamespace_02()
+        {
+            var src = @"
+namespace NS;
+var x = 1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(3, 1),
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void Ordering_AfterNamespace()
+        {
+            var src = @"
+namespace NS
+{
+}
+
+var x = 1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // var x = 1;
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "var x = 1;").WithLocation(6, 1),
+                // (6,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // var x = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 5)
+                );
+        }
+
+        [Fact]
+        [WorkItem(58521, "https://github.com/dotnet/roslyn/issues/58521")]
+        public void BindCompilationUnitInSemanticModelWhenLocalFunctionIsAtTheTop()
+        {
+            var source = @"
+void F<T>(T t)
+{
+    var f = (ref T x) => 0;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            var tree = compilation.SyntaxTrees[0];
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
+            var model = compilation.GetSemanticModel(tree);
+
+            model.GetOperation(identifier);
+            Assert.Equal(OperationKind.Literal, model.GetOperation(tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single()).Kind);
+        }
+
+        [Fact]
+        [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
+        public void SpeculativeSemanticModel()
+        {
+            var source = @"
+int x = 1;
+System.Console.WriteLine(0);
+
+public class C
+{
+    public void M()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var model = compilation.GetSemanticModel(tree);
+            var nodeToSpeculate = SyntaxFactory.ParseStatement("int y = x;");
+
+            // Speculate inside a valid top-level position.
+            model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: GlobalStatementSyntax }).Span.End, nodeToSpeculate, out var speculativeModelInTopLevel);
+            var conversionInTopLevel = speculativeModelInTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
+            Assert.Equal(ConversionKind.Identity, conversionInTopLevel.Kind);
+
+            // Speculate outside a top-level position.
+            model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
+            var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
+            Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var src = """
+struct S { }
+partial ext X
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_01()
+        {
+            var src1 = """
+PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : ProgramBase
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_02()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : object
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_03()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
         }
     }
 }

@@ -490,7 +490,6 @@ End Class]]>
             '    <AType(GetType(List(Of KeyValuePair(Of String, C1.InnerC1(of integer).InnerC2(of string, string)))))>
             '    Public L5 As List(Of KeyValuePair(Of String, C1.InnerC1(of integer).InnerC2(of string, string)))
 
-
             Dim c2 = DirectCast(assemblies(0).Modules(0).GlobalNamespace.GetMembers("C2").Single, NamedTypeSymbol)
 
             Dim l = DirectCast(c2.GetMember("L1"), FieldSymbol)
@@ -1523,7 +1522,6 @@ End Class
                     </file>
                 </compilation>, ilSource)
 
-
             CompileAndVerify(c1, symbolValidator:=Sub(m As ModuleSymbol)
                                                       Dim peModule = DirectCast(m, PEModuleSymbol)
                                                       Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class2").BaseType()
@@ -1603,7 +1601,6 @@ End Class
 
 } // end of class MyAttribute
 ]]>.Value
-
 
             Dim c = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation>

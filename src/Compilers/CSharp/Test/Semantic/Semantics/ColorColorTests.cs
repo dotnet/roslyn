@@ -960,7 +960,7 @@ class C
         public void GenericTypeOk()
         {
             var text =
-@"struct var<T>
+@"struct @var<T>
 {
     public static T field;
 }
@@ -1825,7 +1825,6 @@ public class Example
 
         #endregion Regression cases
 
-
         private void CheckExpressionAndParent(
             string text,
             SymbolKind exprSymbolKind,
@@ -2117,6 +2116,45 @@ class M
             main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
+        [Fact, WorkItem(61284, "https://github.com/dotnet/roslyn/issues/61284")]
+        public void PatternMatchToBaseTypeWithUseSiteWarningOnBaseType()
+        {
+            string sourceRefLib = @"
+public class Base { }
+";
+
+            var refLib = CreateEmptyCompilation(
+                sourceRefLib,
+                assemblyName: "RefLib",
+                references: new[] { TestMetadata.Net20.mscorlib });
+
+            refLib.VerifyEmitDiagnostics();
+
+            string sourceMain = @"
+public class Derived : Base { }
+class C
+{
+    void M(Derived d)
+    {
+        _ = d is Base b;
+    }
+}
+";
+
+            var main = CreateEmptyCompilation(sourceMain, assemblyName: "Main",
+                references: new MetadataReference[]
+                {
+                    new CSharpCompilationReference(refLib),
+                    TestMetadata.Net451.mscorlib
+                });
+
+            var unifyReferenceWarning =
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "RefLib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib");
+
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+        }
+
         [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
         [Fact]
         public void ObsoleteConstColorColorEnum()
@@ -2181,6 +2219,211 @@ class C2
                 //         _ = new System.Action(C2.ReferenceEquals);
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
                 );
+        }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("unmanaged")]
+        [InlineData("notnull")]
+        public void WorkItem61171_Constraints(string constraint)
+        {
+            string constraintLine = $"where TValue : {constraint}";
+            if (string.IsNullOrEmpty(constraint))
+            {
+                constraintLine = "";
+            }
+
+            string source = $@"
+#nullable enable
+
+namespace DataStructures.Trees;
+
+public sealed class Tree<TValue>
+    {constraintLine}
+{{
+    public abstract class Node
+    {{
+        public abstract NodeType NodeType {{ get; }}
+    }}
+
+    public sealed class ParentNode : Node
+    {{
+        public override NodeType NodeType => Tree<TValue>.NodeType.Parent;
+    }}
+
+    public sealed class LeafNode : Node
+    {{
+        public override Tree<TValue>.NodeType NodeType => NodeType.Leaf;
+    }}
+
+    public enum NodeType
+    {{
+        Parent,
+        Leaf,
+    }}
+}}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Theory]
+        [InlineData("dynamic", "object")]
+        [InlineData("(int a, int b)", "(int, int)")]
+        public void WorkItem61171_DynamicObjectTuple(string inheritedArgument, string propertyArgument)
+        {
+            string source = $@"
+public class Tree<TValue>
+{{
+    public enum NodeType
+    {{
+        Parent,
+        Leaf,
+    }}
+}}
+
+public class Tree1 : Tree<{inheritedArgument}>
+{{
+}}
+
+public class Tree2 : Tree1
+{{
+    public sealed class LeafNode
+    {{
+        public Tree<{propertyArgument}>.NodeType NodeType => NodeType.Leaf;
+    }}
+}}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Fact]
+        public void WorkItem61171_ModoptObject()
+        {
+            string genericTreeDefinitionSource = @"
+public class Tree2 : Tree1
+{
+    public sealed class LeafNode
+    {
+        public Tree<dynamic>.NodeType NodeType => NodeType.Leaf;
+    }
+}
+";
+
+            string implementingTreeWithModoptObjectILSource = @"
+.class public auto ansi beforefieldinit Tree`1<class TValue>
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested public auto ansi sealed NodeType<class TValue>
+        extends [mscorlib]System.Enum
+    {
+        // Fields
+        .field public specialname rtspecialname int32 value__
+        .field public static literal valuetype Tree`1/NodeType<!TValue> Parent = int32(0)
+        .field public static literal valuetype Tree`1/NodeType<!TValue> Leaf = int32(1)
+
+    } // end of class NodeType
+
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    } // end of method Tree`1::.ctor
+
+} // end of class Tree`1
+
+.class public auto ansi beforefieldinit Tree1
+    extends class Tree`1<object modopt(object)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void class Tree`1<object>::.ctor()
+        ret
+    } // end of method Tree1::.ctor
+
+} // end of class Tree1
+";
+
+            var compilation = CreateCompilationWithIL(genericTreeDefinitionSource, implementingTreeWithModoptObjectILSource);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_01()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Context.RuntimeAssemblyName").WithLocation(4, 31),
+                // (10,65): error CS1061: 'RuntimeSystem' does not contain a definition for 'AssemblyName' and no accessible extension method 'AssemblyName' accepting a first argument of type 'RuntimeSystem' could be found (are you missing a using directive or an assembly reference?)
+                //         public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "AssemblyName").WithArguments("RuntimeSystem", "AssemblyName").WithLocation(10, 65),
+                // (11,16): error CS0246: The type or namespace name 'RuntimeSystem' could not be found (are you missing a using directive or an assembly reference?)
+                //         public RuntimeSystem RuntimeSystem { get; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RuntimeSystem").WithArguments("RuntimeSystem").WithLocation(11, 16)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_02()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+
+                    public class RuntimeSystem
+                    {
+                        public const string AssemblyName = "RuntimeSystem";
+                    }
+                }
+                """;
+
+            CompileAndVerify(source).VerifyDiagnostics();
         }
     }
 }

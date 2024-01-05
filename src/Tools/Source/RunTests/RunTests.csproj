@@ -3,8 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFramework>net7.0</TargetFramework>
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
@@ -16,5 +15,19 @@
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
+
+  
+  <!-- Include the VSIX installer so we have it in the build payload for integration tests -->
+  <ItemGroup>
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <_CopyItems Include="$(NuGetPackageRoot)roslyntools.vsixexpinstaller\$(RoslynToolsVSIXExpInstallerVersion)\tools\*.*" />
+  </ItemGroup>
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Copy SourceFiles="@(_CopyItems)" DestinationFolder="$(OutDir)/VSIXExpInstaller" />
+  </Target>
 </Project>

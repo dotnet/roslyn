@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,7 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     internal partial class CSharpSymbolDisplayService
     {
-        protected class SymbolDescriptionBuilder : AbstractSymbolDescriptionBuilder
+        protected class SymbolDescriptionBuilder(
+            SemanticModel semanticModel,
+            int position,
+            Host.LanguageServices languageServices,
+            SymbolDescriptionOptions options,
+            CancellationToken cancellationToken) : AbstractSymbolDescriptionBuilder(semanticModel, position, languageServices, options, cancellationToken)
         {
             private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
@@ -34,16 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
             private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
-
-            public SymbolDescriptionBuilder(
-                SemanticModel semanticModel,
-                int position,
-                Workspace workspace,
-                IAnonymousTypeDisplayService anonymousTypeDisplayService,
-                CancellationToken cancellationToken)
-                : base(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
-            {
-            }
 
             protected override void AddDeprecatedPrefix()
             {
@@ -81,6 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     Space());
             }
 
+            protected override void AddEnumUnderlyingTypeSeparator()
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Punctuation(":"),
+                    Space());
+            }
+
             protected override Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 ISymbol symbol)
             {
@@ -101,10 +102,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
             }
 
+            protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+                => CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+
+            protected override string? GetNavigationHint(ISymbol symbol)
+                => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 IFieldSymbol symbol)
             {
-                EqualsValueClauseSyntax initializer = null;
+                EqualsValueClauseSyntax? initializer = null;
 
                 var variableDeclarator = await GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (variableDeclarator != null)
@@ -153,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            private async Task<T> GetFirstDeclarationAsync<T>(ISymbol symbol) where T : SyntaxNode
+            private async Task<T?> GetFirstDeclarationAsync<T>(ISymbol symbol) where T : SyntaxNode
             {
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
@@ -168,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             }
 
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
-                EqualsValueClauseSyntax equalsValue)
+                EqualsValueClauseSyntax? equalsValue)
             {
                 if (equalsValue != null && equalsValue.Value != null)
                 {
@@ -176,8 +183,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     if (semanticModel != null)
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Workspace, cancellationToken: CancellationToken).ConfigureAwait(false);
+                            LanguageServices, semanticModel, equalsValue.Value.Span,
+                            Options.ClassificationOptions, cancellationToken: CancellationToken).ConfigureAwait(false);
                     }
                 }
 

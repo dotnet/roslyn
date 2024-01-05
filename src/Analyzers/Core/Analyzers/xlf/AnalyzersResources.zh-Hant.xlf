@@ -22,6 +22,11 @@
         <target state="translated">新增協助工具修飾元</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="translated">新增明確轉換</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">新增括號以明確表示</target>
@@ -32,8 +37,37 @@
         <target state="translated">新增唯讀修飾元</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
+      not report warnings for missing comments.
+      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
+      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </source>
+        <target state="translated">將下列 PropertyGroup 新增至 MSBuild 專案檔，以在組建上啟用 IDE0005 (移除不必要的 using/import):
+  &lt;PropertyGroup&gt;
+   &lt;!--
+      請務必確認程式碼中包含的任何文件註解在組建期間皆經過語法檢查，但
+      不要回報遺漏註解的警告。
+      CS1573: 參數 'parameter' 在 'parameter' 的 XML 註解中沒有相符的參數標籤 (不過其他參數有)
+      CS1591: 遺漏公開可見類型或成員 'Type_or_Member' 的 XML 註解
+      CS1712: 型別參數 'type_parameter' 在 'type_or_member' 的 XML 註解中沒有相符的型別參數標籤 (不過其他型別參數有)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
+        <source>Add 'this' or 'Me' qualification</source>
         <target state="translated">新增 'this' 或 'Me' 限定性條件。</target>
         <note />
       </trans-unit>
@@ -49,7 +83,7 @@
       </trans-unit>
       <trans-unit id="Avoid_multiple_blank_lines">
         <source>Avoid multiple blank lines</source>
-        <target state="new">Avoid multiple blank lines</target>
+        <target state="translated">避免多個空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -64,12 +98,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
-        <target state="new">Blank line required between block and subsequent statement</target>
+        <target state="translated">區塊與後續陳述式之間必須有空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_match_folder_structure">
         <source>Change namespace to match folder structure</source>
-        <target state="new">Change namespace to match folder structure</target>
+        <target state="translated">變更 namespace 以符合資料夾結構</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
@@ -87,11 +121,6 @@
         <target state="translated">轉換至條件運算式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">轉換為元組</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">永遠不會使用運算式值</target>
@@ -100,6 +129,11 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="translated">集合初始化可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">修正格式化</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -162,14 +196,19 @@
         <target state="translated">修飾元未排序</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">可以簡化名稱</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
-        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <target state="translated">命名空間 "{0}" 與資料夾結構不相符，必須為 "{1}"</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Namespace_does_not_match_folder_structure">
         <source>Namespace does not match folder structure</source>
-        <target state="new">Namespace does not match folder structure</target>
+        <target state="translated">命名空間與資料夾結構不相符</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -228,13 +267,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">因為永遠不會讀取指派給私用成員 '{0}' 的值，所以可移除該成員。</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">因為永遠不會讀取指派給 Private 成員 '{0}' 的值，所以可移除該成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">未使用私用成員 '{0}'。</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">未使用 Private 成員 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -250,6 +289,11 @@
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
         <target state="translated">移除不必要的 Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">移除協助工具修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
@@ -297,9 +341,34 @@
         <target state="translated">刪除未使用的私用成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
+        <target state="translated">將 MSBuild 屬性 'GenerateDocumentationFile' 設為 'true'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
+        <target state="translated">如要在組建上啟用 IDE0005 (移除不必要的 using/import)，請在專案檔中將 MSBuild 屬性 'GenerateDocumentationFile' 設為 'true'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
+        <target state="translated">簡化 LINQ 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">簡化成員存取</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">簡化名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">簡化檢查</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -390,6 +459,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">使用 'throw' 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' 陳述式隱含地將 '{1}' 轉換為 '{2}'。新增明確的轉換，讓意圖更清楚，因為它在執行時間可能會失敗</target>
         <note />
       </trans-unit>
     </body>

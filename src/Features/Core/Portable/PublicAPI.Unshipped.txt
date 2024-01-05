@@ -1,2 +1,5 @@
-const Microsoft.CodeAnalysis.TextTags.Record = "Record" -> string
-static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.TaggedText.Equals(Microsoft.CodeAnalysis.TaggedText other) -> bool
+override Microsoft.CodeAnalysis.TaggedText.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.TaggedText.GetHashCode() -> int
+static Microsoft.CodeAnalysis.TaggedText.operator !=(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
+static Microsoft.CodeAnalysis.TaggedText.operator ==(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool

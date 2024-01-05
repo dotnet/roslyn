@@ -9,10 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -21,7 +22,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
         /// </summary>
-        private readonly struct MethodParametersInfo
+        private readonly struct MethodParametersInfo(
+            ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
+            ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> parametersToGenerateFreshVariablesFor,
+            ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
+            bool mergeInlineContentAndVariableDeclarationArgument)
         {
             /// <summary>
             /// Parameters map to variable declaration argument's name.
@@ -40,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// }
             /// void Callee(out int i) => i = 100;
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, string name)> ParametersWithVariableDeclarationArgument { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, string name)> ParametersWithVariableDeclarationArgument { get; } = parametersWithVariableDeclarationArgument;
 
             /// <summary>
             /// Operations that represent Parameter has argument but the argument is not identifier or literal.
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             ///     DoSomething(a, b);
             /// }
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> ParametersToGenerateFreshVariablesFor { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> ParametersToGenerateFreshVariablesFor { get; } = parametersToGenerateFreshVariablesFor;
 
             /// <summary>
             /// A dictionary that contains Parameter that should be directly replaced. Key is the parameter and Value is the replacement exprssion
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// In this case, parameters 'a' and 'b' should just be replaced by the argument expression.
             /// Note: this might cause semantics changes. It is by design.
             /// </summary>
-            public ImmutableDictionary<IParameterSymbol, TExpressionSyntax> ParametersToReplace { get; }
+            public ImmutableDictionary<IParameterSymbol, TExpressionSyntax> ParametersToReplace { get; } = parametersToReplace;
 
             /// <summary>
             /// Indicate should inline expression and variable declaration be merged into one line.
@@ -142,19 +147,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// }
             /// void Callee(out int i) => i = 100;
             /// </summary>
-            public bool MergeInlineContentAndVariableDeclarationArgument { get; }
-
-            public MethodParametersInfo(
-                ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
-                ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> parametersToGenerateFreshVariablesFor,
-                ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
-                bool mergeInlineContentAndVariableDeclarationArgument)
-            {
-                ParametersWithVariableDeclarationArgument = parametersWithVariableDeclarationArgument;
-                ParametersToGenerateFreshVariablesFor = parametersToGenerateFreshVariablesFor;
-                ParametersToReplace = parametersToReplace;
-                MergeInlineContentAndVariableDeclarationArgument = mergeInlineContentAndVariableDeclarationArgument;
-            }
+            public bool MergeInlineContentAndVariableDeclarationArgument { get; } = mergeInlineContentAndVariableDeclarationArgument;
         }
 
         private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
@@ -444,6 +437,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             foreach (var argument in arguments)
             {
                 var parameterSymbol = argument.Parameter;
+                Contract.ThrowIfNull(parameterSymbol, "We filtered out varags methods earlier.");
                 var allReferences = await SymbolFinder
                     .FindReferencesAsync(parameterSymbol, document.Project.Solution, ImmutableHashSet<Document>.Empty.Add(document), cancellationToken).ConfigureAwait(false);
                 // Need to check if the node is in CalleeMethodNode, because for this case

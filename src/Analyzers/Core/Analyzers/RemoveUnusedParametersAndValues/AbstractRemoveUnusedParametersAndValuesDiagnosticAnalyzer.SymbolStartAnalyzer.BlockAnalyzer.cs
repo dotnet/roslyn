@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private sealed partial class SymbolStartAnalyzer
         {
@@ -65,35 +66,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)
                 {
-                    if (HasSyntaxErrors() || context.OperationBlocks.IsEmpty)
-                    {
-                        return;
-                    }
-
-                    // Bail out in presence of conditional directives
-                    // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
-                    // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
-                    // reverting this workaround.
-                    if (HasConditionalDirectives())
-                    {
-                        return;
-                    }
-
-                    // All operation blocks for a symbol belong to the same tree.
-                    var firstBlock = context.OperationBlocks[0];
-                    if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                firstBlock.Language,
-                                                                                context.Options,
-                                                                                context.CancellationToken,
-                                                                                out var options))
-                    {
-                        return;
-                    }
-
-                    // Ignore methods that are just a single-throw method.  These are often
-                    // in-progress pieces of work and we don't want to force the user to fixup other
-                    // issues before they've even gotten around to writing their code.
-                    if (IsSingleThrowNotImplementedOperation(firstBlock))
+                    if (!ShouldAnalyze(context, symbolStartAnalyzer, out var options))
                         return;
 
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
@@ -102,18 +75,70 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeLocalOrParameterReference, OperationKind.LocalReference, OperationKind.ParameterReference);
                     context.RegisterOperationAction(_ => blockAnalyzer._hasInvalidOperation = true, OperationKind.Invalid);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
-
                     return;
 
                     // Local Functions.
+                    bool ShouldAnalyze(
+                        OperationBlockStartAnalysisContext context,
+                        SymbolStartAnalyzer symbolStartAnalyzer,
+                        [NotNullWhen(true)] out Options? options)
+                    {
+                        options = null;
+                        if (HasSyntaxErrors() || context.OperationBlocks.IsEmpty)
+                            return false;
+
+                        // Bail out in presence of conditional directives
+                        // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
+                        // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
+                        // reverting this workaround.
+                        if (HasConditionalDirectives())
+                            return false;
+
+                        // All operation blocks for a symbol belong to the same tree.
+                        var firstBlock = context.OperationBlocks[0];
+                        if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
+                                                                                    context.Options,
+                                                                                    context.Compilation.Options,
+                                                                                    context.CancellationToken,
+                                                                                    out options))
+                        {
+                            return false;
+                        }
+
+                        // Ignore methods that are just a single-throw method.  These are often
+                        // in-progress pieces of work and we don't want to force the user to fixup other
+                        // issues before they've even gotten around to writing their code.
+                        if (firstBlock.IsSingleThrowNotImplementedOperation())
+                            return false;
+
+                        // If we are analyzing a specific filter tree, skip operation blocks in unrelated trees.
+                        if (symbolStartAnalyzer._symbolStartAnalysisContext.FilterTree is { } filterTree &&
+                            firstBlock.Syntax.SyntaxTree != filterTree)
+                        {
+                            return false;
+                        }
+
+                        // If we are analyzing a specific filter span, skip operation blocks outside the filter span.
+                        if (context.FilterSpan.HasValue)
+                        {
+                            Contract.ThrowIfFalse(context.FilterSpan != symbolStartAnalyzer._symbolStartAnalysisContext.FilterSpan);
+                            Contract.ThrowIfNull(symbolStartAnalyzer._symbolStartAnalysisContext.FilterTree);
+                            var root = firstBlock.Syntax.SyntaxTree.GetRoot(context.CancellationToken);
+                            var spanStart = firstBlock.Syntax.SpanStart;
+                            var memberDecl = symbolStartAnalyzer._compilationAnalyzer.SyntaxFacts.GetContainingMemberDeclaration(root, spanStart, useFullSpan: false);
+                            if (memberDecl != null && !context.ShouldAnalyzeSpan(memberDecl.Span))
+                                return false;
+                        }
+
+                        return true;
+                    }
+
                     bool HasSyntaxErrors()
                     {
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
-                            {
                                 return true;
-                            }
                         }
 
                         return false;
@@ -124,7 +149,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
-                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
+                                                     .Any(symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective))
                             {
                                 return true;
                             }
@@ -132,65 +157,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         return false;
                     }
-
-                    static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
-                    {
-                        var compilation = firstBlock.SemanticModel!.Compilation;
-                        var notImplementedExceptionType = compilation.NotImplementedExceptionType();
-                        if (notImplementedExceptionType == null)
-                            return false;
-
-                        if (!(firstBlock is IBlockOperation block))
-                            return false;
-
-                        if (block.Operations.Length == 0)
-                            return false;
-
-                        var firstOp = block.Operations.Length == 1
-                            ? block.Operations[0]
-                            : TryGetSingleExplicitStatement(block.Operations);
-                        if (firstOp == null)
-                            return false;
-
-                        // unwrap: { throw new NYI(); }
-                        if (firstOp is IExpressionStatementOperation expressionStatement)
-                            firstOp = expressionStatement.Operation;
-
-                        // => throw new NotImplementedOperation(...)
-                        return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
-                    }
-
-                    static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
-                    {
-                        IOperation? firstOp = null;
-                        foreach (var operation in operations)
-                        {
-                            if (operation.IsImplicit)
-                                continue;
-
-                            if (firstOp != null)
-                                return null;
-
-                            firstOp = operation;
-                        }
-
-                        return firstOp;
-                    }
-
-                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
-                        => operation is IThrowOperation throwOperation &&
-                           UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
-                           notImplementedExceptionType.Equals(objectCreation.Type);
-
-                    static IOperation? UnwrapImplicitConversion(IOperation? value)
-                        => value is IConversionOperation conversion && conversion.IsImplicit
-                            ? conversion.Operand
-                            : value;
                 }
 
                 private void AnalyzeExpressionStatement(OperationAnalysisContext context)
                 {
-                    if (_options.UnusedValueExpressionStatementSeverity == ReportDiagnostic.Suppress)
+                    if (_options.UnusedValueExpressionStatementNotification.Severity == ReportDiagnostic.Suppress)
                     {
                         return;
                     }
@@ -224,8 +195,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     //  4. Assignments, increment/decrement operations: value is actually being assigned.
-                    if (value is IAssignmentOperation ||
-                        value is IIncrementOrDecrementOperation)
+                    if (value is IAssignmentOperation or
+                        IIncrementOrDecrementOperation)
                     {
                         return;
                     }
@@ -243,7 +214,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
                     var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
                                                              value.Syntax.GetLocation(),
-                                                             _options.UnusedValueExpressionStatementSeverity,
+                                                             _options.UnusedValueExpressionStatementNotification,
                                                              additionalLocations: null,
                                                              properties);
                     context.ReportDiagnostic(diagnostic);
@@ -284,7 +255,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledDelegateCreationOrAnonymousFunctionTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.DelegateCreation || operation.Kind == OperationKind.AnonymousFunction);
+                    Debug.Assert(operation.Kind is OperationKind.DelegateCreation or OperationKind.AnonymousFunction);
 
                     // 1. Delegate creation or anonymous function variable initializer is handled.
                     //    For example, for 'Action a = () => { ... };', the lambda is the variable initializer
@@ -333,7 +304,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledLocalOrParameterReferenceTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference);
+                    Debug.Assert(operation.Kind is OperationKind.LocalReference or OperationKind.ParameterReference);
 
                     // 1. We are only interested in parameters or locals of delegate type.
                     if (!operation.Type.IsDelegateType())
@@ -391,13 +362,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// Method invoked in <see cref="AnalyzeOperationBlockEnd(OperationBlockAnalysisContext)"/>
                 /// for each operation block to determine if we should analyze the operation block or bail out.
                 /// </summary>
-                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol, ref bool hasOperationNoneDescendant)
+                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol, ref bool hasUnknownOperationNoneDescendant)
                 {
                     switch (operationBlock.Kind)
                     {
-                        case OperationKind.None:
+                        case OperationKind.Attribute:
                         case OperationKind.ParameterInitializer:
-                            // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
+                            // Skip blocks from attributes and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
 
@@ -413,11 +384,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                         return false;
 
                                     default:
-                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                        // Workaround for https://github.com/dotnet/roslyn/issues/27564
                                         // Bail out in presence of OperationKind.None - not implemented IOperation.
                                         if (operation.Kind == OperationKind.None)
                                         {
-                                            hasOperationNoneDescendant = true;
+                                            // `nameof(SomeTypeName)` is a well-known case where operation related to `SomeTypeName` syntax is of kind `None`
+                                            hasUnknownOperationNoneDescendant = operation.Parent is not INameOfOperation;
                                             return false;
                                         }
 
@@ -457,7 +429,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
-                         method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                         method.Parameters.Any(static p => p.IsRefOrOut() && p.Type.IsDelegateType())))
                     {
                         return false;
                     }
@@ -481,7 +453,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     // Bail out if we are neither computing unused parameters nor unused value assignments.
                     var isComputingUnusedParams = _options.IsComputingUnusedParams(context.OwningSymbol);
-                    if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress &&
+                    if (_options.UnusedValueAssignmentSeverity.Severity == ReportDiagnostic.Suppress &&
                         !isComputingUnusedParams)
                     {
                         return;
@@ -497,9 +469,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     using var _ = PooledHashSet<SymbolUsageResult>.GetInstance(out var symbolUsageResultsBuilder);
 
                     // Flag indicating if we found an operation block where all symbol writes were used. 
-                    AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasOperationNoneDescendant);
+                    AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasUnknownOperationNoneDescendant);
 
-                    AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasOperationNoneDescendant);
+                    AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasUnknownOperationNoneDescendant);
                 }
 
                 private void AnalyzeUnusedValueAssignments(
@@ -507,14 +479,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
                     out bool hasBlockWithAllUsedSymbolWrites,
-                    out bool hasOperationNoneDescendant)
+                    out bool hasUnknownOperationNoneDescendant)
                 {
                     hasBlockWithAllUsedSymbolWrites = false;
-                    hasOperationNoneDescendant = false;
+                    hasUnknownOperationNoneDescendant = false;
 
                     foreach (var operationBlock in context.OperationBlocks)
                     {
-                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasOperationNoneDescendant))
+                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasUnknownOperationNoneDescendant))
                         {
                             continue;
                         }
@@ -586,7 +558,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, cancellationToken: context.CancellationToken);
                                     }
                                 }
 
@@ -613,9 +585,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string>? properties)
+                        out ImmutableDictionary<string, string?>? properties)
                     {
-                        Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
+                        Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
 
                         properties = null;
 
@@ -625,7 +597,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         //   3. Static local symbols. Assignment to static locals
                         //      is not unnecessary as the assigned value can be used on the next invocation.
                         //   4. Ignore special discard symbol names (see https://github.com/dotnet/roslyn/issues/32923).
-                        if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
+                        if (_options.UnusedValueAssignmentSeverity.Severity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
                             symbol.IsSymbolWithSpecialDiscardName())
@@ -722,20 +694,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
                     bool hasBlockWithAllUsedSymbolWrites,
-                    bool hasOperationNoneDescendant)
+                    bool hasUnknownOperationNoneDescendant)
                 {
                     // Process parameters for the context's OwningSymbol that are unused across all operation blocks.
 
                     // Bail out cases:
                     //  1. Skip analysis if we are not computing unused parameters based on user's option preference or have
-                    //     a descendant operation with OperatioKind.None (not yet implemented operation).
-                    if (!isComputingUnusedParams || hasOperationNoneDescendant)
+                    //     a descendant operation with OperationKind.None (not yet implemented operation) in not a well-known location.
+                    if (!isComputingUnusedParams || hasUnknownOperationNoneDescendant)
                     {
                         return;
                     }
 
                     // 2. Report unused parameters only for method symbols.
-                    if (!(context.OwningSymbol is IMethodSymbol method))
+                    if (context.OwningSymbol is not IMethodSymbol method)
                     {
                         return;
                     }

@@ -15,33 +15,49 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests
          : CSharpTestBase
     {
         [Theory]
-        [InlineData("abc")] // abc.cs
-        [InlineData("abc.cs")] //abc.cs
-        [InlineData("abc.vb")] // abc.vb.cs
+        [InlineData("abc", "abc.cs")]
+        [InlineData("abc.cs")]
+        [InlineData("abc+nested.cs")]
+        [InlineData("abc`1.cs")]
+        [InlineData("abc.vb", "abc.vb.cs")]
         [InlineData("abc.generated.cs")]
-        [InlineData("abc_-_")]
+        [InlineData("abc_-_", "abc_-_.cs")]
         [InlineData("abc - generated.cs")]
-        [InlineData("abc\u0064.cs")] //acbd.cs
+        [InlineData("abc\u0064.cs", "abcd.cs")]
         [InlineData("abc(1).cs")]
         [InlineData("abc[1].cs")]
         [InlineData("abc{1}.cs")]
-        public void HintName_ValidValues(string hintName)
+        [InlineData("..", "...cs")]
+        [InlineData(".", "..cs")]
+        [InlineData("abc/", "abc/.cs")]
+        [InlineData("abc/ ", "abc/ .cs")]
+        [InlineData("a/b/c", "a/b/c.cs")]
+        [InlineData("a\\b/c", "a/b/c.cs")]
+        [InlineData(" abc ", " abc .cs")]
+        [InlineData(" abc/generated.cs")]
+        [InlineData(" a/ b/ generated.cs")]
+        [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
+        public void HintName_ValidValues(string hintName, string? expectedName = null)
         {
+            expectedName ??= hintName;
+
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8));
-            Assert.True(asc.Contains(hintName));
+            Assert.True(asc.Contains(expectedName));
 
             var sources = asc.ToImmutableAndFree();
-            Assert.Single(sources);
-            Assert.True(sources[0].HintName.EndsWith(".cs"));
-
+            var source = Assert.Single(sources);
+            Assert.True(source.HintName.EndsWith(".cs"));
+            Assert.Equal(expectedName, source.HintName, StringComparer.OrdinalIgnoreCase);
         }
 
         [Theory]
@@ -71,10 +87,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("|")]
         [InlineData("\0")]
         [InlineData("abc\u00A0.cs")] // unicode non-breaking space
+        [InlineData("/..")]
+        [InlineData("\\..")]
+        [InlineData("//")]
+        [InlineData("\\\\")]
+        [InlineData("a//b")]
+        [InlineData("a\\\\b")]
+        [InlineData("../")]
+        [InlineData("./")]
+        [InlineData(" /")]
+        [InlineData(" /generated.cs")]
+        [InlineData(" /a/generated.cs")]
+        [InlineData(" /abc")]
+        [InlineData(" /a/ b/c/ ")]
+        [InlineData(" a/ b /c ")]
+        [InlineData(" /a/ b/c/ generated.cs")]
+        [InlineData(" a/ b /c generated.cs")]
+        [InlineData(" abc /generated.cs")]
         public void HintName_InvalidValues(string hintName)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
-            Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
+            var exception = Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
+
+            Assert.Contains(hintName.Replace('\\', '/'), exception.Message);
         }
 
         [Fact]
@@ -87,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             asc.Add("file2.cs", SourceText.From("", Encoding.UTF8));
             asc.Add("file5.cs", SourceText.From("", Encoding.UTF8));
             asc.Add("file4.cs", SourceText.From("", Encoding.UTF8));
-
 
             var sources = asc.ToImmutableAndFree();
             var hintNames = sources.Select(s => s.HintName).ToArray();
@@ -130,7 +164,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(hintName1, SourceText.From("", Encoding.UTF8));
-            Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
+            var exception = Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
+
+            Assert.Contains(hintName2, exception.Message);
+        }
+
+        [Fact]
+        public void Hint_Name_Must_Be_Unique_When_Combining_Sources()
+        {
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
+            asc.Add("hintName1", SourceText.From("", Encoding.UTF8));
+            asc.Add("hintName2", SourceText.From("", Encoding.UTF8));
+
+            AdditionalSourcesCollection asc2 = new AdditionalSourcesCollection(".cs");
+            asc2.Add("hintName3", SourceText.From("", Encoding.UTF8));
+            asc2.Add("hintName1", SourceText.From("", Encoding.UTF8));
+
+            var exception = Assert.Throws<ArgumentException>("hintName", () => asc.CopyTo(asc2));
+            Assert.Contains("hintName1", exception.Message);
         }
 
         [Theory]
@@ -179,6 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             // explicit null encoding
             Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
+
+            var exception = Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
+
+            // check the exception contains the expected hintName
+            Assert.Contains("file5.cs", exception.Message);
         }
     }
 }

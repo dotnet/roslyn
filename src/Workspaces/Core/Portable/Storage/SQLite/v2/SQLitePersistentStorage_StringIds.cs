@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     {
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
-        private int? TryGetStringId(SqlConnection connection, string value)
+        private int? TryGetStringId(SqlConnection connection, string? value, bool allowWrite)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromDatabase(connection, value);
+            var id = TryGetStringIdFromDatabase(connection, value, allowWrite);
             if (id != null)
             {
                 _stringToIdMap[value] = id.Value;
@@ -42,8 +43,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return id;
         }
 
-        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
+        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value, bool allowWrite)
         {
+            // We're reading or writing.  This can be under either of our schedulers.
+            Contract.ThrowIfFalse(
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler ||
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ConcurrentScheduler);
+
             // First, check if we can find that string in the string table.
             var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
             if (stringId != null)
@@ -53,24 +59,42 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return stringId;
             }
 
+            // If we're in a context where our caller doesn't have the write lock, give up now.  They will
+            // call back in with the write lock to allow safe adding of this db ID after this.
+            if (!allowWrite)
+                return null;
+
+            // We're writing.  This better always be under the exclusive scheduler.
+            Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
+
             // The string wasn't in the db string table.  Add it.  Note: this may fail if some
             // other thread/process beats us there as this table has a 'unique' constraint on the
             // values.
             try
             {
-                stringId = connection.RunInTransaction(
+                // Pass in `throwOnSqlException: false` so we get the exception bubbled back to us as a result value.
+                var (result, exception) = connection.RunInTransaction(
                     static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
-                    (self: this, connection, value));
+                    (self: this, connection, value),
+                    throwOnSqlException: false);
 
-                Contract.ThrowIfTrue(stringId == null);
-                return stringId;
-            }
-            catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
-            {
-                // We got a constraint violation.  This means someone else beat us to adding this
-                // string to the string-table.  We should always be able to find the string now.
-                stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
-                return stringId;
+                if (exception != null)
+                {
+                    // we can get two types of exceptions.  A 'CONSTRAINT' violation is an expected result and means
+                    // someone else beat us to adding this string to the string-table.  As such, we should always be
+                    // able to find the string now.
+                    if (exception.Result == Result.CONSTRAINT)
+                        return TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
+
+                    // Some other sql exception occurred (like SQLITE_FULL). These are not exceptions we can suitably
+                    // recover from.  In this case, transition the storage instance into being unusable. Future
+                    // reads/writes will get empty results.
+                    this.DisableStorage(exception);
+                    return null;
+                }
+
+                // If we didn't get an exception, we must have gotten a string back.
+                return result;
             }
             catch (Exception ex)
             {
@@ -145,6 +169,30 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This should not be possible.  We only called here if we got a constraint violation.
             // So how could we then not find the string in the table?
             throw new InvalidOperationException();
+        }
+
+        private void LoadExistingStringIds(SqlConnection connection)
+        {
+            try
+            {
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table);
+                var statement = resettableStatement.Statement;
+
+                Result stepResult;
+                while ((stepResult = statement.Step()) == Result.ROW)
+                {
+                    var id = statement.GetInt32At(columnIndex: 0);
+                    var value = statement.GetStringAt(columnIndex: 1);
+                    _stringToIdMap.TryAdd(value, id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If we simply failed to even talk to the DB then we have to bail out.  There's
+                // nothing we can accomplish at this point.
+                StorageDatabaseLogger.LogException(ex);
+                return;
+            }
         }
     }
 }

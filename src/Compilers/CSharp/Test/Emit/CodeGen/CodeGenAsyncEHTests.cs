@@ -973,6 +973,10 @@ class Test
           <slot kind=""28"" offset=""156"" />
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""65"" />
+          <state number=""1"" offset=""156"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -2099,6 +2103,237 @@ class Driver
 1
 ";
             CompileAndVerify(source, expected);
+        }
+
+        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+        public void NestedCatch_DuplicateLocal()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                using static System.Console;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await new C().M1(catchFirst: false);
+                        WriteLine("--- catch first ---");
+                        await new C().M1(catchFirst: true);
+                    }
+
+                    bool F(string caller, Exception ex, bool result)
+                    {
+                        WriteLine($"F: {caller} {ex.Message}");
+                        return result;
+                    }
+
+                    async Task M1(bool catchFirst)
+                    {
+                        try
+                        {
+                            throw new Exception("M1");
+                        }
+                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst))
+                        {
+                            await M2("M1-catch1", ex);
+                        }
+                        catch (Exception ex) when (F("M1-catch2", ex, true))
+                        {
+                            try
+                            {
+                                throw new Exception("M1-catch2");
+                            }
+                            catch 
+                            {
+                                await M2("M1-catch2-catch", ex);
+                            }
+                        }
+                    }
+
+                    async Task M2(string caller, Exception ex)
+                    {
+                        WriteLine($"M2: {caller} {ex.Message}");
+                        await Task.Yield();
+                    }
+                }
+                """;
+            var expectedOutput = """
+                F: M1-catch1 M1
+                F: M1-catch2 M1
+                M2: M1-catch2-catch M1
+                --- catch first ---
+                F: M1-catch1 M1
+                M2: M1-catch1 M1
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+        public void NestedCatch_DuplicateLocal_Level2()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                using static System.Console;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        foreach (var catchFirst1 in new[] { false, true })
+                        {
+                            foreach (var catchFirst2 in new[] { false, true })
+                            {
+                                WriteLine($"--- catchFirst1={catchFirst1}, catchFirst2={catchFirst2} ---");
+                                await new C().M1(catchFirst1: catchFirst1, catchFirst2: catchFirst2);
+                            }
+                        }
+                    }
+
+                    bool F(string caller, Exception ex, bool result)
+                    {
+                        WriteLine($"F: {caller} {ex.Message}");
+                        return result;
+                    }
+
+                    async Task M1(bool catchFirst1, bool catchFirst2)
+                    {
+                        try
+                        {
+                            throw new Exception("M1-try");
+                        }
+                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst1))
+                        {
+                            await M2("M1-catch1", ex);
+                        }
+                        catch (Exception ex) when (F("M1-catch2", ex, true))
+                        {
+                            try
+                            {
+                                throw new Exception("M1-catch2");
+                            }
+                            catch (Exception ex2) when (F("M1-catch2-catch1", ex2, catchFirst2))
+                            {
+                                await M2("M1-catch2-catch1-ex", ex);
+                                await M2("M1-catch2-catch1-ex2", ex2);
+                            }
+                            catch (Exception ex2) when (F("M1-catch2-catch2", ex2, true))
+                            {
+                                try
+                                {
+                                    throw new Exception("M1-catch2-catch1");
+                                }
+                                catch
+                                {
+                                    await M2("M1-catch2-catch2-catch-ex", ex);
+                                    await M2("M1-catch2-catch2-catch-ex2", ex2);
+                                }
+                            }
+                        }
+                    }
+
+                    async Task M2(string caller, Exception ex)
+                    {
+                        await Task.Yield();
+                        WriteLine($"M2: {caller} {ex.Message}");
+                    }
+                }
+                """;
+            var expectedOutput = """
+                --- catchFirst1=False, catchFirst2=False ---
+                F: M1-catch1 M1-try
+                F: M1-catch2 M1-try
+                F: M1-catch2-catch1 M1-catch2
+                F: M1-catch2-catch2 M1-catch2
+                M2: M1-catch2-catch2-catch-ex M1-try
+                M2: M1-catch2-catch2-catch-ex2 M1-catch2
+                --- catchFirst1=False, catchFirst2=True ---
+                F: M1-catch1 M1-try
+                F: M1-catch2 M1-try
+                F: M1-catch2-catch1 M1-catch2
+                M2: M1-catch2-catch1-ex M1-try
+                M2: M1-catch2-catch1-ex2 M1-catch2
+                --- catchFirst1=True, catchFirst2=False ---
+                F: M1-catch1 M1-try
+                M2: M1-catch1 M1-try
+                --- catchFirst1=True, catchFirst2=True ---
+                F: M1-catch1 M1-try
+                M2: M1-catch1 M1-try
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
+        public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch(bool awaitInTry2)
+        {
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+                using static System.Console;
+                
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await new C().M1(catchFirst: false);
+                        WriteLine("--- catch first ---");
+                        await new C().M1(catchFirst: true);
+                    }
+                
+                    bool F(string caller, bool result)
+                    {
+                        WriteLine($"F: {caller}");
+                        return result;
+                    }
+                
+                    async Task M1(bool catchFirst)
+                    {
+                        try
+                        {
+                            throw new Exception("M1");
+                        }
+                        catch (Exception ex) when (F("M1-catch1", catchFirst))
+                        {
+                            await M2("M1-catch1", ex);
+                        }
+                        catch (Exception ex) when (F("M1-catch2", true))
+                        {
+                            try
+                            {
+                                {{(awaitInTry2 ? "await Task.Yield();" : "")}}
+                                throw new Exception("M1-catch2");
+                            }
+                            catch 
+                            {
+                                _ = M2("M1-catch2-catch", ex);
+                            }
+                        }
+                    }
+                
+                    async Task M2(string caller, Exception ex)
+                    {
+                        WriteLine($"M2: {caller} {ex.Message}");
+                        await Task.Yield();
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                F: M1-catch1
+                F: M1-catch2
+                M2: M1-catch2-catch M1
+                --- catch first ---
+                F: M1-catch1
+                M2: M1-catch1 M1
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
     }
 }

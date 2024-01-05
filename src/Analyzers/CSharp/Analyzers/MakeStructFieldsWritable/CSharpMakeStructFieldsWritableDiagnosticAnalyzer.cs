@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             EnforceOnBuildValues.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
             new LocalizableResourceString(nameof(CSharpAnalyzersResources.Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-            isUnnecessary: false);
+            hasAnyCodeStyleOption: false, isUnnecessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)
@@ -57,28 +55,30 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
                     // We are only interested in struct declarations
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct)
-                    {
                         return;
-                    }
 
-                    //We check if struct contains any 'readonly' fields
+                    // We check if struct contains any 'readonly' fields
                     if (!HasReadonlyField(namedTypeSymbol))
-                    {
                         return;
-                    }
+
+                    // Check if diagnostic location is within the analysis span
+                    if (!context.ShouldAnalyzeLocation(GetDiagnosticLocation(namedTypeSymbol)))
+                        return;
 
                     var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
                     symbolAnalyzer.RegisterActions(context);
                 }, SymbolKind.NamedType);
             }
 
+            private static Location GetDiagnosticLocation(INamedTypeSymbol namedTypeSymbol)
+                => namedTypeSymbol.Locations[0];
+
             private static bool HasReadonlyField(INamedTypeSymbol namedTypeSymbol)
             {
                 return namedTypeSymbol
                     .GetMembers()
                     .OfType<IFieldSymbol>()
-                    .Where(field => field.AssociatedSymbol == null)
-                    .Any(field => field.IsReadOnly);
+                    .Any(field => field is { AssociatedSymbol: null, IsStatic: false, IsReadOnly: true });
             }
 
             private void RegisterActions(SymbolStartAnalysisContext context)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,
-                                    _namedTypeSymbol.Locations[0]);
+                                    GetDiagnosticLocation(_namedTypeSymbol));
                     context.ReportDiagnostic(diagnostic);
                 }
             }

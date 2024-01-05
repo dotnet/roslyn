@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,12 +28,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var project = projectGroup.Key;
                 if (project.SupportsCompilation)
                 {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     foreach (var documentGroup in projectGroup)
                     {
                         var document = documentGroup.Key;
-                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         AddSymbols(semanticModel, documentGroup, result);
                     }
 
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static ISymbol GetEnclosingMethodOrPropertyOrField(
+        private static ISymbol? GetEnclosingMethodOrPropertyOrField(
             SemanticModel semanticModel,
             ReferenceLocation reference)
         {

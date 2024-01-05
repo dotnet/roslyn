@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct SyntaxListBuilder<TNode> where TNode : GreenNode
+    internal readonly struct SyntaxListBuilder<TNode> where TNode : GreenNode
     {
         private readonly SyntaxListBuilder _builder;
 
@@ -39,11 +41,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public TNode? this[int index]
+        public TNode this[int index]
         {
             get
             {
-                return (TNode?)_builder[index];
+                // We only allow assigning non-null nodes into us, and .Add filters null out.  So we should never get null here.
+                var result = _builder[index];
+                Debug.Assert(result != null);
+                return (TNode)result;
             }
 
             set
@@ -57,7 +62,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.Clear();
         }
 
-        public SyntaxListBuilder<TNode> Add(TNode node)
+        /// <summary>
+        /// Adds <paramref name="node"/> to the end of this builder.  No change happens if <see langword="null"/> is
+        /// passed in.
+        /// </summary>
+        public SyntaxListBuilder<TNode> Add(TNode? node)
         {
             _builder.Add(node);
             return this;

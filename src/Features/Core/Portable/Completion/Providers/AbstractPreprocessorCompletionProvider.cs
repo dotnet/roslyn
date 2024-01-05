@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractPreprocessorCompletionProvider : LSPCompletionProvider
     {
@@ -21,11 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var originatingDocument = context.Document;
             var position = context.Position;
-
-            var semanticModel = await originatingDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var service = originatingDocument.GetRequiredLanguageService<ISyntaxContextService>();
             var solution = originatingDocument.Project.Solution;
-            var syntaxContext = service.CreateContext(solution.Workspace, semanticModel, position, cancellationToken);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(originatingDocument, cancellationToken).ConfigureAwait(false);
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 

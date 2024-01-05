@@ -273,9 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         // Should not bind to unnamed display class parameters
         // (unnamed parameters are treated as named "value").
-        [WorkItem(18426, "https://github.com/dotnet/roslyn/issues/18426")]
-        [Fact(Skip = "18426")]
-        public void DisplayClassParameter()
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        public void DisplayClassParameter_01()
         {
             var source =
 @"class C
@@ -297,6 +297,130 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string error;
                 context.CompileExpression("value", out error, testData);
                 Assert.Equal("error CS0103: The name 'value' does not exist in the current context", error);
+            });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        public void DisplayClassParameter_02()
+        {
+            var source =
+@"class C
+{
+    void F(int x)
+    {
+        int G(int value)
+        {
+            return x + value;
+        };
+        G(1);
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
+                var testData = new CompilationTestData();
+                string error;
+                context.CompileExpression("value", out error, testData);
+
+                Assert.Null(error);
+                var data = testData.GetMethodData("<>x.<>m0");
+
+                Assert.True(data.Method.IsStatic);
+                Assert.Equal("System.Int32 <>x.<>m0(System.Int32 value, ref C.<>c__DisplayClass0_0 value)", ((Symbol)data.Method).ToTestDisplayString());
+                data.VerifyIL(
+ @"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        public void DisplayClassParameter_03()
+        {
+            var source =
+@"class C
+{
+    void F(int x)
+    {
+        int G()
+        {
+            int value = 1;
+            return x + Value();
+
+            int Value() => value;
+        };
+        G();
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
+                var testData = new CompilationTestData();
+                string error;
+                context.CompileExpression("value", out error, testData);
+
+                Assert.Null(error);
+                var data = testData.GetMethodData("<>x.<>m0");
+
+                Assert.True(data.Method.IsStatic);
+                Assert.Equal("System.Int32 <>x.<>m0(ref C.<>c__DisplayClass0_0 value)", ((Symbol)data.Method).ToTestDisplayString());
+                data.VerifyIL(
+ @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.value""
+  IL_0006:  ret
+}");
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59093")]
+        public void DeclaringCompilationIsNotNull()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(@"
+new Action<int>(x =>
+{
+    int F(int y)
+    {
+        switch (y)
+        {
+            case > 0: return 1;
+            case < 0: return -1;
+            case 0: return 0;
+            default: return 0;
+        }
+    }
+    F(x);
+}).Invoke(1)
+", out error, testData);
+                Assert.Null(error);
             });
         }
     }

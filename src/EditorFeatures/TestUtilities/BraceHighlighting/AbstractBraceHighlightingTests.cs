@@ -6,10 +6,11 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             string markup, ParseOptions options = null, bool swapAnglesWithBrackets = false)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
-                out var text, out int cursorPosition, out var expectedSpans);
+                out var text, out var cursorPosition, out var expectedSpans);
 
             // needed because markup test file can't support [|[|] to indicate selecting
             // just an open bracket.
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
-                    workspace.GetService<IForegroundNotificationService>(),
+                    workspace.GetService<IGlobalOptionService>(),
+                    visibilityTracker: null,
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 await provider.GetTestAccessor().ProduceTagsAsync(context);
 
                 var expectedHighlights = expectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
-                var actualHighlights = context.tagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
+                var actualHighlights = context.TagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
 
                 Assert.Equal(expectedHighlights, actualHighlights);
             }

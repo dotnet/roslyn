@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             var root = tree.GetRoot(cancellationToken);
-            return TryGetClosestBreakpointSpan(root, position, out breakpointSpan);
+            return TryGetClosestBreakpointSpan(root, position, minLength: 0, out breakpointSpan);
         }
 
         private static bool IsBlank(TextLine line)
@@ -58,26 +58,52 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Given a syntax token determines a text span delimited by the closest applicable sequence points 
         /// encompassing the token.
         /// </summary>
+        /// <param name="minLength">
+        /// In case there are multiple breakpoint spans starting at the given <paramref name="position"/>,
+        /// <paramref name="minLength"/> can be used to disambiguate between them. 
+        /// The inner-most available span whose length is at least <paramref name="minLength"/> is returned.
+        /// </param>
         /// <remarks>
         /// If the span exists it is possible to place a breakpoint at the given position.
         /// </remarks>
-        public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
+        public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, int minLength, out TextSpan span)
         {
             var node = root.FindToken(position).Parent;
+            var candidate = (TextSpan?)null;
+
             while (node != null)
             {
                 var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
-                    return span != default;
+                    if (span == default)
+                    {
+                        break;
+                    }
+
+                    // the new breakpoint span doesn't alight with the previously found breakpoint span, return the previous one:
+                    if (candidate.HasValue && breakpointSpan.Value.Start != candidate.Value.Start)
+                    {
+                        span = candidate.Value;
+                        return true;
+                    }
+
+                    // The span length meets the requirement:
+                    if (breakpointSpan.Value.Length >= minLength)
+                    {
+                        span = breakpointSpan.Value;
+                        return true;
+                    }
+
+                    candidate = breakpointSpan;
                 }
 
                 node = node.Parent;
             }
 
-            span = default;
-            return false;
+            span = candidate.GetValueOrDefault();
+            return candidate.HasValue;
         }
 
         private static TextSpan CreateSpan(SyntaxToken startToken, SyntaxToken endToken)
@@ -131,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else
             {
-                return nodeOrToken.AsNode().GetLastToken().Span.End;
+                return nodeOrToken.AsNode()!.GetLastToken().Span.End;
             }
         }
 
@@ -152,7 +178,86 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return (methodDeclaration.Body != null) ? CreateSpanForBlock(methodDeclaration.Body, position) : methodDeclaration.ExpressionBody?.Expression.Span;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    return CreateSpanForConstructorDeclaration((ConstructorDeclarationSyntax)node);
+                    return CreateSpanForConstructorDeclaration((ConstructorDeclarationSyntax)node, position);
+
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
+                    if (typeDeclaration.ParameterList != null)
+                    {
+                        // after brace or semicolon
+                        // class C<T>(...) {$$ ... }
+                        // class C<T>(...) ;$$
+                        if (position > LastNotMissing(typeDeclaration.SemicolonToken, typeDeclaration.OpenBraceToken).SpanStart)
+                        {
+                            return null;
+                        }
+
+                        // on or after explicit base initializer:
+                        //   C<T>(...) :$$ [|B(...)|], I
+                        //   C<T>(...) : [|B(...)|], I where ... $$
+                        var baseInitializer = (PrimaryConstructorBaseTypeSyntax?)typeDeclaration.BaseList?.Types.FirstOrDefault(t => t.IsKind(SyntaxKind.PrimaryConstructorBaseType));
+                        if (baseInitializer != null && position > typeDeclaration.BaseList!.ColonToken.SpanStart)
+                        {
+                            return CreateSpanForExplicitPrimaryConstructorInitializer(baseInitializer);
+                        }
+
+                        // record properties and copy constructor
+                        if (position >= typeDeclaration.Identifier.SpanStart && node is RecordDeclarationSyntax recordDeclaration)
+                        {
+                            // on identifier:
+                            // record $$C<T>(...) : B(...);
+                            // record C<T>$$(...) : B(...);
+                            if (position <= typeDeclaration.ParameterList.SpanStart)
+                            {
+                                // copy-constructor: [|C<T>|]
+                                return CreateSpanForCopyConstructor(recordDeclaration);
+                            }
+
+                            // on parameter:
+                            // record C<T>(..., $$ int p, ...) : B(...);
+                            if (position < typeDeclaration.ParameterList.CloseParenToken.Span.End)
+                            {
+                                var parameter = GetParameter(position, typeDeclaration.ParameterList.Parameters);
+                                if (parameter != null)
+                                {
+                                    // [A][|int p|] = default
+                                    return CreateSpanForRecordParameter(parameter);
+                                }
+
+                                static ParameterSyntax? GetParameter(int position, SeparatedSyntaxList<ParameterSyntax> parameters)
+                                {
+                                    if (parameters.Count == 0)
+                                    {
+                                        return null;
+                                    }
+
+                                    for (var i = 0; i < parameters.SeparatorCount; i++)
+                                    {
+                                        var separator = parameters.GetSeparator(i);
+                                        if (position <= separator.SpanStart)
+                                        {
+                                            return parameters[i];
+                                        }
+                                    }
+
+                                    return parameters.Last();
+                                }
+                            }
+                        }
+
+                        // explicit base initializer
+                        //   C<T>(...) : [|B(...)|]
+                        // implicit base initializer
+                        //   [|C<T>(...)|]
+                        return (baseInitializer != null)
+                            ? CreateSpanForExplicitPrimaryConstructorInitializer(baseInitializer)
+                            : CreateSpanForImplicitPrimaryConstructorInitializer(typeDeclaration);
+                    }
+
+                    return null;
 
                 case SyntaxKind.VariableDeclarator:
                     // handled by the parent node
@@ -191,8 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var switchArm = (SwitchExpressionArmSyntax)node;
                     return createSpanForSwitchArm(switchArm);
 
-                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
-                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm)
+                        => CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : switchArm.Expression);
 
                 case SyntaxKind.SwitchExpression when
                             node is SwitchExpressionSyntax switchExpression &&
@@ -223,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        return CreateSpan(node);
+                        return CreateSpanForAutoPropertyAccessor(accessor);
                     }
 
                 case SyntaxKind.PropertyDeclaration:
@@ -243,6 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return property.Initializer.Value.Span;
                     }
 
+                    // properties without expression body have accessor list:
+                    Contract.ThrowIfNull(property.AccessorList);
+
                     // int P { get [|{|] ... } set { ... } }
                     // int P { [|get;|] [|set;|] }
                     return CreateSpanForAccessors(property.AccessorList.Accessors, position);
@@ -255,6 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return indexer.ExpressionBody.Expression.Span;
                     }
 
+                    // indexers without expression body have accessor list:
+                    Contract.ThrowIfNull(indexer.AccessorList);
+
                     // int this[args] { get [|{|] ... } set { ... } }
                     return CreateSpanForAccessors(indexer.AccessorList.Accessors, position);
 
@@ -266,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
-                    return CreateSpanForConstructorInitializer((ConstructorInitializerSyntax)node);
+                    return CreateSpanForExplicitConstructorInitializer((ConstructorInitializerSyntax)node);
 
                 // Query clauses:
                 // 
@@ -306,14 +417,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.LocalFunctionStatement:
                     var localFunction = (LocalFunctionStatementSyntax)node;
-                    return (localFunction.Body != null) ?
-                        TryCreateSpanForNode(localFunction.Body, position) :
-                        TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
+                    return (localFunction.Body != null)
+                        ? TryCreateSpanForNode(localFunction.Body, position)
+                        : TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
 
                 default:
                     if (node is ExpressionSyntax expression)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : (TextSpan?)null;
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : null;
                     }
 
                     if (node is StatementSyntax statement)
@@ -325,37 +436,123 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static TextSpan CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax)
+        internal static TextSpan? CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax, int position)
         {
-            if (constructorSyntax.Initializer != null)
-            {
-                return CreateSpanForConstructorInitializer(constructorSyntax.Initializer);
-            }
-
-            if (constructorSyntax.ExpressionBody != null)
+            if (constructorSyntax.ExpressionBody != null &&
+                position > constructorSyntax.ExpressionBody.ArrowToken.Span.Start)
             {
                 return constructorSyntax.ExpressionBody.Expression.Span;
+            }
+
+            if (constructorSyntax.Initializer != null)
+            {
+                return CreateSpanForExplicitConstructorInitializer(constructorSyntax.Initializer);
             }
 
             // static ctor doesn't have a default initializer:
             if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
-                return CreateSpan(constructorSyntax.Body.OpenBraceToken);
+                if (constructorSyntax.ExpressionBody != null)
+                {
+                    return constructorSyntax.ExpressionBody.Expression.Span;
+                }
+
+                if (constructorSyntax.Body != null)
+                {
+                    return CreateSpan(constructorSyntax.Body.OpenBraceToken);
+                }
+
+                return null;
             }
 
-            // the declaration is the span of the implicit initializer
-            return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
+            return CreateSpanForImplicitConstructorInitializer(constructorSyntax);
         }
 
-        private static TextSpan CreateSpanForConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
+        internal static TextSpan CreateSpanForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
+            => CreateSpan(constructor.Modifiers, constructor.Identifier, constructor.ParameterList.CloseParenToken);
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
+            => constructor.Modifiers.Concat(SpecializedCollections.SingletonEnumerable(constructor.Identifier)).Concat(constructor.ParameterList.DescendantTokens());
+
+        internal static TextSpan CreateSpanForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
             => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
+            => SpecializedCollections.SingletonEnumerable(constructorInitializer.ThisOrBaseKeyword).Concat(constructorInitializer.ArgumentList.DescendantTokens());
+
+        internal static TextSpan CreateSpanForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration)
+        {
+            Debug.Assert(typeDeclaration.ParameterList != null);
+            return TextSpan.FromBounds(typeDeclaration.Identifier.SpanStart, typeDeclaration.ParameterList.Span.End);
+        }
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration)
+        {
+            Debug.Assert(typeDeclaration.ParameterList != null);
+
+            yield return typeDeclaration.Identifier;
+
+            if (typeDeclaration.TypeParameterList != null)
+            {
+                foreach (var token in typeDeclaration.TypeParameterList.DescendantTokens())
+                    yield return token;
+            }
+
+            foreach (var token in typeDeclaration.ParameterList.DescendantTokens())
+                yield return token;
+        }
+
+        internal static TextSpan CreateSpanForExplicitPrimaryConstructorInitializer(PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
+            => baseTypeSyntax.Span;
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitPrimaryConstructorInitializer(PrimaryConstructorBaseTypeSyntax baseTypeSyntax)
+            => baseTypeSyntax.DescendantTokens();
+
+        internal static TextSpan CreateSpanForCopyConstructor(RecordDeclarationSyntax recordDeclaration)
+            => CreateSpan(
+                recordDeclaration.Identifier,
+                LastNotMissing(recordDeclaration.Identifier, recordDeclaration.TypeParameterList?.GreaterThanToken ?? default));
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForCopyConstructor(RecordDeclarationSyntax recordDeclaration)
+        {
+            yield return recordDeclaration.Identifier;
+
+            if (recordDeclaration.TypeParameterList != null)
+            {
+                foreach (var token in recordDeclaration.TypeParameterList.DescendantTokens())
+                    yield return token;
+            }
+        }
+
+        internal static TextSpan CreateSpanForRecordParameter(ParameterSyntax parameter)
+            => CreateSpan(parameter.Modifiers, parameter.Type, parameter.Identifier);
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForRecordParameter(ParameterSyntax parameter)
+        {
+            foreach (var modifier in parameter.Modifiers)
+                yield return modifier;
+
+            if (parameter.Type != null)
+            {
+                foreach (var token in parameter.Type.DescendantTokens())
+                    yield return token;
+            }
+
+            yield return parameter.Identifier;
+        }
+
+        internal static TextSpan CreateSpanForAutoPropertyAccessor(AccessorDeclarationSyntax accessor)
+            => accessor.Span;
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForAutoPropertyAccessor(AccessorDeclarationSyntax accessor)
+            => accessor.DescendantTokens();
 
         private static TextSpan? TryCreateSpanForFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration, int position)
             => TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
-            if (!(switchLabel.Parent is SwitchSectionSyntax switchSection) || switchSection.Statements.Count == 0)
+            if (switchLabel.Parent is not SwitchSectionSyntax switchSection || switchSection.Statements.Count == 0)
             {
                 return null;
             }
@@ -570,21 +767,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
-            => token2.IsMissing ? token1 : token2;
+            => token2.IsKind(SyntaxKind.None) || token2.IsMissing ? token1 : token2;
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
-        {
-            switch (declaration.Parent.Kind())
+            => declaration.Parent!.Kind() switch
             {
-                case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.FieldDeclaration:
-                    // parent node will handle:
-                    return null;
-            }
+                // parent node will handle:
+                SyntaxKind.LocalDeclarationStatement or SyntaxKind.EventFieldDeclaration or SyntaxKind.FieldDeclaration => null,
 
-            return TryCreateSpanForVariableDeclaration(declaration, default, default, position);
-        }
+                _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position),
+            };
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(
             VariableDeclarationSyntax variableDeclaration,
@@ -618,21 +810,69 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 position = variableDeclaration.SpanStart;
             }
 
-            var declarator = FindClosestDeclaratorWithInitializer(variableDeclaration.Variables, position);
-            if (declarator == null)
+            var variableDeclarator = FindClosestDeclaratorWithInitializer(variableDeclaration.Variables, position);
+            if (variableDeclarator == null)
             {
                 return default(TextSpan);
             }
 
-            if (declarator == variableDeclaration.Variables[0])
+            if (variableDeclarator == variableDeclaration.Variables[0])
             {
-                return CreateSpan(modifiersOpt, variableDeclaration.Type, variableDeclaration.Variables[0]);
+                return CreateSpan(modifiersOpt, variableDeclaration, variableDeclarator);
             }
 
-            return CreateSpan(declarator);
+            return CreateSpan(variableDeclarator);
         }
 
-        private static VariableDeclaratorSyntax FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)
+        internal static TextSpan CreateSpanForVariableDeclarator(
+            VariableDeclaratorSyntax variableDeclarator,
+            SyntaxTokenList modifiers,
+            SyntaxToken semicolon)
+        {
+            if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
+            {
+                return default;
+            }
+
+            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
+            if (variableDeclaration.Variables.Count == 1)
+            {
+                return CreateSpan(modifiers, variableDeclaration, semicolon);
+            }
+
+            if (variableDeclarator == variableDeclaration.Variables[0])
+            {
+                return CreateSpan(modifiers, variableDeclaration, variableDeclarator);
+            }
+
+            return CreateSpan(variableDeclarator);
+        }
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon)
+        {
+            if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
+            // [|int F = 1;|]
+            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
+            if (variableDeclaration.Variables.Count == 1)
+            {
+                return modifiers.Concat(variableDeclaration.DescendantTokens()).Concat(semicolon);
+            }
+
+            // [|int F = 1|], G = 2;
+            if (variableDeclarator == variableDeclaration.Variables[0])
+            {
+                return modifiers.Concat(variableDeclaration.Type.DescendantTokens()).Concat(variableDeclarator.DescendantTokens());
+            }
+
+            // int F = 1, [|G = 2|];
+            return variableDeclarator.DescendantTokens();
+        }
+
+        private static VariableDeclaratorSyntax? FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)
         {
             var d = GetItemIndexByPosition(declarators, position);
             var i = 0;

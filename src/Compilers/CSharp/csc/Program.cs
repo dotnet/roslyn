@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
 
@@ -29,15 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         private static int MainCore(string[] args)
         {
+            using var logger = new CompilerServerLogger($"csc {Process.GetCurrentProcess().Id}");
+
 #if BOOTSTRAP
-            ExitingTraceListener.Install();
+            ExitingTraceListener.Install(logger);
 #endif
 
-            using var logger = new CompilerServerLogger();
-            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger);
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, BuildClient.GetCompileOnServerFunc(logger), logger);
         }
 
-        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string? tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
             => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);
     }
 }

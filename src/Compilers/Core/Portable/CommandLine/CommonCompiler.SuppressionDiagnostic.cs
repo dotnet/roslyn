@@ -85,8 +85,6 @@ namespace Microsoft.CodeAnalysis
                     Equals(_suppressionJustification, other._suppressionJustification);
             }
 
-            public override bool Equals(object? obj) => obj is Diagnostic diagnostic && Equals(diagnostic);
-
             public override int GetHashCode()
             {
                 return Hash.Combine(_originalDiagnostic.GetHashCode(),

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -36,6 +37,84 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             list.RemoveRange(targetIndex, list.Count - targetIndex);
+        }
+
+        public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+            where T : struct
+        {
+            RoslynDebug.AssertNotNull(list);
+            RoslynDebug.AssertNotNull(transform);
+
+            var targetIndex = 0;
+            for (var sourceIndex = 0; sourceIndex < list.Count; sourceIndex++)
+            {
+                var newValue = transform(list[sourceIndex], arg);
+                if (newValue is null)
+                    continue;
+
+                list[targetIndex++] = newValue.Value;
+            }
+
+            list.RemoveRange(targetIndex, list.Count - targetIndex);
+        }
+
+        /// <summary>
+        /// Attempts to remove the first item selected by <paramref name="selector"/>.
+        /// </summary>
+        /// <returns>
+        /// True if any item has been removed.
+        /// </returns>
+        public static bool TryRemoveFirst<T, TArg>(this IList<T> list, Func<T, TArg, bool> selector, TArg arg, [NotNullWhen(true)] out T? removedItem)
+            where T : notnull
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                var item = list[i];
+                if (selector(item, arg))
+                {
+                    list.RemoveAt(i);
+                    removedItem = item;
+                    return true;
+                }
+            }
+
+            removedItem = default;
+            return false;
+        }
+
+        public static int IndexOf<T>(this IList<T> list, Func<T, bool> predicate)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int IndexOf<T, TArg>(this IList<T> list, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i], arg))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static void AddRangeWhere<T>(this List<T> list, List<T> collection, Func<T, bool> predicate)
+        {
+            foreach (var element in collection)
+            {
+                if (predicate(element))
+                    list.Add(element);
+            }
         }
     }
 }

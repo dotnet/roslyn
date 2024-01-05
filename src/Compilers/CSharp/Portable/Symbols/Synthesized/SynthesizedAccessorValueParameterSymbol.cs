@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,14 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This parameter has no source location/syntax, but may have attributes.
     /// Attributes with 'param' target specifier on the accessor must be applied to the this parameter.
     /// </summary>
-    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
-            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
+            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.TryGetFirstLocation(),
                    syntaxRef: null,
                    isParams: false,
-                   isExtensionMethodThis: false)
+                   isExtensionMethodThis: false,
+                   scope: ScopedKind.None)
         {
+            Debug.Assert(accessor.Locations.Length <= 1);
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -84,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var annotations = FlowAnalysisAnnotations;
                 if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.DisallowNullAttributeIfExists));
                 }
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.AllowNullAttributeIfExists));
                 }
             }
         }

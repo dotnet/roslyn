@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function DetermineParameter(
             argument As ArgumentSyntax,
             semanticModel As SemanticModel,
+            Optional allowUncertainCandidates As Boolean = False,
             Optional allowParamArray As Boolean = False,
             Optional cancellationToken As CancellationToken = Nothing
         ) As IParameterSymbol
@@ -33,45 +34,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' Get the symbol if it is not Nothing or if there is a singular candidate symbol
             Dim symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken)
-            Dim symbol = symbolInfo.Symbol
+            Dim symbols = symbolInfo.GetBestOrAllSymbols()
 
-            If symbol Is Nothing AndAlso symbolInfo.CandidateSymbols.Length = 1 Then
-                symbol = symbolInfo.CandidateSymbols.Item(0)
-            End If
-
-            If symbol Is Nothing Then
+            If symbols.Length >= 2 AndAlso Not allowUncertainCandidates Then
                 Return Nothing
             End If
 
-            Dim parameters = symbol.GetParameters()
+            For Each symbol In symbols
+                Dim parameters = symbol.GetParameters()
 
-            ' Handle named argument
-            If argument.IsNamed Then
-                Dim namedArgument = DirectCast(argument, SimpleArgumentSyntax)
-                Dim name = namedArgument.NameColonEquals.Name.Identifier.ValueText
-                Return parameters.FirstOrDefault(Function(p) p.Name = name)
-            End If
+                ' Handle named argument
+                If argument.IsNamed Then
+                    Dim namedArgument = DirectCast(argument, SimpleArgumentSyntax)
+                    Dim name = namedArgument.NameColonEquals.Name.Identifier.ValueText
+                    Dim parameter = parameters.FirstOrDefault(Function(p) p.Name = name)
+                    If parameter IsNot Nothing Then
+                        Return parameter
+                    End If
 
-            ' Handle positional argument
-            Dim index = argumentList.Arguments.IndexOf(argument)
-            If index < 0 Then
-                Return Nothing
-            End If
-
-            If index < parameters.Length Then
-                Return parameters(index)
-            End If
-
-            If allowParamArray Then
-                Dim lastParameter = parameters.LastOrDefault()
-                If lastParameter Is Nothing Then
-                    Return Nothing
+                    Continue For
                 End If
 
-                If lastParameter.IsParams Then
-                    Return lastParameter
+                ' Handle positional argument
+                Dim index = argumentList.Arguments.IndexOf(argument)
+                If index < 0 Then
+                    Continue For
                 End If
-            End If
+
+                If index < parameters.Length Then
+                    Return parameters(index)
+                End If
+
+                If allowParamArray Then
+                    Dim lastParameter = parameters.LastOrDefault()
+                    If lastParameter Is Nothing Then
+                        Continue For
+                    End If
+
+                    If lastParameter.IsParams Then
+                        Return lastParameter
+                    End If
+                End If
+            Next
 
             Return Nothing
         End Function

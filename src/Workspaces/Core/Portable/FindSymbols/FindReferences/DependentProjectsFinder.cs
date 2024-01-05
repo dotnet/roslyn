@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -21,71 +24,102 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentProjectsFinder
     {
+        /// <summary>
+        /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
+        /// name of the <see cref="IAssemblySymbol"/> defined by it.
+        /// </summary>
+        private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
-            Solution solution, ISymbol symbol, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                // namespaces are visible in all projects.
-                return projects != null
-                    ? projects.ToImmutableArray()
-                    : solution.Projects.ToImmutableArray();
-            }
-            else
-            {
-                var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-                return projects != null
-                    ? dependentProjects.WhereAsArray(projects.Contains)
-                    : dependentProjects;
-            }
+            // namespaces are visible in all projects.
+            if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+                return projects.ToImmutableArray();
+
+            var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
+            return dependentProjects.WhereAsArray(projects.Contains);
         }
 
         /// <summary>
-        /// This method computes the dependent projects that need to be searched for references of the given <paramref name="symbol"/>.
+        /// This method computes the dependent projects that need to be searched for references of the given <paramref
+        /// name="symbols"/>.
+        /// <para/>
         /// This computation depends on the given symbol's visibility:
-        ///     1) Public: Dependent projects include the symbol definition project and all the referencing projects.
-        ///     2) Internal: Dependent projects include the symbol definition project and all the referencing projects that have internals access to the definition project.
-        ///     3) Private: Dependent projects include the symbol definition project and all the referencing submission projects (which are special and can reference private fields of the previous submission).
-        /// 
+        /// <list type="number">
+        /// <item>Public: Dependent projects include the symbol definition project and all the referencing
+        /// projects.</item>
+        /// <item>Internal: Dependent projects include the symbol definition project and all the referencing projects
+        /// that have internals access to the definition project..</item>
+        /// <item>Private: Dependent projects include the symbol definition project and all the referencing submission
+        /// projects (which are special and can reference private fields of the previous submission).</item>
+        /// </list>
         /// We perform this computation in two stages:
-        ///     1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-        ///     2) Filter the above computed dependent projects based on symbol visibility.
+        /// <list type="number">
+        /// <item>Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.</item>
+        /// <item>Filter the above computed dependent projects based on symbol visibility.</item>
         /// Dependent projects computed in stage (1) are cached to avoid recomputation.
+        /// </list>
         /// </summary>
         private static async Task<ImmutableArray<Project>> GetDependentProjectsWorkerAsync(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbolOrigination = GetSymbolOrigination(solution, symbol, cancellationToken);
+            var symbolOriginations = GetSymbolOriginations(solution, symbols, cancellationToken);
 
-            // If we can't find where the symbol came from, we can't determine what projects to search for references to it.
-            if (symbolOrigination.assembly == null)
-                return ImmutableArray<Project>.Empty;
+            using var _ = PooledHashSet<Project>.GetInstance(out var result);
 
-            // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-            var symbolVisibility = symbol.GetResultantVisibility();
-            var dependentProjects = await ComputeDependentProjectsAsync(
-                solution, symbolOrigination, symbolVisibility, cancellationToken).ConfigureAwait(false);
+            foreach (var (assembly, (sourceProject, maxVisibility)) in symbolOriginations)
+            {
+                // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
+                var dependentProjects = await ComputeDependentProjectsAsync(
+                    solution, (assembly, sourceProject), maxVisibility, cancellationToken).ConfigureAwait(false);
 
-            // 2) Filter the above computed dependent projects based on symbol visibility.
-            var filteredProjects = symbolVisibility == SymbolVisibility.Internal
-                ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
-                : dependentProjects;
+                // 2) Filter the above computed dependent projects based on symbol visibility.
+                var filteredProjects = maxVisibility == SymbolVisibility.Internal
+                    ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
+                    : dependentProjects;
 
-            return filteredProjects.SelectAsArray(t => t.project);
+                result.AddRange(filteredProjects.Select(p => p.project));
+            }
+
+            return result.ToImmutableArray();
         }
 
         /// <summary>
-        /// Returns a pair of data bout where <paramref name="symbol"/> originates from.  It's <see
+        /// Returns information about where <paramref name="symbols"/> originate from.  It's <see
         /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
-        /// was a symbol from source.
+        /// was a symbol from source. 
         /// </summary>
-        private static (IAssemblySymbol assembly, Project? sourceProject) GetSymbolOrigination(
-            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        private static Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility maxVisibility)> GetSymbolOriginations(
+            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
-            var assembly = symbol.OriginalDefinition.ContainingAssembly;
-            return assembly == null ? default : (assembly, solution.GetProject(assembly, cancellationToken));
+            var result = new Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility visibility)>();
+
+            foreach (var symbol in symbols)
+            {
+                var assembly = symbol.OriginalDefinition.ContainingAssembly;
+                if (assembly == null)
+                    continue;
+
+                if (!result.TryGetValue(assembly, out var projectAndVisibility))
+                {
+                    // First, if this was a source-symbol try to get the original project for this assembly
+                    // (GetOriginatingProject).  If this is a metadata symbol, also see if we can find the original
+                    // source-project for it (GetProject) which happens in cross language P2P references.
+                    var project = assembly.Locations.Any(static loc => loc.IsInMetadata)
+                        ? solution.GetProject(assembly, cancellationToken)
+                        : solution.GetOriginatingProject(assembly);
+                    projectAndVisibility = (project, symbol.GetResultantVisibility());
+                }
+
+                // Visibility enum has higher visibility as a lower number, so choose the minimum of both.
+                projectAndVisibility.visibility = (SymbolVisibility)Math.Min((int)projectAndVisibility.visibility, (int)symbol.GetResultantVisibility());
+                result[assembly] = projectAndVisibility;
+            }
+
+            return result;
         }
 
         private static async Task<ImmutableArray<(Project project, bool hasInternalsAccess)>> ComputeDependentProjectsAsync(
@@ -222,13 +256,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
                 if (typeNameConstant.Type == null ||
                     typeNameConstant.Type.SpecialType != SpecialType.System_String ||
-                    !(typeNameConstant.Value is string value))
+                    typeNameConstant.Value is not string value)
                 {
                     continue;
                 }
 
                 var commaIndex = value.IndexOf(',');
-                var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
+                var assemblyName = commaIndex >= 0 ? value[..commaIndex].Trim() : value;
 
                 set.Add(assemblyName);
             }
@@ -257,28 +291,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            if (!project.TryGetCompilation(out var compilation))
-            {
-                // WORKAROUND:
-                // perf check metadata reference using newly created empty compilation with only metadata references.
-                compilation = project.LanguageServices.CompilationFactory!.CreateCompilation(
-                    project.AssemblyName, project.CompilationOptions!);
+            // Do two passes.  One that attempts to find a result without ever realizing a Compilation, and one that
+            // tries again, but which is willing to create the Compilation if necessary.
 
-                compilation = compilation.AddReferences(project.MetadataReferences);
-            }
+            using var _ = ArrayBuilder<(PortableExecutableReference reference, MetadataId metadataId)>.GetInstance(out var uncomputedReferences);
 
             foreach (var reference in project.MetadataReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol &&
-                    symbol.Name == assemblyName)
+                if (reference is not PortableExecutableReference peReference)
+                    continue;
+
+                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(peReference);
+                if (metadataId is null)
+                    continue;
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
                 {
-                    return true;
+                    uncomputedReferences.Add((peReference, metadataId));
+                    continue;
                 }
+
+                if (name == assemblyName)
+                    return true;
+            }
+
+            if (uncomputedReferences.Count == 0)
+                return false;
+
+            Compilation? compilation = null;
+
+            foreach (var (peReference, metadataId) in uncomputedReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+                {
+                    // Defer creating the compilation till needed.
+                    CreateCompilation(project, ref compilation);
+                    if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
+                        name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
+                }
+
+                if (name == assemblyName)
+                    return true;
             }
 
             return false;
+
+            static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
+            {
+                if (compilation != null)
+                    return;
+
+                // Use the project's compilation if it has one.
+                if (project.TryGetCompilation(out compilation))
+                    return;
+
+                // Perf: check metadata reference using newly created empty compilation with only metadata references.
+                var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
+                compilation = factory
+                    .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
+                    .AddReferences(project.MetadataReferences);
+            }
         }
     }
 }
