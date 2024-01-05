@@ -358,6 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var leftTempLocal);
                 var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var rightTempLocal);
 
+                // We expect that only 1 of the operands is of char type here since `<char> + <char>` leads to operands being implicitly converted to ints and added as numbers.
+                // As a consequence of that we can produce at max 1 additional temp local variable due to the fact that only some char operands require a temp
+                // while a string operand is just always wrapped into an implicit conversion call
+                Debug.Assert(leftIsChar != rightIsChar);
                 Debug.Assert(leftTempLocal is null || rightTempLocal is null);
 
                 locals.AddIfNotNull(leftTempLocal);
