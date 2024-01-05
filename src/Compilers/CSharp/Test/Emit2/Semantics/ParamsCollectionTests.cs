@@ -787,7 +787,7 @@ class Program
     void Test1()
     {
         var a = Params.Test1;
-        M1(a); // See DelegateNaturalType_03 init-test for an observable effect that 'params' modifier has for this invocation. 
+        M1(a); // See DelegateNaturalType_03 unit-test for an observable effect that 'params' modifier has for this invocation. 
         M1(Params.Test1);
     }
 
