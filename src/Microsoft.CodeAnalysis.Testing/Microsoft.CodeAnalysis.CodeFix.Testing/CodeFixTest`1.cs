@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
         /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="minimumSeverity">The minimum severity of diagnostics to fix in this operation.</param>
         /// <param name="fixAllDiagnosticProvider">
         /// <see cref="FixAllContext.DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
@@ -260,12 +261,13 @@ namespace Microsoft.CodeAnalysis.Testing
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
         {
             return document != null
-                ? FixAllContextExtensions.Create(document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
-                : new FixAllContext(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+                ? FixAllContextExtensions.Create(document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken)
+                : FixAllContextExtensions.Create(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -833,7 +835,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 var fixableDocument = project.Solution.GetDocument(firstDiagnostic.Value.diagnostic.Location.SourceTree);
                 var diagnosticSpan = fixableDocument is not null ? firstDiagnostic.Value.diagnostic.Location.SourceSpan : (TextSpan?)null;
                 var relevantIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(effectiveCodeFixProvider);
-                var fixAllContext = CreateFixAllContext(fixableDocument, diagnosticSpan, firstDiagnostic.Value.project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, fixAllDiagnosticProvider, cancellationToken);
+                var minimumSeverity = firstDiagnostic.Value.diagnostic.Severity;
+                var fixAllContext = CreateFixAllContext(fixableDocument, diagnosticSpan, firstDiagnostic.Value.project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
 
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 if (action == null)
