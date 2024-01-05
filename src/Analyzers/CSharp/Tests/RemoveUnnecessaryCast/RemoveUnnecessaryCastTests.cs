@@ -13695,7 +13695,8 @@ class C
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
     public async Task RemoveUnnecessaryCastOnCollectionExpression2(
-        [CombinatorialValues("ICollection<int>", "IList<int>")] string type)
+        [CombinatorialValues("ICollection<int>", "IList<int>")] string type,
+        [CombinatorialValues("List<int>", "IList<int>")] string castType)
     {
         await new VerifyCS.Test
         {
@@ -13704,7 +13705,7 @@ class C
 
                 public class C
                 {
-                    public {{type}} M2() => [|(List<int>)|][1, 2, 3, 4];
+                    public {{type}} M2() => [|({{castType}})|][1, 2, 3, 4];
                 }
                 """,
             FixedCode = $$"""
@@ -13716,6 +13717,40 @@ class C
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
+    public async Task RemoveUnnecessaryCastOnCollectionExpression3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    void M2()
+                    {
+                        ReadOnlySpan<int> r = [|(Span<int>)|][1, 2, 3, 4];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    void M2()
+                    {
+                        ReadOnlySpan<int> r = [1, 2, 3, 4];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }
