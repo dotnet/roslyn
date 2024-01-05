@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal partial class ConversionOperation
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
+        public ITypeSymbol? ConstrainedToType => Conversion.ConstrainedToType;
     }
 
     internal sealed partial class InvalidOperation : Operation, IInvalidOperation
@@ -168,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
 
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFlowAnonymousFunction(this);
@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FieldReferenceOperation
     {
         public override ISymbol Member => Field;
+        public override ITypeSymbol? ConstrainedToType => null;
     }
 
     internal sealed partial class RangeCaseClauseOperation
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
-        protected HasDynamicArgumentsExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        protected HasDynamicArgumentsExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(semanticModel, syntax, isImplicit)
         {
             Arguments = SetParentOperation(arguments, this);
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
 
-        public ImmutableArray<string> ArgumentNames { get; }
+        public ImmutableArray<string?> ArgumentNames { get; }
         public ImmutableArray<RefKind> ArgumentRefKinds { get; }
         public ImmutableArray<IOperation> Arguments { get; }
         public override ITypeSymbol? Type { get; }
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
     {
-        public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Initializer = SetParentOperation(initializer, this);
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
     {
-        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
@@ -347,7 +348,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     => Arguments[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-
 
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
     {
-        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);

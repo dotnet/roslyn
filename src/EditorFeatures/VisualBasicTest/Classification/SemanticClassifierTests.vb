@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Async Function GetClassificationSpansAsync(code As String, spans As ImmutableArray(Of TextSpan), parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Return Await GetSemanticClassificationsAsync(document, span)
+                Return Await GetSemanticClassificationsAsync(document, spans)
             End Using
         End Function
 
@@ -88,7 +88,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType(testHost As TestHost) As Task
             Dim code =
 "Module M
@@ -101,7 +101,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(541267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541267")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541267")>
         Public Async Function TestRegression7925_TypeParameterCantCastToMethod(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -115,7 +115,7 @@ End Class"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified1(testHost As TestHost) As Task
             Dim code =
 "Imports S = System.String
@@ -132,7 +132,7 @@ End Class"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified2(testHost As TestHost) As Task
             Dim code =
 "Imports D = System.IDisposable
@@ -240,16 +240,16 @@ End Class"
                 [Class]("E"))
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         Public Async Function TestOptimisticallyColorFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("From ",
                 testHost,
                 Keyword("From"))
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         Public Async Function TestOptimisticallyColorFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
@@ -261,15 +261,15 @@ q = From"
                 Keyword("From"))
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
-        Public Async Function TestDontColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
+        Public Async Function TestDoNotColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("Fro ", testHost)
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
-        Public Async Function TestDontColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
+        Public Async Function TestDoNotColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = Fro "
@@ -279,9 +279,9 @@ q = Fro "
                 Local("q"))
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
-        Public Async Function TestDontColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
+        Public Async Function TestDoNotColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = From"
@@ -292,8 +292,8 @@ Dim q = From"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
+        Public Async Function TestDoNotColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = 3
@@ -326,8 +326,8 @@ q = From"
                 [Interface]("IDisposable"))
         End Function
 
-        <WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")>
         Public Async Function TestNewOfClassWithNoPublicConstructors(testHost As TestHost) As Task
             Dim code =
 "Public Class C1
@@ -345,8 +345,8 @@ End Module"
                 [Class]("C1"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword1(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -360,8 +360,8 @@ End Class"
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword2(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -375,8 +375,8 @@ End Class"
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword3(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -390,8 +390,8 @@ End Class"
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword4(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -403,8 +403,8 @@ End Class"
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword5(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -416,8 +416,8 @@ End Class"
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword6(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -427,8 +427,8 @@ End Class"
             Await TestAsync(code, testHost)
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestAsyncKeyword7(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -438,8 +438,8 @@ End Class"
             Await TestAsync(code, testHost)
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword1(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -453,8 +453,8 @@ End Class"
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword2(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -468,8 +468,8 @@ End Class"
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword3(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -483,8 +483,8 @@ End Class"
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword4(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -496,8 +496,8 @@ End Class"
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword5(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -509,8 +509,8 @@ End Class"
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword6(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -520,8 +520,8 @@ End Class"
             Await TestAsync(code, testHost)
         End Function
 
-        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Theory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         Public Async Function TestIteratorKeyword7(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -570,7 +570,7 @@ end sub"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21524")>
         Public Async Function TestAttribute(testHost As TestHost) As Task
             Dim code =
 "Imports System
@@ -624,6 +624,56 @@ Regex.Quantifier("5"),
 Regex.Quantifier("}"),
 Regex.Quantifier("?"),
 Regex.Anchor("^"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity1(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|]
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/61982")>
+        Public Async Function TestRegexAmbiguity2(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        me.field = Regex.Match("""", [|""$(\b\G\z)""|],
+    end sub
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
@@ -711,6 +761,82 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/61947")>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeField(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/61947")>
+        Public Async Function TestRegexStringSyntaxAttribute_AttributeProperty(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new()
+    end sub
+
+    <StringSyntax(StringSyntaxAttribute.Regex)> 
+    public property value as string
+end class
+
+class Program
+    [|<RegexTest(value:=""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+[Property]("value"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexStringSyntaxAttribute_Property(testHost As TestHost) As Task
             Await TestAsync(
 "
@@ -750,6 +876,37 @@ class Program
     [|property prop as string = ""$(\b\G\z)""|]
 end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
                 testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69237")>
+        Public Async Function TestRegexStringSyntaxAttribute_Initializer(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    public property P as string
+
+    sub Goo()
+        dim x = new Program With {
+            [|.P = ""$(\b\G\z)""|]
+        }
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Property]("P"),
 Regex.Anchor("$"),
 Regex.Grouping("("),
 Regex.Anchor("\"),
@@ -991,16 +1148,16 @@ End Operator"
                 Escape("}}"))
         End Function
 
-        <WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")>
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29451")>
         Public Async Function TestDirectiveStringLiteral(testHost As TestHost) As Task
             Await TestAsync("#region ""goo""""bar""",
                 testHost,
                 Escape(""""""))
         End Function
 
-        <WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")>
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30378")>
         Public Async Function TestFormatSpecifierInInterpolation(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
                 testHost,
@@ -1021,8 +1178,8 @@ End Sub"
                 [Label]("E"))
         End Function
 
-        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29492")>
         Public Async Function TestOperatorOverloads_BinaryExpression(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -1047,8 +1204,8 @@ End Class"
                 [Class]("C"))
         End Function
 
-        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29492")>
         Public Async Function TestOperatorOverloads_UnaryExpression(testHost As TestHost) As Task
             Dim code =
 "Class C
@@ -1085,5 +1242,33 @@ End Try"
                 [Class]("Exception"),
                 Local("ex"))
         End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeFourBytesCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = ""𠀀𠀁𠣶𤆐𥽠𪛕""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = """"""""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost,
+                Escape(""""""))
+        End Function
+
     End Class
 End Namespace

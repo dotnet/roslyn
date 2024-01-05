@@ -9,14 +9,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
     public class FormatDocumentRangeTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestFormatDocumentRangeAsync()
+        public FormatDocumentRangeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentRangeAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var rangeToFormat = testLspServer.GetLocations("format").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
@@ -43,8 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             Assert.Equal(expected, actualText);
         }
 
-        [Fact]
-        public async Task TestFormatDocumentRange_UseTabsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentRange_UseTabsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 			int i = 1;
 	}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var rangeToFormat = testLspServer.GetLocations("format").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 

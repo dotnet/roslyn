@@ -4,10 +4,11 @@
 
 using System;
 using System.Composition;
-using System.Linq;
+using System.IO;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -16,30 +17,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider)
         {
             _lspServiceProvider = lspServiceProvider;
-            _listenerProvider = listenerProvider;
         }
 
-        public ILanguageServerTarget Create(
+        public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            WellKnownLspServerKinds serverKind,
+            AbstractLspLogger logger,
+            HostServices hostServices)
         {
-            return new LanguageServerTarget(
-                _lspServiceProvider, jsonRpc,
+            var server = new RoslynLanguageServer(
+                _lspServiceProvider,
+                jsonRpc,
                 capabilitiesProvider,
-                _listenerProvider,
                 logger,
+                hostServices,
                 ProtocolConstants.RoslynLspLanguages,
-                WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+                serverKind);
+
+            return server;
+        }
+
+        public AbstractLanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, AbstractLspLogger logger, HostServices hostServices)
+        {
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
+            return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger, hostServices);
         }
     }
 }

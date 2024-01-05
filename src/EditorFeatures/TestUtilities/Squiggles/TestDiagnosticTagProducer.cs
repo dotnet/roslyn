@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,26 +25,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
-            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
         {
-            var globalOptions = workspace.GetService<IGlobalOptionService>();
-            var source = new TestDiagnosticUpdateSource(globalOptions);
+            var source = new TestDiagnosticUpdateSource();
 
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            var firstDocument = workspace.Documents.First();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
 
-            source.RaiseDiagnosticsUpdated(updateArgs);
+            var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
+            analyzerServer.AddDiagnostics(updateArgs.Diagnostics, diagnosticKind);
+
+            source.RaiseDiagnosticsUpdated(ImmutableArray.Create(updateArgs));
 
             await wrapper.WaitForTags();
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
             return spans;
@@ -54,6 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
+            Contract.ThrowIfNull(document.FilePath);
+
+            var sourceText = document.GetTextBuffer().CurrentSnapshot.AsText();
+            var linePosSpan = sourceText.Lines.GetLinePositionSpan(span);
             return new DiagnosticData(
                 id: "test",
                 category: "test",
@@ -64,31 +69,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 warningLevel: 0,
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, span),
+                properties: ImmutableDictionary<string, string?>.Empty,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
                 language: document.Project.Language);
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
             private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
-            private readonly IGlobalOptionService _globalOptions;
 
-            public TestDiagnosticUpdateSource(IGlobalOptionService globalOptions)
-                => _globalOptions = globalOptions;
-
-            public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
+            public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
-                _diagnostics = args.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.SelectManyAsArray(e => e.Diagnostics);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
-            public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler DiagnosticsCleared { add { } remove { } }
 
             public bool SupportGetDiagnostics => false;
 
-            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
                 => new(includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed));
         }
     }

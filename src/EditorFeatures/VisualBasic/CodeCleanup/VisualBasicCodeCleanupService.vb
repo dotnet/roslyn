@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
-                    IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId),
+                    IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_tuple_name_preferences,
@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(codeFixService As ICodeFixService)
-            MyBase.New(codeFixService)
+        Public Sub New(codeFixService As ICodeFixService, diagnosticAnalyzerService As IDiagnosticAnalyzerService)
+            MyBase.New(codeFixService, diagnosticAnalyzerService)
         End Sub
 
         Protected Overrides ReadOnly Property OrganizeImportsDescription As String = VBFeaturesResources.Organize_Imports

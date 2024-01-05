@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             // As in the old C# EE, DynamicProperty members are only expandable if they have a Dynamic View expansion.
-            var dynamicViewExpansion = DynamicViewExpansion.CreateExpansion(inspectionContext, value, resultProvider);
+            var dynamicViewExpansion = DynamicViewExpansion.CreateExpansion(inspectionContext, value);
             if (isDynamicProperty && (dynamicViewExpansion == null))
             {
                 return null;
@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             publicExpansion = AggregateExpansion.CreateExpansion(publicExpansions);
             publicExpansions.Free();
 
-            nonPublicExpansion = (nonPublicMembers.Count > 0) ?
-                new NonPublicMembersExpansion(
-                    members: new MemberExpansion(nonPublicMembers.ToArray(), customTypeInfoMap)) :
-                null;
+            nonPublicExpansion = (nonPublicMembers.Count > 0)
+                ? new NonPublicMembersExpansion(
+                    members: new MemberExpansion(nonPublicMembers.ToArray(), customTypeInfoMap))
+                : null;
             nonPublicMembers.Free();
         }
 

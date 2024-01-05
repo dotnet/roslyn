@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -24,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             SyntaxToken left, SyntaxTriviaList newLeftTrailingTrivia,
             SyntaxToken right, SyntaxTriviaList newRightLeadingTrivia)
         {
+            if (left.Span.End > right.Span.Start)
+                throw new InvalidEditException(left, right);
+
             Left = left;
             Right = right;
             NewLeftTrailingTrivia = newLeftTrailingTrivia;
@@ -63,9 +65,18 @@ namespace Microsoft.CodeAnalysis.Wrapping
             SyntaxNodeOrToken left, SyntaxTriviaList leftTrailingTrivia,
             SyntaxTriviaList rightLeadingTrivia, SyntaxNodeOrToken right)
         {
-            var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode().GetLastToken();
-            var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode().GetFirstToken();
+            var leftLastToken = left.IsToken ? left.AsToken() : left.AsNode()!.GetLastToken();
+            var rightFirstToken = right.IsToken ? right.AsToken() : right.AsNode()!.GetFirstToken();
             return new Edit(leftLastToken, leftTrailingTrivia, rightFirstToken, rightLeadingTrivia);
+        }
+
+        private sealed class InvalidEditException(SyntaxToken left, SyntaxToken right) : Exception($"Left token had an end '{left.Span.End}' past the start of right token '{right.Span.Start}'")
+        {
+            // Used for analyzing dumps
+#pragma warning disable IDE0052 // Remove unread private members
+            private readonly SyntaxTree? _tree = left.SyntaxTree;
+            private readonly SyntaxToken _left = left;
+            private readonly SyntaxToken _right = right;
         }
     }
 }

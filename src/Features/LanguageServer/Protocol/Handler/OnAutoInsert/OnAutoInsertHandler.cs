@@ -20,13 +20,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : IRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,
@@ -66,10 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
-                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions, document.Project.Language);
+                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
 
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
                     request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
+
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -105,14 +106,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
                 ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken, addIndentation: false);
 
             if (result == null)
             {
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IndentationOptions options,
             CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var position = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(autoInsertParams.Position));
 
             var serviceAndContext = await GetBraceCompletionContextAsync(position, document, cancellationToken).ConfigureAwait(false);
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, options, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = service.GetTextChangeAfterReturn(context, options, cancellationToken);
             if (postReturnEdit == null)
             {
                 return null;
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static async Task<TextChange> GetCollapsedChangeAsync(ImmutableArray<TextChange> textChanges, Document oldDocument, CancellationToken cancellationToken)
             {
-                var documentText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 documentText = documentText.WithChanges(textChanges);
                 return Collapse(documentText, textChanges);
             }
@@ -235,9 +236,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             foreach (var service in servicesForDocument)
             {
-                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
+                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

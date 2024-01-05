@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return dummyDescriptors.ToImmutable();
         }
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public bool IsHighPriority => false;
 
         public override int Priority => 10; // Default = 50
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<FSharpDocumentDiagnosticAnalyzerService>();
+            var analyzer = document.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<FSharpDocumentDiagnosticAnalyzerService>();
+            var analyzer = document.Project.Services.GetService<FSharpDocumentDiagnosticAnalyzerService>();
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);

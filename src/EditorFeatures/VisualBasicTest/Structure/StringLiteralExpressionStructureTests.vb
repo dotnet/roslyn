@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class StringLiteralExpressionStructureTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of LiteralExpressionSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New StringLiteralExpressionStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestMultiLineStringLiteral() As Task
             Const code = "
 Class C
@@ -32,7 +33,7 @@ End Class
                 Region("textspan", "hint", "...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestMissingOnIncompleteStringLiteral() As Task
             Const code = "
 Class C

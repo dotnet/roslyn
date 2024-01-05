@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private UseExpressionBodyForPropertiesHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
                    EnforceOnBuildValues.UseExpressionBodyForProperties,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_properties), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_property), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_property), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
                    ImmutableArray.Create(SyntaxKind.PropertyDeclaration))
         {
@@ -68,10 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool TryConvertToExpressionBody(
             PropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
+            CancellationToken cancellationToken,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, out arrowExpression, out semicolonToken);
+            return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken);
         }
 
         protected override Location GetDiagnosticLocation(PropertyDeclarationSyntax declaration)

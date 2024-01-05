@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class CallKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Call")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
@@ -21,19 +20,16 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Call")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Call")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallNotInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Call")
         End Sub

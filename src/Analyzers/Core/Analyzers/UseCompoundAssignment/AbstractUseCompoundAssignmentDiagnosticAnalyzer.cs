@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             _incrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                 EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
                 useIncrementMessage, useIncrementMessage);
 
             var useDecrementMessage = new LocalizableResourceString(
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             _decrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                 EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
                 useDecrementMessage, useDecrementMessage);
         }
 
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             var syntaxTree = assignment.SyntaxTree;
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -144,32 +148,48 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 var incrementOrDecrement = TryGetIncrementOrDecrement(binaryKind, constant);
                 if (incrementOrDecrement == 1)
                 {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        _incrementDescriptor,
-                        assignmentToken.GetLocation(),
-                        option.Notification.Severity,
-                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string?>()
-                            .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
-                    return;
+                    var operation = (IBinaryOperation)semanticModel.GetRequiredOperation(binaryExpression, cancellationToken);
+
+                    // We can suggest using increment operator only if it is a built-in one (in such case `OperatorMethod` is null)
+                    // or if increment operator is defined in the containing type
+                    if (operation.OperatorMethod is null ||
+                        operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.IncrementOperatorName).Length > 0)
+                    {
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            _incrementDescriptor,
+                            assignmentToken.GetLocation(),
+                            option.Notification,
+                            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                            properties: ImmutableDictionary.Create<string, string?>()
+                                .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
+                        return;
+                    }
                 }
                 else if (incrementOrDecrement == -1)
                 {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        _decrementDescriptor,
-                        assignmentToken.GetLocation(),
-                        option.Notification.Severity,
-                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string?>()
-                            .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
-                    return;
+                    var operation = (IBinaryOperation)semanticModel.GetRequiredOperation(binaryExpression, cancellationToken);
+
+                    // We can suggest using decrement operator only if it is a built-in one (in such case `OperatorMethod` is null)
+                    // or if decrement operator is defined in the containing type
+                    if (operation.OperatorMethod is null ||
+                        operation.OperatorMethod.ContainingType.GetMembers(WellKnownMemberNames.DecrementOperatorName).Length > 0)
+                    {
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            _decrementDescriptor,
+                            assignmentToken.GetLocation(),
+                            option.Notification,
+                            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                            properties: ImmutableDictionary.Create<string, string?>()
+                                .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
+                        return;
+                    }
                 }
             }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 assignmentToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                 properties: null));
         }

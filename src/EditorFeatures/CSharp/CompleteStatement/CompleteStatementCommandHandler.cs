@@ -11,11 +11,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,25 +36,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class CompleteStatementCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CompleteStatementCommandHandler(
+        ITextUndoHistoryRegistry textUndoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        IGlobalOptionService globalOptions) : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler) => nextCommandHandler();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompleteStatementCommandHandler(
-            ITextUndoHistoryRegistry textUndoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
-        {
-            _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
-        }
 
         public string DisplayName => CSharpEditorResources.Complete_statement_on_semicolon;
 
@@ -93,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }
@@ -149,15 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
             //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
             //    `defa$$ult(object)` where `token` references `default` but the caret isn't inside the parentheses.
-            var delimiters = startingNode.GetParentheses();
-            if (delimiters == default)
-            {
-                delimiters = startingNode.GetBrackets();
-            }
-
-            var (openingDelimiter, closingDelimiter) = delimiters;
-            if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
-                || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
+            if (HasDelimitersButCaretIsOutside(startingNode, caretPosition))
             {
                 startingNode = startingNode.GetRequiredParent();
             }
@@ -184,17 +168,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (currentNode.IsKind(
-                SyntaxKind.ArgumentList,
-                SyntaxKind.ArrayRankSpecifier,
-                SyntaxKind.BracketedArgumentList,
-                SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.ParameterList,
-                SyntaxKind.DefaultExpression,
-                SyntaxKind.CheckedExpression,
-                SyntaxKind.UncheckedExpression,
-                SyntaxKind.TypeOfExpression,
-                SyntaxKind.TupleExpression))
+            if (currentNode.Kind() is
+                    SyntaxKind.ArgumentList or
+                    SyntaxKind.ArrayRankSpecifier or
+                    SyntaxKind.BracketedArgumentList or
+                    SyntaxKind.ParenthesizedExpression or
+                    SyntaxKind.ParameterList or
+                    SyntaxKind.DefaultExpression or
+                    SyntaxKind.CheckedExpression or
+                    SyntaxKind.UncheckedExpression or
+                    SyntaxKind.TypeOfExpression or
+                    SyntaxKind.TupleExpression or
+                    SyntaxKind.SwitchExpression)
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -210,12 +195,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return false;
                 }
 
+                // We know the current node has delimiters due to the Kind() check above, so isInsideDelimiters is
+                // simply the inverse of being outside the delimiters.
+                isInsideDelimiters = !HasDelimitersButCaretIsOutside(currentNode, caret.Position);
+
                 var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
                 if (!TryGetStartingNode(root, newCaret, out currentNode, cancellationToken))
                     return false;
 
                 return MoveCaretToSemicolonPosition(
-                    speculative, args, document, root, originalCaret, newCaret, syntaxFacts, currentNode, isInsideDelimiters: true, cancellationToken);
+                    speculative, args, document, root, originalCaret, newCaret, syntaxFacts, currentNode, isInsideDelimiters, cancellationToken);
             }
             else if (currentNode.IsKind(SyntaxKind.DoStatement))
             {
@@ -242,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool CanHaveSemicolon(SyntaxNode currentNode)
         {
-            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            if (currentNode.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.DelegateDeclaration or SyntaxKind.ArrowExpressionClause)
             {
                 return true;
             }
@@ -252,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is RecordDeclarationSyntax { OpenBraceToken.IsMissing: true })
+            if (currentNode is TypeDeclarationSyntax { OpenBraceToken.IsMissing: true })
             {
                 return true;
             }
@@ -276,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
-            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax? doStatement))
+            if (currentNode is not DoStatementSyntax doStatement)
             {
                 return false;
             }
@@ -342,6 +331,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.EqualsValueClause:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
@@ -405,8 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
             // Check to see if caret is before or after string
-            => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.CharacterLiteralExpression)
-                && caret.Position < currentNode.Span.End
+            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
 
         /// <summary>
@@ -460,7 +451,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
             return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing;
+                currentNode.GetParentheses().closeParen.IsMissing ||
+                currentNode.GetBraces().closeBrace.IsMissing;
+        }
+
+        private static bool HasDelimitersButCaretIsOutside(SyntaxNode currentNode, int caretPosition)
+        {
+            if (currentNode.GetParentheses() is ((not SyntaxKind.None) openParenthesis, (not SyntaxKind.None) closeParenthesis))
+            {
+                return openParenthesis.SpanStart >= caretPosition || closeParenthesis.Span.End <= caretPosition;
+            }
+            else if (currentNode.GetBrackets() is ((not SyntaxKind.None) openBracket, (not SyntaxKind.None) closeBracket))
+            {
+                return openBracket.SpanStart >= caretPosition || closeBracket.Span.End <= caretPosition;
+            }
+            else if (currentNode.GetBraces() is ((not SyntaxKind.None) openBrace, (not SyntaxKind.None) closeBrace))
+            {
+                return openBrace.SpanStart >= caretPosition || closeBrace.Span.End <= caretPosition;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

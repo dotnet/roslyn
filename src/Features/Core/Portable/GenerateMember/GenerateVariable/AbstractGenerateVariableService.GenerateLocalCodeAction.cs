@@ -18,20 +18,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private sealed class GenerateLocalCodeAction : CodeAction
+        private sealed class GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly TService _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly CodeGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly TService _service = service;
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title
             {
@@ -71,17 +63,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var localStatement = syntaxFactory.LocalDeclarationStatement(type, _state.IdentifierToken.ValueText, initializer);
                 localStatement = localStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
+                var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
+                var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var options = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                var info = options.GetInfo(
-                    new CodeGenerationContext(
-                        beforeThisLocation: _state.IdentifierToken.GetLocation()),
-                    _document.Project);
-
-                return codeGenService.AddStatements(
+                return info.Service.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
                     info,

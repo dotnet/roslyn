@@ -46,17 +46,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._visitedExpressions.Contains(analyzedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {analyzedNode.GetDebuggerDisplay()}");
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
-
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}.");
+                else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
+                {
+                    foreach (var verifiedNode in verifier._visitedExpressions)
+                    {
+                        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
+                        {
+                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                        }
+                    }
+                }
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
+                if (expression.IsParamsArray)
+                {
+                    // Params array is processed element wise. 
+                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                }
+                else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
                     Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
@@ -83,6 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
+            }
+
+            public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
+            {
+                if (node.IsParamsArray)
+                {
+                    // Synthesized params array is processed element wise.
+                    this.Visit(node.InitializerOpt);
+                    return null;
+                }
+
+                return base.VisitArrayCreation(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -178,6 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
+            public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (node.LeftConversion is BoundConversion leftConversion)
+                {
+                    VerifyExpression(leftConversion);
+                }
+
+                Visit(node.Left);
+                Visit(node.Right);
+                return null;
+            }
+
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
                 VisitBinaryOperatorChildren(node);
@@ -244,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the constant value of a when clause is true, it can be skipped by the dag
                 // generator as an optimization. In that case, it's a value type and will be set
                 // as not nullable in the output.
-                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                if (node.WhenClause?.ConstantValueOpt != ConstantValue.True)
                 {
                     this.Visit(node.WhenClause);
                 }

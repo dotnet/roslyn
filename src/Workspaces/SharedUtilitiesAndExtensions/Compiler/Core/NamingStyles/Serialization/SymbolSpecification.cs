@@ -25,38 +25,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>, IObjectWritable
+    internal sealed class SymbolSpecification(
+        Guid id,
+        string name,
+        ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKindList,
+        ImmutableArray<Accessibility> accessibilityList = default,
+        ImmutableArray<SymbolSpecification.ModifierKind> modifiers = default) : IEquatable<SymbolSpecification>
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
 
         [DataMember(Order = 0)]
-        public Guid ID { get; }
+        public Guid ID { get; } = id;
 
         [DataMember(Order = 1)]
-        public string Name { get; }
+        public string Name { get; } = name;
 
         [DataMember(Order = 2)]
-        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
+        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; } = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
 
         [DataMember(Order = 3)]
-        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
+        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; } = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
 
         [DataMember(Order = 4)]
-        public ImmutableArray<ModifierKind> RequiredModifierList { get; }
-
-        public SymbolSpecification(
-            Guid id,
-            string name,
-            ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
-            ImmutableArray<Accessibility> accessibilityList = default,
-            ImmutableArray<ModifierKind> modifiers = default)
-        {
-            ID = id;
-            Name = name;
-            ApplicableSymbolKindList = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
-            ApplicableAccessibilityList = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
-            RequiredModifierList = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
-        }
+        public ImmutableArray<ModifierKind> RequiredModifierList { get; } = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
 
         private string GetDebuggerDisplay()
             => Name;
@@ -108,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
         {
-            if (!ApplicableSymbolKindList.Any(k => k.Equals(kind)))
+            if (!ApplicableSymbolKindList.Any(static (k, kind) => k.Equals(kind), kind))
             {
                 return false;
             }
@@ -119,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (accessibility.HasValue && !ApplicableAccessibilityList.Any(k => k == accessibility))
+            if (accessibility.HasValue && !ApplicableAccessibilityList.Any(static (k, accessibility) => k == accessibility, accessibility))
             {
                 return false;
             }
@@ -237,8 +228,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 CreateModifiersXElement());
         }
 
-        public bool ShouldReuseInSerialization => false;
-
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(ID);
@@ -253,9 +242,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new SymbolSpecification(
                 reader.ReadGuid(),
                 reader.ReadString(),
-                reader.ReadArray(r => SymbolKindOrTypeKind.ReadFrom(r)),
+                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
                 reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(r => ModifierKind.ReadFrom(r)));
+                reader.ReadArray(ModifierKind.ReadFrom));
         }
 
         private XElement CreateSymbolKindsXElement()
@@ -351,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         [DataContract]
-        public readonly record struct SymbolKindOrTypeKind : ISymbolMatcher, IObjectWritable
+        public readonly record struct SymbolKindOrTypeKind : ISymbolMatcher
         {
             public enum SymbolCategory : byte
             {
@@ -408,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     SymbolCategory.Other => new XElement(nameof(SymbolKind), (SymbolKind)_kind),
                     SymbolCategory.Type => new XElement(nameof(TypeKind), GetTypeKindString((TypeKind)_kind)),
                     SymbolCategory.Method => new XElement(nameof(MethodKind), GetMethodKindString((MethodKind)_kind)),
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
             private static string GetTypeKindString(TypeKind typeKind)
@@ -436,8 +425,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 };
             }
 
-            public bool ShouldReuseInSerialization => false;
-
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32((int)_category);
@@ -457,7 +444,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
-                => new((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
+            {
+                var symbolKind = (SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value);
+                return symbolKind switch
+                {
+                    // Handle cases where SymbolKind.Method was persisted as SymbolCategory.Other by automatically
+                    // converting them to MethodKind.Ordinary.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1861733
+                    CodeAnalysis.SymbolKind.Method => new(CodeAnalysis.MethodKind.Ordinary),
+                    _ => new(symbolKind),
+                };
+            }
 
             internal static SymbolKindOrTypeKind AddTypeKindFromXElement(XElement typeKindElement)
                 => new((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
@@ -467,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         [DataContract]
-        public readonly struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>, IObjectWritable
+        public readonly struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>
         {
             [DataMember(Order = 0)]
             public readonly ModifierKindEnum ModifierKindWrapper;
@@ -555,8 +552,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal static ModifierKind FromXElement(XElement modifierElement)
                 => new((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
-
-            public bool ShouldReuseInSerialization => false;
 
             public void WriteTo(ObjectWriter writer)
                 => writer.WriteInt32((int)ModifierKindWrapper);

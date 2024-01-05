@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -87,14 +87,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            private readonly struct AnalysisResult
+            private readonly struct AnalysisResult(string targetNamespace)
             {
-                public string TargetNamespace { get; }
-
-                public AnalysisResult(string targetNamespace)
-                {
-                    TargetNamespace = targetNamespace;
-                }
+                public string TargetNamespace { get; } = targetNamespace;
             }
         }
     }

@@ -33,24 +33,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
 
             // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array,
+            // NOTE: We may need additional argument rewriting such as
             //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             BoundExpression? receiverDiscard = null;
 
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? tempsBuilder = null;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref receiverDiscard,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 node.Arguments,
                 node.Constructor,
                 node.ArgsToParamsOpt,
                 argumentRefKindsOpt,
-                ref receiverDiscard,
-                out ArrayBuilder<LocalSymbol>? tempsBuilder);
+                storesOpt: null,
+                ref tempsBuilder);
+
+            Debug.Assert(receiverDiscard is null);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
+            // such as re-ordering arguments based on argsToParamsOpt map, etc.
             rewrittenArguments = MakeArguments(
-                node.Syntax,
                 rewrittenArguments,
                 node.Constructor,
                 node.Expanded,
@@ -101,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(TypeSymbol.Equals(rewrittenObjectCreation.Type, ((NamedTypeSymbol)node.Type).ComImportCoClass, TypeCompareKind.ConsiderEverything2));
                 rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
+            }
+
+            if (Instrument)
+            {
+                rewrittenObjectCreation = Instrumenter.InstrumentObjectCreationExpression(node, rewrittenObjectCreation);
             }
 
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
@@ -221,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [return: NotNullIfNotNull("initializerExpressionOpt")]
+        [return: NotNullIfNotNull(nameof(initializerExpressionOpt))]
         private BoundObjectInitializerExpressionBase? MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase? initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
@@ -246,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp);
+            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp, isKnownToReferToTempIfReferenceType: true);
 
             // Rewrite object/collection initializer expressions
             ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
@@ -325,10 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var createInstanceCall = new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 isDelegateCall: false,
                 expanded: false,

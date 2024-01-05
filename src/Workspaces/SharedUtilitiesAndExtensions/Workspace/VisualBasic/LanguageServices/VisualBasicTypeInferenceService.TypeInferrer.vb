@@ -5,7 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -88,6 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary),
                     Function(returnStatement As ReturnStatementSyntax) InferTypeForReturnStatement(returnStatement),
+                    Function(ifStatement As SingleLineIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),

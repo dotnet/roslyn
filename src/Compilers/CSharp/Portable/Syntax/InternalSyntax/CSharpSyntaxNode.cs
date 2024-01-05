@@ -53,11 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             GreenStats.NoteGreen(this);
         }
 
-        internal CSharpSyntaxNode(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         public override string Language
         {
             get { return LanguageNames.CSharp; }
@@ -75,22 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 return this.RawKind;
-            }
-        }
-
-        public override bool IsStructuredTrivia
-        {
-            get
-            {
-                return this is StructuredTriviaSyntax;
-            }
-        }
-
-        public override bool IsDirective
-        {
-            get
-            {
-                return this is DirectiveTriviaSyntax;
             }
         }
 

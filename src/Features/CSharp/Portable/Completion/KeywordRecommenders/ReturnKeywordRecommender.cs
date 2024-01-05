@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -32,7 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, cancellationToken) ||
                 (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
-                context.IsStatementAttributeContext();
+                context.IsStatementAttributeContext() ||
+                IsAccessorAttributeContext();
+
+            bool IsAccessorAttributeContext()
+            {
+                var token = context.TargetToken;
+                return token.Kind() == SyntaxKind.OpenBracketToken &&
+                    token.Parent is AttributeListSyntax &&
+                    token.Parent.Parent is AccessorDeclarationSyntax;
+            }
         }
     }
 }

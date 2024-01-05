@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static CSharpSyntaxNode DummySyntax()
@@ -288,11 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxTree.GetRoot();
         }
 
-        private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method)
+        private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, ThreeState receiverIsSubjectToCloning, MethodSymbol method)
         {
             return new BoundCall(
                 syntax,
                 receiver,
+                initialBindingReceiverIsSubjectToCloning: receiverIsSubjectToCloning,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
                 default(ImmutableArray<string>),
@@ -307,7 +308,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
@@ -340,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundCall userMainInvocation = new BoundCall(
                         syntax: _userMainReturnTypeSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: userMain,
                         arguments: arguments,
                         argumentNamesOpt: default(ImmutableArray<string>),
@@ -453,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Creates a new top-level binder that just contains the global imports for the compilation.
                 // The imports are required if a consumer of the scripting API is using a Task implementation 
                 // that uses extension methods.
-                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation), withImportChainEntry: true);
+                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation, null), withImportChainEntry: true);
                 binder = new InContainerBinder(compilation.GlobalNamespace, binder);
 
                 var ctor = _containingType.GetScriptConstructor();
@@ -470,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 Debug.Assert(!initializer.ReturnType.IsDynamic());
-                var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
+                var initializeCall = CreateParameterlessCall(syntax, scriptLocal, receiverIsSubjectToCloning: ThreeState.False, initializer);
                 BoundExpression getAwaiterGetResultCall;
                 if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
                 {
@@ -588,6 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var initializeResult = CreateParameterlessCall(
                     syntax,
                     submissionLocal,
+                    receiverIsSubjectToCloning: ThreeState.False,
                     initializer);
                 Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.Type, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(

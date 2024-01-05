@@ -67,11 +67,6 @@
         <target state="translated">Inserire l'elemento '{0}' mancante.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Variabile temporanea inline</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Sono stati rilevati conflitti.</target>
@@ -104,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Project_level_Imports">
         <source>Project level 'Imports'</source>
-        <target state="new">Project level 'Imports'</target>
+        <target state="translated">Livello progetto 'Importazioni'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
@@ -1457,11 +1452,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Abilita la segnalazione di avvisi specificati nella parte del file di origine sotto la riga corrente.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Trasformare {0} in una funzione asincrona.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Usa la variabile di controllo corretta</target>
@@ -1741,16 +1731,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">Rendi asincrona la funzione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">Rendi asincrona la funzione sub</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

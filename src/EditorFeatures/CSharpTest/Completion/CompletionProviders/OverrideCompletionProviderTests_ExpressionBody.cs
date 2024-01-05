@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -17,90 +18,103 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     // OverrideCompletionProviderTests overrides SetWorkspaceOptions to disable
     // expression-body members. This class does the opposite.
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class OverrideCompletionProviderTests_ExpressionBody : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
-        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
-        {
-            return base.WithChangedNonCompletionOptions(options)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
-        }
+        internal override OptionsCollection NonCompletionOptions
+            => new(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
+            };
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyProperties()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A { get; set; }
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A { get; set; }
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A { get; set; }
-    class C : B
-    {
-        public override int A { get => base.A$$; set => base.A = value; }
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A { get; set; }
+                    class C : B
+                    {
+                        public override int A { get => base.A$$; set => base.A = value; }
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyGetterOnlyProperty()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A { get; }
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A { get; }
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A { get; }
-    class C : B
-    {
-        public override int A => base.A;$$
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A { get; }
+                    class C : B
+                    {
+                        public override int A => base.A;$$
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task CommitProducesExpressionBodyMethod()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A() => 2;
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A() => 2;
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A() => 2;
-    class C : B
-    {
-        public override int A() => base.A();$$
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A() => 2;
+                    class C : B
+                    {
+                        public override int A() => base.A();$$
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A()", expectedCodeAfterCommit);
         }

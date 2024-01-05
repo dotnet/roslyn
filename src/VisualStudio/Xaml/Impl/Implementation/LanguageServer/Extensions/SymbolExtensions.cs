@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,13 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var codeProject = document.GetCodeProject();
-            var formatter = codeProject.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var symbolDisplayService = codeProject.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
             if (symbolDisplayService == null)
             {
                 return Enumerable.Empty<TaggedText>();
@@ -54,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var services = codeProject.Solution.Workspace.Services;
+            var services = codeProject.Solution.Services;
             var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
             foreach (var section in quickInfo.Sections)

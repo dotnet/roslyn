@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        though this may change in future.
     ///        This diagnostic configuration is controlled by <see cref="CodeStyleOptions2.UnusedParameters"/> option.
     /// </summary>
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public const string DiscardVariableName = "_";
 
@@ -61,10 +62,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
         // Diagnostic reported for expression statements that drop computed value, for example, "Computation();".
-        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
+        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unnecessary, but the dropped value is.
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             EnforceOnBuildValues.ExpressionValueIsUnused,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Expression_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Expression_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: false);
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
             EnforceOnBuildValues.ValueAssignedIsUnused,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Unnecessary_assignment_of_a_value), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Unnecessary_assignment_of_a_value_to_0), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             EnforceOnBuildValues.UnusedParameter,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter_0), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -91,22 +95,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
             Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
-            string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption)
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
-                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
-                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption)
                         .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
-                   language)
+                   fadingOption: null)
         {
         }
 
-        protected abstract bool IsRecordDeclaration(SyntaxNode node);
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
+        protected abstract bool ReturnsThrow(SyntaxNode node);
         protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider);
         protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueAssignmentOption(AnalyzerOptionsProvider provider);
 
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
-        /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
+        /// Method to compute well-known diagnostic property maps for different combinations of diagnostic properties.
         /// The property map is added to each instance of the reported diagnostic and is used by the code fixer to
         /// compute the correct code fix.
         /// It currently maps to three different properties of the diagnostic:
@@ -186,15 +189,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         // Hence, we can support incremental span based method body analysis.
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+        protected sealed override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
+
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-
             context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
         }
 
-        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, out Options options)
+        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, CompilationOptions compilationOptions, CancellationToken cancellationToken, out Options options)
         {
             options = null;
 
@@ -204,27 +207,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(GetUnusedValueExpressionStatementOption(optionsProvider));
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(GetUnusedValueAssignmentOption(optionsProvider));
 
-            if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
-                unusedValueExpressionStatementSeverity == ReportDiagnostic.Suppress &&
-                unusedValueAssignmentSeverity == ReportDiagnostic.Suppress)
-            {
+            var notifications = ImmutableArray.Create(unusedParametersOption.Notification, unusedValueExpressionStatementSeverity, unusedValueAssignmentSeverity);
+            if (ShouldSkipAnalysis(syntaxTree, analyzerOptions, compilationOptions, notifications, cancellationToken))
                 return false;
-            }
 
             options = new Options(unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity,
                                   unusedValueAssignmentPreference, unusedValueAssignmentSeverity,
-                                  unusedParametersOption.Value, unusedParametersOption.Notification.Severity);
+                                  unusedParametersOption.Value, unusedParametersOption.Notification);
             return true;
 
             // Local functions.
-            (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(CodeStyleOption2<UnusedValuePreference> option)
+            (UnusedValuePreference preference, NotificationOption2 notification) GetPreferenceAndSeverity(CodeStyleOption2<UnusedValuePreference> option)
             {
                 var preferenceOpt = option?.Value;
                 if (preferenceOpt == null ||
                     option.Notification.Severity == ReportDiagnostic.Suppress)
                 {
                     // Prefer does not matter as the severity is suppressed - we will never report this diagnostic.
-                    return (default(UnusedValuePreference), ReportDiagnostic.Suppress);
+                    return (default(UnusedValuePreference), NotificationOption2.None);
                 }
 
                 // If language or language version does not support discard, fall back to prefer unused local variable.
@@ -234,29 +234,29 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     preferenceOpt = UnusedValuePreference.UnusedLocalVariable;
                 }
 
-                return (preferenceOpt.Value, option.Notification.Severity);
+                return (preferenceOpt.Value, option.Notification);
             }
         }
 
         private sealed class Options
         {
             private readonly UnusedParametersPreference _unusedParametersPreference;
-            private readonly ReportDiagnostic _unusedParametersSeverity;
+            private readonly NotificationOption2 _unusedParametersSeverity;
 
             public Options(
                 UnusedValuePreference unusedValueExpressionStatementPreference,
-                ReportDiagnostic unusedValueExpressionStatementSeverity,
+                NotificationOption2 unusedValueExpressionStatementSeverity,
                 UnusedValuePreference unusedValueAssignmentPreference,
-                ReportDiagnostic unusedValueAssignmentSeverity,
+                NotificationOption2 unusedValueAssignmentSeverity,
                 UnusedParametersPreference unusedParametersPreference,
-                ReportDiagnostic unusedParametersSeverity)
+                NotificationOption2 unusedParametersSeverity)
             {
-                Debug.Assert(unusedValueExpressionStatementSeverity != ReportDiagnostic.Suppress ||
-                             unusedValueAssignmentSeverity != ReportDiagnostic.Suppress ||
-                             unusedParametersSeverity != ReportDiagnostic.Suppress);
+                Debug.Assert(unusedValueExpressionStatementSeverity.Severity != ReportDiagnostic.Suppress ||
+                             unusedValueAssignmentSeverity.Severity != ReportDiagnostic.Suppress ||
+                             unusedParametersSeverity.Severity != ReportDiagnostic.Suppress);
 
                 UnusedValueExpressionStatementPreference = unusedValueExpressionStatementPreference;
-                UnusedValueExpressionStatementSeverity = unusedValueExpressionStatementSeverity;
+                UnusedValueExpressionStatementNotification = unusedValueExpressionStatementSeverity;
                 UnusedValueAssignmentPreference = unusedValueAssignmentPreference;
                 UnusedValueAssignmentSeverity = unusedValueAssignmentSeverity;
                 _unusedParametersPreference = unusedParametersPreference;
@@ -264,11 +264,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             public UnusedValuePreference UnusedValueExpressionStatementPreference { get; }
-            public ReportDiagnostic UnusedValueExpressionStatementSeverity { get; }
+            public NotificationOption2 UnusedValueExpressionStatementNotification { get; }
             public UnusedValuePreference UnusedValueAssignmentPreference { get; }
-            public ReportDiagnostic UnusedValueAssignmentSeverity { get; }
+            public NotificationOption2 UnusedValueAssignmentSeverity { get; }
             public bool IsComputingUnusedParams(ISymbol symbol)
-                => ShouldReportUnusedParameters(symbol, _unusedParametersPreference, _unusedParametersSeverity);
+                => ShouldReportUnusedParameters(symbol, _unusedParametersPreference, _unusedParametersSeverity.Severity);
         }
 
         public static bool ShouldReportUnusedParameters(

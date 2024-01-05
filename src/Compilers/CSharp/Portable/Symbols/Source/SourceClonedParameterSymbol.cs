@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override ScopedKind EffectiveScope => _originalParam.EffectiveScope;
+
+        internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => _originalParam.UseUpdatedEscapeRules;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get
@@ -139,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
         #endregion
     }

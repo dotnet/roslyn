@@ -71,7 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             currentResult.SingleSymbol.Kind = SymbolKind.Namespace AndAlso
                             Not DirectCast(currentResult.SingleSymbol, NamespaceSymbol).ContainsTypesAccessibleFrom(Compilation.Assembly)) Then
 
-
                         If lookupResult.StopFurtherLookup AndAlso currentResult.StopFurtherLookup Then
                             Debug.Assert(lookupResult.Symbols.Count > 0)  ' How can it stop lookup otherwise?
                             Debug.Assert(currentResult.Symbols.Count > 0) ' How can it stop lookup  otherwise?

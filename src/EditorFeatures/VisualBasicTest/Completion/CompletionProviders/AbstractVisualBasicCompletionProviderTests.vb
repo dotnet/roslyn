@@ -16,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
         Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
+            Return TestWorkspace.CreateVisualBasic(fileContents, composition:=GetComposition())
         End Function
 
-        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionService
             Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, composition:=GetComposition())
                 Dim hostDocument = workspace.DocumentWithCursor
                 workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind)
                 Dim documentId = workspace.GetDocumentId(hostDocument)
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
-                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+                Dim item = completionList.ItemsList.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, textTypedSoFar))
             End Using

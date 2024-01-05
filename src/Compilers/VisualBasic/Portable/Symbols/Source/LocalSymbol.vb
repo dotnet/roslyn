@@ -301,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_ScopedKind As ScopedKind Implements ILocalSymbol.ScopedKind
+            Get
+                Return ScopedKind.None
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
@@ -356,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
+        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -404,8 +410,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#End Region
+        Private ReadOnly Property ILocalSymbol_IsForEach As Boolean Implements ILocalSymbol.IsForEach
+            Get
+                Return Me.IsForEach
+            End Get
+        End Property
 
+        Private ReadOnly Property ILocalSymbol_IsUsing As Boolean Implements ILocalSymbol.IsUsing
+            Get
+                Return Me.IsUsing
+            End Get
+        End Property
+
+#End Region
 
 #Region "ISymbol"
 
@@ -792,7 +809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private NotInheritable Class EvaluatedConstantInfo
                 Inherits EvaluatedConstant
 
-                Public Sub New(value As ConstantValue, type As TypeSymbol, expression As BoundExpression, diagnostics As BindingDiagnosticBag)
+                Public Sub New(value As ConstantValue, type As TypeSymbol, expression As BoundExpression, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol))
                     MyBase.New(value, type)
 
                     Debug.Assert(expression IsNot Nothing)
@@ -802,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Sub
 
                 Public ReadOnly Expression As BoundExpression
-                Public ReadOnly Diagnostics As BindingDiagnosticBag
+                Public ReadOnly Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             End Class
 
             ''' <summary>
@@ -847,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If IsConst Then
                     If _evaluatedConstant Is Nothing Then
-                        Dim diagBag = New BindingDiagnosticBag()
+                        Dim diagBag = BindingDiagnosticBag.GetInstance()
 
                         ' BindLocalConstantInitializer may be called before or after the constant's type has been set.
                         ' It is called before when we are inferring the constant's type. In that case the constant has no explicit type 
@@ -869,7 +886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      Not valueExpression.HasErrors AndAlso
                                         (valueExpression.Type Is Nothing OrElse Not valueExpression.Type.IsErrorType))
 
-                        SetConstantExpression(valueExpression.Type, constValue, valueExpression, diagBag)
+                        SetConstantExpression(valueExpression.Type, constValue, valueExpression, diagBag.ToReadOnlyAndFree())
 
                         Return valueExpression
                     End If
@@ -890,12 +907,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Value, Nothing)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As BindingDiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
                 GetConstantValue(containingBinder)
-                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, Nothing)
+                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty)
             End Function
 
-            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, expression As BoundExpression, diagnostics As BindingDiagnosticBag)
+            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, expression As BoundExpression, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol))
                 If _evaluatedConstant Is Nothing Then
                     Interlocked.CompareExchange(_evaluatedConstant, New EvaluatedConstantInfo(constantValue, type, expression, diagnostics), Nothing)
                 End If
@@ -997,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _originalVariable.GetConstantValue(binder)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
                 Return _originalVariable.GetConstantValueDiagnostics(binder)
             End Function
 

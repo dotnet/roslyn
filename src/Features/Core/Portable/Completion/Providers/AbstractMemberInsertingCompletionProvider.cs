@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // TODO: pass fallback options: https://github.com/dotnet/roslyn/issues/60786
-            var globalOptions = document.Project.Solution.Workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-            var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
             var newDocument = await DetermineNewDocumentAsync(document, item, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             int? newPosition = null;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The span we're going to replace
             var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
@@ -86,7 +86,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = GetToken(completionItem, tree, cancellationToken);
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
-            document = document.WithSyntaxRoot(annotatedRoot);
+            // Make sure the new document is frozen before we try to get the semantic model. This is to 
+            // avoid trigger source generator, which is expensive and not needed for calculating the change.
+            document = document.WithSyntaxRoot(annotatedRoot).WithFrozenPartialSemantics(cancellationToken);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, fallbackOptions, cancellationToken).ConfigureAwait(false);
             if (memberContainingDocument == null)

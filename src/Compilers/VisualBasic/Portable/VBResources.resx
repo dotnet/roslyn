@@ -5198,6 +5198,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -5222,11 +5224,14 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -5584,25 +5589,23 @@
     <value>Attribute is not supported in VB</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
@@ -5613,6 +5616,12 @@
   </data>
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
@@ -5655,5 +5664,35 @@
   </data>
   <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
     <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute arguments.</value>
+  </data>
+  <data name="ERR_CannotInheritFromTypeWithRequiredMembers" xml:space="preserve">
+    <value>Cannot inherit from '{0}' because it has required members.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
+  <data name="ERR_DoNotUseRequiredMember" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</value>
+  </data>
+  <data name="ERR_UnsupportedRefReturningCallInWithStatement" xml:space="preserve">
+    <value>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</value>
+  </data>
+  <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
+    <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
   </data>
 </root>

@@ -2,161 +2,186 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class SelectKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtEndOfPreviousClause()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNewClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          $$"));
+                """
+                var q = from x in y
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var v = from x in y
-          where x > y
-          $$"));
+                """
+                var v = from x in y
+                          where x > y
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPreviousContinuationClause()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var v = from x in y
-          group x by y into g
-          $$"));
+                """
+                var v = from x in y
+                          group x by y into g
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterOrderByExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x
-          $$"));
+                """
+                var q = from x in y
+                          orderby x
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterOrderByAscendingExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x ascending
-          $$"));
+                """
+                var q = from x in y
+                          orderby x ascending
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterOrderByDescendingExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x descending
-          $$"));
+                """
+                var q = from x in y
+                          orderby x descending
+                          $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestBetweenClauses()
         {
             // Technically going to generate invalid code, but we 
             // shouldn't stop users from doing this.
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          $$
-          from z in w"));
+                """
+                var q = from x in y
+                          $$
+                          from z in w
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterSelect()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          select $$"));
+                """
+                var q = from x in y
+                          select $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDot()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x.$$"));
+                """
+                var q = from x in y
+                          orderby x.$$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterComma()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x, $$"));
+                """
+                var q = from x in y
+                          orderby x, $$
+                """));
         }
     }
 }

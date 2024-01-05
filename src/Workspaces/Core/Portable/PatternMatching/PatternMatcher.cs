@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal abstract partial class PatternMatcher : IDisposable
     {
-        private static readonly char[] s_dotCharacterArray = { '.' };
+        private static readonly char[] s_dotCharacterArray = ['.'];
 
         public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         protected PatternMatcher(
             bool includeMatchedSpans,
-            CultureInfo culture,
+            CultureInfo? culture,
             bool allowFuzzyMatching = false)
         {
             culture ??= CultureInfo.CurrentCulture;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public static PatternMatcher CreatePatternMatcher(
             string pattern,
-            CultureInfo culture = null,
+            CultureInfo? culture = null,
             bool includeMatchedSpans = false,
             bool allowFuzzyMatching = false)
         {
@@ -76,35 +75,37 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public static PatternMatcher CreateContainerPatternMatcher(
             string[] patternParts,
             char[] containerSplitCharacters,
-            CultureInfo culture = null,
+            bool includeMatchedSpans = false,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return new ContainerPatternMatcher(
-                patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
+                patternParts, containerSplitCharacters, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
-            CultureInfo culture = null,
+            bool includeMatchedSpans = false,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
                 pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
-                s_dotCharacterArray, culture, allowFuzzyMatching);
+                s_dotCharacterArray, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
-        internal static (string name, string containerOpt) GetNameAndContainer(string pattern)
+        internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
         {
             var dotIndex = pattern.LastIndexOf('.');
             var containsDots = dotIndex >= 0;
             return containsDots
-                ? (name: pattern.Substring(dotIndex + 1), containerOpt: pattern.Substring(0, dotIndex))
+                ? (name: pattern[(dotIndex + 1)..], containerOpt: pattern[..dotIndex])
                 : (name: pattern, containerOpt: null);
         }
 
-        public abstract bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches);
+        public abstract bool AddMatches(string? candidate, ref TemporaryArray<PatternMatch> matches);
 
-        private bool SkipMatch(string candidate)
+        private bool SkipMatch([NotNullWhen(false)] string? candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private static bool ContainsUpperCaseLetter(string pattern)
@@ -123,20 +124,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatch? MatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped,
             bool fuzzyMatch)
         {
             return fuzzyMatch
-                ? FuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
+                ? FuzzyMatchPatternChunk(candidate, ref patternChunk, punctuationStripped)
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
         private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
-            in TextChunk patternChunk,
+            ref TextChunk patternChunk,
             bool punctuationStripped)
         {
+            Contract.ThrowIfTrue(patternChunk.SimilarityChecker.IsDefault);
             if (patternChunk.SimilarityChecker.AreSimilar(candidate))
             {
                 return new PatternMatch(
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
         private bool MatchPatternSegment(
             string candidate,
-            in PatternSegment segment,
+            ref PatternSegment segment,
             ref TemporaryArray<PatternMatch> matches,
             bool fuzzyMatch)
         {
@@ -323,7 +325,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
             {
                 var match = MatchPatternChunk(
-                    candidate, segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
+                    candidate, ref segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
                     matches.Add(match.Value);
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             if (subWordTextChunks.Length == 1)
             {
                 var result = MatchPatternChunk(
-                    candidate, subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    candidate, ref subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                 if (result == null)
                 {
                     return false;
@@ -364,11 +366,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 using var tempMatches = TemporaryArray<PatternMatch>.Empty;
 
-                foreach (var subWordTextChunk in subWordTextChunks)
+                for (int i = 0, n = subWordTextChunks.Length; i < n; i++)
                 {
                     // Try to match the candidate with this word
                     var result = MatchPatternChunk(
-                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                        candidate, ref subWordTextChunks[i], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                     if (result == null)
                         return false;
 
@@ -443,20 +445,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
-                    if (camelCaseKind.HasValue)
+                    // PERF: This can be called thousands of times per completion session with only a handful of matches found.
+                    // Checking for case insensitive initially reduces the TryUpperCaseCamelCaseMatch call count to 1 for the
+                    // non-matching candidates, but increases the call count to 2 for the much less frequent matching candidates.
+                    var camelCaseKindIgnoreCase = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out var matchedSpansIgnoreCase);
+                    if (camelCaseKindIgnoreCase.HasValue)
                     {
-                        return new PatternMatch(
-                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: true,
-                            matchedSpans: matchedSpans);
-                    }
+                        var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                        if (camelCaseKind.HasValue)
+                        {
+                            return new PatternMatch(
+                                camelCaseKind.Value, punctuationStripped, isCaseSensitive: true,
+                                matchedSpans: matchedSpans);
+                        }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
-                    if (camelCaseKind.HasValue)
-                    {
                         return new PatternMatch(
-                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: false,
-                            matchedSpans: matchedSpans);
+                            camelCaseKindIgnoreCase.Value, punctuationStripped, isCaseSensitive: false,
+                            matchedSpans: matchedSpansIgnoreCase);
                     }
                 }
             }
@@ -496,7 +501,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
+            using var matchSpans = TemporaryArray<TextSpan>.Empty;
+
             while (true)
             {
                 // Let's consider our termination cases
@@ -507,7 +513,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
-                        ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
+                        ? new NormalizedTextSpanCollection(matchSpans.ToImmutableAndClear()).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);

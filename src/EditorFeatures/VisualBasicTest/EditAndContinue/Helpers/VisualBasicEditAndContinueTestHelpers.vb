@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Differencing
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
@@ -32,6 +33,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ProjectFileExtension As String
+            Get
+                Return ".vbproj"
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TopSyntaxComparer As TreeComparer(Of SyntaxNode)
             Get
                 Return SyntaxComparer.TopLevel
@@ -41,6 +48,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Public Overrides Function GetDeclarators(method As ISymbol) As ImmutableArray(Of SyntaxNode)
             Assert.True(TypeOf method Is IMethodSymbol, "Only methods should have a syntax map.")
             Return LocalVariableDeclaratorsCollector.GetDeclarators(DirectCast(method, SourceMethodSymbol))
+        End Function
+
+        Public Overrides Function TryGetResource(keyword As String) As String
+            Return EditingTestBase.TryGetResource(keyword)
         End Function
     End Class
 End Namespace

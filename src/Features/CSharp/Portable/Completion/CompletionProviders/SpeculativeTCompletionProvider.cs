@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
                 return false;
 
             var spanStart = position;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
+            return syntaxTree.IsMemberDeclarationContext(position, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
                    syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                    syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                    syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                       .GetPreviousTokenIfTouchingWord(position);
 
-            if (prevToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            if (prevToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword && prevToken.Parent.IsKind(SyntaxKind.RefType))
             {
                 return prevToken.SpanStart;
             }

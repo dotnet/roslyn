@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return new(text);
         }
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
+        public readonly VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
-        public VirtualCharSequence GetSubSequenceToCurrentPos(int start)
+        public readonly VirtualCharSequence GetSubSequenceToCurrentPos(int start)
             => GetSubSequence(start, Position);
 
-        public VirtualCharSequence GetSubSequence(int start, int end)
+        public readonly VirtualCharSequence GetSubSequence(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public StackFrameTrivia? TryScanRemainingTrivia()
@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var ch = CurrentChar;
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
+                var ctor = TryScanConstructor();
+                if (ctor.HasValue)
+                {
+                    return ctor.Value;
+                }
+
                 // If we scan only trivia but don't get an identifier, we want to make sure
                 // to reset back to this original position to let the trivia be consumed
                 // in some other fashion if necessary 
@@ -114,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 trailingTrivia: CreateTrivia(trailingWhitespace));
         }
 
-        public StackFrameToken CurrentCharAsToken()
+        public readonly StackFrameToken CurrentCharAsToken()
         {
             if (Position == Text.Length)
             {
@@ -182,16 +188,46 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         public StackFrameTrivia? TryScanAtTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia("at ", StackFrameKind.AtTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.At, StackFrameKind.AtTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         public StackFrameTrivia? TryScanInTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia(" in ", StackFrameKind.InTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.In, StackFrameKind.InTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         public StackFrameTrivia? TryScanLineTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia("line ", StackFrameKind.LineTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.Line, StackFrameKind.LineTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Attempts to parse <see cref="StackFrameKind.InTrivia"/> and a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
@@ -399,10 +435,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return builder.ToImmutable();
         }
 
-        private bool IsStringAtPosition(string val)
+        private readonly bool IsStringAtPosition(string val)
            => IsAtStartOfText(Position, val);
 
-        private bool IsAtStartOfText(int position, string val)
+        private readonly bool IsAtStartOfText(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {
@@ -429,6 +465,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return null;
         }
 
+        private StackFrameToken? TryScanStringToken(string valueToLookFor, StackFrameKind tokenKind)
+        {
+            if (IsStringAtPosition(valueToLookFor))
+            {
+                var start = Position;
+                Position += valueToLookFor.Length;
+
+                return CreateToken(tokenKind, GetSubSequenceToCurrentPos(start));
+            }
+
+            return null;
+        }
+
         private StackFrameTrivia? TryScanWhiteSpace()
         {
             var startPosition = Position;
@@ -444,6 +493,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             return CreateTrivia(StackFrameKind.WhitespaceTrivia, GetSubSequenceToCurrentPos(startPosition));
+        }
+
+        /// <summary>
+        /// Scans for .ctor or .cctor as a ConstructorToken
+        /// </summary>
+        private StackFrameToken? TryScanConstructor()
+        {
+            return TryScanStringToken(".ctor", StackFrameKind.ConstructorToken) ??
+                   TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
         }
 
         private static StackFrameKind GetKind(VirtualChar ch)
@@ -479,5 +537,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         private static bool IsNumber(VirtualChar ch)
             => ch.Value is >= '0' and <= '9';
+
+        private readonly record struct Language(string At, string In, string Line);
+        private static readonly ImmutableArray<Language> s_languages = ImmutableArray.Create(
+            new Language("at ", " in ", "line "), // en
+            new Language("v ", " v ", "řádek "), // cs
+            new Language("bei ", " in ", "Zeile "), // de
+            new Language("en ", " en ", "línea "), // es
+            new Language("à ", " dans ", "ligne "), // fr
+            new Language("in ", " in ", "riga "), // it
+            new Language("場所 ", " 場所 ", "行 "), // ja
+            new Language("위치: ", " 파일 ", "줄 "), // ko
+            new Language("w ", " w ", "wiersz "), // pl
+            new Language("em ", " na ", "linha "), // pt-BR
+            new Language("в ", " в ", "строка "), // ru
+            new Language("在 ", " 位置 ", "行号 "), // zh-Hans
+            new Language("於 ", " 於 ", " 行 ") // zh-Hant
+            );
     }
 }

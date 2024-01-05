@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class OperatorDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of OperatorStatementSyntax)
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New OperatorDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
@@ -31,7 +32,7 @@ End Class
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
@@ -44,7 +45,7 @@ End Class
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 Class C
@@ -59,7 +60,7 @@ End Class
                 Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 Class C

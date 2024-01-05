@@ -12,31 +12,24 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     [Export(typeof(VSTypeScriptGlobalOptions)), Shared]
-    internal sealed class VSTypeScriptGlobalOptions
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool BlockForCompletionItems
         {
-            get => _globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript);
-            set => _globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript), value);
+            get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript);
+            set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
         }
 
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
-            _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript),
+            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
 
-            _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript),
+            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
                 openFilesOnly);
         }
 

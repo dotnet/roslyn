@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    EnforceOnBuildValues.InlineIsTypeWithoutName,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
@@ -101,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, isExpression.GetLocation(),
-                    styleOption.Notification.Severity,
+                    styleOption.Notification,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string?>.Empty));
         }
 
-        public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
+        public static (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             INamedTypeSymbol? expressionType,
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
             var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            return diagnostics.Any(d => d.Id is CS0165 or CS0103);
+            return diagnostics.Any(static d => d.Id is CS0165 or CS0103);
         }
 
         public static SemanticModel ReplaceMatches(
@@ -245,13 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return null;
         }
 
-        private void AddMatches(
+        private static void AddMatches(
             SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
         {
             // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
-                if (node.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
+                if (node is CastExpressionSyntax castExpression)
                 {
                     if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
                         SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))

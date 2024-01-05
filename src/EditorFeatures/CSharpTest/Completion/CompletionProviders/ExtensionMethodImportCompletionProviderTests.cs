@@ -20,6 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public ExtensionMethodImportCompletionProviderTests()
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => CombineWithReferenceTypeData(BuiltInTypes);
 
         [MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestPredefinedType(string type1, string type2, ReferenceType refType)
         {
             var file1 = $@"
@@ -129,34 +130,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration(ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using MyInt = System.Int32;
+            var file1 = """
+                using System;
+                using MyInt = System.Int32;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this MyInt x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this MyInt x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -167,34 +170,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_PrimitiveType(ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using MyInt = System.Int32;
+            var file1 = """
+                using System;
+                using MyInt = System.Int32;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this MyInt x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this MyInt x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -205,34 +210,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_RegularType(ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using MyAlias = System.Exception;
+            var file1 = """
+                using System;
+                using MyAlias = System.Exception;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this MyAlias x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this MyAlias x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(Exception x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(Exception x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -243,34 +250,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_GenericType(ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using MyAlias = System.Collections.Generic.List<int>;
+            var file1 = """
+                using System;
+                using MyAlias = System.Collections.Generic.List<int>;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this MyAlias x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this MyAlias x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(System.Collections.Generic.List<int> x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(System.Collections.Generic.List<int> x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -281,33 +290,35 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_RegularTypeWithSameSimpleName(ReferenceType refType)
         {
-            var file1 = @"
-using DataTime = System.Exception;
+            var file1 = """
+                using DataTime = System.Exception;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this System.DateTime x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this System.DateTime x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(DateTime x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(DateTime x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -318,34 +329,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_Namespace(ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using GenericCollection = System.Collections.Generic;
+            var file1 = """
+                using System;
+                using GenericCollection = System.Collections.Generic;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod<T>(this GenericCollection.List<T> x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod<T>(this GenericCollection.List<T> x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(System.Collections.Generic.List<int> x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(System.Collections.Generic.List<int> x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -357,34 +370,36 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInUsage(ReferenceType refType)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
-using MyInt = System.Int32;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
+                using MyInt = System.Int32;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(MyInt x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(MyInt x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -395,7 +410,7 @@ namespace Baz
         }
 
         [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task RegularType(string typeKind, ReferenceType refType)
         {
             var file1 = $@"
@@ -411,19 +426,20 @@ namespace Foo
             => true;
     }}
 }}";
-            var file2 = @"
-using System;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(MyType x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(MyType x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
             await VerifyImportItemExistsAsync(
                  markup,
@@ -433,7 +449,7 @@ namespace Baz
         }
 
         [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ObjectType(string typeKind, ReferenceType refType)
         {
             var file1 = $@"
@@ -449,19 +465,20 @@ namespace Foo
             => true;
     }}
 }}";
-            var file2 = @"
-using System;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(MyType x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(MyType x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
             await VerifyImportItemExistsAsync(
                  markup,
@@ -479,7 +496,7 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(TupleWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ValueTupleType(string tupleType, ReferenceType refType)
         {
             var file1 = $@"
@@ -518,7 +535,7 @@ namespace Baz
             => CombineWithReferenceTypeData((new[] { "class", "interface", "abstract class" }).Select(kind => new List<object>() { kind }));
 
         [MemberData(nameof(DerivableTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task RegularTypeAsBase(string baseType, ReferenceType refType)
         {
             var file1 = $@"
@@ -536,19 +553,20 @@ namespace Foo
             => true;
     }}
 }}";
-            var file2 = @"
-using System;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(MyType x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(MyType x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
             await VerifyImportItemExistsAsync(
                  markup,
@@ -566,21 +584,22 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(BounedGenericTypeWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task BoundedGenericType(string type, ReferenceType refType)
         {
-            var file1 = @"
-using System;
-using System.Collections.Generic;
+            var file1 = """
+                using System;
+                using System.Collections.Generic;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this IEnumerable<string> t)
-            => true;
-    }
-}";
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this IEnumerable<string> t)
+                            => true;
+                    }
+                }
+                """;
             var file2 = $@"
 using System;
 using System.Collections.Generic;
@@ -612,20 +631,21 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(TypeParameterWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task MatchingTypeParameter(string type, ReferenceType refType)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod<T>(this T t)
-            => true;
-    }
-}";
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod<T>(this T t)
+                            => true;
+                    }
+                }
+                """;
             var file2 = $@"
 using System;
 using System.Collections.Generic;
@@ -653,33 +673,35 @@ namespace Baz
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestInternalExtensionMethods_NoIVT_InReference(ReferenceType refType)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = GetMarkup(file2, file1, refType);
             await VerifyImportItemIsAbsentAsync(
@@ -688,33 +710,35 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestInternalExtensionMethods_NoIVT_InSameProject()
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        internal static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        internal static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
             await VerifyImportItemExistsAsync(
@@ -727,31 +751,33 @@ namespace Baz
         // SymbolTreeInfo explicitly ignores non-public types from metadata(likely for perf reasons). So we don't need to test internals in PE reference
         [InlineData(ReferenceType.None)]
         [InlineData(ReferenceType.Project)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestInternalExtensionMethods_WithIVT(ReferenceType refType)
         {
-            var file1 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+            var file1 = """
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        internal static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        internal static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = GetMarkup(file2, file1, refType);
             await VerifyImportItemExistsAsync(
@@ -762,37 +788,39 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UserDefinedGenericType(ReferenceType refType)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-public class MyGeneric<T>
-{
-}
+                public class MyGeneric<T>
+                {
+                }
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this MyGeneric<int> x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this MyGeneric<int> x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(MyGeneric<int> x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(MyGeneric<int> x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, refType);
 
             await VerifyImportItemExistsAsync(
@@ -804,20 +832,21 @@ namespace Baz
 
         [InlineData("(1 + 1)")]
         [InlineData("(new int())")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task MethodSymbolReceiver(string expression)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
             var file2 = $@"
 using System;
 
@@ -870,7 +899,7 @@ namespace Baz
         }
 
         [MemberData(nameof(VBBuiltInTypes))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ExtensionMethodDelcaredInVBSource(string vbType, string csType)
         {
             var file1 = $@"
@@ -907,32 +936,34 @@ namespace Baz
                  inlineDescription: "NS");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExtensionMethodDelcaredInRootNamespaceVBSource()
         {
-            var file1 = @"
-Imports System
-Imports System.Runtime.CompilerServices
+            var file1 = """
+                Imports System
+                Imports System.Runtime.CompilerServices
 
-Public Module Foo
-    <Extension>
-    public Function ExtentionMethod(x As Integer) As Boolean
-        Return True
-    End Function
-End Module";
-            var file2 = @"
-using System;
+                Public Module Foo
+                    <Extension>
+                    public Function ExtentionMethod(x As Integer) As Boolean
+                        Return True
+                    End Function
+                End Module
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Root");
 
             await VerifyImportItemExistsAsync(
@@ -942,32 +973,34 @@ namespace Baz
                  inlineDescription: "Root");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExtensionMethodDelcaredInGlobalNamespaceVBSource()
         {
-            var file1 = @"
-Imports System
-Imports System.Runtime.CompilerServices
+            var file1 = """
+                Imports System
+                Imports System.Runtime.CompilerServices
 
-Public Module Foo
-    <Extension>
-    public Function ExtentionMethod(x As Integer) As Boolean
-        Return True
-    End Function
-End Module";
-            var file2 = @"
-using System;
+                Public Module Foo
+                    <Extension>
+                    public Function ExtentionMethod(x As Integer) As Boolean
+                        Return True
+                    End Function
+                End Module
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp);
 
             await VerifyImportItemIsAbsentAsync(
@@ -976,34 +1009,36 @@ namespace Baz
                  inlineDescription: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestTriggerLocation()
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        internal static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        internal static bool ExtentionMethod(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-            var z = 10;
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                            var z = 10;
+                        }
+                    }
+                }
+                """;
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
             await VerifyImportItemExistsAsync(
@@ -1015,32 +1050,32 @@ namespace Baz
 
         [InlineData("int", "Int32Method", "Foo")]
         [InlineData("string", "StringMethod", "Bar")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestIdenticalAliases(string type, string expectedMethodname, string expectedNamespace)
         {
-            var file1 = @"
-using X = System.String;
+            var file1 = """
+                using X = System.String;
 
-namespace Foo
-{
-    using X = System.Int32;
+                namespace Foo
+                {
+                    using X = System.Int32;
 
-    internal static class ExtensionClass
-    {
-        internal static bool Int32Method(this X x)
-            => true;
-    }
-}
+                    internal static class ExtensionClass
+                    {
+                        internal static bool Int32Method(this X x)
+                            => true;
+                    }
+                }
 
-namespace Bar
-{
-    internal static class ExtensionClass
-    {
-        internal static bool StringMethod(this X x)
-            => true;
-    }
-}
-";
+                namespace Bar
+                {
+                    internal static class ExtensionClass
+                    {
+                        internal static bool StringMethod(this X x)
+                            => true;
+                    }
+                }
+                """;
             var file2 = $@"
 using System;
 
@@ -1065,24 +1100,24 @@ namespace Baz
 
         [InlineData("int")]
         [InlineData("Exception")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestIdenticalMethodName(string type)
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtMethod(this int x)
-            => true;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtMethod(this int x)
+                            => true;
 
-        public static bool ExtMethod(this Exception x)
-            => true;
-    }
-}
-";
+                        public static bool ExtMethod(this Exception x)
+                            => true;
+                    }
+                }
+                """;
             var file2 = $@"
 using System;
 
@@ -1105,33 +1140,35 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotTriggerOnType()
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtMethod(this string x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
+                namespace Foo
+                {
+                    public static class ExtensionClass
+                    {
+                        public static bool ExtMethod(this string x)
+                            => true;
+                    }
+                }
+                """;
+            var file2 = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M()
-        {
-            string.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M()
+                        {
+                            string.$$
+                        }
+                    }
+                }
+                """;
             var markup = GetMarkup(file2, file1, ReferenceType.None);
             await VerifyImportItemIsAbsentAsync(
                  markup,
@@ -1139,43 +1176,44 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodInPartialClass()
         {
-            var file1 = @"
-using System;
+            var file1 = """
+                using System;
 
-namespace Foo
-{
-    public static partial class ExtensionClass
-    {
-        public static bool ExtentionMethod1(this string x)
-            => true;
-    }
-}";
-            var currentFile = @"
-using System;
+                namespace Foo
+                {
+                    public static partial class ExtensionClass
+                    {
+                        public static bool ExtentionMethod1(this string x)
+                            => true;
+                    }
+                }
+                """;
+            var currentFile = """
+                using System;
 
-namespace Foo
-{
-    public static partial class ExtensionClass
-    {
-        public static bool ExtentionMethod2(this string x)
-            => true;
-    }
-}
+                namespace Foo
+                {
+                    public static partial class ExtensionClass
+                    {
+                        public static bool ExtentionMethod2(this string x)
+                            => true;
+                    }
+                }
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(string x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(string x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = CreateMarkupForSingleProject(currentFile, file1, LanguageNames.CSharp);
 
@@ -1195,8 +1233,7 @@ namespace Baz
         [InlineData(ReferenceType.Project, "public")]
         [InlineData(ReferenceType.Project, "internal")]
         [InlineData(ReferenceType.Metadata, "public")]  // We don't support internal extension method from non-source references.
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypes(ReferenceType refType, string accessibility)
         {
             var refDoc = $@"
@@ -1210,28 +1247,29 @@ namespace Foo
             => true;
     }}
 }}";
-            var srcDoc = @"
-using System;
+            var srcDoc = """
+                using System;
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod2(this int x)
-            => true;
-    }
-}
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod2(this int x)
+                            => true;
+                    }
+                }
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = refType switch
             {
@@ -1253,47 +1291,49 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
         {
-            var refDoc1 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+            var refDoc1 = """
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod1(this int x)
-            => true;
-    }
-}";
-            var refDoc2 = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod1(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var refDoc2 = """
+                [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod2(this int x)
-            => true;
-    }
-}";
-            var srcDoc = @"
-using System;
+                namespace Foo
+                {
+                    internal static class ExtensionClass
+                    {
+                        public static bool ExtentionMethod2(this int x)
+                            => true;
+                    }
+                }
+                """;
+            var srcDoc = """
+                using System;
 
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace Baz
+                {
+                    public class Bat
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
-            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, new[] { refDoc1, refDoc2 });
+            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, [refDoc1, refDoc2]);
 
             await VerifyImportItemExistsAsync(
                  markup,
@@ -1311,7 +1351,7 @@ namespace Baz
         [InlineData("", "", false)]
         [InlineData("", "public", true)]
         [InlineData("public", "", false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestCSharpDefaultAccessibility(string containerAccessibility, string methodAccessibility, bool isAvailable)
         {
             var file1 = $@"
@@ -1368,7 +1408,7 @@ namespace Baz
         [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
         [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
         [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestExtensionMethodsForSimpleArrayType(ReferenceType refType, string rank, string expectedName)
         {
             var refDoc = $@"
@@ -1428,7 +1468,7 @@ namespace Baz
         [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
         [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
         [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestExtensionMethodsForGenericArrayType(ReferenceType refType, string rank, string expectedName)
         {
             var refDoc = $@"
@@ -1483,35 +1523,37 @@ namespace Baz
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestGenericReceiverTypeWithConstraint(ReferenceType refType)
         {
-            var refDoc = @"
-using System;
+            var refDoc = """
+                using System;
 
-namespace NS1
-{
-    public class C1 {}
-}
+                namespace NS1
+                {
+                    public class C1 {}
+                }
 
-namespace NS2
-{
-    public static class Extensions
-    {
-        public static bool ExtentionMethod(this NS1.C1 c) => false;
-    }
-}";
-            var srcDoc = @"
-namespace NS1
-{
-    public class C2
-    {
-        public void M<T>(T x) where T : C1
-        {
-            x.$$
-        }
-    }
-}";
+                namespace NS2
+                {
+                    public static class Extensions
+                    {
+                        public static bool ExtentionMethod(this NS1.C1 c) => false;
+                    }
+                }
+                """;
+            var srcDoc = """
+                namespace NS1
+                {
+                    public class C2
+                    {
+                        public void M<T>(T x) where T : C1
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = refType switch
             {
@@ -1531,7 +1573,7 @@ namespace NS1
         [InlineData(ReferenceType.Project, "(int,int,int,int,int,int,int,int,int,int)")]    // more than 8 tuple elements
         [InlineData(ReferenceType.Metadata, "(int,int)")]
         [InlineData(ReferenceType.Metadata, "(int,int,int,int,int,int,int,int,int,int)")]   // more than 8 tuple elements
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestTupleArray(ReferenceType refType, string tupleType)
         {
             var refDoc = $@"
@@ -1574,7 +1616,7 @@ namespace NS1
         [InlineData(ReferenceType.Project, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
         [InlineData(ReferenceType.Metadata, "(int[],int[])")]
         [InlineData(ReferenceType.Metadata, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestArrayTuple(ReferenceType refType, string tupleType)
         {
             var refDoc = $@"
@@ -1615,30 +1657,32 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestDescriptionOfGenericReceiverType(ReferenceType refType)
         {
-            var refDoc = @"
-using System;
+            var refDoc = """
+                using System;
 
-namespace NS2
-{
-    public static class Extensions
-    {
-        public static bool ExtentionMethod<T>(this T t) => false;
-    }
-}";
-            var srcDoc = @"
-namespace NS1
-{
-    public class C
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace NS2
+                {
+                    public static class Extensions
+                    {
+                        public static bool ExtentionMethod<T>(this T t) => false;
+                    }
+                }
+                """;
+            var srcDoc = """
+                namespace NS1
+                {
+                    public class C
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = refType switch
             {
@@ -1658,35 +1702,37 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestDescriptionOfOverloads(ReferenceType refType)
         {
-            var refDoc = @"
-using System;
+            var refDoc = """
+                using System;
 
-namespace NS2
-{
-    public static class Extensions
-    {
-        public static bool ExtentionMethod(this int t) => false;
-        public static bool ExtentionMethod(this int t, int a) => false;
-        public static bool ExtentionMethod(this int t, int a, int b) => false;
-        public static bool ExtentionMethod<T>(this int t, T a) => false;
-        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
-        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
-    }
-}";
-            var srcDoc = @"
-namespace NS1
-{
-    public class C
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
+                namespace NS2
+                {
+                    public static class Extensions
+                    {
+                        public static bool ExtentionMethod(this int t) => false;
+                        public static bool ExtentionMethod(this int t, int a) => false;
+                        public static bool ExtentionMethod(this int t, int a, int b) => false;
+                        public static bool ExtentionMethod<T>(this int t, T a) => false;
+                        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
+                        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
+                    }
+                }
+                """;
+            var srcDoc = """
+                namespace NS1
+                {
+                    public class C
+                    {
+                        public void M(int x)
+                        {
+                            x.$$
+                        }
+                    }
+                }
+                """;
 
             var markup = refType switch
             {
@@ -1713,34 +1759,35 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAlways(ReferenceType refType)
         {
-            var srcDoc = @"
-class Program
-{
-    void M()
-    {
-        new Goo().$$
-    }
-}";
+            var srcDoc = """
+                class Program
+                {
+                    void M()
+                    {
+                        new Goo().$$
+                    }
+                }
+                """;
 
-            var refDoc = @"
-public class Goo
-{
-}
+            var refDoc = """
+                public class Goo
+                {
+                }
 
-namespace Foo
-{
-    public static class GooExtensions
-    {
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-        public static void Bar(this Goo goo, int x)
-        {
-        }
-    }
-}";
+                namespace Foo
+                {
+                    public static class GooExtensions
+                    {
+                        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+                        public static void Bar(this Goo goo, int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             var markup = refType switch
             {
@@ -1758,40 +1805,41 @@ namespace Foo
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableNever(ReferenceType refType)
         {
-            var srcDoc = @"
-class Program
-{
-    void M()
-    {
-        new Goo().$$
-    }
-}";
+            var srcDoc = """
+                class Program
+                {
+                    void M()
+                    {
+                        new Goo().$$
+                    }
+                }
+                """;
 
-            var refDoc = @"
-public class Goo
-{
-}
+            var refDoc = """
+                public class Goo
+                {
+                }
 
-namespace Foo
-{
-    public static class GooExtensions
-    {
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-        public static void Bar(this Goo goo, int x)
-        {
-        }
-    }
-}";
+                namespace Foo
+                {
+                    public static class GooExtensions
+                    {
+                        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                        public static void Bar(this Goo goo, int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             var (markup, shouldContainItem) = refType switch
             {
                 ReferenceType.Project => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 ReferenceType.Metadata => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)
@@ -1815,43 +1863,44 @@ namespace Foo
         [InlineData(ReferenceType.Project, false)]
         [InlineData(ReferenceType.Metadata, true)]
         [InlineData(ReferenceType.Metadata, false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced)
         {
             HideAdvancedMembers = hideAdvanced;
 
-            var srcDoc = @"
-class Program
-{
-    void M()
-    {
-        new Goo().$$
-    }
-}";
+            var srcDoc = """
+                class Program
+                {
+                    void M()
+                    {
+                        new Goo().$$
+                    }
+                }
+                """;
 
-            var refDoc = @"
-public class Goo
-{
-}
+            var refDoc = """
+                public class Goo
+                {
+                }
 
-namespace Foo
-{
-    public static class GooExtensions
-    {
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static void Bar(this Goo goo, int x)
-        {
-        }
-    }
-}";
+                namespace Foo
+                {
+                    public static class GooExtensions
+                    {
+                        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+                        public static void Bar(this Goo goo, int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             var (markup, shouldContainItem) = (refType, hideAdvanced) switch
             {
                 (ReferenceType.Project, _) => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 (ReferenceType.Metadata, true) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
                 (ReferenceType.Metadata, false) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)
@@ -1871,83 +1920,86 @@ namespace Foo
             }
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData('.')]
         [InlineData(';')]
         public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
         {
-            var markup = @"
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
+            var markup = """
+                public class C
+                {
+                }
+                namespace AA
+                {
+                    public static class Ext
+                    {
+                        public static int ToInt(this C c)
+                            => 1;
+                    }
+                }
 
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}";
+                namespace BB
+                {
+                    public class B
+                    {
+                        public void M()
+                        {
+                            var c = new C();
+                            c.$$
+                        }
+                    }
+                }
+                """;
 
-            var expected = $@"
-using AA;
+            var expected = $$"""
+            using AA;
 
-public class C
-{{
-}}
-namespace AA
-{{
-    public static class Ext
-    {{
-        public static int ToInt(this C c)
-            => 1;
-    }}
-}}
+            public class C
+            {
+            }
+            namespace AA
+            {
+                public static class Ext
+                {
+                    public static int ToInt(this C c)
+                        => 1;
+                }
+            }
 
-namespace BB
-{{
-    public class B
-    {{
-        public void M()
-        {{
-            var c = new C();
-            c.ToInt(){commitChar}
-        }}
-    }}
-}}";
+            namespace BB
+            {
+                public class B
+                {
+                    public void M()
+                    {
+                        var c = new C();
+                        c.ToInt(){{commitChar}}
+                    }
+                }
+            }
+            """;
             await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [InlineData("int", true, "int a")]
         [InlineData("int[]", true, "int a, int b")]
         [InlineData("bool", false, null)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestTargetTypedCompletion(string targetType, bool matchTargetType, string expectedParameterList)
         {
-            var refDoc = @"
-using System;
+            var refDoc = """
+                using System;
 
-namespace NS2
-{
-    public static class Extensions
-    {
-        public static int ExtentionMethod(this int t, int a) => 0;
-        public static int[] ExtentionMethod(this int t, int a, int b) => null;
-        public static string ExtentionMethod(this int t, int a, int b, int c) => false;
-    }
-}";
+                namespace NS2
+                {
+                    public static class Extensions
+                    {
+                        public static int ExtentionMethod(this int t, int a) => 0;
+                        public static int[] ExtentionMethod(this int t, int a, int b) => null;
+                        public static string ExtentionMethod(this int t, int a, int b, int c) => false;
+                    }
+                }
+                """;
             var srcDoc = $@"
 namespace NS1
 {{
@@ -1960,7 +2012,7 @@ namespace NS1
     }}
 }}";
 
-            TargetTypedCompletionFilterFeatureFlag = true;
+            ShowTargetTypedCompletionFilter = true;
             var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
 
             string expectedDescription = null;

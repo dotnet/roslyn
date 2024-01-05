@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
     Friend NotInheritable Class SyntaxComparer
-
         Inherits AbstractSyntaxComparer
 
         Friend Shared ReadOnly TopLevel As SyntaxComparer = New SyntaxComparer(Nothing, Nothing, Nothing, Nothing, compareStatementSyntax:=False)
@@ -73,8 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             TypeParameterList                ' tied to parent
             TypeParameter                    ' tied to parent
 
-            ParameterList                    ' tied to parent
-            Parameter                        ' tied to parent
             FieldOrParameterName             ' tied to grand-grandparent (type or method declaration)
 
             AttributeList                    ' tied to parent
@@ -107,7 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ForStepClause                   ' tied to parent
             NextStatement                   ' tied to parent
 
-            UsingBlock
+            UsingBlockWithDeclarations
+            UsingBlockWithExpression
             UsingStatement                  ' tied to parent
             EndUsingStatement               ' tied to parent
 
@@ -172,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             LocalDeclarationStatement           ' tied to parent 
             LocalVariableDeclarator             ' tied to parent 
 
-            ' TODO: AwaitExpression
+            AwaitExpression
 
             Lambda
             LambdaBodyBegin                     ' tied to parent
@@ -196,6 +194,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             OrderingLambda                      ' tied to parent (OrderByClause)
             JoinConditionLambda                 ' tied to parent (JoinClause)
+
+            ParameterList                       ' tied to parent
+            Parameter                           ' tied to parent
 
             LocalVariableName                   ' tied to parent 
 
@@ -313,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return ClassifyStatementSyntax(kind, nodeOpt, isLeaf)
             End If
 
-            Return ClassifyTopSytnax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
+            Return ClassifyTopSyntax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
         End Function
 
         Friend Shared Function ClassifyStatementSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
@@ -345,8 +346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.SubLambdaHeader,
                      SyntaxKind.FunctionLambdaHeader
-                    ' Header is a leaf so that we don't descent into lambda parameters.
-                    isLeaf = True
                     Return Label.LambdaBodyBegin
 
                 Case SyntaxKind.EndSubStatement,
@@ -400,7 +399,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.NextStatement
 
                 Case SyntaxKind.UsingBlock
-                    Return Label.UsingBlock
+                    ' We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    ' The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    ' affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
+                    ' with declarations entirely separately from usings with expressions.
+                    '
+                    ' The parent is not available only when comparing nodes for value equality.
+                    ' In that case it doesn't matter what label the node has as long as it has some.
+
+                    Return If(TryCast(nodeOpt, UsingBlockSyntax)?.UsingStatement.Variables IsNot Nothing, Label.UsingBlockWithDeclarations, Label.UsingBlockWithExpression)
 
                 Case SyntaxKind.UsingStatement
                     Return Label.UsingStatement
@@ -617,9 +624,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FunctionLambdaHeader,
                      SyntaxKind.SubLambdaHeader
-                    ' TODO: Parameters are not mapped?
-                    isLeaf = True
-                    Return Label.Ignored
+                    Return Label.LambdaBodyBegin
+
+                Case SyntaxKind.ParameterList
+                    Return Label.ParameterList
+
+                Case SyntaxKind.Parameter
+                    Return Label.Parameter
 
                 Case SyntaxKind.QueryExpression
                     Return Label.QueryExpression
@@ -699,9 +710,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' TODO:
                     Return Label.JoinConditionLambda
 
-                ' TODO:
-                'Case SyntaxKind.AwaitExpression
-                '    Return Label.AwaitExpression
+                Case SyntaxKind.AwaitExpression
+                    Return Label.AwaitExpression
 
                 Case SyntaxKind.GenericName
                     ' optimization - no need to dig into type instantiations
@@ -713,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
+        Private Shared Function ClassifyTopSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
             Select Case kind
                 Case SyntaxKind.CompilationUnit
                     isLeaf = False
@@ -1381,7 +1391,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldToken As SyntaxToken, newToken As SyntaxToken) As Double
-            Return LongestCommonSubstring.ComputeDistance(oldToken.ValueText, newToken.ValueText)
+            Return LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation))
+        End Function
+
+        Private Shared Function CreateArrayForDistanceCalculation(Of T)(enumerable As IEnumerable(Of T)) As ImmutableArray(Of T)
+            Return If(enumerable Is Nothing, ImmutableArray(Of T).Empty, enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray())
         End Function
 
         ''' <summary>
@@ -1391,17 +1407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxToken), newTokens As IEnumerable(Of SyntaxToken)) As Double
-            Return ComputeDistance(oldTokens.AsImmutableOrNull(), newTokens.AsImmutableOrNull())
-        End Function
-
-        ''' <summary>
-        ''' Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        ''' </summary>
-        ''' <remarks>
-        ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        ''' </remarks>
-        Public Overloads Shared Function ComputeDistance(oldTokens As ImmutableArray(Of SyntaxToken), newTokens As ImmutableArray(Of SyntaxToken)) As Double
-            Return LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty())
+            Return LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>
@@ -1411,17 +1417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         ''' </remarks>
         Public Overloads Shared Function ComputeDistance(oldTokens As IEnumerable(Of SyntaxNode), newTokens As IEnumerable(Of SyntaxNode)) As Double
-            Return ComputeDistance(oldTokens.AsImmutableOrNull(), newTokens.AsImmutableOrNull())
-        End Function
-
-        ''' <summary>
-        ''' Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
-        ''' </summary>
-        ''' <remarks>
-        ''' Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        ''' </remarks>
-        Public Overloads Shared Function ComputeDistance(oldTokens As ImmutableArray(Of SyntaxNode), newTokens As ImmutableArray(Of SyntaxNode)) As Double
-            Return LcsNodes.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty())
+            Return LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens))
         End Function
 
         ''' <summary>

@@ -6,44 +6,36 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal abstract class IdleProcessor
+    internal abstract class IdleProcessor(
+        IAsynchronousOperationListener listener,
+        TimeSpan backOffTimeSpan,
+        CancellationToken cancellationToken)
     {
         private static readonly TimeSpan s_minimumDelay = TimeSpan.FromMilliseconds(50);
 
         private readonly object _gate = new();
 
-        protected readonly IAsynchronousOperationListener Listener;
-        protected readonly CancellationToken CancellationToken;
-        protected readonly TimeSpan BackOffTimeSpan;
+        protected readonly IAsynchronousOperationListener Listener = listener;
+        protected readonly CancellationToken CancellationToken = cancellationToken;
+        protected readonly TimeSpan BackOffTimeSpan = backOffTimeSpan;
 
         // points to processor task
         private Task? _processorTask;
 
         // there is one thread that writes to it and one thread reads from it
-        private SharedStopwatch _timeSinceLastAccess;
+        private SharedStopwatch _timeSinceLastAccess = SharedStopwatch.StartNew();
 
         /// <summary>
         /// Whether or not this processor is paused.  As long as it is paused, it will not start executing new work,
         /// even if <see cref="BackOffTimeSpan"/> has been met.
         /// </summary>
         private bool _isPaused_doNotAccessDirectly;
-
-        public IdleProcessor(
-            IAsynchronousOperationListener listener,
-            TimeSpan backOffTimeSpan,
-            CancellationToken cancellationToken)
-        {
-            Listener = listener;
-            CancellationToken = cancellationToken;
-
-            BackOffTimeSpan = backOffTimeSpan;
-            _timeSinceLastAccess = SharedStopwatch.StartNew();
-        }
 
         protected abstract Task WaitAsync(CancellationToken cancellationToken);
         protected abstract Task ExecuteAsync();
@@ -146,6 +138,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 catch (OperationCanceledException)
                 {
                     // ignore cancellation exception
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    // In case any error happen during the execution, don't exit the loop and continue to work on the next item.
                 }
             }
         }

@@ -3150,7 +3150,7 @@ class Program
         }
 
         [Fact]
-        private void RefLocalsAreValues()
+        public void RefLocalsAreValues()
         {
             var text = @"
 class Program
@@ -3730,30 +3730,35 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F",
-@"{
-  // Code size       11 (0xb)
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       17 (0x11)
   .maxstack  2
   .locals init (S& V_0) //b
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""S""
+  IL_0003:  ldelema    "S"
   IL_0008:  stloc.0
-  IL_0009:  nop
-  IL_000a:  ret
-}");
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "S"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F",
-@"{
-  // Code size        9 (0x9)
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    ""S""
-  IL_0007:  pop
-  IL_0008:  ret
-}");
+  IL_0002:  ldelema    "S"
+  IL_0007:  ldobj      "S"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
         }
 
         [Fact]
@@ -3778,28 +3783,33 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size       11 (0xb)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       17 (0x11)
   .maxstack  1
   .locals init (T& V_0) //t
   IL_0000:  nop
   IL_0001:  ldarga.s   V_0
-  IL_0003:  ldflda     ""T S<T>.F""
+  IL_0003:  ldflda     "T S<T>.F"
   IL_0008:  stloc.0
-  IL_0009:  nop
-  IL_000a:  ret
-}");
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "T"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size        9 (0x9)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  ldflda     ""T S<T>.F""
-  IL_0007:  pop
-  IL_0008:  ret
-}");
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  ldobj      "T"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
         }
 
         [Fact]
@@ -3825,28 +3835,33 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size       10 (0xa)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
   .maxstack  1
   .locals init (T& V_0) //t
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldflda     ""T S<T>.F""
+  IL_0002:  ldflda     "T S<T>.F"
   IL_0007:  stloc.0
-  IL_0008:  nop
-  IL_0009:  ret
-}");
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size        8 (0x8)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""T S<T>.F""
-  IL_0006:  pop
-  IL_0007:  ret
-}");
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
         }
 
         [Fact]
@@ -3871,28 +3886,33 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size       10 (0xa)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
   .maxstack  1
   .locals init (T& V_0) //t
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldflda     ""T S<T>.F""
+  IL_0002:  ldflda     "T S<T>.F"
   IL_0007:  stloc.0
-  IL_0008:  nop
-  IL_0009:  ret
-}");
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
-            verifier.VerifyIL("Program.F<T>",
-@"{
-  // Code size        8 (0x8)
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""T S<T>.F""
-  IL_0006:  pop
-  IL_0007:  ret
-}");
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
         }
 
         [Fact]

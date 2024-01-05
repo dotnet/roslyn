@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             : base(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId,
                    EnforceOnBuildValues.MultipleBlankLines,
                    CodeStyleOptions2.AllowMultipleBlankLines,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Avoid_multiple_blank_lines), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -31,23 +30,21 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetAnalyzerOptions().AllowMultipleBlankLines;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
-            var cancellationToken = context.CancellationToken;
-            var root = context.Tree.GetRoot(cancellationToken);
-
-            Recurse(context, option.Notification.Severity, root, cancellationToken);
+            Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(
             SyntaxTreeAnalysisContext context,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
@@ -59,14 +56,17 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
-                    Recurse(context, severity, child.AsNode()!, cancellationToken);
+                    Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
                 else if (child.IsToken)
-                    CheckToken(context, severity, child.AsToken());
+                    CheckToken(context, notificationOption, child.AsToken());
             }
         }
 
-        private void CheckToken(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxToken token)
+        private void CheckToken(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxToken token)
         {
             if (token.ContainsDiagnostics)
                 return;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
-                severity,
+                notificationOption,
                 additionalLocations: ImmutableArray.Create(token.GetLocation()),
                 properties: null));
         }

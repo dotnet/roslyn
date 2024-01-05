@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                if (!inDirective && ScanUTF8Suffix())
+                if (!inDirective && ScanUtf8Suffix())
                 {
-                    info.Kind = SyntaxKind.UTF8StringLiteralToken;
+                    info.Kind = SyntaxKind.Utf8StringLiteralToken;
                 }
                 else
                 {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool ScanUTF8Suffix()
+        private bool ScanUtf8Suffix()
         {
             if (TextWindow.PeekChar() is ('u' or 'U') && TextWindow.PeekChar(1) == '8')
             {
@@ -151,6 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'b':
                     ch = '\u0008';
                     break;
+                case 'e':
+                    var info = MessageID.IDS_StringEscapeCharacter.GetFeatureAvailabilityDiagnosticInfo(this.Options);
+                    if (info != null)
+                        this.AddError(start, TextWindow.Position - start, info.Code, info.Arguments);
+
+                    ch = '\u001b';
+                    break;
                 case 'f':
                     ch = '\u000c';
                     break;
@@ -171,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'U':
                     TextWindow.Reset(start);
                     SyntaxDiagnosticInfo? error;
-                    ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
+                    ch = NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
                     AddError(error);
                     break;
                 default:
@@ -231,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            if (ScanUTF8Suffix())
+            if (ScanUtf8Suffix())
             {
-                info.Kind = SyntaxKind.UTF8StringLiteralToken;
+                info.Kind = SyntaxKind.Utf8StringLiteralToken;
             }
             else
             {

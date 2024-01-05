@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
-        private readonly bool _isExpressionBodied;
 #nullable enable
         private readonly TypeSymbol? _explicitInterfaceType;
 #nullable disable
@@ -30,30 +29,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             DeclarationModifiers declarationModifiers,
-            bool hasBody,
+            bool hasAnyBody,
             bool isExpressionBodied,
             bool isIterator,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location, isIterator: isIterator)
+            base(containingType, syntax.GetReference(), location, isIterator: isIterator,
+                 (declarationModifiers, MakeFlags(
+                                                  methodKind, RefKind.None, declarationModifiers,
+                                                  // We will bind the formal parameters and the return type lazily. For now,
+                                                  // assume that the return type is non-void; when we do the lazy initialization
+                                                  // of the parameters and return type we will update the flag if necessary.
+                                                  returnsVoid: false,
+                                                  returnsVoidIsSet: false,
+                                                  isExpressionBodied: isExpressionBodied,
+                                                  isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                  isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                  hasThisInitializer: false)))
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
-            _isExpressionBodied = isExpressionBodied;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
-            // We will bind the formal parameters and the return type lazily. For now,
-            // assume that the return type is non-void; when we do the lazy initialization
-            // of the parameters and return type we will update the flag if necessary.
-
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
-
             if (this.ContainingType.IsInterface &&
-                !IsAbstract &&
+                !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
                 !(syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken)))
             {
-                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, this.GetFirstLocation());
                 // No need to cascade the error further.
                 return;
             }
@@ -73,13 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!this.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, this.GetFirstLocation(), this);
                 }
             }
             else if (this.DeclaredAccessibility != Accessibility.Public || !this.IsStatic)
             {
                 // CS0558: User-defined operator '...' must be declared static and public
-                diagnostics.Add(ErrorCode.ERR_OperatorsMustBeStatic, this.Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_OperatorsMustBeStatic, this.GetFirstLocation(), this);
             }
 
             // SPEC: Because an external operator provides no actual implementation, 
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (hasBody && (IsExtern || IsAbstract))
+            else if (hasAnyBody && (IsExtern || IsAbstract))
             {
                 Debug.Assert(!(IsAbstract && IsExtern));
                 if (IsExtern)
@@ -106,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
                 }
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!hasAnyBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
@@ -116,11 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
         }
 
         protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
@@ -138,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (inInterface)
                 {
-                    allowedModifiers |= DeclarationModifiers.Abstract;
+                    allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Virtual;
 
                     if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                     {
-                        allowedModifiers |= DeclarationModifiers.Sealed | DeclarationModifiers.Virtual;
+                        allowedModifiers |= DeclarationModifiers.Sealed;
                     }
                 }
             }
@@ -152,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Abstract;
             }
 
-            var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForTypeDeclaration: false, isForInterfaceMember: inInterface,
+            var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
+                isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
             if (inInterface)
@@ -236,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
-                addRefReadOnlyModifier: false,
-                diagnostics: diagnostics);
+                addRefReadOnlyModifier: IsVirtual || IsAbstract,
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -314,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
 
                 return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifier, diagnostics);
@@ -334,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (p.RefKind != RefKind.None && p.RefKind != RefKind.In)
                 {
-                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.GetFirstLocation());
                     break;
                 }
             }
@@ -390,6 +389,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckShiftSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.EqualityOperatorName:
+                case WellKnownMemberNames.InequalityOperatorName:
+                    if (IsAbstract || IsVirtual)
+                    {
+                        CheckAbstractEqualitySignature(diagnostics);
+                    }
+                    else
+                    {
+                        CheckBinarySignature(diagnostics);
+                    }
+
+                    break;
+
                 default:
                     CheckBinarySignature(diagnostics);
                     break;
@@ -422,11 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckUserDefinedConversionSignature(BindingDiagnosticBag diagnostics)
         {
-            if (this.ReturnsVoid)
-            {
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
 
             // SPEC: For a given source type S and target type T, if S or T are
             // SPEC: nullable types let S0 and T0 refer to their underlying types,
@@ -445,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (source0.IsInterfaceType() || target0.IsInterfaceType())
             {
                 // CS0552: '{0}': user-defined conversions to or from an interface are not allowed
-                diagnostics.Add(ErrorCode.ERR_ConversionWithInterface, this.Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_ConversionWithInterface, this.GetFirstLocation(), this);
                 return;
             }
 
@@ -459,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(target))
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
+                diagnostics.Add(IsAbstract || IsVirtual ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.GetFirstLocation());
                 return;
             }
 
@@ -470,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : source0.Equals(target0, ComparisonForUserDefinedOperators))
             {
                 // CS0555: User-defined operator cannot convert a type to itself
-                diagnostics.Add(ErrorCode.ERR_IdentityConversion, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_IdentityConversion, this.GetFirstLocation());
                 return;
             }
 
@@ -538,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (source.IsDynamic() || target.IsDynamic())
             {
                 // '{0}': user-defined conversions to or from the dynamic type are not allowed
-                diagnostics.Add(ErrorCode.ERR_BadDynamicConversion, this.Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_BadDynamicConversion, this.GetFirstLocation(), this);
                 return;
             }
 
@@ -566,15 +574,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
                 {
                     // '{0}': user-defined conversions to or from a base type are not allowed
-                    diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.GetFirstLocation(), this);
                 }
                 else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
                 {
                     // '{0}': user-defined conversions to or from a derived type are not allowed
-                    diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.GetFirstLocation(), this);
                 }
 
-                diagnostics.Add(this.Locations[0], useSiteInfo);
+                diagnostics.Add(this.GetFirstLocation(), useSiteInfo);
+            }
+        }
+
+        private void CheckReturnIsNotVoid(BindingDiagnosticBag diagnostics)
+        {
+            if (this.ReturnsVoid)
+            {
+                // CS0590: User-defined operators cannot return void
+                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.GetFirstLocation());
             }
         }
 
@@ -586,15 +603,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.GetFirstLocation());
             }
 
-            if (this.ReturnsVoid)
-            {
-                // The Roslyn parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         private void CheckTrueFalseSignature(BindingDiagnosticBag diagnostics)
@@ -605,13 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnType.SpecialType != SpecialType.System_Boolean)
             {
                 // The return type of operator True or False must be bool
-                diagnostics.Add(ErrorCode.ERR_OpTFRetType, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_OpTFRetType, this.GetFirstLocation());
             }
 
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.GetFirstLocation());
             }
         }
 
@@ -661,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(parameterType.StrippedType()))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecSignature : ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecSignature : ErrorCode.ERR_BadIncDecSignature, this.GetFirstLocation());
             }
             else if (!(parameterType.IsTypeParameter() ?
                          this.ReturnType.Equals(parameterType, ComparisonForUserDefinedOperators) :
@@ -670,10 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecRetType : ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecRetType : ErrorCode.ERR_BadIncDecRetType, this.GetFirstLocation());
             }
 
-            diagnostics.Add(this.Locations[0], useSiteInfo);
+            diagnostics.Add(this.GetFirstLocation(), useSiteInfo);
         }
 
         private bool MatchesContainingType(TypeSymbol type)
@@ -690,9 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(containingType.IsDefinition);
             return type is TypeParameterSymbol p &&
-                // https://github.com/dotnet/roslyn/issues/53801: For now assuming the type parameter must belong to the containing type.
                 (object)p.ContainingSymbol == containingType &&
-                // https://github.com/dotnet/roslyn/issues/53801: For now assume containing type must be one of the directly specified constraints.
                 p.ConstraintTypesNoUseSiteDiagnostics.Any((typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
                                                           containingType);
         }
@@ -712,20 +722,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
                 //         same type as the containing type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.GetFirstLocation());
             }
             else if (this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
             {
-                var location = this.Locations[0];
+                var location = this.GetFirstLocation();
                 Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRelaxedShiftOperator, diagnostics, location);
             }
 
-            if (this.ReturnsVoid)
-            {
-                // The Roslyn parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
-            }
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         private void CheckBinarySignature(BindingDiagnosticBag diagnostics)
@@ -736,15 +741,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(this.GetParameterType(1).StrippedType()))
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
-                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.GetFirstLocation());
             }
 
-            if (this.ReturnsVoid)
+            CheckReturnIsNotVoid(diagnostics);
+        }
+
+        private void CheckAbstractEqualitySignature(BindingDiagnosticBag diagnostics)
+        {
+            if (!IsSelfConstrainedTypeParameter(this.GetParameterType(0).StrippedType()) &&
+                !IsSelfConstrainedTypeParameter(this.GetParameterType(1).StrippedType()))
             {
-                // The parser does not detect this error.
-                // CS0590: User-defined operators cannot return void
-                diagnostics.Add(ErrorCode.ERR_OperatorCantReturnVoid, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_BadAbstractEqualityOperatorSignature, this.GetFirstLocation(), this.ContainingType);
             }
+
+            CheckReturnIsNotVoid(diagnostics);
         }
 
         public sealed override string Name
@@ -755,27 +766,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public sealed override bool IsExtensionMethod
         {
             get
             {
                 return false;
-            }
-        }
-
-        public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
             }
         }
 
@@ -789,16 +784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-        public sealed override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
-        internal sealed override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
-        }
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
@@ -819,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
 
                 _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(name), diagnostics);

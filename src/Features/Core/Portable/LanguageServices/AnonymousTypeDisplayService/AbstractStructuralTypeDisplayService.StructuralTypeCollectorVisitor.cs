@@ -6,17 +6,14 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial class AbstractStructuralTypeDisplayService
     {
-        private class StructuralTypeCollectorVisitor : SymbolVisitor
+        private class StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes) : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes;
-
-            public StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes)
-                => _namedTypes = namedTypes;
+            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();

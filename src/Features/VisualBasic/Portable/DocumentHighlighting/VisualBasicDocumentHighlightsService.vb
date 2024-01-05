@@ -4,7 +4,10 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.DocumentHighlighting
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentHighlighting
     <ExportLanguageService(GetType(IDocumentHighlightsService), LanguageNames.VisualBasic), [Shared]>
@@ -13,7 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentHighlighting
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(
+                <ImportMany> services As IEnumerable(Of Lazy(Of IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata)))
+            MyBase.New(
+                LanguageNames.VisualBasic,
+                VisualBasicEmbeddedLanguagesProvider.Info,
+                VisualBasicSyntaxKinds.Instance,
+                services)
         End Sub
     End Class
 End Namespace

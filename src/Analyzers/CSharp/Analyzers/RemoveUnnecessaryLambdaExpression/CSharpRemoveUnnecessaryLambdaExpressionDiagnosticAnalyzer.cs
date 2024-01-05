@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,16 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
     /// time.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
                    CSharpCodeStyleOptions.PreferMethodGroupConversion,
-                   LanguageNames.CSharp,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -50,21 +48,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                 {
                     var expressionType = context.Compilation.ExpressionOfTType();
+                    var conditionalAttributeType = context.Compilation.ConditionalAttribute();
+
                     context.RegisterSyntaxNodeAction(
-                        c => AnalyzeSyntax(c, expressionType),
+                        c => AnalyzeSyntax(c, expressionType, conditionalAttributeType),
                         SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
                 }
             });
         }
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType, INamedTypeSymbol? conditionalAttributeType)
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
 
             var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
-            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            if (ShouldSkipAnalysis(context, preference.Notification))
             {
                 // User doesn't care about this rule.
                 return;
@@ -135,6 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (invokedSymbolInfo.Symbol is not IMethodSymbol invokedMethod)
                 return;
 
+            // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
+            if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
+                return;
+
             // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
             // we remove the arguments during simplification.
             var invokedTypeArguments = invokedExpression.GetRightmostName() is GenericNameSyntax genericName
@@ -166,6 +170,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 // All the lambda parameters must be convertible to the invoked method parameters.
                 if (!IsIdentityOrImplicitConversion(compilation, lambdaParameter.Type, invokedParameter.Type))
                     return;
+            }
+
+            // If invoked method is conditional, converting lambda to method group produces compiler error
+            if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, conditionalAttributeType)))
+                return;
+
+            // In the case where we have `() => expr.m()`, check if `expr` is overwritten anywhere. If so then we do not
+            // want to remove the lambda, as that will bind eagerly to the original `expr` and will not see the write
+            // that later happens
+            if (invokedExpression is MemberAccessExpressionSyntax { Expression: var accessedExpression })
+            {
+                // Limit the search space to the outermost code block that could contain references to this expr (or
+                // fall back to compilation unit for top level statements).
+                var outermostBody = invokedExpression.AncestorsAndSelf().LastOrDefault(
+                    n => n is BlockSyntax or ArrowExpressionClauseSyntax or AnonymousFunctionExpressionSyntax or GlobalStatementSyntax);
+                if (outermostBody is null or GlobalStatementSyntax)
+                    outermostBody = syntaxTree.GetRoot(cancellationToken);
+
+                foreach (var candidate in outermostBody.DescendantNodes().OfType<ExpressionSyntax>())
+                {
+                    if (candidate != accessedExpression &&
+                        SemanticEquivalence.AreEquivalent(semanticModel, candidate, accessedExpression) &&
+                        candidate.IsWrittenTo(semanticModel, cancellationToken))
+                    {
+                        return;
+                    }
+                }
             }
 
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
@@ -200,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
-                preference.Notification.Severity,
+                preference.Notification,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
                 additionalUnnecessaryLocations: ImmutableArray.Create(
                     syntaxTree.GetLocation(startReportSpan),

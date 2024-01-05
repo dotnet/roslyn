@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
                 BoundInterpolatedString { InterpolationData: { } d } => d,
                 BoundBinaryOperator or BoundInterpolatedString when !throwOnMissing => default,
-                BoundBinaryOperator or BoundInterpolatedString => throw ExceptionUtilities.Unreachable,
+                BoundBinaryOperator or BoundInterpolatedString => throw ExceptionUtilities.Unreachable(),
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind),
             };
     }

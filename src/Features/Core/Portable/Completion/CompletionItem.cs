@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly string? _filterText;
         private string? _lazyEntireDisplayText;
+        private ImmutableDictionary<string, string>? _lazyPropertiesAsImmutableDictionary;
+        private readonly ImmutableArray<KeyValuePair<string, string>> _properties;
 
         /// <summary>
         /// The text that is displayed to the user.
@@ -45,7 +49,22 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public string FilterText => _filterText ?? DisplayText;
 
+        /// <summary>
+        /// If provided, each additional string would be used in the same way as <see cref="FilterText"/> for item matching.
+        /// However, there's a key difference: matches of <see cref="AdditionalFilterTexts"/> is considered inferior than matches
+        /// of <see cref="FilterText"/> when they have identical pattern matching result.
+        /// </summary>
+        internal ImmutableArray<string> AdditionalFilterTexts { get; init; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Returns <see langword="true"/> if <see cref="DisplayText"/> is identical to  <see cref="FilterText"/>. 
+        /// Otherwise returns <see langword="false"/>.
+        /// Be aware that this value is independent from <see cref="HasAdditionalFilterTexts"/> and could return <see langword="false"/> 
+        /// even if <see cref="HasAdditionalFilterTexts"/> is <see langword="true"/>.
+        /// </summary>
         internal bool HasDifferentFilterText => _filterText != null;
+
+        internal bool HasAdditionalFilterTexts => !AdditionalFilterTexts.IsEmpty;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -65,13 +84,59 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
+        /// The latter is not always true because individual provider is free to make more complex changes to the document.
+        /// If this is the case, the provider should set <see cref="IsComplexTextEdit"/> to true.
         /// </summary>
         public TextSpan Span { get; internal set; }
 
         /// <summary>
         /// Additional information attached to a completion item by it creator.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties { get; }
+        public ImmutableDictionary<string, string> Properties
+        {
+            get
+            {
+                if (_lazyPropertiesAsImmutableDictionary is null)
+                    _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+
+                return _lazyPropertiesAsImmutableDictionary;
+            }
+        }
+
+        internal ImmutableArray<KeyValuePair<string, string>> GetProperties()
+        {
+            return _properties;
+        }
+
+        internal bool TryGetProperty(string name, [NotNullWhen(true)] out string? value)
+        {
+            if (_lazyPropertiesAsImmutableDictionary is not null)
+                return _lazyPropertiesAsImmutableDictionary.TryGetValue(name, out value);
+
+            foreach ((var propName, var propValue) in _properties)
+            {
+                if (name == propName)
+                {
+                    value = propValue;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        internal string GetProperty(string name)
+        {
+            if (TryGetProperty(name, out var value))
+                return value;
+
+            // Let ImmutableDictionary handle throwing
+            if (_lazyPropertiesAsImmutableDictionary is not null)
+                return _lazyPropertiesAsImmutableDictionary[name];
+
+            throw new KeyNotFoundException($"Property {name} not found");
+        }
 
         /// <summary>
         /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
@@ -85,17 +150,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// Returns true if this item's text edit requires complex resolution that
-        /// may impact performance. For example, an edit may be complex if it needs
-        /// to format or type check the resulting code, or make complex non-local
-        /// changes to other parts of the file.
-        /// Complex resolution is used so we only do the minimum amount of work
-        /// needed to display completion items. It is performed only for the
-        /// committed item just prior to commit. Thus, it is ideal for any expensive
-        /// completion work that does not affect the display of the item in the
-        /// completion list, but is necessary for committing the item.
-        /// An example of an item type requiring complex resolution is C#/VB
-        /// override completion.
+        /// Returns true if this item's text edit requires complex resolution.
+        /// An edit is considered complex if the span of the change is different from
+        /// specified by <see cref="Span"/>.
+        /// 
+        /// Example of an item type requiring complex resolution is C#/VB override completion.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 
@@ -120,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string? filterText,
             string? sortText,
             TextSpan span,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableArray<KeyValuePair<string, string>> properties,
             ImmutableArray<string> tags,
             CompletionItemRules? rules,
             string? displayTextPrefix,
@@ -134,10 +193,17 @@ namespace Microsoft.CodeAnalysis.Completion
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
-            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
             IsComplexTextEdit = isComplexTextEdit;
+
+            _properties = properties.NullToEmpty();
+            if (_properties.Length > 10)
+            {
+                // Prefer to just keep an ImmutableArray, but performance on large property collections
+                //  (quite uncommon) dictate falling back to a non-linear lookup data structure.
+                _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+            }
 
             if (!DisplayText.Equals(filterText ?? "", StringComparison.Ordinal))
             {
@@ -200,6 +266,27 @@ namespace Microsoft.CodeAnalysis.Completion
             string? inlineDescription = null,
             bool isComplexTextEdit = false)
         {
+            var result = CreateInternal(
+                displayText, filterText, sortText, properties.AsImmutableOrNull(), tags, rules, displayTextPrefix,
+                displayTextSuffix, inlineDescription, isComplexTextEdit);
+
+            result._lazyPropertiesAsImmutableDictionary = properties;
+
+            return result;
+        }
+
+        internal static CompletionItem CreateInternal(
+            string? displayText,
+            string? filterText = null,
+            string? sortText = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
+            ImmutableArray<string> tags = default,
+            CompletionItemRules? rules = null,
+            string? displayTextPrefix = null,
+            string? displayTextSuffix = null,
+            string? inlineDescription = null,
+            bool isComplexTextEdit = false)
+        {
             return new CompletionItem(
                 span: default,
                 displayText: displayText,
@@ -236,18 +323,22 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags,
             CompletionItemRules rules)
         {
-            return new CompletionItem(
+            var result = new CompletionItem(
                 span: span,
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                properties: properties,
+                properties: properties.AsImmutableOrNull(),
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: null,
                 displayTextSuffix: null,
                 inlineDescription: null,
                 isComplexTextEdit: false);
+
+            result._lazyPropertiesAsImmutableDictionary = properties;
+
+            return result;
         }
 
         private CompletionItem With(
@@ -255,37 +346,40 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default,
             Optional<string> filterText = default,
             Optional<string> sortText = default,
-            Optional<ImmutableDictionary<string, string>?> properties = default,
+            Optional<ImmutableArray<KeyValuePair<string, string>>> properties = default,
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
             Optional<string> inlineDescription = default,
-            Optional<bool> isComplexTextEdit = default)
+            Optional<bool> isComplexTextEdit = default,
+            Optional<ImmutableArray<string>> additionalFilterTexts = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
             var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
             var newSortText = sortText.HasValue ? sortText.Value : SortText;
             var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : InlineDescription;
-            var newProperties = properties.HasValue ? properties.Value : Properties;
+            var newProperties = properties.HasValue ? properties.Value : _properties;
             var newTags = tags.HasValue ? tags.Value : Tags;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
             var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
+            var newAdditionalFilterTexts = additionalFilterTexts.HasValue ? additionalFilterTexts.Value.NullToEmpty() : AdditionalFilterTexts;
 
             if (newSpan == Span &&
                 newDisplayText == DisplayText &&
                 newFilterText == FilterText &&
                 newSortText == SortText &&
-                newProperties == Properties &&
+                newProperties == _properties &&
                 newTags == Tags &&
                 newRules == Rules &&
                 newDisplayTextPrefix == DisplayTextPrefix &&
                 newDisplayTextSuffix == DisplayTextSuffix &&
                 newInlineDescription == InlineDescription &&
-                newIsComplexTextEdit == IsComplexTextEdit)
+                newIsComplexTextEdit == IsComplexTextEdit &&
+                newAdditionalFilterTexts == AdditionalFilterTexts)
             {
                 return this;
             }
@@ -306,6 +400,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 AutomationText = AutomationText,
                 ProviderName = ProviderName,
                 Flags = Flags,
+                AdditionalFilterTexts = newAdditionalFilterTexts
             };
         }
 
@@ -348,16 +443,25 @@ namespace Microsoft.CodeAnalysis.Completion
             => With(sortText: text);
 
         /// <summary>
-        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
+        /// Creates a copy of this <see cref="CompletionItem"/> with the specified property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
+        {
+            var result = With(properties: properties.AsImmutableOrNull());
+
+            result._lazyPropertiesAsImmutableDictionary = properties;
+
+            return result;
+        }
+
+        internal CompletionItem WithProperties(ImmutableArray<KeyValuePair<string, string>> properties)
             => With(properties: properties);
 
         /// <summary>
-        /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
+        /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-            => With(properties: Properties.Add(name, value));
+            => With(properties: GetProperties().Add(new KeyValuePair<string, string>(name, value)));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
@@ -396,6 +500,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem WithIsComplexTextEdit(bool isComplexTextEdit)
             => With(isComplexTextEdit: isComplexTextEdit);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="AdditionalFilterTexts"/> property changed.
+        /// </summary>
+        internal CompletionItem WithAdditionalFilterTexts(ImmutableArray<string> additionalFilterTexts)
+            => With(additionalFilterTexts: additionalFilterTexts);
 
         int IComparable<CompletionItem>.CompareTo([AllowNull] CompletionItem other)
         {

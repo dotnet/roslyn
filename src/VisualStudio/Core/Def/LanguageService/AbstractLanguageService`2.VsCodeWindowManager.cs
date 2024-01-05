@@ -4,27 +4,38 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents
+        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
         {
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
@@ -33,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
+            private ElementHost? _documentOutlineViewHost;
+            private DocumentOutlineView? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -42,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-                _globalOptions.OptionChanged += GlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
             }
 
             private void SetupView(IVsTextView view)
@@ -51,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 if (e.Language != _languageService.RoslynLanguageName ||
-                    e.Option != NavigationBarViewOptions.ShowNavigationBar)
+                    e.Option != NavigationBarViewOptionsStorage.ShowNavigationBar)
                 {
                     return;
                 }
@@ -87,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                var enabled = _globalOptions.GetOption(NavigationBarViewOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
+                var enabled = _globalOptions.GetOption(NavigationBarViewOptionsStorage.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
                     if (IsOurDropdownBar(dropdownManager, out var existingDropdownBar))
@@ -215,13 +228,93 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
-                _globalOptions.OptionChanged -= GlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
 
                 if (_codeWindow is IVsDropdownBarManager dropdownManager)
                 {
                     RemoveDropdownBar(dropdownManager);
                 }
 
+                return VSConstants.S_OK;
+            }
+
+            // GetOutline is called every time a new code window is created. Whenever we switch to a different window, it is guaranteed
+            // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
+            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? pCmdTarget)
+            {
+                pCmdTarget = null;
+                GetOutline(out phwnd);
+                return VSConstants.S_OK;
+            }
+
+            private void GetOutline(out IntPtr phwnd)
+            {
+                phwnd = default;
+
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
+                    ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
+                if (!enabled)
+                    return;
+
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                threadingContext.ThrowIfNotOnUIThread();
+
+                var uiShell = (IVsUIShell4)_languageService.SystemServiceProvider.GetService(typeof(SVsUIShell));
+                var windowSearchHostFactory = (IVsWindowSearchHostFactory)_languageService.SystemServiceProvider.GetService(typeof(SVsWindowSearchHostFactory));
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
+                var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
+                var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+                var outliningManagerService = _languageService.Package.ComponentModel.GetService<IOutliningManagerService>();
+
+                // Assert that the previous Document Outline Control and host have been freed. 
+                Contract.ThrowIfFalse(_documentOutlineView is null);
+                Contract.ThrowIfFalse(_documentOutlineViewHost is null);
+
+                var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
+                _documentOutlineView = new DocumentOutlineView(
+                    uiShell, windowSearchHostFactory, threadingContext, _globalOptions, outliningManagerService, viewTracker,
+                    new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
+
+                _documentOutlineViewHost = new ElementHost
+                {
+                    Dock = DockStyle.Fill,
+                    Child = _documentOutlineView
+                };
+
+                phwnd = _documentOutlineViewHost.Handle;
+
+                Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
+            }
+
+            int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
+            {
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                threadingContext.ThrowIfNotOnUIThread();
+
+                if (_documentOutlineView is not null &&
+                    _documentOutlineViewHost is not null)
+                {
+                    _documentOutlineViewHost.SuspendLayout();
+                    _documentOutlineView.Dispose();
+                    _documentOutlineView = null;
+                    _documentOutlineViewHost.Child = null;
+                    _documentOutlineViewHost.Parent = null;
+                    _documentOutlineViewHost.Dispose();
+                    _documentOutlineViewHost = null;
+                }
+
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider.GetOutlineCaption(VSOUTLINECAPTION nCaptionType, out string pbstrCaption)
+            {
+                pbstrCaption = ServicesVSResources.Document_Outline;
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider.OnOutlineStateChange(uint dwMask, uint dwState)
+            {
                 return VSConstants.S_OK;
             }
         }

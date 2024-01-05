@@ -15,6 +15,7 @@ $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
 $bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
+$originalTemp = $env:TEMP;
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
   $projectName = if ($projectName -ne "") { $projectName } else { [System.IO.Path]::GetFileNameWithoutExtension($fileName) }
@@ -261,82 +262,87 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   return $p
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
-  # Because we override the C#/VB toolset to build against our LKG package, it is important
-  # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-  # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-  # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
-
-  if ($warnAsError) {
-    $args += " /warnaserror"
-  }
-
-  if ($summary) {
-    $args += " /consoleloggerparameters:Verbosity=minimal;summary"
-  } else {        
-    $args += " /consoleloggerparameters:Verbosity=minimal"
-  }
-
-  if ($parallel) {
-    $args += " /m"
-  }
-
-  if ($runAnalyzers) {
-    $args += " /p:RunAnalyzersDuringBuild=true"
-  }
-
-  if ($binaryLog) {
-    if ($logFileName -eq "") {
-      $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-    }
-    $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
-    $logFilePath = Join-Path $LogDir $logFileName
-    $args += " /bl:$logFilePath"
-  }
-
-  if ($officialBuildId) {
-    $args += " /p:OfficialBuildId=" + $officialBuildId
-  }
-
-  if ($ci) {
-    $args += " /p:ContinuousIntegrationBuild=true"
-  }
-
-  if ($bootstrapDir -ne "") {
-    $args += " /p:BootstrapBuildPath=$bootstrapDir"
-  }
-
-  $args += " $buildArgs"
-  $args += " $projectFilePath"
-  $args += " $properties"
-
-  $buildTool = InitializeBuildTool
-  Exec-Console $buildTool.Path "$($buildTool.Command) $args"
-}
-
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
 # is located.
 #
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of
 # building the bootstrap.
-function Make-BootstrapBuild([switch]$force32 = $false) {
+function Make-BootstrapBuild([string]$bootstrapToolset = "") {
+
+  function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [string]$configuration = $script:configuration) {
+    # Because we override the C#/VB toolset to build against our LKG package, it is important
+    # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
+    # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+    # MSBuildAdditionalCommandLineArgs=
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration /v:m ";
+
+    if ($warnAsError) {
+      $args += " /warnaserror"
+    }
+
+    if ($runAnalyzers) {
+      $args += " /p:RunAnalyzersDuringBuild=true"
+    }
+
+    if ($binaryLog) {
+      if ($logFileName -eq "") {
+        $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+      }
+      $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
+      $logFilePath = Join-Path $LogDir $logFileName
+      $args += " /bl:$logFilePath"
+    }
+
+    if ($officialBuildId) {
+      $args += " /p:OfficialBuildId=" + $officialBuildId
+    }
+
+    if ($ci) {
+      $args += " /p:ContinuousIntegrationBuild=true"
+    }
+
+    if ($bootstrapDir -ne "") {
+      $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    $args += " $buildArgs"
+    $args += " $projectFilePath"
+    $args += " $properties"
+
+    $buildTool = InitializeBuildTool
+    Exec-Console $buildTool.Path "$($buildTool.Command) $args"
+  }
+
   Write-Host "Building bootstrap compiler"
 
   $dir = Join-Path $ArtifactsDir "Bootstrap"
   Remove-Item -re $dir -ErrorAction SilentlyContinue
   Create-Directory $dir
 
-  $packageName = "Microsoft.Net.Compilers.Toolset"
-  $projectPath = "src\NuGet\$packageName\AnyCpu\$packageName.Package.csproj"
-  $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
+  if ($bootstrapToolset -eq "" -or $bootstrapToolset -eq "AnyCPU") {
+    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
+    $packageName = "Microsoft.Net.Compilers.Toolset"
+  }
+  elseif ($bootstrapToolset -eq "Framework") {
+    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj"
+    $packageName = "Microsoft.Net.Compilers.Toolset.Framework"
+  }
+  else {
+    throw "Unsupported bootstrap toolset $bootstrapToolset"
+  }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip (Join-Path $dir $packageFile.Name) $dir
 
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
+
+  # Work around NuGet bug that doesn't correctly re-generate our project.assets.json files.
+  # Deleting everything forces a regen
+  # https://github.com/NuGet/Home/issues/12437
+  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "bin")
+  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "obj")
 
   return $dir
 }
@@ -353,5 +359,9 @@ function Subst-TempDir() {
 function Unsubst-TempDir() {
   if ($ci) {
     Exec-Command "subst" "T: /d"
+
+    # Restore the original temp directory
+    $env:TEMP=$originalTemp
+    $env:TMP=$originalTemp
   }
 }

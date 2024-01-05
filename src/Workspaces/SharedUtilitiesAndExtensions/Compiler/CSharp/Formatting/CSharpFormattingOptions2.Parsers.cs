@@ -2,56 +2,92 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using System;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal static partial class CSharpFormattingOptions2
     {
-        internal static bool DetermineIfSpaceOptionIsSet(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
-            => (from v in value.Split(',').Select(v => v.Trim())
-                let option = ConvertToSpacingOption(v)
-                where option.HasValue && option.Value == parenthesesSpacingOption
-                select option)
-                .Any();
-
-        private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
-            => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(value, out var option)
-               ? option
-               : null;
-
-        private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
+        public static int ParseEditorConfigFlags(
+            string list,
+            Func<string, int> map,
+            string? noneToken = null,
+            string? allToken = null,
+            int allValue = -1)
         {
-            var editorConfigStringBuilder = new List<string>();
-            foreach (var kvp in SpacingWithinParenthesisOptionsMap)
+            var flags = 0;
+
+            var tokens = list.Split(',');
+            var hasNoneToken = false;
+
+            foreach (var token in tokens)
             {
-                var value = optionSet.GetOption(kvp.Key);
-                if (value)
+                var trimmed = token.Trim();
+                if (trimmed == allToken)
                 {
-                    Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
+                    // "all" token has higher priority then "none"
+                    return allValue;
                 }
+
+                if (trimmed == noneToken)
+                {
+                    hasNoneToken = true;
+                    continue;
+                }
+
+                flags |= map(trimmed);
             }
 
-            if (editorConfigStringBuilder.Count == 0)
-            {
-                // No spacing within parenthesis option set.
-                return "false";
-            }
-            else
-            {
-                return string.Join(",", editorConfigStringBuilder.Order());
-            }
+            // if "none" is present all other flags are ignored
+            return hasNoneToken ? 0 : flags;
         }
+
+        internal static string ToEditorConfigFlagList(int flags, Func<int, string> map)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            var flag = 1;
+            while (flag <= flags)
+            {
+                if ((flags & flag) == flag)
+                {
+                    if (builder.Length > 0)
+                    {
+                        builder.Append(',');
+                    }
+
+                    builder.Append(map(flag));
+                }
+
+                flag <<= 1;
+            }
+
+            return builder.ToString();
+        }
+
+        internal static SpacePlacementWithinParentheses ParseSpacingWithinParenthesesList(string list)
+            => (SpacePlacementWithinParentheses)ParseEditorConfigFlags(list, static s => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(s, out var v) ? (int)v : 0);
+
+        internal static string ToEditorConfigValue(SpacePlacementWithinParentheses value)
+            => (value == SpacePlacementWithinParentheses.None) ? "false" :
+               ToEditorConfigFlagList((int)value, static v => s_spacingWithinParenthesisOptionsEditorConfigMap[(SpacePlacementWithinParentheses)v]);
+
+        internal static NewLineBeforeOpenBracePlacement ParseNewLineBeforeOpenBracePlacementList(string list)
+            => (NewLineBeforeOpenBracePlacement)ParseEditorConfigFlags(
+               list,
+               static s => s_newLineOptionsEditorConfigMap.TryGetValue(s, out var v) ? (int)v : s_legacyNewLineOptionsEditorConfigMap.TryGetValue(s, out v) ? (int)v : 0,
+               noneToken: "none",
+               allToken: "all",
+               allValue: (int)NewLineBeforeOpenBracePlacement.All);
+
+        internal static string ToEditorConfigValue(NewLineBeforeOpenBracePlacement value)
+            => value switch
+            {
+                NewLineBeforeOpenBracePlacement.None => "none",
+                NewLineBeforeOpenBracePlacement.All => "all",
+                _ => ToEditorConfigFlagList((int)value, static v => s_newLineOptionsEditorConfigMap[(NewLineBeforeOpenBracePlacement)v])
+            };
 
         internal static BinaryOperatorSpacingOptions ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
             => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
@@ -65,95 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
             => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
-        internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
-        {
-            var values = value.Split(',').Select(v => v.Trim());
-
-            if (values.Any(s => s == "all"))
-            {
-                return true;
-            }
-
-            if (values.Any(s => s == "none"))
-            {
-                return false;
-            }
-
-            return (from v in values
-                    let option = ConvertToNewLineOption(v)
-                    where option.HasValue && option.Value == optionName
-                    select option)
-                    .Any();
-        }
-
-        private static NewLineOption? ConvertToNewLineOption(string value)
-        {
-            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option))
-            {
-                return option;
-            }
-
-            if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
-            {
-                return legacyOption;
-            }
-
-            return null;
-        }
-
-        private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
-        {
-            var editorConfigStringBuilder = new List<string>(NewLineOptionsMap.Count);
-            foreach (var kvp in NewLineOptionsMap)
-            {
-                var value = optionSet.GetOption(kvp.Key);
-                if (value)
-                {
-                    Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
-                }
-            }
-
-            if (editorConfigStringBuilder.Count == 0)
-            {
-                // No NewLine option set.
-                return "none";
-            }
-            else if (editorConfigStringBuilder.Count == s_newLineOptionsMapBuilder.Count)
-            {
-                // All NewLine options set.
-                return "all";
-            }
-            else
-            {
-                return string.Join(",", editorConfigStringBuilder.Order());
-            }
-        }
-
         internal static bool DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(string value)
             => value.Trim() == "ignore";
-
-        internal enum SpacingWithinParenthesesOption
-        {
-            Expressions,
-            TypeCasts,
-            ControlFlowStatements
-        }
-
-        internal enum NewLineOption
-        {
-            Types,
-            Methods,
-            Properties,
-            Indexers,
-            Events,
-            AnonymousMethods,
-            ControlBlocks,
-            AnonymousTypes,
-            ObjectCollectionsArrayInitializers,
-            Lambdas,
-            LocalFunction,
-            Accessors
-        }
     }
 }

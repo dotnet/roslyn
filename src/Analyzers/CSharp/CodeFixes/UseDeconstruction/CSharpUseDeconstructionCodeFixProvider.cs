@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,16 +16,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseDeconstruction), Shared]
-    internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUseDeconstructionCodeFixProvider()
         {
         }
@@ -55,13 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
-                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Workspace.Services, cancellationToken),
+                (semanticModel, currentRoot, node) => UpdateRoot(document, semanticModel, currentRoot, node, cancellationToken),
                 cancellationToken);
         }
 
-        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, HostWorkspaceServices services, CancellationToken cancellationToken)
+        private SyntaxNode UpdateRoot(
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxNode root,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(root, services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
+            return typeNode is TupleTypeSyntax tupleTypeSyntax
                 ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }

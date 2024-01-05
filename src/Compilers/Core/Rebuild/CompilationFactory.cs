@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 ? new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length)
                 : null;
 
-            var sourceLink = OptionsReader.GetSourceLinkUTF8();
+            var sourceLink = OptionsReader.GetSourceLinkUtf8();
 
             var debugEntryPoint = getDebugEntryPoint();
             string? pdbFilePath;

@@ -2,82 +2,58 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
+namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols;
+
+internal partial class NavigableSymbolService
 {
-    internal partial class NavigableSymbolService
+    private sealed class NavigableSymbolSource(
+        NavigableSymbolService service,
+        ITextView textView) : INavigableSymbolSource
     {
-        private partial class NavigableSymbolSource : INavigableSymbolSource
+        private bool _disposed;
+
+        public void Dispose()
+            => _disposed = true;
+
+        public async Task<INavigableSymbol?> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
         {
-            private readonly IThreadingContext _threadingContext;
-            private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+            if (_disposed)
+                return null;
 
-            private bool _disposed;
+            var snapshot = triggerSpan.Snapshot;
+            var position = triggerSpan.Start;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return null;
 
-            public NavigableSymbolSource(
-                IThreadingContext threadingContext,
-                IStreamingFindUsagesPresenter streamingPresenter,
-                IUIThreadOperationExecutor uiThreadOperationExecutor,
-                IAsynchronousOperationListenerProvider listenerProvider)
-            {
-                _threadingContext = threadingContext;
-                _presenter = streamingPresenter;
-                _uiThreadOperationExecutor = uiThreadOperationExecutor;
-                _listenerProvider = listenerProvider;
-            }
+            var definitionLocationService = document.GetLanguageService<IDefinitionLocationService>();
+            if (definitionLocationService == null)
+                return null;
 
-            public void Dispose()
-                => _disposed = true;
+            var definitionLocation = await definitionLocationService.GetDefinitionLocationAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (definitionLocation == null)
+                return null;
 
-            public async Task<INavigableSymbol> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
-            {
-                if (_disposed)
-                    return null;
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
 
-                var snapshot = triggerSpan.Snapshot;
-                var position = triggerSpan.Start;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                    return null;
-
-                var service = document.GetLanguageService<IGoToSymbolService>();
-                if (service == null)
-                    return null;
-
-                var context = new GoToSymbolContext(document, position, cancellationToken);
-
-                await service.GetSymbolsAsync(context).ConfigureAwait(false);
-
-                if (!context.TryGetItems(WellKnownSymbolTypes.Definition, out var definitions))
-                    return null;
-
-                var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(
-                    document.Project.Solution.Workspace,
-                    definitions.ToImmutableArray(),
-                    snapshotSpan,
-                    _threadingContext,
-                    _presenter,
-                    _uiThreadOperationExecutor,
-                    _listenerProvider);
-            }
+            return new NavigableSymbol(
+                service,
+                textView,
+                definitionLocation.Location,
+                snapshot.GetSpan(definitionLocation.Span.SourceSpan.ToSpan()),
+                indicatorFactory);
         }
     }
 }

@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -14,6 +15,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -22,19 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // That is, for a generic type C<T> this is the instance type C<T>.  
     internal sealed partial class SourceNamedTypeSymbol : SourceMemberContainerTypeSymbol, IAttributeTargetSymbol
     {
-        private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
-
-        /// <summary>
-        /// A collection of type parameter constraint types, populated when
-        /// constraint types for the first type parameter are requested.
-        /// </summary>
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
-
-        /// <summary>
-        /// A collection of type parameter constraint kinds, populated when
-        /// constraint kinds for the first type parameter are requested.
-        /// </summary>
-        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
+        private readonly TypeParameterInfo _typeParameterInfo;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
@@ -103,6 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+
+            _typeParameterInfo = declaration.Arity == 0
+                ? TypeParameterInfo.Empty
+                : new TypeParameterInfo();
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
@@ -180,16 +174,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
+                MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, tpl.LessThanToken);
+
                 bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
-                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
-                        !isInterfaceOrDelegate)
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        if (!isInterfaceOrDelegate)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                        }
+                        else
+                        {
+                            MessageID.IDS_FeatureTypeVariance.CheckFeatureAvailability(diagnostics, tp.VarianceKeyword);
+                        }
                     }
 
                     var name = typeParameterNames[i];
@@ -268,21 +270,22 @@ next:;
 
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            var constraintTypes = _lazyTypeParameterConstraintTypes;
-            if (constraintTypes.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault)
             {
                 GetTypeParameterConstraintKinds();
 
                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, MakeTypeParameterConstraintTypes(diagnostics)))
+                if (ImmutableInterlocked.InterlockedInitialize(
+                        ref _typeParameterInfo.LazyTypeParameterConstraintTypes,
+                        MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
-                constraintTypes = _lazyTypeParameterConstraintTypes;
             }
 
-            return constraintTypes;
+            Debug.Assert(!_typeParameterInfo.LazyTypeParameterConstraintTypes.IsDefault);
+            return _typeParameterInfo.LazyTypeParameterConstraintTypes;
         }
 
         /// <summary>
@@ -296,14 +299,15 @@ next:;
 
         private ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
         {
-            var constraintKinds = _lazyTypeParameterConstraintKinds;
-            if (constraintKinds.IsDefault)
+            if (_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, MakeTypeParameterConstraintKinds());
-                constraintKinds = _lazyTypeParameterConstraintKinds;
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _typeParameterInfo.LazyTypeParameterConstraintKinds,
+                    MakeTypeParameterConstraintKinds());
             }
 
-            return constraintKinds;
+            Debug.Assert(!_typeParameterInfo.LazyTypeParameterConstraintKinds.IsDefault);
+            return _typeParameterInfo.LazyTypeParameterConstraintKinds;
         }
 
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(BindingDiagnosticBag diagnostics)
@@ -444,7 +448,7 @@ next:;
                 }
 
                 results = MergeConstraintKindsForPartialDeclarations(results, otherPartialClauses);
-                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(this, typeParameters, results);
+                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(typeParameters, results);
 
                 if (results.All(clause => clause.Constraints == TypeParameterConstraintKind.None))
                 {
@@ -518,7 +522,7 @@ next:;
                 if (report)
                 {
                     // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, GetFirstLocation(), this, typeParameters[i]);
                 }
 
                 if (mergedConstraintTypes != null)
@@ -740,10 +744,12 @@ next:;
         {
             get
             {
-                if (_lazyTypeParameters.IsDefault)
+                if (_typeParameterInfo.LazyTypeParameters.IsDefault)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
+                    if (ImmutableInterlocked.InterlockedInitialize(
+                            ref _typeParameterInfo.LazyTypeParameters,
+                            MakeTypeParameters(diagnostics)))
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
@@ -751,7 +757,7 @@ next:;
                     diagnostics.Free();
                 }
 
-                return _lazyTypeParameters;
+                return _typeParameterInfo.LazyTypeParameters;
             }
         }
 
@@ -812,7 +818,7 @@ next:;
 
                     case TypeKind.Struct:
                     case TypeKind.Class:
-                        return AttributeLocation.Type;
+                        return AttributeLocation.Type | (HasPrimaryConstructor ? AttributeLocation.Method : 0);
 
                     default:
                         return AttributeLocation.None;
@@ -998,6 +1004,44 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InlineArrayAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
+                {
+                    int length = attributeData.GetConstructorArgument<int>(0, SpecialType.System_Int32);
+
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().InlineArrayLength = length > 0 ? length : -1;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CollectionBuilderAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
+                {
+                    Debug.Assert(attributeData.CommonConstructorArguments[0].Kind == TypedConstantKind.Type);
+                    TypeSymbol? builderType = attributeData.CommonConstructorArguments[0].ValueInternal as TypeSymbol;
+                    string? methodName = attributeData.GetConstructorArgument<string>(1, SpecialType.System_String);
+                    var data = new CollectionBuilderAttributeData(builderType, methodName);
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().CollectionBuilder = data;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1042,69 +1086,70 @@ next:;
             }
         }
 
+#nullable enable
         protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.AttributeSyntaxOpt is { });
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.AttributeUsageAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.AttributeUsageAttribute))
             {
                 DecodeAttributeUsageAttribute(attribute, arguments.AttributeSyntaxOpt, diagnose: true, diagnosticsOpt: diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultMemberAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.DefaultMemberAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasDefaultMemberAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.CoClassAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.CoClassAttribute))
             {
                 DecodeCoClassAttribute(ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ConditionalAttribute))
             {
                 ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.GuidAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().GuidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SerializableAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SerializableAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSerializableAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.StructLayoutAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.StructLayoutAttribute))
             {
                 AttributeData.DecodeStructLayoutAttribute<TypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(
                     ref arguments, this.DefaultMarshallingCharSet, defaultAutoLayoutSize: 0, messageProvider: MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ClassInterfaceAttribute))
             {
                 attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterfaceTypeAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.InterfaceTypeAttribute))
             {
                 attribute.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.WindowsRuntimeImportAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.WindowsRuntimeImportAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasWindowsRuntimeImportAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.RequiredAttributeAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiredAttributeAttribute))
             {
                 // CS1608: The Required attribute is not permitted on C# types
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
@@ -1112,6 +1157,7 @@ next:;
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute
                 | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.RequiresLocationAttribute
                 | ReservedAttributes.IsUnmanagedAttribute
                 | ReservedAttributes.IsByRefLikeAttribute
                 | ReservedAttributes.TupleElementNamesAttribute
@@ -1122,18 +1168,50 @@ next:;
                 | ReservedAttributes.RequiredMemberAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
-                || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
+                || attribute.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSecurityCriticalAttributes = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<TypeWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.CollectionBuilderAttribute))
+            {
+                var builderType = attribute.CommonConstructorArguments[0].ValueInternal as TypeSymbol;
+                if (!IsValidCollectionBuilderType(builderType))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidType, arguments.AttributeSyntaxOpt.Name.Location);
+                }
+
+                // Ensure dependencies for the builder type are added here since
+                // use-site info is ignored in early attribute decoding.
+                diagnostics.AddDependencies(builderType);
+
+                string? methodName = attribute.CommonConstructorArguments[1].DecodeValue<string>(SpecialType.System_String);
+                if (string.IsNullOrEmpty(methodName))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName, arguments.AttributeSyntaxOpt.Name.Location);
+                }
+            }
+            else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.InlineArrayAttribute))
+            {
+                int length = attribute.CommonConstructorArguments[0].DecodeValue<int>(SpecialType.System_Int32);
+
+                if (length <= 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLength, attribute.GetAttributeArgumentLocation(0));
+                }
+
+                if (TypeKind != TypeKind.Struct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName(), "struct");
+                }
             }
             else
             {
@@ -1144,6 +1222,12 @@ next:;
                 }
             }
         }
+
+        internal static bool IsValidCollectionBuilderType([NotNullWhen(true)] TypeSymbol? builderType)
+        {
+            return builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false };
+        }
+#nullable disable
 
         internal override bool IsExplicitDefinitionOfNoPiaLocalType
         {
@@ -1227,8 +1311,7 @@ next:;
                     if (diagnose)
                     {
                         // invalid attribute target
-                        CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
-                        diagnosticsOpt.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                        diagnosticsOpt.Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), node.GetErrorDisplayName());
                     }
 
                     return AttributeUsageInfo.Null;
@@ -1274,6 +1357,23 @@ next:;
             }
         }
 
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            var attributeData = GetEarlyDecodedWellKnownAttributeData()?.CollectionBuilder;
+            if (attributeData == null)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            builderType = attributeData.BuilderType;
+            methodName = attributeData.MethodName;
+            return true;
+        }
+#nullable disable
+
         private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
@@ -1291,8 +1391,7 @@ next:;
                 if (name == null || !SyntaxFacts.IsValidIdentifier(name))
                 {
                     // CS0633: The argument to the '{0}' attribute must be a valid identifier
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, node);
-                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, attribute.GetAttributeArgumentLocation(0), node.GetErrorDisplayName());
                 }
             }
         }
@@ -1350,6 +1449,12 @@ next:;
                 var data = this.GetDecodedWellKnownAttributeData();
                 return data?.HasSkipLocalsInitAttribute != true && (ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed);
             }
+        }
+
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetDecodedWellKnownAttributeData()?.GuidString;
+            return guidString != null;
         }
 
         internal override bool IsDirectlyExcludedFromCodeCoverage =>
@@ -1469,7 +1574,7 @@ next:;
                 // Symbol with ComImportAttribute must have a GuidAttribute
                 if (data == null || data.GuidString == null)
                 {
-                    int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.ComImportAttribute);
+                    int index = boundAttributes.IndexOfAttribute(AttributeDescription.ComImportAttribute);
                     diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location);
                 }
 
@@ -1479,7 +1584,7 @@ next:;
                     if ((object)baseType != null && baseType.SpecialType != SpecialType.System_Object)
                     {
                         // CS0424: '{0}': a class with the ComImport attribute cannot specify a base class
-                        diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.Locations[0], this.Name);
+                        diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.GetFirstLocation(), this.Name);
                     }
 
                     var initializers = this.StaticInitializers;
@@ -1517,7 +1622,7 @@ next:;
                 Debug.Assert(boundAttributes.Any());
 
                 // Symbol with CoClassAttribute must have a ComImportAttribute
-                int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.CoClassAttribute);
+                int index = boundAttributes.IndexOfAttribute(AttributeDescription.CoClassAttribute);
                 diagnostics.Add(ErrorCode.WRN_CoClassWithoutComImport, allAttributeSyntaxNodes[index].Location, this.Name);
             }
 
@@ -1526,11 +1631,24 @@ next:;
             {
                 Debug.Assert(boundAttributes.Any());
 
-                int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.DefaultMemberAttribute);
+                int index = boundAttributes.IndexOfAttribute(AttributeDescription.DefaultMemberAttribute);
                 diagnostics.Add(ErrorCode.ERR_DefaultMemberOnIndexedType, allAttributeSyntaxNodes[index].Name.Location);
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            if (data?.InlineArrayLength is > 0 and var lengthFromAttribute)
+            {
+                length = lengthFromAttribute;
+                return true;
+            }
+
+            length = 0;
+            return false;
         }
 
         /// <remarks>
@@ -1606,6 +1724,26 @@ next:;
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
+            if (moduleBuilder.EncSymbolChanges?.IsReplaced(this) == true)
+            {
+                // Note that we use this source named type symbol in the attribute argument (of System.Type).
+                // We do not have access to the original symbol from this compilation. However, System.Type
+                // is encoded in the attribute as a string containing a fully qualified type name.
+                // The name of the current type symbol as provided by ISymbol.Name is the same as the name of
+                // the original type symbol that is being replaced by this type symbol.
+                // The "#{generation}" suffix is appended to the TypeDef name in the metadata writer,
+                // but not to the attribute value.
+                var originalType = this;
+
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                        ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
+                        isOptionalUse: true));
+            }
         }
 
         #endregion
@@ -1671,7 +1809,93 @@ next:;
                 if (member.ObsoleteKind != ObsoleteAttributeKind.None)
                 {
                     // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.Locations[0], member);
+                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
+                }
+            }
+
+            if (TypeKind == TypeKind.Struct && HasInlineArrayAttribute(out _))
+            {
+                if (Layout.Kind == LayoutKind.Explicit)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
+                }
+
+                if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                {
+                    bool reported_ERR_InlineArrayUnsupportedElementFieldModifier = false;
+
+                    if (elementField.IsRequired || elementField.IsReadOnly || elementField.IsVolatile || elementField.IsFixedSizeBuffer)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        reported_ERR_InlineArrayUnsupportedElementFieldModifier = true;
+                    }
+
+                    NamedTypeSymbol? index = null;
+                    NamedTypeSymbol? range = null;
+
+                    foreach (PropertySymbol indexer in Indexers)
+                    {
+                        if (indexer.Parameters is [{ Type: { } type }] &&
+                            (type.SpecialType == SpecialType.System_Int32 ||
+                                type.Equals(index ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions) ||
+                                type.Equals(range ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions)))
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayIndexerNotUsed, indexer.TryGetFirstLocation() ?? GetFirstLocation());
+                        }
+                    }
+
+                    foreach (var slice in GetMembers(WellKnownMemberNames.SliceMethodName).OfType<MethodSymbol>())
+                    {
+                        if (Binder.MethodHasValidSliceSignature(slice))
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArraySliceNotUsed, slice.TryGetFirstLocation() ?? GetFirstLocation());
+                            break;
+                        }
+                    }
+
+                    NamedTypeSymbol? span = null;
+                    NamedTypeSymbol? readOnlySpan = null;
+                    TypeWithAnnotations elementType = elementField.TypeWithAnnotations;
+
+                    bool fieldSupported = TypeSymbol.IsInlineArrayElementFieldSupported(elementField);
+                    if (fieldSupported)
+                    {
+                        foreach (var conversion in GetMembers().OfType<SourceUserDefinedConversionSymbol>())
+                        {
+                            TypeSymbol returnType = conversion.ReturnType;
+                            TypeSymbol returnTypeOriginalDefinition = returnType.OriginalDefinition;
+
+                            if (conversion.ParameterCount == 1 &&
+                                conversion.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions) &&
+                                (returnTypeOriginalDefinition.Equals(span ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                                    returnTypeOriginalDefinition.Equals(readOnlySpan ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
+                                Conversions.HasIdentityConversion(((NamedTypeSymbol)returnTypeOriginalDefinition).Construct(ImmutableArray.Create(elementType)), returnType))
+                            {
+                                diagnostics.Add(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, conversion.TryGetFirstLocation() ?? GetFirstLocation());
+                            }
+                        }
+                    }
+
+                    if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
+                    {
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        }
+                        else if (this.IsRestrictedType())
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, GetFirstLocation());
+                        }
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayFields, GetFirstLocation());
+                }
+
+                if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
                 }
             }
         }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -85,6 +86,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
 
         /// <summary>
@@ -94,7 +98,15 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
-        public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+        /// <exception cref="ArgumentException">
+        /// <paramref name="diagnostic"/> is located in a syntax tree which is not part of the compilation,
+        /// its location span is outside of the given file, or its identifier is not valid.
+        /// </exception>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
+            _diagnostics.Add(diagnostic);
+        }
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
             => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());
@@ -115,7 +127,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
-    public struct GeneratorInitializationContext
+    public readonly struct GeneratorInitializationContext
     {
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
@@ -215,12 +227,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
+        internal readonly ISyntaxHelper SyntaxHelper;
         private readonly Lazy<SemanticModel>? _semanticModel;
 
-        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel)
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
         {
             Node = node;
             _semanticModel = semanticModel;
+            SyntaxHelper = syntaxHelper;
         }
 
         /// <summary>
@@ -264,6 +278,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
     }
 }

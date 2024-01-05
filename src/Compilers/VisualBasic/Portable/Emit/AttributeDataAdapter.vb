@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Details: https://github.com/dotnet/roslyn/issues/19394
 
                 If reportDiagnostics Then
-                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.SyntaxNode?.GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.Location, NoLocation.Singleton), Me.AttributeClass)
                 End If
 
                 Return Nothing
@@ -77,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-
         Private Function CreateMetadataArray(argument As TypedConstant, context As EmitContext) As MetadataCreateArray
             Debug.Assert(Not argument.Values.IsDefault)
 
@@ -115,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
-
 
         Private Function CreateMetadataNamedArgument(name As String, argument As TypedConstant, context As EmitContext) As Cci.IMetadataNamedArgument
             Dim sym = LookupName(name)

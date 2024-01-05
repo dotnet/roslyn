@@ -7,18 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
         /// <summary>
-        /// Cache of document EnC analyses. 
+        /// Cache of document EnC analyses.
         /// </summary>
         internal readonly EditAndContinueDocumentAnalysesCache Analyses;
 
@@ -87,8 +86,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly bool InBreakState;
 
         /// <summary>
-        /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
-        /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
+        /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports
+        /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze
         /// the documents to clean up the diagnostics.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
@@ -108,11 +107,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             telemetry.SetBreakState(inBreakState);
 
-            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
-                new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
-                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
+            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
+                ? AsyncLazy.Create(GetBaseActiveStatementsAsync)
+                : new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
-            Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
+            Capabilities = AsyncLazy.Create(GetCapabilitiesAsync);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
         }
 
@@ -199,8 +198,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // document location:
@@ -263,6 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public static async ValueTask<bool> HasChangesAsync(Solution oldSolution, Solution newSolution, string sourceFilePath, CancellationToken cancellationToken)
         {
+            // Note that this path look up does not work for source-generated files:
             var newDocumentIds = newSolution.GetDocumentIdsWithFilePath(sourceFilePath);
             if (newDocumentIds.IsEmpty)
             {
@@ -272,14 +272,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // it suffices to check the content of one of the document if there are multiple linked ones:
             var documentId = newDocumentIds.First();
-            var oldDocument = oldSolution.GetDocument(documentId);
+            var oldDocument = oldSolution.GetTextDocument(documentId);
             if (oldDocument == null)
             {
                 // file has been added
                 return true;
             }
 
-            var newDocument = newSolution.GetRequiredDocument(documentId);
+            var newDocument = newSolution.GetRequiredTextDocument(documentId);
             return oldDocument != newDocument && !await ContentEqualsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        private static async ValueTask<bool> ContentEqualsAsync(TextDocument oldDocument, TextDocument newDocument, CancellationToken cancellationToken)
         {
             // Check if the currently observed document content has changed compared to the base document content.
             // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
@@ -320,12 +320,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
             // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
             // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-            var oldSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newSource = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldSource = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var newSource = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return oldSource.ContentEquals(newSource);
         }
 
-        private static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
+        internal static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             if (!newProject.SupportsEditAndContinue())
             {
@@ -374,34 +374,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 changedOrAddedDocuments.Add(document);
             }
 
-            // Any changes in non-generated documents might affect source generated documents as well,
+            // Any changes in non-generated document content might affect source generated documents as well,
             // no need to check further in that case.
-            return changedOrAddedDocuments is { Count: > 0 } ||
-                   HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State);
+
+            if (changedOrAddedDocuments is { Count: > 0 })
+            {
+                return true;
+            }
+
+            foreach (var documentId in newProject.State.AdditionalDocumentStates.GetChangedStateIds(oldProject.State.AdditionalDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAdditionalDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAdditionalDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var documentId in newProject.State.AnalyzerConfigDocumentStates.GetChangedStateIds(oldProject.State.AnalyzerConfigDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAnalyzerConfigDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAnalyzerConfigDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            // TODO: should handle removed documents above (detect them as edits) https://github.com/dotnet/roslyn/issues/62848
+            if (newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetRemovedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetAddedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any())
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
-
-            var oldProject = oldSolution.GetProject(newProject.Id);
-            if (oldProject == null)
-            {
-                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
-
-                // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                //
-                // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
-                // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                // and will result in source mismatch when the user steps into them.
-                //
-                // We can allow project to be added by including all its documents here.
-                // When we analyze these documents later on we'll check if they match the PDB.
-                // If so we can add them to the committed solution and detect further changes.
-                // It might be more efficient though to track added projects separately.
-
-                return;
-            }
 
             if (!await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false))
             {
@@ -410,11 +424,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
             {
@@ -439,6 +453,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
+        /// </summary>
         internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
@@ -453,7 +470,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 yield return documentId;
             }
 
-            if (!HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
+            // Given the following assumptions:
+            // - source generators are deterministic,
+            // - metadata references and compilation options have not changed (TODO -- need to check),
+            // - source documents have not changed,
+            // - additional documents have not changed,
+            // - analyzer config documents have not changed,
+            // the outputs of source generators will not change.
+
+            if (!newProject.State.DocumentStates.HasAnyStateChanges(oldProject.State.DocumentStates) &&
+                !newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
+                !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
             {
                 // Based on the above assumption there are no changes in source generated files.
                 yield break;
@@ -461,32 +488,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
             {
                 yield return documentId;
             }
         }
-
-        /// <summary>
-        /// Given the following assumptions:
-        /// - source generators are deterministic,
-        /// - source documents, metadata references and compilation options have not changed,
-        /// - additional documents have not changed,
-        /// - analyzer config documents have not changed,
-        /// the outputs of source generators will not change.
-        /// 
-        /// Currently it's not possible to change compilation options (Project System is readonly during debugging).
-        /// </summary>
-        private static bool HasChangesThatMayAffectSourceGenerators(ProjectState oldProject, ProjectState newProject)
-            => newProject.DocumentStates.HasAnyStateChanges(oldProject.DocumentStates) ||
-               newProject.AdditionalDocumentStates.HasAnyStateChanges(oldProject.AdditionalDocumentStates) ||
-               newProject.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.AnalyzerConfigDocumentStates);
 
         private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedOrAddedDocuments,
@@ -544,7 +556,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static ProjectAnalysisSummary GetProjectAnalysisSymmary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
+        private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
         {
             var hasChanges = false;
             var hasSignificantValidChanges = false;
@@ -602,7 +614,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _2 = ArrayBuilder<SequencePointUpdates>.GetInstance(out var allLineEdits);
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var requiredCapabilities = EditAndContinueCapabilities.None;
 
                 foreach (var analysis in changedDocumentAnalyses)
@@ -644,7 +656,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -679,6 +691,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(newResolution.Symbol);
                 }
+                else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+                {
+                    // For deletes, we use NewSymbol to reference the containing type of the deleted member
+                    newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(newResolution.Symbol);
+                }
                 else
                 {
                     newResolution = default;
@@ -705,8 +723,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         edit.Kind,
                         oldSymbol: oldSymbol,
                         newSymbol: newSymbol,
-                        syntaxMap: edit.SyntaxMap,
-                        preserveLocalVariables: edit.SyntaxMap != null));
+                        syntaxMap: edit.SyntaxMaps.MatchingNodes,
+                        runtimeRudeEdit: edit.SyntaxMaps.RuntimeRudeEdits));
                 }
             }
 
@@ -721,32 +739,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Calculate merged syntax map for each partial type symbol:
 
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
+            var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, (Func<SyntaxNode, SyntaxNode?>? matchingNodes, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits)>(symbolKeyComparer);
 
-            var editsByPartialType = edits
-                .Where(edit => edit.PartialType != null)
+            var updatesByPartialType = edits
+                .Where(edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
                 .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
 
-            foreach (var partialTypeEdits in editsByPartialType)
+            foreach (var partialTypeEdits in updatesByPartialType)
             {
-                // Either all edits have syntax map or none has.
-                Debug.Assert(
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null) ||
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree == null && edit.SyntaxMap == null));
+                Func<SyntaxNode, SyntaxNode?>? mergedMatchingNodes;
+                Func<SyntaxNode, RuntimeRudeEdit?>? mergedRuntimeRudeEdits;
 
-                Func<SyntaxNode, SyntaxNode?>? mergedSyntaxMap;
-                if (partialTypeEdits.First().SyntaxMap != null)
+                if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
                 {
-                    var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
-                    var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
-                    mergedSyntaxMap = node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node);
+                    var newMaps = partialTypeEdits.Where(static edit => edit.SyntaxMaps.HasMap).SelectAsArray(static edit => edit.SyntaxMaps);
+
+                    mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
+                    mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
                 }
                 else
                 {
-                    mergedSyntaxMap = null;
+                    mergedMatchingNodes = null;
+                    mergedRuntimeRudeEdits = null;
                 }
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
+                mergedUpdateEditSyntaxMaps.Add(partialTypeEdits.Key, (mergedMatchingNodes, mergedRuntimeRudeEdits));
             }
 
             // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
@@ -762,8 +779,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (oldSymbol, newSymbol) = resolvedSymbols[i];
                     if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
-                        var syntaxMap = mergedSyntaxMaps[edit.PartialType.Value];
-                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
+                        var syntaxMaps = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : default;
+                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMaps.matchingNodes, syntaxMaps.runtimeRudeEdits));
                     }
                 }
             }
@@ -772,14 +789,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
-        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
         {
+            var log = EditAndContinueService.Log;
+
             try
             {
-                using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
+                log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
+
+                using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
-                using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
+                using var _4 = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var diagnostics);
                 using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
                 using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
                 Diagnostic? syntaxError = null;
@@ -790,11 +811,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
-                    await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    if (oldProject == null)
+                    {
+                        log.Write("EnC state of '{0}' queried: project not loaded", newProject.Id);
+
+                        // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                        //
+                        // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
+                        // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+                        // and will result in source mismatch when the user steps into them.
+                        //
+                        // We can allow project to be added by including all its documents here.
+                        // When we analyze these documents later on we'll check if they match the PDB.
+                        // If so we can add them to the committed solution and detect further changes.
+                        // It might be more efficient though to track added projects separately.
+
+                        continue;
+                    }
+
+                    await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
                     if (changedOrAddedDocuments.IsEmpty())
                     {
                         continue;
                     }
+
+                    log.Write("Found {0} potentially changed document(s) in project '{1}'", changedOrAddedDocuments.Count, newProject.Id);
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
@@ -802,7 +844,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                        diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
+                        diagnostics.Add(new(newProject.Id, ImmutableArray.Create(mvidReadError)));
 
                         Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id));
                         isBlocked = true;
@@ -811,14 +853,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", newProject.Id.DebugName, newProject.Id);
+                        log.Write("Emitting update of '{0}': project not built", newProject.Id);
                         continue;
                     }
 
                     // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
-                    // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by 
+                    // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by
                     // incoming events updating the content of out-of-sync documents.
-                    // 
+                    //
                     // If in past we concluded that a document is out-of-sync, attempt to check one more time before we block apply.
                     // The source file content might have been updated since the last time we checked.
                     //
@@ -827,7 +869,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // another document is updated. If we encounter a significant case of this we should consider caching such a result per project,
                     // rather then per document. Also, we might be observing an older semantics if the document that is causing the change is out-of-sync --
                     // e.g. the binary was built with an overload C.M(object), but a generator updated class C to also contain C.M(string),
-                    // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
+                    // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object)
                     // instead of the true C.M(string).
 
                     var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -835,20 +877,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
                         // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
-                        // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state, 
+                        // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state,
                         // and we consider any further changes to it for application.
-                        diagnostics.Add((newProject.Id, documentDiagnostics));
+                        diagnostics.Add(new(newProject.Id, documentDiagnostics));
                     }
 
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
+                    foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                    {
+                        if (changedDocumentAnalysis.HasChanges)
+                        {
+                            log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        }
+
+                        Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
+                    }
+
+                    var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
+
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
                     }
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
@@ -858,7 +908,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
                     {
-                        diagnostics.Add((newProject.Id, moduleDiagnostics));
+                        diagnostics.Add(new(newProject.Id, moduleDiagnostics));
                         isBlocked = true;
                     }
 
@@ -875,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (analysis.RudeEditErrors.Length > 0)
                             {
                                 documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
-                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
+                                Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, newProject.State.Attributes.TelemetryId);
                             }
                         }
 
@@ -885,26 +935,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline, out var baselineAccessLock))
+                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldCompilation);
+
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(oldProject, oldCompilation, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                        diagnostics.Add((newProject.Id, createBaselineDiagnostics));
+                        diagnostics.Add(new(newProject.Id, createBaselineDiagnostics));
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics);
                         isBlocked = true;
+
+                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
+                    await LogDocumentChangesAsync(projectBaseline.Generation + 1, cancellationToken).ConfigureAwait(false);
 
-                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
+                    {
+                        var fileLog = log.FileLog;
+                        if (fileLog != null)
+                        {
+                            foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
+                            {
+                                if (changedDocumentAnalysis.HasChanges)
+                                {
+                                    var oldDocument = await oldProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    var newDocument = await newProject.GetDocumentAsync(changedDocumentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                                    await fileLog.WriteDocumentChangeAsync(oldDocument, newDocument, updateId, generation, cancellationToken).ConfigureAwait(false);
+                                }
+                            }
+                        }
+                    }
+
+                    log.Write("Emitting update of '{0}'", newProject.Id);
+
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldCompilation);
                     Contract.ThrowIfNull(newCompilation);
 
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -917,6 +991,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
+                    // The compiler only uses this predicate to determine if CS7101: "Member 'X' added during the current debug session
+                    // can only be accessed from within its declaring assembly 'Lib'" should be reported. 
+                    // Prior to .NET 8 Preview 4 the runtime failed to apply such edits.
+                    // This was fixed in Preview 4 along with support for generics. If we see a generic capability we can disable reporting
+                    // this compiler error. Otherwise, we leave the check as is in order to detect at least some runtime failures on .NET Framework.
+                    // Note that the analysis in the compiler detecting the circumstances under which the runtime fails
+                    // to apply the change has both false positives (flagged generic updates that shouldn't be flagged) and negatives
+                    // (didn't flag cases like https://github.com/dotnet/roslyn/issues/68293).
+                    var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var isAddedSymbolPredicate = capabilities.HasFlag(EditAndContinueCapabilities.GenericAddMethodToExistingType) ?
+                        static _ => false : (Func<ISymbol, bool>)projectChanges.AddedSymbols.Contains;
+
                     EmitDifferenceResult emitResult;
 
                     // The lock protects underlying baseline readers from being disposed while emitting delta.
@@ -925,14 +1011,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         DebuggingSession.ThrowIfDisposed();
 
+                        var emitDifferenceTimer = SharedStopwatch.StartNew();
+
                         emitResult = newCompilation.EmitDifference(
-                            baseline,
+                            projectBaseline.EmitBaseline,
                             projectChanges.SemanticEdits,
-                            projectChanges.AddedSymbols.Contains,
+                            isAddedSymbolPredicate,
                             metadataStream,
                             ilStream,
                             pdbStream,
                             cancellationToken);
+
+                        Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);
                     }
 
                     if (emitResult.Success)
@@ -942,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
                         if (unsupportedChangesDiagnostic is not null)
                         {
-                            diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                            diagnostics.Add(new(newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
                             isBlocked = true;
                         }
                         else
@@ -961,20 +1051,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-                            deltas.Add(new ManagedModuleUpdate(
+                            var delta = new ManagedHotReloadUpdate(
                                 mvid,
+                                newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
                                 pdbStream.ToImmutableArray(),
-                                projectChanges.LineChanges,
-                                updatedMethodTokens,
                                 changedTypeTokens,
+                                projectChanges.RequiredCapabilities.ToStringArray(),
+                                updatedMethodTokens,
+                                projectChanges.LineChanges,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates,
-                                projectChanges.RequiredCapabilities));
+                                exceptionRegionUpdates);
+
+                            deltas.Add(delta);
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                            emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                            newProjectBaselines.Add(new ProjectBaseline(projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
+
+                            var fileLog = log.FileLog;
+                            if (fileLog != null)
+                            {
+                                await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                     }
                     else
@@ -992,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // method bodies to have errors.
                     if (!emitResult.Diagnostics.IsEmpty)
                     {
-                        diagnostics.Add((newProject.Id, emitResult.Diagnostics));
+                        diagnostics.Add(new(newProject.Id, emitResult.Diagnostics));
                     }
 
                     Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics);
@@ -1004,24 +1103,59 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
-                var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
-                    new SolutionUpdate(
-                        new ManagedModuleUpdates(
-                            (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                var update = isBlocked
+                    ? SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors)
+                    : new SolutionUpdate(
+                        new ModuleUpdates(
+                            (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                             deltas.ToImmutable()),
                         nonRemappableRegions.ToImmutable(),
-                        emitBaselines.ToImmutable(),
+                        newProjectBaselines.ToImmutable(),
                         diagnostics.ToImmutable(),
                         documentsWithRudeEdits.ToImmutable(),
                         syntaxError);
 
                 return update;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
+
+            bool LogException(Exception e)
+            {
+                log.Write("Exception while emitting update: {0}", e.ToString());
+                return true;
+            }
+        }
+
+        private async ValueTask LogDeltaFilesAsync(TraceLog.FileLogger log, ManagedHotReloadUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        {
+            var sessionId = DebuggingSession.Id;
+
+            if (baselineGeneration == 0)
+            {
+                var oldCompilationOutputs = DebuggingSession.GetCompilationOutputs(oldProject);
+
+                await log.WriteAsync(
+                    async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyAssemblyToAsync(stream, cancellationToken).ConfigureAwait(false),
+                    sessionId,
+                    newProject.Name,
+                    PathUtilities.GetFileName(oldCompilationOutputs.AssemblyDisplayPath) ?? oldProject.Name + ".dll",
+                    cancellationToken).ConfigureAwait(false);
+
+                await log.WriteAsync(
+                    async (stream, cancellationToken) => await oldCompilationOutputs.TryCopyPdbToAsync(stream, cancellationToken).ConfigureAwait(false),
+                    sessionId,
+                    newProject.Name,
+                    PathUtilities.GetFileName(oldCompilationOutputs.PdbDisplayPath) ?? oldProject.Name + ".pdb",
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            var generation = baselineGeneration + 1;
+            log.Write(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
+            log.Write(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
+            log.Write(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 
         // internal for testing
@@ -1065,15 +1199,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Adds a region with specified PDB spans.
                     void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                     {
-                        // it is a rude edit to change the path of the region span:
-                        Debug.Assert(oldSpan.Path == newSpan.Path);
+                        // TODO: Remove comparer, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+                        Debug.Assert(string.Equals(oldSpan.Path, newSpan.Path,
+                            EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
 
                         // The up-to-date flag is copied when new active statement is created from the corresponding old one.
                         Debug.Assert(oldActiveStatement.IsMethodUpToDate == newActiveStatement.IsMethodUpToDate);
 
                         if (oldActiveStatement.IsMethodUpToDate)
                         {
-                            // Start tracking non-remappable regions for active statements in methods that were up-to-date 
+                            // Start tracking non-remappable regions for active statements in methods that were up-to-date
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
@@ -1083,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
                                 // or the entire method containing it moved. In neither case do we need to start tracking non-remapable region
-                                // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without 
+                                // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without
                                 // triggering any remapping on the IL level.
                                 //
                                 // That said, we still add a non-remappable region for this active statement, so that we know in future sessions
@@ -1171,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319289
             //
-            // The update should include the file name, otherwise it is not possible for the debugger to find 
+            // The update should include the file name, otherwise it is not possible for the debugger to find
             // the right IL span of the exception handler in case when multiple handlers in the same method
             // have the same mapped span but different mapped file name:
             //

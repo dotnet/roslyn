@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
             Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
+            if (ShouldSkipAnalysis(context, option.Notification))
+                return;
+
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)
                 return;
 
@@ -123,14 +126,13 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType)) &&
+            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(static (i, ienumerableType) => i.Equals(ienumerableType), ienumerableType) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
-            var options = semanticModel.Compilation.Options;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: null,
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),
@@ -141,6 +143,6 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
             => collectionElementType.SpecialType != SpecialType.System_Object ||
                collectionType.OriginalDefinition.Equals(ienumerableOfTType) ||
-               collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType));
+               collectionType.AllInterfaces.Any(static (i, ienumerableOfTType) => i.OriginalDefinition.Equals(ienumerableOfTType), ienumerableOfTType);
     }
 }

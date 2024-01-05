@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename;
 using Roslyn.Utilities;
 
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportStatelessXamlLspService(typeof(OnTypeRenameHandler)), Shared]
     [Method(Methods.TextDocumentLinkedEditingRangeName)]
-    internal class OnTypeRenameHandler : IRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
+    internal class OnTypeRenameHandler : ILspServiceRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
     {
         // From https://www.w3.org/TR/xml/#NT-NameStartChar
         // Notes:
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
 
         public async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -71,13 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var renameService = document.Project.LanguageServices.GetService<IXamlTypeRenameService>();
+            var renameService = document.Project.Services.GetService<IXamlTypeRenameService>();
             if (renameService == null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
 
             var result = await renameService.GetTypeRenameAsync(document, offset, cancellationToken).ConfigureAwait(false);

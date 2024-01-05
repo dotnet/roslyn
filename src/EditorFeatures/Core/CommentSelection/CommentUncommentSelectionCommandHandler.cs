@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -28,21 +29,16 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     [Export(typeof(ICommandHandler))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.CommentSelection)]
-    internal class CommentUncommentSelectionCommandHandler :
-        AbstractCommentSelectionBase<Operation>,
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CommentUncommentSelectionCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService) :
+        AbstractCommentSelectionBase<Operation>(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService),
         ICommandHandler<CommentSelectionCommandArgs>,
         ICommandHandler<UncommentSelectionCommandArgs>
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CommentUncommentSelectionCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
-        {
-        }
-
         public CommandState GetCommandState(CommentSelectionCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
@@ -63,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
-        protected override string GetTitle(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetTitle(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Comment_Selection
                 : EditorFeaturesResources.Uncomment_Selection;
 
-        protected override string GetMessage(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetMessage(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Commenting_currently_selected_text
                 : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
@@ -78,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         ///
         /// Internal so that it can be called by unit tests.
         /// </summary>
-        internal override Task<CommentSelectionResult> CollectEditsAsync(
+        internal override CommentSelectionResult CollectEdits(
             Document document, ICommentSelectionService service, ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             Operation operation, CancellationToken cancellationToken)
         {
@@ -88,23 +84,23 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             {
                 if (operation == Operation.Comment)
                 {
-                    CommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
+                    CommentSpan(service, span, textChanges, spanTrackingList);
                 }
                 else
                 {
-                    UncommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
+                    UncommentSpan(service, span, textChanges, spanTrackingList);
                 }
             }
 
-            return Task.FromResult(new CommentSelectionResult(textChanges.ToArrayAndFree(), spanTrackingList.ToArrayAndFree(), operation));
+            return new CommentSelectionResult(textChanges.ToArrayAndFree(), spanTrackingList.ToArrayAndFree(), operation);
         }
 
         /// <summary>
         /// Add the necessary edits to comment out a single span.
         /// </summary>
         private static void CommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span,
-            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CancellationToken cancellationToken)
+            ICommentSelectionService service, SnapshotSpan span,
+            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans)
         {
             var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
             }
 
             // Get the information from the language as to how they'd like to comment this region.
-            var commentInfo = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+            var commentInfo = service.GetInfo();
             if (!commentInfo.SupportsBlockComment && !commentInfo.SupportsSingleLineComment)
             {
                 // Neither type of comment supported.
@@ -186,10 +182,10 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// Add the necessary edits to uncomment out a single span.
         /// </summary>
         private static void UncommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span,
-            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> spansToSelect, CancellationToken cancellationToken)
+            ICommentSelectionService service, SnapshotSpan span,
+            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> spansToSelect)
         {
-            var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+            var info = service.GetInfo();
 
             // If the selection is exactly a block comment, use it as priority over single line comments.
             if (info.SupportsBlockComment && TryUncommentExactlyBlockComment(info, span, textChanges, spansToSelect))

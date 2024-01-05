@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected sealed override ITypeSymbol GetSwitchType(ISwitchOperation switchOperation)
-            => switchOperation.Value.Type ?? throw ExceptionUtilities.Unreachable;
+            => switchOperation.Value.Type ?? throw ExceptionUtilities.Unreachable();
 
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(switchOperation);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (cases.Length > 0)
             {
                 var lastCase = cases.Last();
-                if (lastCase.Clauses.Any(c => c.CaseKind == CaseKind.Default))
+                if (lastCase.Clauses.Any(static c => c.CaseKind == CaseKind.Default))
                 {
                     return cases.Length - 1;
                 }

@@ -57,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Try
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
@@ -71,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
@@ -117,38 +116,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
+            Dim synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes()
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
 
             ' Mapping from previous compilation to the current.
-            Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
-            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap,
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
-                currentSynthesizedMembers)
+                synthesizedTypes,
+                currentSynthesizedMembers,
+                currentDeletedMembers)
 
-            Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
+            Dim mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping:=False)
+            Dim mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping:=True)
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
-                anonymousTypeMap,
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
-                mappedSynthesizedMembers)
+                synthesizedTypes,
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
 
             Return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                mappedSynthesizedMembers)
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
         End Function
     End Module
 End Namespace

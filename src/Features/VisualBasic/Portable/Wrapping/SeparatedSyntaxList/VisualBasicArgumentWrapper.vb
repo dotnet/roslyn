@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
@@ -24,6 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = True
 
         Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = False
+
+        Protected Overrides Function FirstToken(listSyntax As ArgumentListSyntax) As SyntaxToken
+            Return listSyntax.OpenParenToken
+        End Function
+
+        Protected Overrides Function LastToken(listSyntax As ArgumentListSyntax) As SyntaxToken
+            Return listSyntax.CloseParenToken
+        End Function
 
         Protected Overrides Function GetListItems(listSyntax As ArgumentListSyntax) As SeparatedSyntaxList(Of ArgumentSyntax)
             Return listSyntax.Arguments

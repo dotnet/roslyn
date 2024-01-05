@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class UnnamedSymbolCompletionProvider
     {
-        private readonly ImmutableDictionary<string, string> IndexerProperties =
-            ImmutableDictionary<string, string>.Empty.Add(KindName, IndexerKindName);
+        private readonly ImmutableArray<KeyValuePair<string, string>> IndexerProperties =
+            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, IndexerKindName));
 
         private void AddIndexers(CompletionContext context, ImmutableArray<ISymbol> indexers)
         {
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: indexers,
                 rules: CompletionItemRules.Default,
                 contextPosition: context.Position,
-                properties: IndexerProperties));
+                properties: IndexerProperties,
+                isComplexTextEdit: true));
         }
 
         // Remove the dot, but leave the ? if one is there.  Place the caret one space back so it is between the braces.

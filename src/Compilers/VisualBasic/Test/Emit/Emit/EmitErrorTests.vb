@@ -465,7 +465,6 @@ End Module
             CompileAndVerify(comp1)
         End Sub
 
-
         <WorkItem(541360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541360")>
         <Fact>
         Public Sub ERR_30500_CircularEvaluation1()
@@ -536,7 +535,6 @@ Module Module1
 End Module
         </file>
     </compilation>
-
 
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.netmodule")})
             CompileAndVerify(compilation1)

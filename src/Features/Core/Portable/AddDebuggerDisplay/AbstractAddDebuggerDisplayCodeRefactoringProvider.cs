@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (debuggerAttributeTypeSymbol is null)
                 return;
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, context.CancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, cancellationToken);
 
             if (typeSymbol.IsStatic || !IsClassOrStruct(typeSymbol))
                 return;
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
                 return;
 
-            context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                priority,
+            context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Add_DebuggerDisplay_attribute,
                 c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
-                nameof(FeaturesResources.Add_DebuggerDisplay_attribute)));
+                nameof(FeaturesResources.Add_DebuggerDisplay_attribute),
+                priority));
         }
 
         private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (typeDecl == null)
                 return null;
 
-            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Medium : CodeActionPriority.Low;
+            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Default : CodeActionPriority.Low;
             return (typeDecl, priority);
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Services);
             var generator = editor.Generator;
 
             SyntaxNode attributeArgument;

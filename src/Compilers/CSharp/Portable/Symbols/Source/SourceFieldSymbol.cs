@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -47,11 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
-            }
+            ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false, diagnostics, ErrorLocation);
         }
 
         protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
@@ -94,6 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Currently, source symbols cannot declare RefCustomModifiers. If that changes, and this
+        // property is updated, test retargeting. (Update RefFieldTests.RetargetingField for instance.)
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         public sealed override Symbol ContainingSymbol
         {
             get
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.FixedBufferAttribute))
             {
                 // error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
                 ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
@@ -134,6 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
@@ -161,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
     {
         private readonly string _name;
-        private readonly Location _location;
+        private readonly TextSpan _locationSpan;
         private readonly SyntaxReference _syntaxReference;
 
         private string _lazyDocComment;
@@ -169,17 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
-
-        protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
+        protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, TextSpan locationSpan)
             : base(containingType)
         {
             Debug.Assert(name != null);
             Debug.Assert(syntax != null);
-            Debug.Assert(location != null);
 
             _name = name;
             _syntaxReference = syntax;
-            _location = location;
+            _locationSpan = locationSpan;
         }
 
         public SyntaxTree SyntaxTree
@@ -207,33 +211,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(_location, this.DeclaringCompilation);
-        }
+            => new LexicalSortKey(_syntaxReference, this.DeclaringCompilation);
+
+        public override Location TryGetFirstLocation()
+            => _syntaxReference.SyntaxTree.GetLocation(_locationSpan);
 
         public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray.Create(_location);
-            }
-        }
+            => ImmutableArray.Create(GetFirstLocation());
 
         internal sealed override Location ErrorLocation
-        {
-            get
-            {
-                return _location;
-            }
-        }
+            => GetFirstLocation();
 
         public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>(_syntaxReference);
-            }
-        }
+            => ImmutableArray.Create(_syntaxReference);
+
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+            => IsDefinedInSourceTree(_syntaxReference, tree, definedWithinSpan);
 
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -337,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = BindingDiagnosticBag.GetInstance();
             if (startsCycle)
             {
-                diagnostics.Add(ErrorCode.ERR_CircConstValue, _location, this);
+                diagnostics.Add(ErrorCode.ERR_CircConstValue, GetFirstLocation(), this);
             }
 
             var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);

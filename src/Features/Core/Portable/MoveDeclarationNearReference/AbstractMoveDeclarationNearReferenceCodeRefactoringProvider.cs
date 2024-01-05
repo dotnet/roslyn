@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             context.RegisterRefactoring(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     FeaturesResources.Move_declaration_near_reference,
                     c => MoveDeclarationNearReferenceAsync(document, declaration, c),
-                    nameof(FeaturesResources.Move_declaration_near_reference)),
+                    nameof(FeaturesResources.Move_declaration_near_reference),
+                    CodeActionPriority.Low),
                 declaration.Span);
         }
 

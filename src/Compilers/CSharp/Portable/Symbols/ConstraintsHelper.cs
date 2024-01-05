@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.Locations[0]);
+                diagnostics.Add(pair.UseSiteInfo, pair.TypeParameter.GetFirstLocation());
             }
 
             diagnosticsBuilder.Free();
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                     BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
 
-                clauses = AdjustConstraintKindsBasedOnConstraintTypes(containingSymbol, typeParameters, clauses);
+                clauses = AdjustConstraintKindsBasedOnConstraintTypes(typeParameters, clauses);
             }
 
             if (clauses.All(clause => clause.Constraints == TypeParameterConstraintKind.None))
@@ -383,14 +384,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return clauses.SelectAsArray(clause => clause.Constraints);
         }
 
-        internal static ImmutableArray<TypeParameterConstraintClause> AdjustConstraintKindsBasedOnConstraintTypes(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static ImmutableArray<TypeParameterConstraintClause> AdjustConstraintKindsBasedOnConstraintTypes(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             int arity = typeParameters.Length;
 
             Debug.Assert(constraintClauses.Length == arity);
 
-            SmallDictionary<TypeParameterSymbol, bool> isValueTypeMap = TypeParameterConstraintClause.BuildIsValueTypeMap(container, typeParameters, constraintClauses);
-            SmallDictionary<TypeParameterSymbol, bool> isReferenceTypeFromConstraintTypesMap = TypeParameterConstraintClause.BuildIsReferenceTypeFromConstraintTypesMap(container, typeParameters, constraintClauses);
+            SmallDictionary<TypeParameterSymbol, bool> isValueTypeMap = TypeParameterConstraintClause.BuildIsValueTypeMap(typeParameters, constraintClauses);
+            SmallDictionary<TypeParameterSymbol, bool> isReferenceTypeFromConstraintTypesMap = TypeParameterConstraintClause.BuildIsReferenceTypeFromConstraintTypesMap(typeParameters, constraintClauses);
             ArrayBuilder<TypeParameterConstraintClause> builder = null;
 
             for (int i = 0; i < arity; i++)
@@ -464,7 +465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            type.CheckAllConstraints(new CheckConstraintsArgsBoxed(compilation, conversions, includeNullability, location, diagnostics));
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics);
+            type.CheckAllConstraints(boxedArgs);
+            boxedArgs.Free();
         }
 
         public static bool CheckAllConstraints(
@@ -472,12 +475,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             ConversionsBase conversions)
         {
-            var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            type.CheckAllConstraints(new CheckConstraintsArgsBoxed(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics));
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(boxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
+            boxedArgs.Free();
             diagnostics.Free();
             return ok;
         }
@@ -518,20 +523,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static readonly ObjectPool<CheckConstraintsArgsBoxed> s_checkConstraintsArgsBoxedPool = new ObjectPool<CheckConstraintsArgsBoxed>(static () => new CheckConstraintsArgsBoxed());
+
         internal sealed class CheckConstraintsArgsBoxed
         {
-            public readonly CheckConstraintsArgs Args;
+            public CheckConstraintsArgs Args;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public CheckConstraintsArgsBoxed(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
             {
-                Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
+                var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
+                return boxedArgs;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public CheckConstraintsArgsBoxed(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
             {
-                Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
+                var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
+                return boxedArgs;
+            }
+
+            public void Free()
+            {
+                this.Args = default;
+                s_checkConstraintsArgsBoxedPool.Free(this);
             }
         }
 
@@ -760,8 +777,12 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(
+                method,
+                in args,
+                diagnosticsBuilder,
+                nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
+                ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -985,6 +1006,13 @@ hasRelatedInterfaces:
                                                                            ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
 
+            if (typeArgument.Type is NamedTypeSymbol { IsInterface: true } iface && SelfOrBaseHasStaticAbstractMember(iface, ref useSiteInfo, out Symbol member))
+            {
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter,
+                    new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, iface, member))));
+                hasError = true;
+            }
+
             foreach (var constraintType in constraintTypes)
             {
                 CheckConstraintType(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteInfo, constraintType, ref hasError);
@@ -1078,20 +1106,7 @@ hasRelatedInterfaces:
             ErrorCode errorCode;
             if (typeArgument.Type.IsReferenceType)
             {
-                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
-                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
-                    args.Conversions.WithNullability(false).HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
-                {
-#if DEBUG
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Debug.Assert(SelfOrBaseHasStaticAbstractMember(constraintType, ref discardedUseSiteInfo));
-#endif
-                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers;
-                }
-                else
-                {
-                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
-                }
+                errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
             }
             else if (typeArgument.IsNullableType())
             {
@@ -1261,13 +1276,6 @@ hasRelatedInterfaces:
 
             if (conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
             {
-                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
-                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
-                    SelfOrBaseHasStaticAbstractMember(constraintType, ref useSiteInfo))
-                {
-                    return false;
-                }
-
                 return true;
             }
 
@@ -1305,29 +1313,34 @@ hasRelatedInterfaces:
             return false;
         }
 
-        private static bool SelfOrBaseHasStaticAbstractMember(TypeWithAnnotations constraintType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool SelfOrBaseHasStaticAbstractMember(NamedTypeSymbol iface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol memberWithoutImplementation)
         {
-            Debug.Assert(constraintType.Type.IsInterfaceType());
+            Debug.Assert(iface.IsInterfaceType());
 
-            Func<Symbol, bool> predicate = static m => m.IsStatic && (m.IsAbstract || m.IsVirtual);
-            var definition = (NamedTypeSymbol)constraintType.Type.OriginalDefinition;
-
-            if (definition.GetMembersUnordered().Any(predicate))
+            foreach (Symbol m in iface.GetMembers())
             {
-                return true;
-            }
-
-            foreach (var baseInterface in definition.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
-            {
-                var baseDefinition = baseInterface.OriginalDefinition;
-                if (baseDefinition.GetMembersUnordered().Any(predicate))
+                if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
                 {
+                    memberWithoutImplementation = m;
                     return true;
                 }
-
-                baseDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
+            foreach (var baseInterface in iface.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
+            {
+                foreach (Symbol m in baseInterface.GetMembers())
+                {
+                    if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
+                    {
+                        memberWithoutImplementation = m;
+                        return true;
+                    }
+                }
+
+                baseInterface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            memberWithoutImplementation = null;
             return false;
         }
 

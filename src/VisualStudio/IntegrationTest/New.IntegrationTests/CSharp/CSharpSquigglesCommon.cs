@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63042")]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -43,20 +44,23 @@ namespace ConsoleApplication1
     }
 }", HangMitigatingCancellationToken);
 
-            var usingsErrorTags = SupportsGlobalUsings ? "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;\\r\\nusing System.Collections.Generic;\\r\\nusing System.Text;'[0-68]"
-                : "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]";
+            var usingsErrorTags = SupportsGlobalUsings ? ("suggestion", TextSpan.FromBounds(0, 68), @"using System;
+using System.Collections.Generic;
+using System.Text;", "IDE0005: Using directive is unnecessary.")
+                : ("suggestion", TextSpan.FromBounds(15, 68), @"using System.Collections.Generic;
+using System.Text;", "IDE0005: Using directive is unnecessary.");
 
             await TestServices.EditorVerifier.ErrorTagsAsync(
               new[]
               {
                   usingsErrorTags,
-                  "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
-                  "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]",
+                  ("syntax error", TextSpan.FromBounds(286, 287), "\r", "CS1002: ; expected"),
+                  ("syntax error", TextSpan.FromBounds(354, 355), "}", "CS1513: } expected"),
               },
               HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -67,8 +71,8 @@ class C  : Bar
             await TestServices.EditorVerifier.ErrorTagsAsync(
                 new[]
                 {
-                    "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;'[0-13]",
-                    "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[28-31]",
+                    ("suggestion", TextSpan.FromBounds(0, 13), "using System;", "IDE0005: Using directive is unnecessary."),
+                    ("syntax error", TextSpan.FromBounds(28, 31), "Bar", "CS0246: The type or namespace name 'Bar' could not be found (are you missing a using directive or an assembly reference?)"),
                 },
                 HangMitigatingCancellationToken);
         }

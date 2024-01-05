@@ -33,19 +33,22 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
 
-        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
+        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
-            if (sourceTable.IsCached)
+            if (sourceTable.IsCached && previousTable is not null)
             {
+                this.LogTables(_name, previousTable, previousTable, sourceTable);
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
                 }
                 return previousTable;
             }
@@ -56,28 +59,34 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = builder.CreateTableBuilder(previousTable, _name);
+            var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
+            var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             foreach (var entry in sourceTable)
             {
-                var inputs = newTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
                 if (entry.State == EntryState.Removed)
                 {
-                    newTable.TryRemoveEntries(TimeSpan.Zero, inputs);
+                    tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if (entry.State != EntryState.Cached || !newTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
                     var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
                     var newOutputs = _func(entry.Item, cancellationToken);
 
-                    if (entry.State != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
+                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
                     {
-                        newTable.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
+                        tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
                     }
                 }
             }
-            return newTable.ToImmutableAndFree();
+
+            // Can't assert anything about the count of items.  _func may have produced a different amount of items if
+            // it's not a 1:1 function.
+            var newTable = tableBuilder.ToImmutableAndFree();
+            this.LogTables(_name, previousTable, newTable, sourceTable);
+            return newTable;
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);

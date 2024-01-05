@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)exprType == null)
             {
-                if (expr.ConstantValue != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
+                if (expr.ConstantValueOpt != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
                     Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, expr.Display);
                     hasErrors = true;

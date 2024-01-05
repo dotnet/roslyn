@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 VisualBasicToCSharp
             }
 
-            internal async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
+            public async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
             {
                 // Check to see if it is from GFU Dialog
                 if (!_fromDialog)
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             return await GetGenerateInNewFileOperationsAsync(
                                 namedType,
                                 documentName,
-                                null,
-                                true,
-                                null,
+                                folders: null,
+                                areFoldersValidIdentifiers: true,
+                                fullFilePath: null,
                                 _semanticDocument.Project,
                                 _semanticDocument.Project,
                                 isDialog: false).ConfigureAwait(false);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             : TargetProjectChangeInLanguage.CSharpToVisualBasic;
 
                         // Get the cross language service
-                        _targetLanguageService = _generateTypeOptionsResult.Project.LanguageServices.GetService<IGenerateTypeService>();
+                        _targetLanguageService = _generateTypeOptionsResult.Project.Services.GetService<IGenerateTypeService>();
                     }
 
                     if (_generateTypeOptionsResult.IsNewFile)
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> GetGenerateInNewFileOperationsAsync(
+            private async Task<ImmutableArray<CodeActionOperation>> GetGenerateInNewFileOperationsAsync(
                 INamedTypeSymbol namedType,
                 string documentName,
                 IList<string> folders,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     _cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
+            private async Task<ImmutableArray<CodeActionOperation>> CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                 Project projectToBeUpdated,
                 Project triggeringProject,
                 string documentName,
@@ -353,11 +353,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // TODO(cyrusn): make sure documentId is unique.
                 var documentId = DocumentId.CreateNewId(projectToBeUpdated.Id, documentName);
 
-                var updatedSolution = projectToBeUpdated.Solution.AddDocument(DocumentInfo.Create(
-                    documentId,
-                    documentName,
-                    containers,
-                    sourceCodeKind));
+                var updatedSolution = projectToBeUpdated.Solution.AddDocument(
+                    DocumentInfo.Create(
+                        documentId,
+                        documentName,
+                        containers,
+                        sourceCodeKind));
 
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
 
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
                 updatedSolution = AddProjectReference(projectToBeUpdated, triggeringProject, updatedSolution);
 
-                return new CodeActionOperation[] { new ApplyChangesOperation(updatedSolution), new OpenDocumentOperation(documentId) };
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(updatedSolution), new OpenDocumentOperation(documentId));
             }
 
             private static Solution AddProjectReference(Project projectToBeUpdated, Project triggeringProject, Solution updatedSolution)
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return updatedSolution;
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoContainingNamespaceOperationsAsync(INamedTypeSymbol namedType)
+            private async Task<ImmutableArray<CodeActionOperation>> GetGenerateIntoContainingNamespaceOperationsAsync(INamedTypeSymbol namedType)
             {
                 var enclosingNamespace = _semanticDocument.SemanticModel.GetEnclosingNamespace(
                     _state.SimpleName.SpanStart, _cancellationToken);
@@ -403,10 +404,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     namedType,
                     _cancellationToken).ConfigureAwait(false);
 
-                return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(codeGenResult.Project.Solution));
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoExistingDocumentAsync(
+            private async Task<ImmutableArray<CodeActionOperation>> GetGenerateIntoExistingDocumentAsync(
                 INamedTypeSymbol namedType,
                 Project triggeringProject,
                 GenerateTypeOptionsResult generateTypeOptionsResult,
@@ -467,7 +468,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 updatedSolution = AddProjectReference(generateTypeOptionsResult.Project, triggeringProject, updatedSolution);
 
-                return new CodeActionOperation[] { new ApplyChangesOperation(updatedSolution) };
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(updatedSolution));
             }
 
             private (string[] containers, string usingOrImport) GetNamespaceContainersAndAddUsingsOrImport(
@@ -543,9 +544,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         includeUsingsOrImports = string.Join(".", containerList.ToArray());
                         if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                         {
-                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports) ?
-                                                     rootNamespaceOfTheProjectGeneratedInto :
-                                                     rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
+                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)
+                                                     ? rootNamespaceOfTheProjectGeneratedInto
+                                                     : rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
                         }
                     }
 
@@ -555,7 +556,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return (containers, includeUsingsOrImports);
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
+            private async Task<ImmutableArray<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
                 var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
@@ -568,7 +569,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(codeGenResult.Project.Solution));
             }
 
             private ImmutableArray<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)

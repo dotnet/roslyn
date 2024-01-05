@@ -13,14 +13,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [Export(typeof(IVSTypeScriptDiagnosticAnalyzerService))]
-    internal sealed class VSTypeScriptAnalyzerService : IVSTypeScriptDiagnosticAnalyzerService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptAnalyzerService(IDiagnosticAnalyzerService service) : IVSTypeScriptDiagnosticAnalyzerService
     {
-        private readonly IDiagnosticAnalyzerService _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptAnalyzerService(IDiagnosticAnalyzerService service)
-            => _service = service;
+        private readonly IDiagnosticAnalyzerService _service = service;
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
             => _service.Reanalyze(workspace, projectIds, documentIds, highPriority);

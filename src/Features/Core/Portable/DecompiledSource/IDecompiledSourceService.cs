@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.DecompiledSource
         /// <param name="metadataReference">The reference that contains the symbol</param>
         /// <param name="assemblyLocation">The location of the implementation assembly to decompile</param>
         /// <param name="cancellationToken">To cancel document operations</param>
-        /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
+        /// <returns>The updated document, or null if the decompilation could not be performed</returns>
+        Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
     }
 }

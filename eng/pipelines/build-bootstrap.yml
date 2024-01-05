@@ -1,0 +1,30 @@
+# Build bootstrap 
+parameters:
+- name: bootstrapToolset
+  type: string
+  default: ''
+
+steps:
+    - template: checkout-windows-task.yml
+
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps -bootstrapToolset ${{parameters.bootstrapToolset}}
+      displayName: Build - Validate correctness
+
+    - template: publish-logs.yml
+      parameters:
+        jobName: Correctness_Bootstrap_Build
+        configuration: Release
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Bootstrap Packages - ${{parameters.bootstrapToolset}}'
+        publishLocation: Container
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'Bootstrap VSIX - ${{parameters.bootstrapToolset}}'
+        publishLocation: Container

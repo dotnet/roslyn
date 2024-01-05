@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
@@ -14,26 +13,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentPullDiagnosticHandler)), Shared]
     internal class DocumentPullDiagnosticHandlerFactory : ILspServiceFactory
     {
-        private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
-        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandlerFactory(
-            IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IDiagnosticsRefresher diagnosticsRefresher,
             IGlobalOptionService globalOptions)
         {
-            _diagnosticService = diagnosticService;
             _analyzerService = analyzerService;
-            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _diagnosticsRefresher = diagnosticsRefresher;
             _globalOptions = globalOptions;
         }
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+            => new DocumentPullDiagnosticHandler(_analyzerService, _diagnosticsRefresher, _globalOptions);
     }
 }

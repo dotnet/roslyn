@@ -28,7 +28,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             ViewModel = viewModel;
             DataContext = ViewModel;
 
+            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+
             InitializeComponent();
+
+            UpdateAbstractColumnVisibility();
+        }
+
+        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MemberSelectionViewModel.ShowMakeAbstract))
+            {
+                UpdateAbstractColumnVisibility();
+            }
+        }
+
+        private void UpdateAbstractColumnVisibility()
+        {
+            AbstractColumn.Visibility = ViewModel.ShowMakeAbstract ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void SelectDependentsButton_Click(object sender, RoutedEventArgs e)

@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     internal abstract partial class AbstractLegacyProject : IAnalyzerConfigFileHost
     {
         void IAnalyzerConfigFileHost.AddAnalyzerConfigFile(string filePath)
-            => VisualStudioProject.AddAnalyzerConfigFile(filePath);
+            => ProjectSystemProject.AddAnalyzerConfigFile(filePath);
 
         void IAnalyzerConfigFileHost.RemoveAnalyzerConfigFile(string filePath)
-            => VisualStudioProject.RemoveAnalyzerConfigFile(filePath);
+            => ProjectSystemProject.RemoveAnalyzerConfigFile(filePath);
     }
 }

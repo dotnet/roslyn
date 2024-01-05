@@ -16,12 +16,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
@@ -109,8 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
-                typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+            if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
+                typeName.Parent.Parent is (kind:
+                    SyntaxKind.LocalDeclarationStatement or
+                    SyntaxKind.ForStatement or
+                    SyntaxKind.UsingStatement))
             {
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
                 {
                     var containsStackAlloc = initializer
-                        .DescendantNodesAndSelf(descendIntoChildren: node => !node.IsAnyLambdaOrAnonymousMethod())
+                        .DescendantNodesAndSelf(descendIntoChildren: node => node is not AnonymousFunctionExpressionSyntax)
                         .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
 
                     if (containsStackAlloc)

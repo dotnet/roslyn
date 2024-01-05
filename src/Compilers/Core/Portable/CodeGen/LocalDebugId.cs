@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// with a syntax node that defined it. If a syntax node defines multiple variables it 
     /// provides information necessary to identify which one of these variables is it.
     /// </summary>
-    internal struct LocalDebugId : IEquatable<LocalDebugId>
+    internal readonly struct LocalDebugId : IEquatable<LocalDebugId>
     {
         /// <summary>
         /// We calculate a "syntax offset" for each user-defined and long-lived synthesized variable. 

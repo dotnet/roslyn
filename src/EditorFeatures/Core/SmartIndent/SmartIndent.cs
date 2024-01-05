@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -13,20 +12,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal partial class SmartIndent : ISmartIndent
+    internal partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
     {
-        private readonly ITextView _textView;
-        private readonly IGlobalOptionService _globalOptions;
-
-        public SmartIndent(ITextView textView, IGlobalOptionService globalOptions)
-        {
-            _textView = textView;
-            _globalOptions = globalOptions;
-        }
+        private readonly ITextView _textView = textView;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
             => GetDesiredIndentation(line, CancellationToken.None);
@@ -50,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService == null)
                     return null;
 
-                var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-                var result = newService.GetIndentation(document, line.LineNumber, indentationOptions, cancellationToken);
+                var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+                var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
                 return result.GetIndentation(_textView, line);
             }
         }

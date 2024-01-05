@@ -5,6 +5,7 @@ trigger:
     - main-vs-deps
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - features/lsp_tools_host
     exclude:
     - release/dev17.0
 pr: none
@@ -40,14 +41,12 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - name: Codeql.Enabled
+    value: true​
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
-  # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
-  # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  - group: DotNet-Blob-Feed
-  - group: DotNet-Symbol-Server-Pats
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
@@ -71,7 +70,7 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
@@ -79,14 +78,14 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
+    demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.8') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.3
+        MirrorBranch: release/dev17.8
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -116,24 +115,40 @@ stages:
           MainValidationBuild
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
-    - task: PowerShell@2
-      displayName: Merge main-vs-deps into source branch
-      inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'
-        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
+    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
+    #
+    # - task: PowerShell@2
+    #  displayName: Merge main-vs-deps into source branch
+    #  inputs:
+    #    filePath: 'scripts\merge-vs-deps.ps1'
+    #    arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
 
     - task: NuGetToolInstaller@0
       inputs:
         versionSpec: '4.9.2'
 
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -165,6 +180,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack
@@ -181,15 +197,11 @@ stages:
                    /p:RepositoryName=$(Build.Repository.Name)
                    /p:VisualStudioDropName=$(VisualStudio.DropName)
                    /p:DotNetSignType=$(SignType)
-                   /p:DotNetPublishToBlobFeed=true
-                   /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                   /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
                    /p:PublishToSymbolServer=true
-                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
       
     - template: eng\common\templates\steps\generate-sbom.yml
@@ -310,11 +322,11 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
@@ -322,7 +334,7 @@ stages:
     displayName: Insert to VS
     pool:
       name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup
@@ -355,6 +367,8 @@ stages:
         enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
+          -ArtifactToolsList @("binskim")
+          -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True","SymbolsPath < SRV*https://msdl.microsoft.com/download/symbols")
           -TsaInstanceURL $(_TsaInstanceURL)
           -TsaProjectName $(_TsaProjectName)
           -TsaNotificationEmail $(_TsaNotificationEmail)

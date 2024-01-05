@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey), context.Diagnostics);
 
         protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, CodeActionPriority priority, Diagnostic? diagnostic = null)
-            => context.RegisterCodeFix(new CustomCodeActions.DocumentChangeAction(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
+            => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
 
         protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)
         {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             await editAsync(editor).ConfigureAwait(false);
 

@@ -9,7 +9,8 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Core.Imaging
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, quickInfoItem, document,
-                    ClassificationOptions.Default, threadingContext, operationExecutor,
+                    ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptions(document.Project.Language)
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, codeAnalysisQuickInfoItem, document,
-                    classificationOptions, threadingContext, operationExecutor,
+                    classificationOptions, LineFormattingOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using

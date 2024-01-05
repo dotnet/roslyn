@@ -4,8 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdatedKind kind)
             : base(id, workspace, projectId, documentId)
         {
-            // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
-            // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
-
+            Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;
@@ -36,14 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnostics = diagnostics;
         }
 
-        /// <summary>
-        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
-        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
-        /// and then forwarding on later on to other clients that will make this decision.
-        /// </summary>
-        /// <returns></returns>
-        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
-            => _diagnostics;
+        public ImmutableArray<DiagnosticData> Diagnostics => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

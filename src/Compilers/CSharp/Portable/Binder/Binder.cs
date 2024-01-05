@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool UseUpdatedEscapeRules => Compilation.SourceModule.UseUpdatedEscapeRules;
+
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>
@@ -430,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
         }
-
 
         /// <summary>
         /// Returns true if the binder is binding top-level script code.
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, SyntaxNodeOrToken syntax, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
@@ -746,13 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
                 // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
                 // binding cycle.
+                Debug.Assert(syntax.GetLocation() != null);
                 diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
-                                    ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
+                                    ? new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
                                     : new CSDiagnosticInfo(isDelegateConversion
                                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
                                                                : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
                                                            symbol),
-                                location);
+                                syntax.GetLocation()!);
             }
         }
 
@@ -807,6 +809,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOptional = WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember);
 
             GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
+        }
+
+        /// <summary>
+        /// Adds diagnostics that should be reported when using a synthesized attribute. 
+        /// </summary>
+        internal static void AddUseSiteDiagnosticForSynthesizedAttribute(
+            CSharpCompilation compilation,
+            WellKnownMember attributeMember,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            GetWellKnownTypeMember(compilation,
+                attributeMember,
+                out var memberUseSiteInfo,
+                isOptional: WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember));
+            useSiteInfo.Add(memberUseSiteInfo);
         }
 
         public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
@@ -866,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions,
+            return new BoundBlock(statement.Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

@@ -1229,8 +1229,8 @@ public readonly struct S2
             static IEventSymbol getEvent(INamedTypeSymbol symbol, string name) => (IEventSymbol)symbol.GetMembers(name).Single();
         }
 
-        [Fact]
-        public void ReadOnlyMembers_ExtensionMethods_SemanticModel()
+        [Theory, CombinatorialData]
+        public void ReadOnlyMembers_ExtensionMethods_SemanticModel([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var csharp = @"
 public struct S1 {}
@@ -1240,10 +1240,10 @@ public static class C
 {
     static void M1(this S1 s1) {}
     static void M2(this ref S1 s1) {}
-    static void M3(this in S1 s1) {}
+    static void M3(this " + modifier + @" S1 s1) {}
     static void M4(this S2 s2) {}
     static void M5(this ref S2 s2) {}
-    static void M6(this in S2 s2) {}
+    static void M6(this " + modifier + @" S2 s2) {}
 
     static void Test()
     {
@@ -2128,7 +2128,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'S.M2(Func<int>)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'S.M2(Func<int>)'
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("a", "S.M2(System.Func<int>)").WithLocation(6, 9),
                 // (6,12): error CS1026: ) expected

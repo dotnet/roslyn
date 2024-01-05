@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
+        <target state="translated">Добавить явное приведение</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
@@ -35,6 +35,35 @@
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
         <target state="translated">Добавить модификатор только для чтения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
+      not report warnings for missing comments.
+      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
+      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </source>
+        <target state="translated">Добавьте следующую группу свойств в файл проекта MSBuild, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Убедитесь, что любые комментарии к документации, включенные в код, проверяются на синтаксис во время сборки, но
+      не сообщайте о предупреждениях об отсутствующих комментариях.
+      CS1573: у параметра 'parameter' нет соответствующего тега param в комментарии XML для 'parameter' (но у других параметров есть)
+      CS1591: отсутствует комментарий XML для общедоступного типа или члена 'Type_or_Member'
+      CS1712: у параметра типа 'type_parameter' нет соответствующего тега typeparam в комментарии XML для 'type_or_member' (но у других параметров типа есть)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </target>
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
@@ -104,7 +133,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">Исправить форматирование</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -165,6 +194,11 @@
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="translated">Модификаторы не упорядочены</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Имя может быть упрощено</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -257,6 +291,11 @@
         <target state="translated">Удалить ненужное приведение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_accessibility_modifiers">
+        <source>Remove accessibility modifiers</source>
+        <target state="translated">Удалить модификаторы доступа</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
         <target state="translated">Удалите лишнее равенство.</target>
@@ -302,9 +341,34 @@
         <target state="translated">Удалите неиспользуемые закрытые члены</target>
         <note />
       </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
+        <target state="translated">Установите для свойства MSBuild "GenerateDocumentationFile" значение "ИСТИНА"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
+        <target state="translated">Установите для свойства MSBuild "GenerateDocumentationFile" значение "ИСТИНА" в файле проекта, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="translated">Упростите выражение LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Упрощение доступа для членов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Упрощение имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">Упростить проверку</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -399,7 +463,7 @@
       </trans-unit>
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="new">'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
+        <target state="translated">Оператор "{0}" неявно преобразует "{1}" в "{2}". Добавьте явное приведение, чтобы сделать намерение более понятным, поскольку возможен сбой во время выполнения</target>
         <note />
       </trans-unit>
     </body>

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Hash.Combine(obj.Category.GetHashCode(),
-                Hash.Combine(obj.DefaultSeverity.GetHashCode(),
+                Hash.Combine(((int)obj.DefaultSeverity).GetHashCode(),
                 Hash.Combine(obj.Description.GetHashCode(),
                 Hash.Combine(obj.HelpLinkUri.GetHashCode(),
                 Hash.Combine(obj.Id.GetHashCode(),

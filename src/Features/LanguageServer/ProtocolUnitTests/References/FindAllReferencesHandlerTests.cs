@@ -11,19 +11,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
-    public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
+    public class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -42,9 +43,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -58,8 +59,8 @@ class B
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync_Streaming()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_Streaming(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -78,11 +79,11 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             using var progress = BufferedProgress.Create<object>(null);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), progress);
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First(), progress);
 
             Assert.Null(results);
 
@@ -90,7 +91,7 @@ class B
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
             // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().Select(reference => ((JObject)reference).ToObject<LSP.VSInternalReferenceItem>()).ToArray();
+            results = progress.GetValues().Select(reference => ((JArray)reference).ToObject<LSP.VSInternalReferenceItem[]>()).SelectMany(v => v).ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);
@@ -108,8 +109,8 @@ class B
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync_Class()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_Class(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|reference:A|}
@@ -128,9 +129,9 @@ class B
         var j = someInt + {|caret:|}{|reference:A|}.someInt;
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             var textElement = results[0].Text as ClassifiedTextElement;
@@ -149,8 +150,8 @@ class B
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync_MultipleDocuments()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_MultipleDocuments(bool mutatingLspWorkspace)
         {
             var markups = new string[] {
 @"class A
@@ -171,9 +172,9 @@ class B
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -187,22 +188,22 @@ class B
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_InvalidLocation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
 {
     {|caret:|}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.Empty(results);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesMetadataDefinitionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesMetadataDefinitionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -214,15 +215,15 @@ class A
         Console.{|caret:|}{|reference:WriteLine|}(""text"");
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.NotNull(results[0].Location.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
 
-        [WpfFact, WorkItem(1240061, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
-        public async Task TestFindAllReferencesAsync_Namespace()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
+        public async Task TestFindAllReferencesAsync_Namespace(bool mutatingLspWorkspace)
         {
             var markup =
 @"namespace {|caret:|}{|reference:N|}
@@ -236,9 +237,9 @@ class A
     }
 }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Namespace definitions should not have a location
             Assert.True(results.Any(r => r.DefinitionText != null && r.Location == null));
@@ -250,8 +251,8 @@ class A
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
         }
 
-        [WpfFact, WorkItem(1245616, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1245616/")]
-        public async Task TestFindAllReferencesAsync_Highlights()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1245616/")]
+        public async Task TestFindAllReferencesAsync_Highlights(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System;
@@ -266,29 +267,29 @@ class C
     }
 }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 1, expectedReferenceCount: 1);
         }
 
-        [WpfFact]
-        public async Task TestFindAllReferencesAsync_StaticClassification()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_StaticClassification(bool mutatingLspWorkspace)
         {
             var markup =
 @"static class {|caret:|}{|reference:C|} { }
 ";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Ensure static definitions and references are only classified once
             var textRuns = ((ClassifiedTextElement)results.First().Text).Runs;
             Assert.Equal(9, textRuns.Count());
         }
 
-        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
-            new LSP.ReferenceParams()
+        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
+            => new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
@@ -296,11 +297,11 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<T[]> RunFindAllReferencesAsync<T>(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
         {
-            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, T[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
-            return results?.Cast<LSP.VSInternalReferenceItem>()?.ToArray();
+            return results?.Cast<T>()?.ToArray();
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
@@ -309,7 +310,8 @@ class C
             var definitionId = definition.DefinitionId;
             Assert.NotNull(definition.DefinitionText);
 
-            Assert.Equal(definitionGlyph.GetImageId(), definition.DefinitionIcon.ImageId);
+            Assert.Equal(definitionGlyph.GetImageId().Guid, definition.DefinitionIcon.ImageId.Guid);
+            Assert.Equal(definitionGlyph.GetImageId().Id, definition.DefinitionIcon.ImageId.Id);
 
             for (var i = 0; i < referenceItems.Length; i++)
             {

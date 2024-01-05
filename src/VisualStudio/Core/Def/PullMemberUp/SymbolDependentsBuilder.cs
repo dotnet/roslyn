@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 CancellationToken cancellationToken)
             {
                 _project = project;
-                _declarationService = project.LanguageServices.GetRequiredService<ISymbolDeclarationService>();
+                _declarationService = project.Services.GetRequiredService<ISymbolDeclarationService>();
                 _membersInType = membersInType.ToImmutableHashSet();
                 _member = member;
                 _cancellationToken = cancellationToken;

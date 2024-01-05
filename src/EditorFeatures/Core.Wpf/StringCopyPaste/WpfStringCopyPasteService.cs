@@ -4,7 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Windows;
+using System.Runtime.InteropServices;
+// Use of System.Windows.Forms over System.Windows is intentional here.  S.W.F has logic in its clipboard impl to help
+// with common errors.
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -26,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
         public bool TrySetClipboardData(string key, string data)
         {
+            const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
+
             try
             {
                 var dataObject = Clipboard.GetDataObject();
@@ -40,8 +45,15 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
                 copy.SetData(GetFormat(key), data);
 
-                Clipboard.SetDataObject(copy);
+                // Similar to what WinForms does, except that instead of blocking for up to 1s, we only block for up to 250ms.
+                // https://github.com/dotnet/winforms/blob/0f76e65878b1a0958175f17c4360b8198f8b36ba/src/System.Windows.Forms/src/System/Windows/Forms/Clipboard.cs#L31
+                Clipboard.SetDataObject(copy, copy: false, retryTimes: 5, retryDelay: 50);
                 return true;
+            }
+            catch (ExternalException ex) when ((uint)ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
+            {
+                // Expected exception.  The clipboard is a shared windows resource that can be locked by any other
+                // process. If we weren't able to acquire it, then just bail out gracefully.
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {

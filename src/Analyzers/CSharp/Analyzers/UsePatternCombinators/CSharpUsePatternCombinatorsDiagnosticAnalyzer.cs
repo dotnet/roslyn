@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
             EnforceOnBuildValues.UsePatternCombinators,
+            hasAnyCodeStyleOption: true,
             s_unsafePatternTitle);
 
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
                 EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
-                LanguageNames.CSharp,
                 s_safePatternTitle,
                 s_safePatternTitle)
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             var cancellationToken = context.CancellationToken;
             var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
                 return;
 
             var semanticModel = context.SemanticModel;
@@ -95,20 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             // if the target (the common expression in the pattern) is a method call,
             // then we can't guarantee that the rewritting won't have side-effects,
             // so we should warn the user
-            var isSafe = UnwrapImplicitConversion(pattern.Target) is not Operations.IInvocationOperation;
+            var isSafe = pattern.Target.UnwrapImplicitConversion() is not Operations.IInvocationOperation;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
                 expression.GetLocation(),
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 additionalLocations: null,
                 properties: isSafe ? s_safeProperties : null));
         }
-
-        private static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : operation;
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
         {

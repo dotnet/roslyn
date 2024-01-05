@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding? codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool publicSign = false;
             string? sourceLink = null;
             string? ruleSetPath = null;
+            bool reportIVTs = false;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -266,7 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            features.Add(value);
+                            // When a features value like "InterceptorsPreviewNamespaces=NS1;NS2" is provided,
+                            // the build system will quote it so that splitting doesn't occur in the wrong layer.
+                            // We need to unquote here so that subsequent layers can properly identify the feature name and value.
+                            features.Add(value.Unquote());
                         }
                         continue;
 
@@ -443,7 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 nullableContextOptions = NullableContextOptions.Enable;
                             }
                             continue;
-
 
                         case "nullable+":
                             if (valueMemory is not null)
@@ -1355,6 +1358,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected);
                             }
                             continue;
+
+                        case "reportivts":
+                        case "reportivts+":
+                            if (valueMemory is not null) break;
+                            reportIVTs = true;
+                            continue;
+
+                        case "reportivts-":
+                            if (valueMemory is not null) break;
+                            reportIVTs = false;
+                            continue;
                     }
                 }
 
@@ -1577,7 +1591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
                 SkipAnalyzers = skipAnalyzers,
-                EmbeddedFiles = embeddedFiles.AsImmutable()
+                EmbeddedFiles = embeddedFiles.AsImmutable(),
+                ReportInternalsVisibleToAttributes = reportIVTs,
             };
         }
 

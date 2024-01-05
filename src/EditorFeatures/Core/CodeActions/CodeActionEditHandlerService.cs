@@ -26,26 +26,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     [Export(typeof(ICodeActionEditHandlerService))]
-    internal class CodeActionEditHandlerService : ICodeActionEditHandlerService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CodeActionEditHandlerService(
+        IThreadingContext threadingContext,
+        IPreviewFactoryService previewService,
+        IInlineRenameService renameService,
+        ITextBufferAssociatedViewService associatedViewService) : ICodeActionEditHandlerService
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IPreviewFactoryService _previewService;
-        private readonly IInlineRenameService _renameService;
-        private readonly ITextBufferAssociatedViewService _associatedViewService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionEditHandlerService(
-            IThreadingContext threadingContext,
-            IPreviewFactoryService previewService,
-            IInlineRenameService renameService,
-            ITextBufferAssociatedViewService associatedViewService)
-        {
-            _threadingContext = threadingContext;
-            _previewService = previewService;
-            _renameService = renameService;
-            _associatedViewService = associatedViewService;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IPreviewFactoryService _previewService = previewService;
+        private readonly IInlineRenameService _renameService = renameService;
+        private readonly ITextBufferAssociatedViewService _associatedViewService = associatedViewService;
 
         public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 
@@ -100,9 +92,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public async Task<bool> ApplyAsync(
-            Workspace workspace, Document? fromDocument,
+            Workspace workspace,
+            Solution originalSolution,
+            Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
-            string title, IProgressTracker progressTracker,
+            string title,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
@@ -139,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+                var text = await singleChangedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(true);
 
                 using (workspace.Services.GetRequiredService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
@@ -148,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
-                            workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                            workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
@@ -174,11 +169,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, operations, progressTracker, cancellationToken).ConfigureAwait(true);
+                        workspace, originalSolution, operations, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 transaction.Commit();
@@ -241,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return null;
             }
 
-            if (changedDocuments.Any(id => newSolution.GetRequiredDocument(id).HasInfoChanged(oldSolution.GetRequiredDocument(id))) ||
-                changedAdditionalDocuments.Any(id => newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(oldSolution.GetRequiredAdditionalDocument(id))) ||
-                changedAnalyzerConfigDocuments.Any(id => newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(oldSolution.GetRequiredAnalyzerConfigDocument(id))))
+            if (changedDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredDocument(id)), (oldSolution, newSolution)) ||
+                changedAdditionalDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAdditionalDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAdditionalDocument(id)), (oldSolution, newSolution)) ||
+                changedAnalyzerConfigDocuments.Any(static (id, arg) => arg.newSolution.GetRequiredAnalyzerConfigDocument(id).HasInfoChanged(arg.oldSolution.GetRequiredAnalyzerConfigDocument(id)), (oldSolution, newSolution)))
             {
                 return null;
             }
@@ -265,8 +260,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns><see langword="true"/> if all expected <paramref name="operations"/> are applied successfully;
         /// otherwise, <see langword="false"/>.</returns>
         private async Task<bool> ProcessOperationsAsync(
-            Workspace workspace, ImmutableArray<CodeActionOperation> operations,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace,
+            Solution originalSolution,
+            ImmutableArray<CodeActionOperation> operations,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -284,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 _threadingContext.ThrowIfNotOnUIThread();
-                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
+                applied &= await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;
@@ -304,6 +302,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 await navigationService.TryNavigateToPositionAsync(
                     this._threadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 return;
+            }
+
+            var renameOperation = operations.OfType<StartInlineRenameSessionOperation>().FirstOrDefault();
+            if (renameOperation != null && workspace.CanOpenDocuments)
+            {
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+                if (await navigationService.TryNavigateToPositionAsync(
+                        this._threadingContext, workspace, renameOperation.DocumentId, renameOperation.Position, cancellationToken).ConfigureAwait(true))
+                {
+                    var openDocument = workspace.CurrentSolution.GetRequiredDocument(renameOperation.DocumentId);
+                    _renameService.StartInlineSession(openDocument, new TextSpan(renameOperation.Position, 0), cancellationToken);
+                    return;
+                }
             }
 
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
@@ -359,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                                 if (pathToRenameToken.TryResolve(openRoot, out resolvedRenameToken) &&
                                     resolvedRenameToken.IsToken)
                                 {
-                                    var text = await openDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                    var text = await openDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                                     var snapshot = text.FindCorrespondingEditorTextSnapshot();
                                     if (snapshot != null)
                                     {

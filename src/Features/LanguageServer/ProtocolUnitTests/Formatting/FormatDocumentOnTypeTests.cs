@@ -9,14 +9,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
     public class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestFormatDocumentOnTypeAsync()
+        public FormatDocumentOnTypeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentOnTypeAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
@@ -46,8 +51,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             Assert.Equal(expected, actualText);
         }
 
-        [Fact]
-        public async Task TestFormatDocumentOnType_UseTabsAsync()
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentOnType_UseTabsAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 		{
 	}
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();

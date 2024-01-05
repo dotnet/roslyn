@@ -21,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Function ShouldFormatOnTypedCharacterAsync(document As Document, typedChar As Char, caretPosition As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISyntaxFormattingService.ShouldFormatOnTypedCharacterAsync
-            Return Task.FromResult(False)
+        Public Function ShouldFormatOnTypedCharacter(document As ParsedDocument, typedChar As Char, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFormattingService.ShouldFormatOnTypedCharacter
+            Return False
         End Function
 
-        Public Function GetFormattingChangesOnTypedCharacterAsync(document As Document, caretPosition As Integer, indentationOptions As IndentationOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TextChange)) Implements ISyntaxFormattingService.GetFormattingChangesOnTypedCharacterAsync
+        Public Function GetFormattingChangesOnTypedCharacter(document As ParsedDocument, caretPosition As Integer, indentationOptions As IndentationOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnTypedCharacter
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Function GetFormattingChangesOnPasteAsync(document As Document, textSpan As TextSpan, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TextChange)) Implements ISyntaxFormattingService.GetFormattingChangesOnPasteAsync
+        Public Function GetFormattingChangesOnPaste(document As ParsedDocument, textSpan As TextSpan, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As ImmutableArray(Of TextChange) Implements ISyntaxFormattingService.GetFormattingChangesOnPaste
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

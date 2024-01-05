@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -23,8 +24,9 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             protected SymbolReferenceCodeAction(
                 Document originalDocument,
-                AddImportFixData fixData)
-                : base(originalDocument, fixData)
+                AddImportFixData fixData,
+                ImmutableArray<string> additionalTags)
+                : base(originalDocument, fixData, additionalTags)
             {
             }
 
@@ -39,15 +41,16 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return SpecializedCollections.SingletonEnumerable(operation);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var operation = await GetChangeSolutionOperationAsync(isPreview: false, cancellationToken).ConfigureAwait(false);
                 if (operation is null)
                 {
-                    return Array.Empty<CodeActionOperation>();
+                    return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
-                return SpecializedCollections.SingletonEnumerable(operation);
+                return ImmutableArray.Create(operation);
             }
 
             private async Task<CodeActionOperation?> GetChangeSolutionOperationAsync(bool isPreview, CancellationToken cancellationToken)

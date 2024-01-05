@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 
@@ -21,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.PrivateKeyword,
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
         };
 
         private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.TargetToken.IsUsingKeywordInUsingDirective() ||
+                (context.TargetToken.IsKind(SyntaxKind.UsingKeyword) && context.TargetToken.Parent?.IsParentKind(SyntaxKind.GlobalStatement) == true) ||
                 IsValidContextForType(context, cancellationToken) ||
                 IsValidContextForMember(context, cancellationToken) ||
                 context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.AsyncKeyword, cancellationToken) ||

@@ -269,7 +269,6 @@ F1
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
-
             verifier.VerifyIL("Program.Main",
             <![CDATA[
 {

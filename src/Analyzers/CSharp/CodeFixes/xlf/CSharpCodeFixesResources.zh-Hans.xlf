@@ -4,33 +4,58 @@
     <body>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">添加 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">添加 "await"</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">添加括号</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">添加 "this."</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="translated">允许在此项目中使用不安全代码</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">为 "out" 参数赋值</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">为 "out" 赋值 (在开始处)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">赋值给 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
         <source>Change return type from {0} to {1}</source>
-        <target state="new">Change return type from {0} to {1}</target>
+        <target state="translated">将返回类型由 {0} 改为 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">与 "{0}" 比较</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">转换为位置 record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
@@ -39,42 +64,67 @@
       </trans-unit>
       <trans-unit id="Fix_constraint">
         <source>Fix constraint</source>
-        <target state="new">Fix constraint</target>
+        <target state="translated">修复约束</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
-        <target state="new">Declare as nullable</target>
+        <target state="translated">声明成可为 null</target>
         <note />
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">显式继承文档</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_record_declaration">
         <source>Fix record declaration</source>
-        <target state="new">Fix record declaration</target>
+        <target state="translated">修复记录声明</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">修复返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
-        <target state="new">Hide base member</target>
+        <target state="translated">隐藏基成员</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="translated">使 {0} 返回 Task，而不是 void。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="translated">使字段为 'required'</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="translated">使方法异步</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="translated">使方法异步(保持 void)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="translated">创建 'required' 属性</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="translated">生成 "ref struct"</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">以参数形式传入捕获的变量</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">将冒号另起一行</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
@@ -82,9 +132,9 @@
         <target state="translated">将语句另起一行</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">删除不必要的 Using</target>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="translated">将令牌放置在以下行上</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
@@ -92,24 +142,79 @@
         <target state="translated">删除括号之间的空白行</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">删除 "in" 关键字</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">删除 "new" 修饰符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">删除无法访问的代码</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="translated">删除未使用的函数</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
-        <target state="new">Replace return with yield return</target>
+        <target state="translated">用 yield return 替代 return</target>
         <note />
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">Unseal 类 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="translated">将所有 C# 项目升级为语言版本“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="translated">将该项目升级为 C# 语言版本“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="translated">使用 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">使用集合表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">使用内插的逐字字符串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">使用主构造函数(并删除字段)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">使用主构造函数(并删除成员)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">使用主构造函数(并删除属性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

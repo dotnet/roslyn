@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var enclosingMethodBlock = parent.GetAncestorsOrThis(n => n is MethodDeclarationSyntax).FirstOrDefault();
 
-                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(n => n.Kind() == SyntaxKind.AsyncKeyword))
+                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(SyntaxKind.AsyncKeyword))
                 {
                     return token;
                 }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return originalToken;
             }
 
-            var unescapedText = isVerbatimIdentifier ? originalToken.ToString().Substring(1) : originalToken.ToString();
+            var unescapedText = isVerbatimIdentifier ? originalToken.ToString()[1..] : originalToken.ToString();
 
             return escape
                 ? originalToken.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(originalToken.LeadingTrivia, unescapedText, originalToken.ValueText, originalToken.TrailingTrivia))

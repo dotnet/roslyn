@@ -1393,7 +1393,6 @@ IMethodReferenceOperation: Function Program.M2() As System.Int32 (Static) (Opera
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_ReturnConversion()
@@ -3206,7 +3205,6 @@ Module Module1
     End Sub
 End Module
 ]]>.Value
-
 
             Dim expectedOperationTree = <![CDATA[
 IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &H7FFFFFFFL')

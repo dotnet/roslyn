@@ -6,10 +6,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_KeepCountsPerLine() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -39,7 +40,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_SubMethods() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -63,7 +64,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_FunctionMethods() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -87,7 +88,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_Events() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -105,7 +106,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_CustomEvents() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -143,7 +144,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_Constructors() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -173,7 +174,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_Properties() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -217,7 +218,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_Attribute() As Task
             Dim markup = <Text><![CDATA[
 <Custom(1,
@@ -241,7 +242,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_DelegateFunction() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -259,7 +260,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_MultilineSubLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -285,7 +286,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_MultilineFunctionLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -313,7 +314,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_SingleLineSubLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -337,7 +338,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function TestChangeSignature_Formatting_SingleLineFunctionLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C

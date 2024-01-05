@@ -7,33 +7,29 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class GeneratorSyntaxWalker : SyntaxWalker
+    internal sealed class GeneratorSyntaxWalker
     {
         private readonly ISyntaxContextReceiver _syntaxReceiver;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-        private Lazy<SemanticModel>? _semanticModel;
-
-        internal GeneratorSyntaxWalker(ISyntaxContextReceiver syntaxReceiver)
+        internal GeneratorSyntaxWalker(
+            ISyntaxContextReceiver syntaxReceiver,
+            ISyntaxHelper syntaxHelper)
         {
             _syntaxReceiver = syntaxReceiver;
+            _syntaxHelper = syntaxHelper;
         }
 
         public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
         {
-            Debug.Assert(_semanticModel is null
-                         && model is not null
+            Debug.Assert(model is not null
                          && model.Value.SyntaxTree == node.SyntaxTree);
 
-            _semanticModel = model;
-            Visit(node);
-            _semanticModel = null;
-        }
-
-        public override void Visit(SyntaxNode node)
-        {
-            Debug.Assert(_semanticModel is object && _semanticModel.Value.SyntaxTree == node.SyntaxTree);
-            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel));
-            base.Visit(node);
+            foreach (var child in node.DescendantNodesAndSelf())
+            {
+                Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
+            }
         }
     }
 }

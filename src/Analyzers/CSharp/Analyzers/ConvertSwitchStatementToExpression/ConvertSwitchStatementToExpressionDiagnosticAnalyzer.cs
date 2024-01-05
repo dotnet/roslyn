@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
                 EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
@@ -54,11 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var (nodeToGenerate, declaratorToRemoveOpt) =
-                Analyzer.Analyze(
-                    (SwitchStatementSyntax)switchStatement,
-                    context.SemanticModel,
-                    out var shouldRemoveNextStatement);
+            var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
+                (SwitchStatementSyntax)switchStatement,
+                context.SemanticModel,
+                out var shouldRemoveNextStatement);
             if (nodeToGenerate == default)
             {
                 return;
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
-                effectiveSeverity: styleOption.Notification.Severity,
+                notificationOption: styleOption.Notification,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
                 properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))

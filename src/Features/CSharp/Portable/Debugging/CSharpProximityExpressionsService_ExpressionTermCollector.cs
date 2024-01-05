@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // is NOT another dot/arrow.  This allows the expression 'a.b.c.d' to
             // add both 'a.b.c.d' and 'a.b.c', but not 'a.b' and 'a'.
             if (IsValidTerm(flags) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !memberAccessExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression))
+                memberAccessExpression.Parent?.Kind() is not SyntaxKind.SimpleMemberAccessExpression and not SyntaxKind.PointerMemberAccessExpression)
             {
                 terms.Add(ConvertToString(memberAccessExpression.Expression));
             }
@@ -280,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // Is our expression a valid term?
             AddIfValidTerm(prefixUnaryExpression.Operand, flags, terms);
 
-            if (prefixUnaryExpression.IsKind(SyntaxKind.LogicalNotExpression, SyntaxKind.BitwiseNotExpression, SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (prefixUnaryExpression.Kind() is SyntaxKind.LogicalNotExpression or SyntaxKind.BitwiseNotExpression or SyntaxKind.UnaryMinusExpression or SyntaxKind.UnaryPlusExpression)
             {
                 // We're a valid expression if our subexpression is...
                 expressionType = flags & ExpressionType.ValidExpression;

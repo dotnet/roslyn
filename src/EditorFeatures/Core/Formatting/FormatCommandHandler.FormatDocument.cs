@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                Format(args.TextView, document, null, context.OperationContext.UserCancellationToken);
+                Format(args.TextView, args.SubjectBuffer, document, selectionOpt: null, context.OperationContext.UserCancellationToken);
             }
 
             return true;

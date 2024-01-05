@@ -6,8 +6,11 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType;
+using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests
@@ -19,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests
                     typeof(OmniSharpExtractInterfaceOptionsResult.OmniSharpExtractLocation))]
         [InlineData(typeof(ImplementTypeInsertionBehavior), typeof(OmniSharpImplementTypeInsertionBehavior))]
         [InlineData(typeof(ImplementTypePropertyGenerationBehavior), typeof(OmniSharpImplementTypePropertyGenerationBehavior))]
+        [InlineData(typeof(NavigateToMatchKind), typeof(OmniSharpNavigateToMatchKind))]
         public void AssertEnumsInSync(Type internalType, Type externalType)
         {
             var internalValues = Enum.GetValues(internalType).Cast<int>().ToArray();
@@ -26,8 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests
             var externalValues = Enum.GetValues(externalType).Cast<int>().ToArray();
             var externalNames = Enum.GetNames(externalType);
 
-            Assert.Equal(internalValues, externalValues);
-            Assert.Equal(internalNames, externalNames);
+            AssertEx.Equal(internalValues, externalValues);
+            AssertEx.Equal(internalNames, externalNames);
         }
     }
 }

@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
         private static async Task VerifyInheritanceMemberAsync(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
+            Assert.True(!actualItem.TargetItems.IsEmpty);
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
             Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
@@ -2078,8 +2079,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
-                new[] { itemForBar, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 },
+                [itemForBar, itemForFooInMarkup1],
+                [itemForIBar, itemForFooInMarkup2],
                 testHost);
         }
 
@@ -2149,8 +2150,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.VisualBasic),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForProjectImports, itemForBar44, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 },
+                [itemForProjectImports, itemForBar44, itemForFooInMarkup1],
+                [itemForIBar, itemForFooInMarkup2],
                 testHost);
         }
 
@@ -2212,8 +2213,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
-                new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 },
+                [itemForBarInMarkup1],
+                [itemForIBar, itemForBarInMarkup2],
                 testHost);
         }
 
@@ -2275,8 +2276,24 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 },
+                [itemForBarInMarkup1],
+                [itemForIBar, itemForBarInMarkup2],
+                testHost);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestHiddenLocationSymbol(TestHost testHost)
+        {
+            await VerifyNoItemForDocumentAsync(@"
+public class {|target2:B|} : C
+{
+}
+
+#line hidden
+public class {|target1:C|}
+{
+}",
+                LanguageNames.CSharp,
                 testHost);
         }
     }

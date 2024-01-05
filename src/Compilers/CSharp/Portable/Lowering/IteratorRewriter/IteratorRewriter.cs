@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -171,7 +172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void GenerateControlFields()
         {
-            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
+            Debug.Assert(F.ModuleBuilderOpt is not null);
+
+            stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
+
+            var instrumentations = F.ModuleBuilderOpt.GetMethodBodyInstrumentations(method);
+            if (instrumentations.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing))
+            {
+                instanceIdField = F.StateMachineField(F.SpecialType(SpecialType.System_UInt64), GeneratedNames.MakeStateMachineStateIdFieldName());
+            }
 
             // Add a field: T current
             _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
@@ -250,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()
-            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.InitialIteratorState);
+            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineState.InitialIteratorState);
 
             // Generate IEnumerable.GetEnumerator
             var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
@@ -278,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.Assignment(F.Field(F.This(), initialThreadIdField), managedThreadId));
             }
 
+            if (instanceIdField is not null &&
+                F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
+            {
+                bodyBuilder.Add(F.Assignment(F.InstanceField(instanceIdField), F.Call(receiver: null, getId)));
+            }
+
             bodyBuilder.Add(F.Return());
             F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
             bodyBuilder = null;
@@ -287,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // var stateMachineLocal = new IteratorImplementationClass(N)
             // where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialIteratorState;
+            var initialState = _isEnumerable ? StateMachineState.FinishedState : StateMachineState.InitialIteratorState;
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),
@@ -317,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 stateField,
                 _currentField,
+                instanceIdField,
                 hoistedVariables,
                 nonReusableLocalProxies,
                 synthesizedLocalOrdinals,

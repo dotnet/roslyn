@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
 
         public override bool IsCompleteSubmission(SyntaxTree tree) => SyntaxFactory.IsCompleteSubmission(tree);
 
-        public override SyntaxTree ParseSubmission(SourceText text, ParseOptions parseOptions, CancellationToken cancellationToken) =>
-            SyntaxFactory.ParseSyntaxTree(text, parseOptions ?? DefaultParseOptions, cancellationToken: cancellationToken);
+        public override SyntaxTree ParseSubmission(SourceText text, ParseOptions parseOptions, CancellationToken cancellationToken)
+            => SyntaxFactory.ParseSyntaxTree(text, parseOptions ?? DefaultParseOptions, cancellationToken: cancellationToken);
 
         public override Compilation CreateSubmission(Script script)
         {

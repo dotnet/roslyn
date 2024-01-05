@@ -16,1352 +16,1397 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSuggestionModeCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterFirstExplicitArgument()
         {
             // The right-hand-side parses like a possible deconstruction or tuple type
             await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterFirstImplicitArgument()
         {
             // The right-hand-side parses like a possible deconstruction or tuple type
             await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterFirstImplicitArgumentInMethodCall()
         {
-            var markup = @"class c
-{
-    private void bar(Func<int, int, bool> f) { }
-    
-    private void goo()
-    {
-        bar((x, i $$
-    }
-}
-";
+            var markup = """
+                class c
+                {
+                    private void bar(Func<int, int, bool> f) { }
+
+                    private void goo()
+                    {
+                        bar((x, i $$
+                    }
+                }
+                """;
             // The right-hand-side parses like a possible deconstruction or tuple type
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterFirstExplicitArgumentInMethodCall()
         {
-            var markup = @"class c
-{
-    private void bar(Func<int, int, bool> f) { }
-    
-    private void goo()
-    {
-        bar((int x, i $$
-    }
-}
-";
+            var markup = """
+                class c
+                {
+                    private void bar(Func<int, int, bool> f) { }
+
+                    private void goo()
+                    {
+                        bar((int x, i $$
+                    }
+                }
+                """;
             // Could be a deconstruction expression
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DelegateTypeExpected1()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class c
-{
-    private void bar(Func<int, int, bool> f) { }
-    
-    private void goo()
-    {
-        bar($$
-    }
-}
-";
+                class c
+                {
+                    private void bar(Func<int, int, bool> f) { }
+
+                    private void goo()
+                    {
+                        bar($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DelegateTypeExpected2()
             => await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ObjectInitializerDelegateType()
         {
-            var markup = @"using System;
-using System.Collections.Generic;
-using System.Linq;
+            var markup = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program
-{
-    public Func<int> myfunc { get; set; }
-}
+                class Program
+                {
+                    public Func<int> myfunc { get; set; }
+                }
 
-class a
-{
-    void goo()
-    {
-        var b = new Program() { myfunc = $$
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        var b = new Program() { myfunc = $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, WorkItem(817145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817145"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817145")]
         public async Task ExplicitArrayInitializer()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        Func<int, int>[] myfunc = new Func<int, int>[] { $$;
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        Func<int, int>[] myfunc = new Func<int, int>[] { $$;
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ImplicitArrayInitializerUnknownType()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        var a = new [] { $$;
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        var a = new [] { $$;
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ImplicitArrayInitializerKnownDelegateType()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        var a = new [] { x => 2 * x, $$
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        var a = new [] { x => 2 * x, $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TernaryOperatorUnknownType()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        var a = true ? $$
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        var a = true ? $$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TernaryOperatorKnownDelegateType1()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        var a = true ? x => x * 2 : $$
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        var a = true ? x => x * 2 : $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TernaryOperatorKnownDelegateType2()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        Func<int, int> a = true ? $$
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        Func<int, int> a = true ? $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OverloadTakesADelegate1()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo(int a) { }
-    void goo(Func<int, int> a) { }
+                class a
+                {
+                    void goo(int a) { }
+                    void goo(Func<int, int> a) { }
 
-    void bar()
-    {
-        this.goo($$
-    }
-}";
+                    void bar()
+                    {
+                        this.goo($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task OverloadTakesDelegate2()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo(int i, int a) { }
-    void goo(int i, Func<int, int> a) { }
+                class a
+                {
+                    void goo(int i, int a) { }
+                    void goo(int i, Func<int, int> a) { }
 
-    void bar()
-    {
-        this.goo(1, $$
-    }
-}";
+                    void bar()
+                    {
+                        this.goo(1, $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExplicitCastToDelegate()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
+                class a
+                {
 
-    void bar()
-    {
-        (Func<int, int>) ($$
-    }
-}";
+                    void bar()
+                    {
+                        (Func<int, int>) ($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(860580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
         public async Task ReturnStatement()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    Func<int, int> bar()
-    {
-        return $$
-    }
-}";
+                class a
+                {
+                    Func<int, int> bar()
+                    {
+                        return $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task BuilderInAnonymousType1()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    int bar()
-    {
-        var q = new {$$
-    }
-}";
+                class a
+                {
+                    int bar()
+                    {
+                        var q = new {$$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task BuilderInAnonymousType2()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    int bar()
-    {
-        var q = new {$$ 1, 2 };
-    }
-}";
+                class a
+                {
+                    int bar()
+                    {
+                        var q = new {$$ 1, 2 };
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task BuilderInAnonymousType3()
         {
-            var markup = @"using System;
-class a
-{
-    int bar()
-    {
-        var q = new {Name = 1, $$ };
-    }
-}";
+            var markup = """
+                using System;
+                class a
+                {
+                    int bar()
+                    {
+                        var q = new {Name = 1, $$ };
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task BuilderInFromClause()
         {
-            var markup = @"using System;
-using System.Linq;
+            var markup = """
+                using System;
+                using System.Linq;
 
-class a
-{
-    int bar()
-    {
-        var q = from $$
-    }
-}";
+                class a
+                {
+                    int bar()
+                    {
+                        var q = from $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(823968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/823968")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/823968")]
         public async Task BuilderInJoinClause()
         {
-            var markup = @"using System;
-using System.Linq;
-using System.Collections.Generic;
+            var markup = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class a
-{
-    int bar()
-    {
-        var list = new List<int>();
-        var q = from a in list
-                join $$
-    }
-}";
+                class a
+                {
+                    int bar()
+                    {
+                        var list = new List<int>();
+                        var q = from a in list
+                                join $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(544290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
         public async Task ParenthesizedLambdaArgument()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$, e) => { });
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$, e) => { });
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         public async Task IncompleteParenthesizedLambdaArgument()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.CancelKeyPress += new ConsoleCancelEventHandler((a$$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         public async Task IncompleteNestedParenthesizedLambdaArgument()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParenthesizedExpressionInVarDeclaration()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var x = (a$$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = (a$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInObjectCreation()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main()
-    {
-        Program x = new P$$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Program x = new P$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInArrayCreation()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main()
-    {
-        Program[] x = new $$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Program[] x = new $$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24432")]
         public async Task TestInArrayCreation2()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main()
-    {
-        Program[] x = new Pr$$
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Program[] x = new Pr$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TupleExpressionInVarDeclaration()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var x = (a$$, b)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = (a$$, b)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TupleExpressionInVarDeclaration2()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var x = (a, b$$)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = (a, b$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task IncompleteLambdaInActionDeclaration()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        System.Action x = (a$$, b)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        System.Action x = (a$$, b)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TupleWithNamesInActionDeclaration()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        System.Action x = (a$$, b: b)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        System.Action x = (a$$, b: b)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TupleWithNamesInActionDeclaration2()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        System.Action x = (a: a, b$$)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        System.Action x = (a: a, b$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TupleWithNamesInVarDeclaration()
         {
-            var markup = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var x = (a: a, b$$)
-    }
-}";
+            var markup = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var x = (a: a, b$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         public async Task BuilderForLinqExpression()
         {
-            var markup = @"using System;
-using System.Linq.Expressions;
- 
-public class Class
-{
-    public void Goo(Expression<Action<int>> arg)
-    {
-        Goo($$
-    }
-}";
+            var markup = """
+                using System;
+                using System.Linq.Expressions;
+
+                public class Class
+                {
+                    public void Goo(Expression<Action<int>> arg)
+                    {
+                        Goo($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         public async Task NotInTypeParameter()
         {
-            var markup = @"using System;
-using System.Linq.Expressions;
- 
-public class Class
-{
-    public void Goo(Expression<Action<int>> arg)
-    {
-        Enumerable.Empty<$$
-    }
-}";
+            var markup = """
+                using System;
+                using System.Linq.Expressions;
+
+                public class Class
+                {
+                    public void Goo(Expression<Action<int>> arg)
+                    {
+                        Enumerable.Empty<$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(611477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
         public async Task ExtensionMethodFaultTolerance()
         {
-            var markup = @"using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
- 
-namespace Outer
-{
-    public struct ImmutableArray<T> : IEnumerable<T>
-    {
-        public IEnumerator<T> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
- 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-    }
- 
-    public static class ReadOnlyArrayExtensions
-    {
-        public static ImmutableArray<TResult> Select<T, TResult>(this ImmutableArray<T> array, Func<T, TResult> selector)
-        {
-            throw new NotImplementedException();
-        }
-    }
- 
-    namespace Inner
-    {
-        class Program
-        {
-            static void Main(string[] args)
-            {
-                args.Select($$
-            }
-        }
-    }
-}
-";
+            var markup = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                namespace Outer
+                {
+                    public struct ImmutableArray<T> : IEnumerable<T>
+                    {
+                        public IEnumerator<T> GetEnumerator()
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        IEnumerator IEnumerable.GetEnumerator()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public static class ReadOnlyArrayExtensions
+                    {
+                        public static ImmutableArray<TResult> Select<T, TResult>(this ImmutableArray<T> array, Func<T, TResult> selector)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    namespace Inner
+                    {
+                        class Program
+                        {
+                            static void Main(string[] args)
+                            {
+                                args.Select($$
+                            }
+                        }
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(834609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
         public async Task LambdaWithAutomaticBraceCompletion()
         {
-            var markup = @"using System;
-using System;
- 
-public class Class
-{
-    public void Goo()
-    {
-        EventHandler h = (s$$)
-    }
-}";
+            var markup = """
+                using System;
+                using System;
+
+                public class Class
+                {
+                    public void Goo()
+                    {
+                        EventHandler h = (s$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         public async Task ThisConstructorInitializer()
         {
-            var markup = @"using System;
-class X 
-{ 
-    X(Func<X> x) : this($$) { } 
-}";
+            var markup = """
+                using System;
+                class X 
+                { 
+                    X(Func<X> x) : this($$) { } 
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         public async Task BaseConstructorInitializer()
         {
-            var markup = @"using System;
-class B
-{
-    public B(Func<B> x) {}
-}
+            var markup = """
+                using System;
+                class B
+                {
+                    public B(Func<B> x) {}
+                }
 
-class D : B 
-{ 
-    D() : base($$) { } 
-}";
+                class D : B 
+                { 
+                    D() : base($$) { } 
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(887842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
         public async Task PreprocessorExpression()
         {
-            var markup = @"class C
-{
-#if $$
-}";
+            var markup = """
+                class C
+                {
+                #if $$
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(967254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
         public async Task ImplicitArrayInitializerAfterNew()
         {
-            var markup = @"using System;
+            var markup = """
+                using System;
 
-class a
-{
-    void goo()
-    {
-        int[] a = new $$;
-    }
-}";
+                class a
+                {
+                    void goo()
+                    {
+                        int[] a = new $$;
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task NamespaceDeclaration_Unqualified()
         {
             var markup = @"namespace $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task NamespaceDeclaration_Qualified()
         {
             var markup = @"namespace A.$$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task FileScopedNamespaceDeclaration_Unqualified()
         {
             var markup = @"namespace $$;";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task FileScopedNamespaceDeclaration_Qualified()
         {
             var markup = @"namespace A.$$;";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialClassName()
         {
             var markup = @"partial class $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialStructName()
         {
             var markup = @"partial struct $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
         public async Task PartialInterfaceName()
         {
             var markup = @"partial interface $$";
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12818")]
         public async Task UnwrapParamsArray()
         {
-            var markup = @"
-using System;
-class C {
-    C(params Action<int>[] a) {
-        new C($$
-    }
-}";
+            var markup = """
+                using System;
+                class C {
+                    C(params Action<int>[] a) {
+                        new C($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12818")]
         public async Task DoNotUnwrapRegularArray()
         {
-            var markup = @"
-using System;
-class C {
-    C(Action<int>[] a) {
-        new C($$
-    }
-}";
+            var markup = """
+                using System;
+                class C {
+                    C(Action<int>[] a) {
+                        new C($$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47662")]
         public async Task LambdaExpressionInImplicitObjectCreation()
         {
-            var markup = @"
-using System;
-class C {
-    C(Action<int> a) {
-        C c = new($$
-    }
-}";
+            var markup = """
+                using System;
+                class C {
+                    C(Action<int> a) {
+                        C c = new($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15443")]
         public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
         {
-            var markup = @"
-class C {
-	Action a = Task.$$
-}";
+            var markup = """
+                class C {
+                	Action a = Task.$$
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15443")]
         public async Task NotBuilderInTypeArgument()
         {
-            var markup = @"
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        class N { }
-        static void Main(string[] args)
-        {
-            Program.N n = Load<Program.$$
-        }
+            var markup = """
+                namespace ConsoleApplication1
+                {
+                    class Program
+                    {
+                        class N { }
+                        static void Main(string[] args)
+                        {
+                            Program.N n = Load<Program.$$
+                        }
 
-        static T Load<T>() => default(T);
-    }
-}";
+                        static T Load<T>() => default(T);
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16176")]
         public async Task NotBuilderForLambdaAfterNew()
         {
-            var markup = @"
-class C {
-	Action a = new $$
-}";
+            var markup = """
+                class C {
+                	Action a = new $$
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20937")]
         public async Task AsyncLambda()
         {
-            var markup = @"
-using System;
-using System.Threading.Tasks;
-class Program
-{
-    public void B(Func<int, int, Task<int>> f) { }
+            var markup = """
+                using System;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    public void B(Func<int, int, Task<int>> f) { }
 
-    void A()
-    {
-        B(async($$";
+                    void A()
+                    {
+                        B(async($$
+                """;
 
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20937")]
         public async Task AsyncLambdaAfterComma()
         {
-            var markup = @"
-using System;
-using System.Threading.Tasks;
-class Program
-{
-    public void B(Func<int, int, Task<int>> f) { }
+            var markup = """
+                using System;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    public void B(Func<int, int, Task<int>> f) { }
 
-    void A()
-    {
-        B(async(p1, $$";
+                    void A()
+                    {
+                        B(async(p1, $$
+                """;
 
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod1()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(a$$
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(a$$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod2()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(a$$)
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(a$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod3()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(($$
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(($$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod4()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(($$)
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(($$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod5()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(($$))
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(($$))
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod6()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar((a, $$
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar((a, $$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithExtensionAndInstanceMethod7()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, Action<int> action)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, Action<int> action)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(async (a$$
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(async (a$$
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
         public async Task WithNonDelegateExtensionAndInstanceMethod1()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-public sealed class Goo
-{
-    public void Bar()
-    {
-    }
-}
+                public sealed class Goo
+                {
+                    public void Bar()
+                    {
+                    }
+                }
 
-public static class GooExtensions
-{
-    public static void Bar(this Goo goo, int val)
-    {
-    }
-}
+                public static class GooExtensions
+                {
+                    public static void Bar(this Goo goo, int val)
+                    {
+                    }
+                }
 
-public static class Repro
-{
-    public static void ReproMethod(Goo goo)
-    {
-        goo.Bar(a$$
-    }
-}
-";
+                public static class Repro
+                {
+                    public static void ReproMethod(Goo goo)
+                    {
+                        goo.Bar(a$$
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInDeclarationPattern()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is int o$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is int o$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInDeclarationPattern2()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is System.Collections.Generic.List<int> an$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is System.Collections.Generic.List<int> an$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInRecursivePattern()
         {
-            var markup = @"
-class C
-{
-    int P { get; }
+            var markup = """
+                class C
+                {
+                    int P { get; }
 
-    void M(C test)
-    {
-        if (test is { P: 1 } o$$)
-    }
-}";
+                    void M(C test)
+                    {
+                        if (test is { P: 1 } o$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInPropertyPattern()
         {
-            var markup = @"
-class C
-{
-    int P { get; }
+            var markup = """
+                class C
+                {
+                    int P { get; }
 
-    void M(C test)
-    {
-        if (test is { P: int o$$ })
-    }
-}";
+                    void M(C test)
+                    {
+                        if (test is { P: int o$$ })
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInAndPattern()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is 1 and int a$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is 1 and int a$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInAndOrPattern()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is (int or 1) and int a$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is (int or 1) and int a$$)
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInSwitchStatement()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        switch (e)
-        {
-            case int o$$
-        }
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        switch (e)
+                        {
+                            case int o$$
+                        }
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestInSwitchExpression()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        var result = e switch
-        {
-            int o$$
-        }
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        var result = e switch
+                        {
+                            int o$$
+                        }
+                    }
+                }
+                """;
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Declaration()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is not int o$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is not int o$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Declaration2()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is not (1 and int o$$))
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is not (1 and int o$$))
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInNotPattern_Recursive()
         {
-            var markup = @"
-class C
-{
-    int P { get; }
+            var markup = """
+                class C
+                {
+                    int P { get; }
 
-    void M(C test)
-    {
-        if (test is not { P: 1 } o$$)
-    }
-}";
+                    void M(C test)
+                    {
+                        if (test is not { P: 1 } o$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInOrPattern()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is 1 or int o$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is 1 or int o$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInAndOrPattern()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is 1 or int and int o$$)
-    }
-}";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is 1 or int and int o$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestMissingInRecursiveOrPattern()
         {
-            var markup = @"
-class C
-{
-    int P { get; }
+            var markup = """
+                class C
+                {
+                    int P { get; }
 
-    void M(C test)
-    {
-        if (test is null or { P: 1 } o$$)
-    }
-}";
+                    void M(C test)
+                    {
+                        if (test is null or { P: 1 } o$$)
+                    }
+                }
+                """;
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
         public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
         {
             var markup = $@"
@@ -1380,8 +1425,7 @@ class P
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46927"), CombinatorialData]
         public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
         {
             var overload = isLambda
@@ -1415,8 +1459,7 @@ class P
         [InlineData("params string[] x")]
         [InlineData("string x = null, string y = null")]
         [InlineData("string x = null, string y = null, params string[] z")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49656")]
         public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
         {
             var markup = $@"
@@ -1448,7 +1491,7 @@ class P
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
-                workspaceFixture.GetWorkspace(ExportProvider);
+                workspaceFixture.GetWorkspace(GetComposition());
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 
@@ -1468,7 +1511,7 @@ class P
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
             var service = GetCompletionService(document.Project);
-            var provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty));
+            var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty));
 
             foreach (var triggerInfo in triggerInfos)
             {

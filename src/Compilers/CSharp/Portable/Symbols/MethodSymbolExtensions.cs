@@ -4,15 +4,10 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -216,6 +211,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+        }
+
+        internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
+        {
+            return !method.IsStatic &&
+                method.ContainingType?.IsStructType() == true &&
+                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet) &&
+                !method.IsInitOnly;
+        }
+
+        internal static bool HasUnscopedRefAttributeOnMethodOrProperty(this MethodSymbol? method)
+        {
+            if (method is null)
+            {
+                return false;
+            }
+            return method.HasUnscopedRefAttribute ||
+                method.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true };
         }
     }
 }

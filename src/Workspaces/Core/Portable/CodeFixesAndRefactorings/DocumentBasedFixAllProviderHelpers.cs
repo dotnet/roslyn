@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
             TFixAllContext originalFixAllContext,
             ImmutableArray<TFixAllContext> fixAllContexts,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             string progressTrackerDescription,
-            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
-            progressTracker.Description = progressTrackerDescription;
+            progressTracker.Report(CodeAnalysisProgress.Description(progressTrackerDescription));
 
             var solution = originalFixAllContext.Solution;
 
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
             Solution currentSolution,
             TFixAllContext fixAllContext,
-            IProgressTracker progressTracker,
-            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            IProgress<CodeAnalysisProgress> progressTracker,
+            Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
             where TFixAllContext : IFixAllContext
         {
             // First, compute and apply the fixes.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// given text and apply that instead.
         /// </summary>
         private static async Task<Solution> CleanupAndApplyChangesAsync(
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,
             CancellationToken cancellationToken)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
                         tasks.Add(Task.Run(async () =>
                         {
                             var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
-                            var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             return (dirtyDocument.Id, cleanedText);
                         }, cancellationToken));
                     }

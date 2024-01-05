@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         End Function
 
         Private Shared Async Function InsertEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim stringToAppend As String = Nothing
 

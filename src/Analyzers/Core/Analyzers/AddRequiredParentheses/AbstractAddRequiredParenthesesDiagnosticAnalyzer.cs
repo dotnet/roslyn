@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
     internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
         TExpressionSyntax, TBinaryLikeExpressionSyntax, TLanguageKindEnum>
-        : AbstractParenthesesDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TExpressionSyntax : SyntaxNode
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
         }
 
+        protected static string GetEquivalenceKey(PrecedenceKind precedenceKind)
+            => precedenceKind switch
+            {
+                PrecedenceKind.Arithmetic or PrecedenceKind.Shift or PrecedenceKind.Bitwise => "ArithmeticBinary",
+                PrecedenceKind.Relational or PrecedenceKind.Equality => "RelationalBinary",
+                PrecedenceKind.Logical or PrecedenceKind.Coalesce => "OtherBinary",
+                PrecedenceKind.Other => "Other",
+                _ => throw ExceptionUtilities.UnexpectedValue(precedenceKind),
+            };
+
+        protected static ImmutableArray<string> GetAllEquivalenceKeys()
+            => ImmutableArray.Create("ArithmeticBinary", "RelationalBinary", "OtherBinary", "Other");
+
         private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
@@ -57,6 +70,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
                    EnforceOnBuildValues.AddRequiredParentheses,
+                   options: ParenthesesDiagnosticAnalyzersHelper.Options,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_parentheses_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_should_be_added_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -99,8 +113,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = GetLanguageOption(options, childPrecedenceKind);
-            if (preference.Value != ParenthesesPreference.AlwaysForClarity)
+            var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, childPrecedenceKind);
+            if (preference.Value != ParenthesesPreference.AlwaysForClarity
+                || ShouldSkipAnalysis(context, preference.Notification))
             {
                 return;
             }
@@ -112,13 +127,13 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
-                context, binaryLike, precedence, preference.Notification.Severity,
+                context, binaryLike, precedence, preference.Notification,
                 additionalLocations, childEquivalenceKey, includeInFixAll: true);
         }
 
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax? binaryLikeOpt, int precedence,
-            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
+            NotificationOption2 notificationOption, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&
@@ -132,7 +147,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     operatorToken.GetLocation(),
-                    severity,
+                    notificationOption,
                     additionalLocations,
                     properties));
 
@@ -140,8 +155,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // lightbulb on any of the operator tokens.  However, we don't actually want to
                 // 'fix' all of these if the user does a fix-all.  if we did, we'd end up adding far
                 // too many parens to the same expr.
-                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
-                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
+                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, notificationOption, additionalLocations, equivalenceKey, includeInFixAll: false);
+                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, notificationOption, additionalLocations, equivalenceKey, includeInFixAll: false);
             }
         }
     }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
     internal class CSharpGenerateDefaultConstructorsCodeFixProvider : AbstractGenerateDefaultConstructorCodeFixProvider
     {
         private const string CS1729 = nameof(CS1729); // 'B' does not contain a constructor that takes 0 arguments CSharpConsoleApp3   C:\Users\cyrusn\source\repos\CSharpConsoleApp3\CSharpConsoleApp3\Program.cs	1	Active
-        private const string CS7036 = nameof(CS7036); // There is no argument given that corresponds to the required formal parameter 's' of 'B.B(string)'
+        private const string CS7036 = nameof(CS7036); // There is no argument given that corresponds to the required parameter 's' of 'B.B(string)'
         private const string CS8983 = nameof(CS8983); // CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
 
         [ImportingConstructor]

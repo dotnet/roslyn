@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context)
         {
-            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (nameColon.Parent is not ArgumentSyntax argument)
             {
                 return;
             }
@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
-            if (!preference.Value ||
-                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
+            if (!preference.Value
+                || ShouldSkipAnalysis(context, preference.Notification)
+                || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
@@ -56,14 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColon.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
         {
-            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
+            if (nameEquals.Parent is not AnonymousObjectMemberDeclaratorSyntax anonCtor)
             {
                 return;
             }
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
         }

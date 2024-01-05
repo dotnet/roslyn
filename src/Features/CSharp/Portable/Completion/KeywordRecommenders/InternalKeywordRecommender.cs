@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -64,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // internal things can be protected.
             var precedingModifiers = context.PrecedingModifiers;
             return
+                !precedingModifiers.Contains(SyntaxKind.FileKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.InternalKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.PrivateKeyword);

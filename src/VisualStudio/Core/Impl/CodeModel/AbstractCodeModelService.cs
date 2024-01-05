@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected readonly ISyntaxFactsService SyntaxFactsService;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly AbstractNodeNameGenerator _nodeNameGenerator;
         private readonly AbstractNodeLocator _nodeLocator;
         private readonly AbstractCodeModelEventCollector _eventCollector;
@@ -52,27 +52,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
         private readonly AbstractFormattingRule _endRegionFormattingRule;
-        private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
             AbstractFormattingRule endRegionFormattingRule,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
             RoslynDebug.AssertNotNull(languageServiceProvider);
-            RoslynDebug.AssertNotNull(editorOptionsFactoryService);
+            RoslynDebug.AssertNotNull(editorOptionsService);
 
             this.SyntaxFactsService = languageServiceProvider.GetRequiredService<ISyntaxFactsService>();
 
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
-            _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
@@ -81,7 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         protected string GetNewLineCharacter(SourceText text)
-            => _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
+        {
+            var textBuffer = text.Container.TryGetTextBuffer();
+            var editorOptions = (textBuffer != null) ? _editorOptionsService.Factory.GetOptions(textBuffer) : _editorOptionsService.Factory.GlobalOptions;
+            return editorOptions.GetNewLineCharacter();
+        }
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
         {
@@ -477,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract EnvDTE.CodeElement CreateUnknownCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         public abstract EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel);
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public abstract string? GetUnescapedName(string? name);
 
         public abstract string GetName(SyntaxNode node);
@@ -1042,7 +1043,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,
@@ -1088,7 +1089,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 document = _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
                     return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 });
             }

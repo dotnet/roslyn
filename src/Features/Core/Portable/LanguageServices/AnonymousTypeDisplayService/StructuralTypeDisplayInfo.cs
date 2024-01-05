@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal readonly struct StructuralTypeDisplayInfo
     {

@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
                 : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
 
-            if (options != null)
-            {
-                foreach (var kvp in options)
-                    workspace.SetOptions(workspace.Options.WithChangedOption(kvp.Key, kvp.Value));
-            }
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             return new ExtractInterfaceTestState(workspace);
         }
@@ -76,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             get
             {
-                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
+                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
             }
         }
 
@@ -123,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
                 options.FallbackOptions);
 
-            var operations = await action.GetOperationsAsync(changedOptions, CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                this.OriginalSolution, changedOptions, CodeAnalysisProgress.None, CancellationToken.None);
             foreach (var operation in operations)
             {
                 operation.Apply(Workspace, CancellationToken.None);
@@ -134,10 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public void Dispose()
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            Workspace?.Dispose();
         }
     }
 }

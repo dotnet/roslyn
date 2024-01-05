@@ -4,18 +4,13 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
-    internal partial class CSharpSymbolDisplayService : AbstractSymbolDisplayService
+    internal partial class CSharpSymbolDisplayService(Host.LanguageServices services) : AbstractSymbolDisplayService(services)
     {
-        public CSharpSymbolDisplayService(HostLanguageServices services)
-            : base(services)
-        {
-        }
-
         protected override AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-            => new SymbolDescriptionBuilder(semanticModel, position, Services.WorkspaceServices, AnonymousTypeDisplayService, options, cancellationToken);
+            => new SymbolDescriptionBuilder(semanticModel, position, LanguageServices, options, cancellationToken);
     }
 }

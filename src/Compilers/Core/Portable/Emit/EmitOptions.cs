@@ -111,9 +111,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// If <see cref="DefaultSourceFileEncoding"/> is not specified, the encoding used to parse source files
-        /// that do not declare their encoding via Byte Order Mark and are not UTF8-encoded.
+        /// that do not declare their encoding via Byte Order Mark and are not UTF-8 encoded.
         /// </summary>
         public Encoding? FallbackSourceFileEncoding { get; private set; }
+
+        /// <summary>
+        /// Test only - allows us to test <see cref="InstrumentationKindExtensions.LocalStateTracing"/>.
+        /// </summary>
+        private bool _testOnly_AllowLocalStateTracing;
 
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
@@ -262,6 +267,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
+        internal void TestOnly_AllowLocalStateTracing()
+            => _testOnly_AllowLocalStateTracing = true;
+
         public override bool Equals(object? obj)
         {
             return Equals(obj as EmitOptions);
@@ -330,6 +338,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var instrumentationKind in InstrumentationKinds)
             {
+                if (instrumentationKind == InstrumentationKindExtensions.LocalStateTracing && _testOnly_AllowLocalStateTracing)
+                {
+                    continue;
+                }
+
                 if (!instrumentationKind.IsValid())
                 {
                     diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidInstrumentationKind, Location.None, (int)instrumentationKind));
@@ -367,8 +380,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, ""));
             }
         }
-
-        internal bool EmitTestCoverageData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
 
         internal static bool IsValidFileAlignment(int value)
         {

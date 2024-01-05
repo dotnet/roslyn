@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -25,10 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If hasInitializer Then
-                ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a 
-                ' BoundAsNewLocalDeclaration to simplify things. 
+                ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a
+                ' BoundAsNewLocalDeclaration to simplify things.
                 '
-                ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a 
+                ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a
                 ' temporary.
                 Dim placeholder As BoundWithLValueExpressionPlaceholder = Nothing
 
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                ' Create an initializer for the local if the local is not a constant. 
+                ' Create an initializer for the local if the local is not a constant.
                 If Not localSymbol.IsConst Then
                     Dim rewrittenInitializer As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(initializerOpt)
                     result = RewriteLocalDeclarationAsInitializer(node, rewrittenInitializer, staticLocalBackingFields, placeholder Is Nothing)
@@ -203,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _diagnostics.Add(syntax, useSiteInfo)
 
             ' If flag Is Nothing
-            '    Interlocked.CompareExchange(flag, New StaticLocalInitFlag, Nothing)  
+            '    Interlocked.CompareExchange(flag, New StaticLocalInitFlag, Nothing)
             ' End If
 
             Dim flagIsNothing = New BoundBinaryOperator(syntax,

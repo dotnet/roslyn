@@ -49,8 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             ' in the buffer
             Dim joinedLines = If(_startOnCurrentLine, "", bufferNewLine) + String.Join(bufferNewLine, _lines)
 
-            document.Project.Solution.Workspace.ApplyTextChanges(
-                document.Id, SpecializedCollections.SingletonEnumerable(New TextChange(New TextSpan(caretPosition, 0), joinedLines)), CancellationToken.None)
+            subjectBuffer.ApplyChange(New TextChange(New TextSpan(caretPosition, 0), joinedLines))
 
             SetIndentForFirstBlankLine(textView, subjectBuffer, smartIndentationService, currentLine)
         End Sub

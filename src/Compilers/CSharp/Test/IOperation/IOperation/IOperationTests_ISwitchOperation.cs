@@ -1306,9 +1306,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'MyClass' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1469,9 +1469,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9133: A constant value of type 'MyClass' is expected
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1547,42 +1547,56 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(5,16): error CS1513: } expected
+                // (5,16): error CS1003: Syntax error, 'switch' expected
                 //     /*<bind>*/{
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 16),
-                // file.cs(6,19): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(5, 16),
+                // (6,13): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 19),
-                // file.cs(6,19): error CS1513: } expected
-                //             case 1:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 19),
-                // file.cs(10,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1)
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(6, 13)
             };
 
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '1')
-          Expression: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
-              Left: 
-                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '')
+              Value:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: '')
+                  Children(1):
+                      IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+                        Children(0)
+        Jump if False (Regular) to Block[B3]
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
+              Value:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '')
+              Pattern:
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: ?, NarrowedType: System.Int32)
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                  Left:
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -1799,9 +1813,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1870,12 +1884,12 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // (8,18): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //             case other:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "other").WithArguments("int?", "int").WithLocation(8, 18),
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2062,7 +2076,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
             };
@@ -2237,9 +2251,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case input1 ?? input2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "input1 ?? input2").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "input1 ?? input2").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2514,7 +2528,7 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS0150: A constant value is expected
                 //             case other ?? 1:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "other ?? 1").WithLocation(8, 18)
             };
@@ -3109,9 +3123,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case 1+TakeOutParam(3, out MyClass x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+TakeOutParam(3, out MyClass x1)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+TakeOutParam(3, out MyClass x1)").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -3206,9 +3220,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9135: A constant value of type 'int' is expected
                 //             case 1+(input is int x1 ? x1 : 0):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(input is int x1 ? x1 : 0)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1+(input is int x1 ? x1 : 0)").WithArguments("int").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -3312,7 +3326,6 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
-
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns, CompilerFeature.Dataflow)]
         [Fact]
@@ -3466,9 +3479,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,20): error CS0150: A constant value is expected
+                // (8,20): error CS9135: A constant value of type 'int' is expected
                 //             case < other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "other").WithArguments("int").WithLocation(8, 20)
             };
 
             string expectedFlowGraph = @"

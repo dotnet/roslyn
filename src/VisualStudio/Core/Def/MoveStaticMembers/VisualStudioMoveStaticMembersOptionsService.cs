@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
-        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
+        public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
         {
-            var viewModel = GetViewModel(document, selectedType, selectedNodeSymbol, History, _glyphService, _uiThreadOperationExecutor);
+            var viewModel = GetViewModel(document, selectedType, selectedNodeSymbols, History, _glyphService, _uiThreadOperationExecutor);
 
             var dialog = new MoveStaticMembersDialog(viewModel);
 
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         internal static MoveStaticMembersDialogViewModel GetViewModel(
             Document document,
             INamedTypeSymbol selectedType,
-            ISymbol? selectedNodeSymbol,
+            ImmutableArray<ISymbol> selectedNodeSymbols,
             LinkedList<INamedTypeSymbol> history,
             IGlyphService? glyphService,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
@@ -106,8 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 .SelectAsArray(member =>
                     new SymbolViewModel<ISymbol>(member, glyphService)
                     {
-                        // The member user selected will be checked at the beginning.
-                        IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedNodeSymbol, member),
+                        // The member(s) user selected will be checked at the beginning.
+                        IsChecked = selectedNodeSymbols.Any(SymbolEquivalenceComparer.Instance.Equals, member),
                     });
 
             using var cancellationTokenSource = new CancellationTokenSource();

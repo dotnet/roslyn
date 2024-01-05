@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingProgressTracker _progressTracker;
 
         private readonly object _value;
-        private readonly string _stringValue;
+        private readonly string? _stringValue;
         private readonly long _longValue;
         private readonly SearchKind _searchKind;
 
@@ -119,8 +118,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var index = await SyntaxTreeIndex.GetIndexAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
+            Contract.ThrowIfNull(index);
             if (_searchKind == SearchKind.StringLiterals)
             {
+                Contract.ThrowIfNull(_stringValue);
                 if (index.ProbablyContainsStringValue(_stringValue))
                 {
                     await SearchDocumentAsync(document, cancellationToken).ConfigureAwait(false);
@@ -135,16 +136,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task SearchDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var matches = ArrayBuilder<SyntaxToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var matches);
             ProcessNode(syntaxFacts, root, matches, cancellationToken);
 
             foreach (var token in matches)
-            {
                 await _progress.OnReferenceFoundAsync(document, token.Span, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         private void ProcessNode(
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (child.IsNode)
                 {
-                    ProcessNode(syntaxFacts, child.AsNode(), matches, cancellationToken);
+                    ProcessNode(syntaxFacts, child.AsNode()!, matches, cancellationToken);
                 }
                 else
                 {

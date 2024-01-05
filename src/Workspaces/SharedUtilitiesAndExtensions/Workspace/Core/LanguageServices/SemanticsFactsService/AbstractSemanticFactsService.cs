@@ -12,7 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // so to be safe, we consider field and property in scope when
         // creating unique name for local
         private static readonly Func<ISymbol, bool> s_LocalNameFilter = s =>
-            s.Kind == SymbolKind.Local ||
-            s.Kind == SymbolKind.Parameter ||
-            s.Kind == SymbolKind.RangeVariable ||
-            s.Kind == SymbolKind.Field ||
-            s.Kind == SymbolKind.Property ||
-            (s.Kind == SymbolKind.NamedType && s.IsStatic);
+            s.Kind is SymbolKind.Local or
+                      SymbolKind.Parameter or
+                      SymbolKind.RangeVariable or
+                      SymbolKind.Field or
+                      SymbolKind.Property ||
+            s is { Kind: SymbolKind.NamedType, IsStatic: true };
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
@@ -97,6 +97,31 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
         }
 
+#nullable enable
+
+        protected static IMethodSymbol? FindDisposeMethod(Compilation compilation, ITypeSymbol? type, bool isAsync)
+        {
+            if (type is null)
+                return null;
+
+            var methodToLookFor = isAsync
+                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
+                : GetDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
+            if (methodToLookFor is null)
+                return null;
+
+            var impl = type.FindImplementationForInterfaceMember(methodToLookFor) ?? methodToLookFor;
+            return impl as IMethodSymbol;
+
+            IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
+            {
+                var disposableType = compilation.GetBestTypeByMetadataName(typeName);
+                return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
+            }
+        }
+
+#nullable disable
+
         #region ISemanticFacts implementation
 
         public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;
@@ -138,6 +163,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
             => SemanticFacts.GetForEachSymbols(semanticModel, forEachStatement);
 
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.GetCollectionInitializerSymbolInfo(semanticModel, node, cancellationToken);
+
         public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
 
@@ -147,17 +175,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
 
-        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
+
+        public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argumentNode, cancellationToken);
+
+        public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindFieldOrPropertyForAttributeArgument(semanticModel, argumentNode, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);
@@ -170,6 +204,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
             => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
         #endregion
     }

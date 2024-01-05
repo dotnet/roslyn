@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            RegisterCodeFix(context, AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+            var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
+                ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
+                : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
+
+            RegisterCodeFix(context, title, key);
             return Task.CompletedTask;
         }
 
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation,
+                    syntaxFacts, ifOperation, out var isRef,
                     out var trueStatement, out var falseStatement,
                     out var trueAssignment, out var falseAssignment))
             {
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueStatement, falseStatement,
                 trueAssignment?.Value ?? trueStatement,
                 falseAssignment?.Value ?? falseStatement,
-                trueAssignment?.IsRef == true,
+                isRef,
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return true;
         }
 
-        private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
+        private static bool TryFindMatchingLocalDeclarationImmediatelyAbove(
             IConditionalOperation ifOperation,
             ISimpleAssignmentOperation? trueAssignment,
             ISimpleAssignmentOperation? falseAssignment,
@@ -227,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)
             {
-                var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
+                var unwrapped = variableInitializer.Value.UnwrapImplicitConversion();
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
                 if (unwrapped is not ILiteralOperation and
@@ -242,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return !ReferencesLocalVariable(ifOperation.Condition, variable);
         }
 
-        private bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
+        private static bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
         {
             if (operation is ILocalReferenceOperation localReference &&
                 Equals(variable, localReference.Local))

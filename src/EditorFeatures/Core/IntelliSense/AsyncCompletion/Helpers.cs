@@ -3,20 +3,57 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
-using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
     internal static class Helpers
     {
+        private const string PromotedItemOriginalIndexPropertyName = nameof(PromotedItemOriginalIndexPropertyName);
+
+        /// <summary>
+        /// Add star to display text and store the index of the passed-in item in the original sorted list in
+        /// <see cref="AsyncCompletionSessionDataSnapshot.InitialSortedItemList"/> so we can retrieve it when needed.
+        /// </summary>
+        public static RoslynCompletionItem PromoteItem(RoslynCompletionItem item, int index)
+        {
+            return item.WithDisplayText(Completion.Utilities.UnicodeStarAndSpace + item.DisplayText)
+            .AddProperty(PromotedItemOriginalIndexPropertyName, index.ToString());
+        }
+
+        public static RoslynCompletionItem DemoteItem(RoslynCompletionItem item)
+        {
+            if (!TryGetOriginalIndexOfPromotedItem(item, out _))
+                return item;
+
+            Debug.Assert(item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
+            var newProperties = item.GetProperties().WhereAsArray((kvp, propName) => kvp.Key != propName, PromotedItemOriginalIndexPropertyName);
+            return item
+                .WithDisplayText(item.DisplayText[Completion.Utilities.UnicodeStarAndSpace.Length..])
+                .WithProperties(newProperties);
+        }
+
+        public static bool TryGetOriginalIndexOfPromotedItem(RoslynCompletionItem item, out int originalIndex)
+        {
+            if (item.TryGetProperty(PromotedItemOriginalIndexPropertyName, out var indexString))
+            {
+                originalIndex = int.Parse(indexString);
+                return true;
+            }
+
+            originalIndex = -1;
+            return false;
+        }
+
         /// <summary>
         /// Attempts to convert VS Completion trigger into Roslyn completion trigger
         /// </summary>
@@ -30,25 +67,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             var completionTriggerKind = GetRoslynTriggerKind(trigger.Reason);
-            if (completionTriggerKind == CompletionTriggerKind.Deletion)
+            switch (completionTriggerKind)
             {
-                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                char characterRemoved;
-                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                {
-                    // If multiple characters were removed (selection), this finds the first character from the left. 
-                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                }
-                else
-                {
-                    characterRemoved = (char)0;
-                }
+                case CompletionTriggerKind.Deletion:
+                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                    char characterRemoved;
+                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                    {
+                        // If multiple characters were removed (selection), this finds the first character from the left. 
+                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                    }
+                    else
+                    {
+                        characterRemoved = (char)0;
+                    }
 
-                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
-            }
-            else
-            {
-                return new RoslynTrigger(completionTriggerKind, trigger.Character);
+                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+
+                case CompletionTriggerKind.Insertion:
+                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
+
+                default:
+                    return new RoslynTrigger(completionTriggerKind);
             }
         }
 
@@ -121,9 +161,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             if (textTypedSoFar.Length > 0)
             {
+                using var _ = PooledDelegates.GetPooledFunction(static (filterText, pattern) => filterText.StartsWith(pattern, StringComparison.CurrentCultureIgnoreCase), textTypedSoFar, out Func<string, bool> isPrefixMatch);
+
                 // Note that StartsWith ignores \0 at the end of textTypedSoFar on VS Mac and Mono.
                 return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
-                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+                       item.HasDifferentFilterText && item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.HasAdditionalFilterTexts && item.AdditionalFilterTexts.Any(isPrefixMatch);
             }
 
             return false;
@@ -132,10 +175,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         public static bool IsStandardCommitCharacter(char c)
             => c is '\t' or '\n' or '\0';
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        public static bool IsPreferredItem(this VSCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★");
     }
 }

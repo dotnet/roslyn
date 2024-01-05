@@ -5,8 +5,9 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAlias3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -109,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -141,8 +142,8 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -172,7 +173,7 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_VBAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -204,7 +205,7 @@ namespace NS
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAliasReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -229,7 +230,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAliasReferenceInGlobalSuppression_WithAttributeSuffix(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -254,7 +255,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAliasReferenceInGlobalSuppression_WithUsing(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -280,7 +281,7 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestAliasReferenceInGlobalSuppression_WithUsing_WithAttributeSuffix(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -306,8 +307,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -334,8 +335,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -354,8 +355,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -374,8 +375,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -394,8 +395,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias5(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -414,8 +415,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias6(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -434,8 +435,8 @@ namespace N
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(55894, "https://github.com/dotnet/roslyn/issues/55894")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55894")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalAlias7(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -453,6 +454,33 @@ namespace N
                 [|D2|] date;
             }
         }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67989")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestAliasToPointer(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using unsafe $$Alias = int*;
+
+namespace N
+{
+    internal unsafe class C
+    {
+        const int Factor = 3;
+
+        void M()
+        {
+            _ = Alias * Factor;
+        }
+    }
+}
         </Document>
     </Project>
 </Workspace>

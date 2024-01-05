@@ -22,16 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsAnyExpressionContext ||
                 context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                IsAttributeArgumentContext(context) ||
-                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
-        }
-
-        private static bool IsAttributeArgumentContext(CSharpSyntaxContext context)
-        {
-            return
-                context.IsAnyExpressionContext &&
-                context.LeftToken.GetAncestor<AttributeSyntax>() != null;
+                context.IsGlobalStatementContext;
         }
     }
 }

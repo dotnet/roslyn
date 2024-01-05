@@ -27,29 +27,20 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// Finalization/destruction of the underlying raw sqlite statement is handled
     /// by <see cref="SqlConnection.Close_OnlyForUseBySQLiteConnectionPool"/>.</para>
     /// </summary>
-    internal readonly struct SqlStatement
+    internal readonly struct SqlStatement(SqlConnection connection, SafeSqliteStatementHandle statement)
     {
-        private readonly SqlConnection _connection;
-        private readonly SafeSqliteStatementHandle _rawStatement;
-
-        public SqlStatement(SqlConnection connection, SafeSqliteStatementHandle statement)
-        {
-            _connection = connection;
-            _rawStatement = statement;
-        }
-
         internal void Close_OnlyForUseBySqlConnection()
-            => _rawStatement.Dispose();
+            => statement.Dispose();
 
         public void ClearBindings()
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_clear_bindings(_rawStatement));
+            => connection.ThrowIfNotOk(NativeMethods.sqlite3_clear_bindings(statement));
 
         public void Reset()
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_reset(_rawStatement));
+            => connection.ThrowIfNotOk(NativeMethods.sqlite3_reset(statement));
 
         public Result Step(bool throwOnError = true)
         {
-            var stepResult = NativeMethods.sqlite3_step(_rawStatement);
+            var stepResult = NativeMethods.sqlite3_step(statement);
 
             // Anything other than DONE or ROW is an error when stepping.
             // throw if the caller wants that, or just return the value
@@ -58,8 +49,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             {
                 if (throwOnError)
                 {
-                    _connection.Throw(stepResult);
-                    throw ExceptionUtilities.Unreachable;
+                    connection.Throw(stepResult);
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -70,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         {
             const int OptimizedLengthThreshold = 2048;
 
-            // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
+            // Attempt to stackalloc UTF-8 converted small strings to avoid lots of allocs.
             // This code can be removed once we move to a build of sqlitepcl that contains:
             // https://github.com/ericsink/SQLitePCL.raw/pull/401
 
@@ -83,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             // will certainly have more bytes than this threshold.
             if (value.Length <= OptimizedLengthThreshold)
             {
-                // Now see if the utf8 encoded versions is also within the threshold.  As almost all of our strings are
+                // Now see if the UTF-8 encoded versions is also within the threshold.  As almost all of our strings are
                 // ascii, this will be true for nearly all of them.
                 var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
                 if (utf8ByteCount <= OptimizedLengthThreshold)
@@ -101,27 +92,27 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                         }
                     }
 #endif
-                    _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, bytes));
+                    connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(statement, parameterIndex, bytes));
                     return;
                 }
             }
 
-            _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+            connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(statement, parameterIndex, value));
         }
 
         internal void BindInt64Parameter(int parameterIndex, long value)
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_int64(_rawStatement, parameterIndex, value));
+            => connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_int64(statement, parameterIndex, value));
 
         internal void BindBlobParameter(int parameterIndex, ReadOnlySpan<byte> bytes)
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_blob(_rawStatement, parameterIndex, bytes));
+            => connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_blob(statement, parameterIndex, bytes));
 
         internal int GetInt32At(int columnIndex)
-            => NativeMethods.sqlite3_column_int(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_int(statement, columnIndex);
 
         internal long GetInt64At(int columnIndex)
-            => NativeMethods.sqlite3_column_int64(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_int64(statement, columnIndex);
 
         internal string GetStringAt(int columnIndex)
-            => NativeMethods.sqlite3_column_text(_rawStatement, columnIndex);
+            => NativeMethods.sqlite3_column_text(statement, columnIndex);
     }
 }

@@ -25,12 +25,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             Diagnostic diagnostic,
             CodeAction originalCodeAction)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer, fixAllState,
-                   originalCodeAction, new FixAllCodeAction(fixAllState))
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   fixAllState,
+                   originalCodeAction,
+                   new FixAllCodeAction(fixAllState))
         {
             Diagnostic = diagnostic;
         }

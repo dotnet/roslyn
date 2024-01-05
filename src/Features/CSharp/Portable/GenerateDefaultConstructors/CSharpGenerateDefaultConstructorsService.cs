@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -45,19 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
 
             var syntaxTree = semanticDocument.SyntaxTree;
             var node = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor<TypeSyntax>();
-            if (node != null)
+            if (node is { Parent: BaseTypeSyntax { Parent: BaseListSyntax { Types: [var firstType, ..] } baseList } })
             {
-                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax? baseList))
+                if (baseList.Parent is TypeDeclarationSyntax(SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration) parentTypeDecl &&
+                    firstType.Type == node)
                 {
-                    if (baseList.Parent != null &&
-                        baseList.Types.Count > 0 &&
-                        baseList.Types[0].Type == node &&
-                        baseList.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
-                    {
-                        var semanticModel = semanticDocument.SemanticModel;
-                        classType = semanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken) as INamedTypeSymbol;
-                        return classType != null;
-                    }
+                    classType = semanticDocument.SemanticModel.GetDeclaredSymbol(parentTypeDecl, cancellationToken);
+                    return classType != null;
                 }
             }
 

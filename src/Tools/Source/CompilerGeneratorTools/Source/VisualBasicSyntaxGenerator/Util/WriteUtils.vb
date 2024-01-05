@@ -617,7 +617,7 @@ Public MustInherit Class WriteUtils
             text = XmlEscape(text)
         Else
             ' Ensure the text does not require escaping.
-            Dim filtered = text.Replace("<cref ", "").Replace("/>", "").Replace("&amp;", "").Replace("&lt;", "").Replace("&gt;", "")
+            Dim filtered = text.Replace("<see ", "").Replace("/>", "").Replace("&amp;", "").Replace("&lt;", "").Replace("&gt;", "")
             Debug.Assert(filtered = XmlEscape(filtered))
         End If
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExceptionInReadAllBytes()
         {
             var ex = new Exception("Crazy exception you could never have predicted!");
-            var fileSystem = new TestStrongNameFileSystem()
+            var fileSystem = new TestStrongNameFileSystem(_signingTempDirectory.Path)
             {
                 ReadAllBytesFunc = _ => throw ex
             };

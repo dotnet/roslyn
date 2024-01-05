@@ -11,15 +11,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="AdditionalDocumentState"/>.
     /// </summary>
-    internal sealed class AdditionalTextWithState : AdditionalText
+    /// <remarks>
+    /// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
+    /// </remarks>
+    internal sealed class AdditionalTextWithState(AdditionalDocumentState documentState) : AdditionalText
     {
-        private readonly AdditionalDocumentState _documentState;
-
-        /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
-        /// </summary>
-        public AdditionalTextWithState(AdditionalDocumentState documentState)
-            => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
+        private readonly AdditionalDocumentState _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
 
         /// <summary>
         /// Resolved path of the document.

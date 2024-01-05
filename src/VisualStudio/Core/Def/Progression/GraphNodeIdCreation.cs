@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return GetPartialForDynamicType(nodeName);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
                 var property = (IPropertySymbol)method.AssociatedSymbol;
-                if (property.Parameters.Any(p => p.Name == symbol.Name))
+                if (property.Parameters.Any(static (p, symbol) => p.Name == symbol.Name, symbol))
                 {
                     containingSymbol = property;
                 }
@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     foreach (var node in currentNode.DescendantNodes())
                     {
                         var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                        if (current != null && current.Name == symbol.Name && (current.Kind == SymbolKind.Local || current.Kind == SymbolKind.RangeVariable))
+                        if (current is { Kind: SymbolKind.Local or SymbolKind.RangeVariable } && current.Name == symbol.Name)
                         {
                             if (!current.Equals(symbol))
                             {
@@ -554,7 +554,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

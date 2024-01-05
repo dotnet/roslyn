@@ -158,11 +158,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // To ensure a reasonable experience, we instead add the progress into a queue and
                 // only update the UI a few times a second so as to not overload it.
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
-                    TimeSpan.FromMilliseconds(250),
+                    DelayTimeSpan.Short,
                     this.UpdateTableProgressAsync,
                     presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
+
+            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
 
             public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
                 => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
@@ -328,8 +332,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _tableDataSink.IsStable = true;
             }
 
-            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
-
             public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 try
@@ -343,11 +345,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
-
-            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
 
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var document = documentSpan.Document;
                 var options = _globalOptions.GetClassificationOptions(document.Project.Language);
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
@@ -414,10 +414,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => OnReferenceFoundWorkerAsync(reference, cancellationToken);
-
-            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
+            public sealed override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {

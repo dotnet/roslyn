@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class MidKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "Mid",
 $"{VBFeaturesResources.Mid_statement}
@@ -16,13 +16,11 @@ Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWo
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Mid")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
@@ -30,19 +28,16 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Mid")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Mid")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidNotInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Mid")
         End Sub

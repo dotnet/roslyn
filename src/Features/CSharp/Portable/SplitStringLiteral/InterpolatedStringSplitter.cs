@@ -16,24 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
     internal abstract partial class StringSplitter
     {
-        private sealed class InterpolatedStringSplitter : StringSplitter
+        private sealed class InterpolatedStringSplitter(
+            ParsedDocument document,
+            int position,
+            InterpolatedStringExpressionSyntax interpolatedStringExpression,
+            IndentationOptions indentationOptions,
+            CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
         {
-            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
-
-            public InterpolatedStringSplitter(
-                Document document,
-                int position,
-                SyntaxNode root,
-                SourceText sourceText,
-                InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                IndentationOptions options,
-                bool useTabs,
-                int tabSize,
-                CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
-            {
-                _interpolatedStringExpression = interpolatedStringExpression;
-            }
+            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression = interpolatedStringExpression;
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
@@ -88,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
             {
-                var content = SourceText.ToString(TextSpan.FromBounds(start, end));
+                var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
                 return SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Token(
                         leading: default,

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
-        private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
+        private static readonly string[] s_NewLineAsStringArray = ["\n"];
 
         private DocumentationComment(string fullXmlFragment)
         {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
-                            (_parameterNamesBuilder ?? (_parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            (_parameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
                             _comment._parameterTexts.Add(name, TrimEachLine(paramText));
                         }
                     }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
-                            (_typeParameterNamesBuilder ?? (_typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            (_typeParameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
                             _comment._typeParameterTexts.Add(name, TrimEachLine(typeParamText));
                         }
                     }
@@ -283,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         {
                             if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                             {
-                                (_exceptionTypesBuilder ?? (_exceptionTypesBuilder = ImmutableArray.CreateBuilder<string>())).Add(type);
-                                (_exceptionTextBuilders ?? (_exceptionTextBuilders = new Dictionary<string, ImmutableArray<string>.Builder>())).Add(type, ImmutableArray.CreateBuilder<string>());
+                                (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
+                                (_exceptionTextBuilders ??= new Dictionary<string, ImmutableArray<string>.Builder>()).Add(type, ImmutableArray.CreateBuilder<string>());
                             }
 
                             _exceptionTextBuilders[type].Add(exceptionText);
@@ -328,6 +328,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return text;
         }
 
+        public DocumentationComment? GetParameter(string parameterName)
+        {
+            if (!_parameterTexts.TryGetValue(parameterName, out var text))
+                return null;
+
+            return new DocumentationComment(text) { SummaryText = text };
+        }
+
         /// <summary>
         /// Returns the text for a given type parameter, or null if no documentation was given for the type parameter.
         /// </summary>
@@ -335,6 +343,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             _typeParameterTexts.TryGetValue(typeParameterName, out var text);
             return text;
+        }
+
+        public DocumentationComment? GetTypeParameter(string parameterName)
+        {
+            if (!_typeParameterTexts.TryGetValue(parameterName, out var text))
+                return null;
+
+            return new DocumentationComment(text) { SummaryText = text };
         }
 
         /// <summary>

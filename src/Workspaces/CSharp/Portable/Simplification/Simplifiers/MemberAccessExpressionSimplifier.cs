@@ -4,10 +4,10 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsEntirelySimpleNames(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess)
+            return node is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                 ? IsEntirelySimpleNames(memberAccess.Expression)
                 : node is SimpleNameSyntax;
         }

@@ -4,9 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -60,23 +61,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
+                    state);
 
-            return FindReferencesInDocumentAsync(
-                symbol, document, semanticModel,
-                t => IsPotentialReference(syntaxFacts, t),
-                cancellationToken);
+            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
         }
 
         private static bool IsPotentialReference(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token)
+            ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             var node = token.GetRequiredParent();
             return node.GetFirstToken() == token && syntaxFacts.IsConversionExpression(node);

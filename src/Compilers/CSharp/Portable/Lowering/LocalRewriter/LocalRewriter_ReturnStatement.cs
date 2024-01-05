@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         IsLambdaOrExpressionBodiedMember :
                         (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false))))
             {
-                rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
+                rewritten = Instrumenter.InstrumentReturnStatement(node, rewritten);
             }
 
             return rewritten;

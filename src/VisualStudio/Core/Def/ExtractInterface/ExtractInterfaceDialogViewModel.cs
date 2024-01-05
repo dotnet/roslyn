@@ -7,12 +7,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -23,16 +26,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         internal ExtractInterfaceDialogViewModel(
             ISyntaxFactsService syntaxFactsService,
-            IGlyphService glyphService,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             INotificationService notificationService,
             string defaultInterfaceName,
-            List<ISymbol> extractableMembers,
             List<string> conflictingTypeNames,
+            ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName)
         {
             _notificationService = notificationService;
+
+            MemberSelectionViewModel = new MemberSelectionViewModel(
+                uiThreadOperationExecutor,
+                memberViewModels,
+                dependentsMap: null,
+                destinationTypeKind: TypeKind.Interface,
+                showDependentsButton: false,
+                showPublicButton: false);
 
             DestinationViewModel = new NewTypeDestinationSelectionViewModel(
                 defaultInterfaceName,
@@ -41,8 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 generatedNameTypeParameterSuffix,
                 conflictingTypeNames.ToImmutableArray(),
                 syntaxFactsService);
-
-            MemberContainers = extractableMembers.Select(m => new MemberSymbolViewModel(m, glyphService)).OrderBy(s => s.SymbolName).ToList();
         }
 
         internal bool TrySubmit()
@@ -67,31 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         private void SendFailureNotification(string message)
             => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
-        internal void DeselectAll()
-        {
-            foreach (var memberContainer in MemberContainers)
-            {
-                memberContainer.IsChecked = false;
-            }
-        }
-
-        internal void SelectAll()
-        {
-            foreach (var memberContainer in MemberContainers)
-            {
-                memberContainer.IsChecked = true;
-            }
-        }
-
-        public List<MemberSymbolViewModel> MemberContainers { get; set; }
+        public ImmutableArray<MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
 
         public NewTypeDestinationSelectionViewModel DestinationViewModel { get; internal set; }
 
-        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
-        {
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
-            {
-            }
-        }
+        public MemberSelectionViewModel MemberSelectionViewModel { get; }
     }
 }

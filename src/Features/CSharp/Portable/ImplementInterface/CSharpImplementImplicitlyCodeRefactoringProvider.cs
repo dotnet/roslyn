@@ -4,7 +4,6 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly), Shared]
     internal class CSharpImplementImplicitlyCodeRefactoringProvider :
-        AbstractChangeImplementionCodeRefactoringProvider
+        AbstractChangeImplementationCodeRefactoringProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var containingTypeInterfaces = member.ContainingType.AllInterfaces;
             if (containingTypeInterfaces.Length == 0)
                 return false;
-            return memberInterfaceImplementations.Any(impl => containingTypeInterfaces.Contains(impl.ContainingType));
+            return memberInterfaceImplementations.Any(static (impl, containingTypeInterfaces) => containingTypeInterfaces.Contains(impl.ContainingType), containingTypeInterfaces);
         }
 
         // When converting to implicit, we don't need to update any references.

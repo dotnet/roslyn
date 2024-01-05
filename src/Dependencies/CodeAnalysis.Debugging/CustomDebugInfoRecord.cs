@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal struct CustomDebugInfoRecord
+    internal readonly struct CustomDebugInfoRecord
     {
         public readonly CustomDebugInfoKind Kind;
         public readonly byte Version;

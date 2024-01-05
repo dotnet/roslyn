@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract class AbstractSelectedMembers<
         TMemberDeclarationSyntax,
@@ -28,13 +29,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TVariableSyntax : SyntaxNode
     {
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax containingType);
-        protected abstract IEnumerable<TVariableSyntax> GetAllDeclarators(TFieldDeclarationSyntax field);
+        protected abstract ImmutableArray<(SyntaxNode declarator, SyntaxToken identifier)> GetDeclaratorsAndIdentifiers(TMemberDeclarationSyntax member);
 
-        protected abstract SyntaxToken GetVariableIdentifier(TVariableSyntax declarator);
-        protected abstract SyntaxToken GetPropertyIdentifier(TPropertyDeclarationSyntax declarator);
-
-        public async Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
+        public Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(
             SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
+                => GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, IsFieldOrProperty, cancellationToken);
+
+        public Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
+            SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
+                => GetSelectedMembersAsync(tree, textSpan, allowPartialSelection, static _ => true, cancellationToken);
+
+        private async Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
+            SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection,
+            Func<TMemberDeclarationSyntax, bool> membersToKeep, CancellationToken cancellationToken)
         {
             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -64,12 +71,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             if (firstMember == null)
                 return ImmutableArray<SyntaxNode>.Empty;
 
-            return GetFieldsAndPropertiesInSpan(root, text, textSpan, firstMember, allowPartialSelection);
+            return GetMembersInSpan(root, text, textSpan, firstMember, allowPartialSelection, membersToKeep);
         }
 
-        private ImmutableArray<SyntaxNode> GetFieldsAndPropertiesInSpan(
+        private ImmutableArray<SyntaxNode> GetMembersInSpan(
             SyntaxNode root, SourceText text, TextSpan textSpan,
-            TMemberDeclarationSyntax firstMember, bool allowPartialSelection)
+            TMemberDeclarationSyntax firstMember, bool allowPartialSelection,
+            Func<TMemberDeclarationSyntax, bool> membersToKeep)
         {
             var containingType = (TTypeDeclarationSyntax)firstMember.Parent;
             var members = GetMembers(containingType);
@@ -77,33 +85,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             if (fieldIndex < 0)
                 return ImmutableArray<SyntaxNode>.Empty;
 
-            var selectedMembers = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var selectedMembers);
             for (var i = fieldIndex; i < members.Count; i++)
             {
                 var member = members[i];
-                AddSelectedFieldOrPropertyDeclarations(member);
+                AddSelectedMemberDeclarations(member, membersToKeep);
             }
 
-            return selectedMembers.ToImmutableAndFree();
+            return selectedMembers.ToImmutable();
 
             void AddAllMembers(TMemberDeclarationSyntax member)
             {
-                switch (member)
-                {
-                    case TFieldDeclarationSyntax field:
-                        selectedMembers.AddRange(GetAllDeclarators(field));
-                        return;
-                    case TPropertyDeclarationSyntax property:
-                        selectedMembers.Add(property);
-                        return;
-                }
+                selectedMembers.AddRange(GetDeclaratorsAndIdentifiers(member).Select(pair => pair.declarator));
             }
 
             // local functions
-            void AddSelectedFieldOrPropertyDeclarations(TMemberDeclarationSyntax member)
+            void AddSelectedMemberDeclarations(TMemberDeclarationSyntax member, Func<TMemberDeclarationSyntax, bool> membersToKeep)
             {
-                if (member is not TFieldDeclarationSyntax and
-                    not TPropertyDeclarationSyntax)
+                if (!membersToKeep(member))
                 {
                     return;
                 }
@@ -120,8 +119,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     // No selection.  We consider this member selected if a few cases are true:
                     //
                     //  1. Position precedes the first token of the member (on the same line).
-                    //  2. Position touches the name of the field/prop.
-                    //  3. Position is after the last token of the member (on the same line).
+                    //  2. Position touches the name of the member.
+                    //  3. Position touches an immediate child token of the member (on the same line)
+                    //  4. Position is after the last token of the member (on the same line).
 
                     var position = textSpan.Start;
                     if (IsBeforeOrAfterNodeOnSameLine(text, root, member, position))
@@ -131,46 +131,31 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                     else
                     {
-                        switch (member)
+                        foreach (var (decl, id) in GetDeclaratorsAndIdentifiers(member))
                         {
-                            case TFieldDeclarationSyntax field:
-                                foreach (var varDecl in GetAllDeclarators(field))
-                                {
-                                    if (GetVariableIdentifier(varDecl).FullSpan.IntersectsWith(position))
-                                        selectedMembers.Add(varDecl);
-                                }
-
+                            if (id.FullSpan.IntersectsWith(position))
+                            {
+                                selectedMembers.Add(decl);
                                 return;
-                            case TPropertyDeclarationSyntax property:
-                                if (GetPropertyIdentifier(property).FullSpan.IntersectsWith(position))
-                                    selectedMembers.Add(property);
-
-                                return;
+                            }
                         }
                     }
                 }
                 else
                 {
                     // if the user has an actual selection, get the fields/props if the selection
-                    // surrounds the names of in the case of allowPartialSelection.
+                    // surrounds the names of in the case of allowPartialSelection. Selecting other keywords
+                    // should not be considered member selection if the name is not also selected
 
                     if (!allowPartialSelection)
                         return;
 
-                    switch (member)
+                    foreach (var (decl, id) in GetDeclaratorsAndIdentifiers(member))
                     {
-                        case TFieldDeclarationSyntax field:
-                            foreach (var variable in GetAllDeclarators(field))
-                            {
-                                if (textSpan.OverlapsWith(GetVariableIdentifier(variable).Span))
-                                    selectedMembers.Add(variable);
-                            }
-
-                            return;
-                        case TPropertyDeclarationSyntax property:
-                            if (textSpan.OverlapsWith(GetPropertyIdentifier(property).Span))
-                                selectedMembers.Add(property);
-                            return;
+                        if (textSpan.OverlapsWith(id.Span))
+                        {
+                            selectedMembers.Add(decl);
+                        }
                     }
                 }
             }
@@ -196,5 +181,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             return false;
         }
+
+        private static bool IsFieldOrProperty(TMemberDeclarationSyntax member)
+            => member is TFieldDeclarationSyntax or TPropertyDeclarationSyntax;
     }
 }

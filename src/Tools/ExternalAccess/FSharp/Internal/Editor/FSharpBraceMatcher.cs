@@ -5,16 +5,16 @@
 #nullable disable
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [ExportBraceMatcher(LanguageNames.FSharp)]
+    [ExportBraceMatcher(LanguageNames.FSharp), Shared]
     internal class FSharpBraceMatcher : IBraceMatcher
     {
         private readonly IFSharpBraceMatcher _braceMatcher;

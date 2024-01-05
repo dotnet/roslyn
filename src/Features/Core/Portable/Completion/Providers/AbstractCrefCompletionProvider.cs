@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
-            if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString) &&
+            if (item.TryGetProperty(HideAdvancedMembers, out var hideAdvancedMembersString) &&
                 bool.TryParse(hideAdvancedMembersString, out var hideAdvancedMembers))
             {
                 options = options with { HideAdvancedMembers = hideAdvancedMembers };

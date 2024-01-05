@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
-                    t => _tokenStream.GetCurrentColumn(t), cancellationToken);
+                    _tokenStream.GetCurrentColumn, cancellationToken);
 
                 var data = new SimpleIndentationData(initialOperation.TextSpan, initialIndentation);
                 _indentationTree.AddIntervalInPlace(data);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
+            suppressOperations?.Do(this.AddInitialSuppressOperation);
         }
 
         public void AddIndentBlockOperations(
@@ -264,10 +264,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         public void AddInitialSuppressOperation(SuppressOperation operation)
         {
             // don't add stuff if it is empty
-            if (operation == null || operation.TextSpan.IsEmpty)
-            {
+            if (operation.TextSpan.IsEmpty)
                 return;
-            }
 
             var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
             AddSuppressOperation(operation, onSameLine);
@@ -320,8 +318,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddSpacingSuppressOperation(SuppressOperation operation, bool twoTokensOnSameLine)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
+            if (operation.TextSpan.IsEmpty)
             {
                 return;
             }
@@ -348,8 +345,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddFormattingSuppressOperation(SuppressOperation operation)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
+            if (operation.TextSpan.IsEmpty)
             {
                 return;
             }
@@ -370,8 +366,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddWrappingSuppressOperation(SuppressOperation operation, bool twoTokensOnSameLine)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
+            if (operation.TextSpan.IsEmpty)
             {
                 return;
             }
@@ -529,13 +524,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         public int GetDeltaFromPreviousChangesMap(SyntaxToken token, Dictionary<SyntaxToken, int> previousChangesMap)
         {
             // no changes
-            if (!previousChangesMap.ContainsKey(token))
+            if (!previousChangesMap.TryGetValue(token, out var value))
             {
                 return 0;
             }
 
             var currentColumn = _tokenStream.GetCurrentColumn(token);
-            return currentColumn - previousChangesMap[token];
+            return currentColumn - value;
         }
 
         public SyntaxToken GetEndTokenForAnchorSpan(TokenData tokenData)

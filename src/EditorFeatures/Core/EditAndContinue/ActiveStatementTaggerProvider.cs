@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -33,22 +34,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [TagType(typeof(ActiveStatementTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class ActiveStatementTaggerProvider : AsynchronousTaggerProvider<ITextMarkerTag>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class ActiveStatementTaggerProvider(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
     {
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ActiveStatementTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
-        {
-        }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
@@ -75,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var activeStatementTrackingService = document.Project.Solution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            var activeStatementTrackingService = document.Project.Solution.Services.GetService<IActiveStatementTrackingService>();
             if (activeStatementTrackingService == null)
             {
                 return;
@@ -100,6 +96,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Let the context know that this was the span we actually tried to tag.
             context.SetSpansTagged(ImmutableArray.Create(spanToTag.SnapshotSpan));
+        }
+
+        protected override bool TagEquals(ITextMarkerTag tag1, ITextMarkerTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 == tag2, "ActiveStatementTag is a supposed to be a singleton");
+            return true;
         }
     }
 }

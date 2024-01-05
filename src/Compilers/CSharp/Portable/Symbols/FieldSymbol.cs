@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract RefKind RefKind { get; }
+
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
         public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         /// <summary>
@@ -349,7 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, RefKind == RefKind.None ? AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile : AllowedRequiredModifierType.None) ||
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.None))
             {
                 return true;
             }
@@ -496,7 +501,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool IFieldSymbolInternal.IsVolatile => this.IsVolatile;
+        ISymbolInternal IFieldSymbolInternal.AssociatedSymbol => AssociatedSymbol;
+        bool IFieldSymbolInternal.IsVolatile => IsVolatile;
+        ITypeSymbolInternal IFieldSymbolInternal.Type => Type;
 
         protected override ISymbol CreateISymbol()
         {

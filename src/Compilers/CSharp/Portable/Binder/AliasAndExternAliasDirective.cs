@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct AliasAndExternAliasDirective
+    internal readonly struct AliasAndExternAliasDirective
     {
         public readonly AliasSymbol Alias;
         public readonly SyntaxReference? ExternAliasDirectiveReference;

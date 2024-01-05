@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private ImplicitInstanceInfo _currentImplicitInstance;
 
+        private int _recursionDepth;
+
         private ControlFlowGraphBuilder(Compilation compilation, CaptureIdDispenser? captureIdDispenser, ArrayBuilder<BasicBlockBuilder> blocks)
         {
             Debug.Assert(compilation != null);
@@ -96,7 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
-                    body.Kind == OperationKind.ParameterInitializer,
+                    body.Kind == OperationKind.ParameterInitializer ||
+                    body.Kind == OperationKind.Attribute,
                     $"Unexpected root operation kind: {body.Kind}");
                 Debug.Assert(parent == null);
             }
@@ -442,7 +445,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     fromRegion = enclosing;
@@ -1306,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (block.Ordinal != -1)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             block.Ordinal = _blocks.Count;
@@ -1394,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
         }
 
-        [return: NotNullIfNotNull("result")]
+        [return: NotNullIfNotNull(nameof(result))]
         private IOperation? FinishVisitingStatement(IOperation originalOperation, IOperation? result = null)
         {
             Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
@@ -1609,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // capture for the result because there won't be any result from the throwing branches.
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
-                    IOperation? rewrittenThrow = base.Visit(whenTrueConversion.Operand, null);
+                    IOperation? rewrittenThrow = BaseVisitRequired(whenTrueConversion.Operand, null);
                     Debug.Assert(rewrittenThrow!.Kind == OperationKind.None);
                     Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
 
@@ -2103,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation value = VisitRequired(compoundAssignment.Value);
 
             return PopStackFrame(frame, new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted,
-                operation.IsChecked, operation.OperatorMethod, PopOperand(), value, semanticModel: null,
+                operation.IsChecked, operation.OperatorMethod, operation.ConstrainedToType, PopOperand(), value, semanticModel: null,
                 syntax: operation.Syntax, type: operation.Type, isImplicit: IsImplicit(operation)));
         }
 
@@ -2126,6 +2129,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation instance = PopOperand();
             PopStackFrame(frame);
             return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new InlineArrayAccessOperation(instance, argument, semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -2166,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                              ITypeSymbolHelpers.IsObjectType(operation.LeftOperand.Type) &&
                              ITypeSymbolHelpers.IsObjectType(operation.RightOperand.Type))
                     {
-                        return VisitObjectBinaryConditionalOperator(operation, captureIdForResult);
+                        return VisitObjectBinaryConditionalOperator(operation);
                     }
                     else if (ITypeSymbolHelpers.IsDynamicType(operation.Type) &&
                              (ITypeSymbolHelpers.IsDynamicType(operation.LeftOperand.Type) ||
@@ -2181,12 +2195,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            EvalStackFrame frame = PushStackFrame();
-            PushOperand(VisitRequired(operation.LeftOperand));
-            IOperation rightOperand = VisitRequired(operation.RightOperand);
-            return PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
-                                                            operation.OperatorMethod, ((BinaryOperation)operation).UnaryOperatorMethod, semanticModel: null,
-                                                            operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+            var stack = ArrayBuilder<(IBinaryOperation, EvalStackFrame)>.GetInstance();
+            IOperation leftOperand;
+
+            while (true)
+            {
+                stack.Push((operation, PushStackFrame()));
+                leftOperand = operation.LeftOperand;
+
+                if (leftOperand is not IBinaryOperation binary || IsConditional(binary))
+                {
+                    break;
+                }
+
+                operation = binary;
+            }
+
+            leftOperand = VisitRequired(leftOperand);
+
+            do
+            {
+                EvalStackFrame frame;
+                (operation, frame) = stack.Pop();
+
+                PushOperand(leftOperand);
+                IOperation rightOperand = VisitRequired(operation.RightOperand);
+
+                leftOperand = PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
+                                                                       operation.OperatorMethod, operation.ConstrainedToType, ((BinaryOperation)operation).UnaryOperatorMethod,
+                                                                       semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+
+            }
+            while (stack.Count != 0);
+
+            stack.Free();
+
+            return leftOperand;
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
@@ -2203,8 +2247,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return VisitConditionalExpression(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
-            return new UnaryOperation(operation.OperatorKind, VisitRequired(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,
-                                               semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+            return new UnaryOperation(operation.OperatorKind, VisitRequired(operation.Operand), operation.IsLifted, operation.IsChecked,
+                                      operation.OperatorMethod, operation.ConstrainedToType,
+                                      semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         private static bool IsBooleanLogicalNot(IUnaryOperation operation)
@@ -2346,13 +2391,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             IOperation negateNullable(IOperation operand)
             {
-                return new UnaryOperation(UnaryOperatorKind.Not, operand, isLifted: true, isChecked: false, operatorMethod: null,
-                                                   semanticModel: null, operand.Syntax, operand.Type, constantValue: null, isImplicit: true);
+                return new UnaryOperation(UnaryOperatorKind.Not, operand, isLifted: true, isChecked: false,
+                                          operatorMethod: null, constrainedToType: null,
+                                          semanticModel: null, operand.Syntax, operand.Type, constantValue: null, isImplicit: true);
 
             }
         }
 
-        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp)
         {
             SpillEvalStack();
 
@@ -2447,8 +2493,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                      (ITypeSymbolHelpers.IsNullableType(left.Type) || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))))
                 {
                     condition = new UnaryOperation(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
-                                                            condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
-                                                            semanticModel: null, condition.Syntax, booleanType, constantValue: null, isImplicit: true);
+                                                   condition, isLifted: false, isChecked: false,
+                                                   operatorMethod: unaryOperatorMethod,
+                                                   constrainedToType: unaryOperatorMethod is not null && (unaryOperatorMethod.IsAbstract || unaryOperatorMethod.IsVirtual) ? binOp.ConstrainedToType : null,
+                                                   semanticModel: null, condition.Syntax, booleanType, constantValue: null, isImplicit: true);
                 }
                 else
                 {
@@ -2483,18 +2531,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation visitedRight = VisitRequired(right);
             AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax,
                                          new BinaryOperation(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
-                                                                      PopOperand(),
-                                                                      visitedRight,
-                                                                      isLifted: false,
-                                                                      binOp.IsChecked,
-                                                                      binOp.IsCompareText,
-                                                                      binOp.OperatorMethod,
-                                                                      unaryOperatorMethod: null,
-                                                                      semanticModel: null,
-                                                                      binOp.Syntax,
-                                                                      binOp.Type,
-                                                                      binOp.GetConstantValue(),
-                                                                      IsImplicit(binOp))));
+                                                             PopOperand(),
+                                                             visitedRight,
+                                                             isLifted: false,
+                                                             binOp.IsChecked,
+                                                             binOp.IsCompareText,
+                                                             binOp.OperatorMethod,
+                                                             binOp.OperatorMethod is not null && (binOp.OperatorMethod.IsAbstract || binOp.OperatorMethod.IsVirtual) ? binOp.ConstrainedToType : null,
+                                                             unaryOperatorMethod: null,
+                                                             semanticModel: null,
+                                                             binOp.Syntax,
+                                                             binOp.Type,
+                                                             binOp.GetConstantValue(),
+                                                             IsImplicit(binOp))));
 
             PopStackFrameAndLeaveRegion(frame);
             LeaveRegionsUpTo(resultCaptureRegion);
@@ -2506,6 +2555,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private IOperation VisitUserDefinedBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
+            Debug.Assert(binOp.OperatorMethod is not null);
+
             SpillEvalStack();
 
             var resultCaptureRegion = CurrentRegionRequired;
@@ -2545,8 +2596,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType))
             {
                 condition = new UnaryOperation(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
-                                                        condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
-                                                        semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: null, isImplicit: true);
+                                               condition, isLifted: false, isChecked: false,
+                                               operatorMethod: unaryOperatorMethod,
+                                               constrainedToType: unaryOperatorMethod.IsAbstract || unaryOperatorMethod.IsVirtual ? binOp.ConstrainedToType : null,
+                                               semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: null, isImplicit: true);
             }
             else
             {
@@ -2568,17 +2621,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax,
                                          new BinaryOperation(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
-                                                                      PopOperand(),
-                                                                      visitedRight,
-                                                                      isLifted,
-                                                                      binOp.IsChecked,
-                                                                      binOp.IsCompareText,
-                                                                      binOp.OperatorMethod,
-                                                                      unaryOperatorMethod: null,
-                                                                      semanticModel: null,
-                                                                      binOp.Syntax,
-                                                                      binOp.Type,
-                                                                      binOp.GetConstantValue(), IsImplicit(binOp))));
+                                                             PopOperand(),
+                                                             visitedRight,
+                                                             isLifted,
+                                                             binOp.IsChecked,
+                                                             binOp.IsCompareText,
+                                                             binOp.OperatorMethod,
+                                                             binOp.OperatorMethod.IsAbstract || binOp.OperatorMethod.IsVirtual ? binOp.ConstrainedToType : null,
+                                                             unaryOperatorMethod: null,
+                                                             semanticModel: null,
+                                                             binOp.Syntax,
+                                                             binOp.Type,
+                                                             binOp.GetConstantValue(), IsImplicit(binOp))));
 
             PopStackFrameAndLeaveRegion(frame);
             LeaveRegionsUpTo(resultCaptureRegion);
@@ -2676,11 +2730,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 return lastUnary != null
                     ? new UnaryOperation(lastUnary.OperatorKind, condition, lastUnary.IsLifted, lastUnary.IsChecked,
-                                                  lastUnary.OperatorMethod, semanticModel: null, lastUnary.Syntax,
-                                                  lastUnary.Type, lastUnary.GetConstantValue(), IsImplicit(lastUnary))
+                                         lastUnary.OperatorMethod, lastUnary.ConstrainedToType, semanticModel: null, lastUnary.Syntax,
+                                         lastUnary.Type, lastUnary.GetConstantValue(), IsImplicit(lastUnary))
                     : new UnaryOperation(UnaryOperatorKind.Not, condition, isLifted: false, isChecked: false,
-                                                  operatorMethod: null, semanticModel: null, condition.Syntax,
-                                                  condition.Type, constantValue: null, isImplicit: true);
+                                         operatorMethod: null, constrainedToType: null, semanticModel: null, condition.Syntax,
+                                         condition.Type, constantValue: null, isImplicit: true);
             }
 
             return condition;
@@ -2712,143 +2766,190 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private void VisitConditionalBranchCore(IOperation condition, [NotNull] ref BasicBlockBuilder? dest, bool jumpIfTrue)
         {
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            _recursionDepth++;
+            visitConditionalBranchCore(condition, ref dest, jumpIfTrue);
+            _recursionDepth--;
+
+            void visitConditionalBranchCore(IOperation condition, [NotNull] ref BasicBlockBuilder? dest, bool jumpIfTrue)
+            {
 oneMoreTime:
-            Debug.Assert(_startSpillingAt == _evalStack.Count);
+                Debug.Assert(_startSpillingAt == _evalStack.Count);
 
-            while (condition.Kind == OperationKind.Parenthesized)
-            {
-                condition = ((IParenthesizedOperation)condition).Operand;
-            }
+                condition = skipParenthesized(condition);
 
-            switch (condition.Kind)
-            {
-                case OperationKind.Binary:
-                    var binOp = (IBinaryOperation)condition;
+                switch (condition.Kind)
+                {
+                    case OperationKind.Binary:
 
-                    if (IsBooleanConditionalOperator(binOp))
-                    {
-                        if (CalculateAndOrSense(binOp, jumpIfTrue))
+                        if (IsBooleanConditionalOperator((IBinaryOperation)condition))
                         {
-                            // gotoif(LeftOperand != sense) fallThrough
-                            // gotoif(RightOperand == sense) dest
-                            // fallThrough:
+                            dest ??= new BasicBlockBuilder(BasicBlockKind.Block);
+                            var stack = ArrayBuilder<(IOperation? condition, BasicBlockBuilder dest, bool jumpIfTrue)>.GetInstance();
+                            stack.Push((condition, dest, jumpIfTrue));
 
-                            BasicBlockBuilder? fallThrough = null;
+                            do
+                            {
+                                (IOperation? condition, BasicBlockBuilder dest, bool jumpIfTrue) top = stack.Pop();
 
-                            VisitConditionalBranchCore(binOp.LeftOperand, ref fallThrough, !jumpIfTrue);
-                            VisitConditionalBranchCore(binOp.RightOperand, ref dest, jumpIfTrue);
-                            AppendNewBlock(fallThrough);
+                                if (top.condition is null)
+                                {
+                                    // This is a special entry to indicate that it is time to append the block
+                                    AppendNewBlock(top.dest);
+                                }
+                                else if (top.condition is IBinaryOperation binOp && IsBooleanConditionalOperator(binOp))
+                                {
+                                    if (CalculateAndOrSense(binOp, top.jumpIfTrue))
+                                    {
+                                        // gotoif(LeftOperand != sense) fallThrough
+                                        // gotoif(RightOperand == sense) dest
+                                        // fallThrough:
+
+                                        BasicBlockBuilder? fallThrough = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                                        // Note, operations are pushed to the stack in opposite order
+                                        stack.Push((null, fallThrough, true)); // This is a special entry to indicate that it is time to append the fallThrough block
+                                        stack.Push((skipParenthesized(binOp.RightOperand), top.dest, top.jumpIfTrue));
+                                        stack.Push((skipParenthesized(binOp.LeftOperand), fallThrough, !top.jumpIfTrue));
+                                    }
+                                    else
+                                    {
+                                        // gotoif(LeftOperand == sense) dest
+                                        // gotoif(RightOperand == sense) dest
+
+                                        // Note, operations are pushed to the stack in opposite order
+                                        stack.Push((skipParenthesized(binOp.RightOperand), top.dest, top.jumpIfTrue));
+                                        stack.Push((skipParenthesized(binOp.LeftOperand), top.dest, top.jumpIfTrue));
+                                    }
+                                }
+                                else if (stack.Count == 0 && ReferenceEquals(dest, top.dest))
+                                {
+                                    // Instead of recursion we can restart from the top with new condition
+                                    condition = top.condition;
+                                    jumpIfTrue = top.jumpIfTrue;
+                                    stack.Free();
+                                    goto oneMoreTime;
+                                }
+                                else
+                                {
+                                    VisitConditionalBranchCore(top.condition, ref top.dest, top.jumpIfTrue);
+                                }
+                            }
+                            while (stack.Count != 0);
+
+                            stack.Free();
                             return;
                         }
-                        else
-                        {
-                            // gotoif(LeftOperand == sense) dest
-                            // gotoif(RightOperand == sense) dest
 
-                            VisitConditionalBranchCore(binOp.LeftOperand, ref dest, jumpIfTrue);
-                            condition = binOp.RightOperand;
+                        // none of above.
+                        // then it is regular binary expression - Or, And, Xor ...
+                        goto default;
+
+                    case OperationKind.Unary:
+                        var unOp = (IUnaryOperation)condition;
+
+                        if (IsBooleanLogicalNot(unOp))
+                        {
+                            jumpIfTrue = !jumpIfTrue;
+                            condition = unOp.Operand;
                             goto oneMoreTime;
                         }
-                    }
+                        goto default;
 
-                    // none of above.
-                    // then it is regular binary expression - Or, And, Xor ...
-                    goto default;
-
-                case OperationKind.Unary:
-                    var unOp = (IUnaryOperation)condition;
-
-                    if (IsBooleanLogicalNot(unOp))
-                    {
-                        jumpIfTrue = !jumpIfTrue;
-                        condition = unOp.Operand;
-                        goto oneMoreTime;
-                    }
-                    goto default;
-
-                case OperationKind.Conditional:
-                    if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
-                    {
-                        var conditional = (IConditionalOperation)condition;
-
-                        Debug.Assert(conditional.WhenFalse is not null);
-                        if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
-                            ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
+                    case OperationKind.Conditional:
+                        if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
                         {
-                            BasicBlockBuilder? whenFalse = null;
-                            VisitConditionalBranchCore(conditional.Condition, ref whenFalse, jumpIfTrue: false);
-                            VisitConditionalBranchCore(conditional.WhenTrue, ref dest, jumpIfTrue);
+                            var conditional = (IConditionalOperation)condition;
 
-                            var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                            UnconditionalBranch(afterIf);
+                            Debug.Assert(conditional.WhenFalse is not null);
+                            if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
+                                ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
+                            {
+                                BasicBlockBuilder? whenFalse = null;
+                                VisitConditionalBranchCore(conditional.Condition, ref whenFalse, jumpIfTrue: false);
+                                VisitConditionalBranchCore(conditional.WhenTrue, ref dest, jumpIfTrue);
 
-                            AppendNewBlock(whenFalse);
-                            VisitConditionalBranchCore(conditional.WhenFalse, ref dest, jumpIfTrue);
-                            AppendNewBlock(afterIf);
+                                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+                                UnconditionalBranch(afterIf);
 
+                                AppendNewBlock(whenFalse);
+                                VisitConditionalBranchCore(conditional.WhenFalse, ref dest, jumpIfTrue);
+                                AppendNewBlock(afterIf);
+
+                                return;
+                            }
+                        }
+                        goto default;
+
+                    case OperationKind.Coalesce:
+                        if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
+                        {
+                            var coalesce = (ICoalesceOperation)condition;
+
+                            if (ITypeSymbolHelpers.IsBooleanType(coalesce.WhenNull.Type))
+                            {
+                                var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                                EvalStackFrame frame = PushStackFrame();
+
+                                IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
+
+                                dest ??= new BasicBlockBuilder(BasicBlockKind.Block);
+                                ConditionalBranch(convertedTestExpression, jumpIfTrue, dest);
+                                _currentBasicBlock = null;
+
+                                var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
+                                UnconditionalBranch(afterCoalesce);
+
+                                PopStackFrameAndLeaveRegion(frame);
+
+                                AppendNewBlock(whenNull);
+                                VisitConditionalBranchCore(coalesce.WhenNull, ref dest, jumpIfTrue);
+
+                                AppendNewBlock(afterCoalesce);
+
+                                return;
+                            }
+                        }
+                        goto default;
+
+                    case OperationKind.Conversion:
+                        var conversion = (IConversionOperation)condition;
+
+                        if (conversion.Operand.Kind == OperationKind.Throw)
+                        {
+                            IOperation? rewrittenThrow = BaseVisitRequired(conversion.Operand, null);
+                            Debug.Assert(rewrittenThrow != null);
+                            Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
+                            Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
+                            dest ??= new BasicBlockBuilder(BasicBlockKind.Block);
                             return;
                         }
-                    }
-                    goto default;
+                        goto default;
 
-                case OperationKind.Coalesce:
-                    if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
-                    {
-                        var coalesce = (ICoalesceOperation)condition;
-
-                        if (ITypeSymbolHelpers.IsBooleanType(coalesce.WhenNull.Type))
+                    default:
                         {
-                            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
-
                             EvalStackFrame frame = PushStackFrame();
 
-                            IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
-
-                            dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                            ConditionalBranch(convertedTestExpression, jumpIfTrue, dest);
+                            condition = VisitRequired(condition);
+                            dest ??= new BasicBlockBuilder(BasicBlockKind.Block);
+                            ConditionalBranch(condition, jumpIfTrue, dest);
                             _currentBasicBlock = null;
 
-                            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
-                            UnconditionalBranch(afterCoalesce);
-
                             PopStackFrameAndLeaveRegion(frame);
-
-                            AppendNewBlock(whenNull);
-                            VisitConditionalBranchCore(coalesce.WhenNull, ref dest, jumpIfTrue);
-
-                            AppendNewBlock(afterCoalesce);
-
                             return;
                         }
-                    }
-                    goto default;
+                }
 
-                case OperationKind.Conversion:
-                    var conversion = (IConversionOperation)condition;
-
-                    if (conversion.Operand.Kind == OperationKind.Throw)
+                static IOperation skipParenthesized(IOperation condition)
+                {
+                    while (condition.Kind == OperationKind.Parenthesized)
                     {
-                        IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
-                        Debug.Assert(rewrittenThrow != null);
-                        Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                        Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
-                        dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                        return;
+                        condition = ((IParenthesizedOperation)condition).Operand;
                     }
-                    goto default;
 
-                default:
-                    {
-                        EvalStackFrame frame = PushStackFrame();
-
-                        condition = VisitRequired(condition);
-                        dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                        ConditionalBranch(condition, jumpIfTrue, dest);
-                        _currentBasicBlock = null;
-
-                        PopStackFrameAndLeaveRegion(frame);
-                        return;
-                    }
+                    return condition;
+                }
             }
         }
 
@@ -2959,7 +3060,7 @@ oneMoreTime:
                 AppendNewBlock(whenNull);
 
                 Debug.Assert(conversion is not null);
-                IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
+                IOperation? rewrittenThrow = BaseVisitRequired(conversion.Operand, null);
                 Debug.Assert(rewrittenThrow != null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                 Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
@@ -3233,7 +3334,7 @@ oneMoreTime:
                     if (candidate.OriginalDefinition.Equals(method))
                     {
                         method = (IMethodSymbol)candidate;
-                        return new InvocationOperation(method, value, isVirtual: false,
+                        return new InvocationOperation(method, constrainedToType: null, value, isVirtual: false,
                                                        ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
                                                        method.ReturnType, isImplicit: true);
                     }
@@ -3714,7 +3815,7 @@ oneMoreTime:
 
         public override IOperation VisitCatchClause(ICatchClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitReturn(IReturnOperation operation, int? captureIdForResult)
@@ -4066,7 +4167,7 @@ oneMoreTime:
                         args = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod?.IsVirtual ?? true,
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
 
@@ -4168,7 +4269,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
+                    AddStatement(new InvocationOperation(enterMethod, constrainedToType: null, instance: null, isVirtual: false,
                                                           ImmutableArray.Create<IArgumentOperation>(
                                                                     new ArgumentOperation(ArgumentKind.Explicit,
                                                                                           enterMethod.Parameters[0],
@@ -4196,7 +4297,7 @@ oneMoreTime:
                 Debug.Assert(enterMethod is not null);
                 lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
                                                          lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
-                AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
+                AddStatement(new InvocationOperation(enterMethod, constrainedToType: null, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       enterMethod.Parameters[0],
@@ -4251,18 +4352,18 @@ oneMoreTime:
             }
             else
             {
-                AddStatement(new InvocationOperation(exitMethod, instance: null, isVirtual: false,
-                                                      ImmutableArray.Create<IArgumentOperation>(
-                                                                new ArgumentOperation(ArgumentKind.Explicit,
-                                                                                      exitMethod.Parameters[0],
-                                                                                      lockedValue,
-                                                                                      inConversion: OperationFactory.IdentityConversion,
-                                                                                      outConversion: OperationFactory.IdentityConversion,
-                                                                                      semanticModel: null,
-                                                                                      lockedValue.Syntax,
-                                                                                      isImplicit: true)),
-                                                      semanticModel: null, lockedValue.Syntax,
-                                                      exitMethod.ReturnType, isImplicit: true));
+                AddStatement(new InvocationOperation(exitMethod, constrainedToType: null, instance: null, isVirtual: false,
+                                                     ImmutableArray.Create<IArgumentOperation>(
+                                                               new ArgumentOperation(ArgumentKind.Explicit,
+                                                                                     exitMethod.Parameters[0],
+                                                                                     lockedValue,
+                                                                                     inConversion: OperationFactory.IdentityConversion,
+                                                                                     outConversion: OperationFactory.IdentityConversion,
+                                                                                     semanticModel: null,
+                                                                                     lockedValue.Syntax,
+                                                                                     isImplicit: true)),
+                                                     semanticModel: null, lockedValue.Syntax,
+                                                     exitMethod.ReturnType, isImplicit: true));
             }
 
             AppendNewBlock(endOfFinally);
@@ -4403,9 +4504,25 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
+
+                    if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
+                    {
+                        if (info.CollectionIsInlineArrayValue)
+                        {
+                            // We cannot convert a value to a span, need to make a local copy and convert that.
+                            int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
+
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
+                        }
+
+                        collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
+                    }
+
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
-                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
@@ -4450,6 +4567,7 @@ oneMoreTime:
                     var instance = info.CurrentProperty.IsStatic ? null : enumeratorRef;
                     var visitedArguments = makeArguments(info.CurrentArguments, ref instance);
                     return new PropertyReferenceOperation(info.CurrentProperty,
+                                                          constrainedToType: null,
                                                           visitedArguments,
                                                           instance,
                                                           semanticModel: null,
@@ -4513,7 +4631,7 @@ oneMoreTime:
             {
                 Debug.Assert(method.IsStatic == (instanceOpt == null));
                 var visitedArguments = makeArguments(arguments, ref instanceOpt);
-                return new InvocationOperation(method, instanceOpt,
+                return new InvocationOperation(method, constrainedToType: null, instanceOpt,
                                                isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
                                                visitedArguments, semanticModel: null, syntax,
                                                method.ReturnType, isImplicit: true);
@@ -4642,7 +4760,7 @@ oneMoreTime:
 
                     Debug.Assert(builder.All(op => op is not null));
 
-                    return new InvocationOperation(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                    return new InvocationOperation(method, constrainedToType: null, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
                                                    semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
                                                    isImplicit: true);
                 }
@@ -4770,18 +4888,19 @@ oneMoreTime:
                                                                        isImplicit: true);
 
                             isUp = new BinaryOperation(BinaryOperatorKind.GreaterThanOrEqual,
-                                                                stepValue,
-                                                                literal,
-                                                                isLifted: false,
-                                                                isChecked: false,
-                                                                isCompareText: false,
-                                                                operatorMethod: null,
-                                                                unaryOperatorMethod: null,
-                                                                semanticModel: null,
-                                                                stepValue.Syntax,
-                                                                booleanType,
-                                                                constantValue: null,
-                                                                isImplicit: true);
+                                                       stepValue,
+                                                       literal,
+                                                       isLifted: false,
+                                                       isChecked: false,
+                                                       isCompareText: false,
+                                                       operatorMethod: null,
+                                                       constrainedToType: null,
+                                                       unaryOperatorMethod: null,
+                                                       semanticModel: null,
+                                                       stepValue.Syntax,
+                                                       booleanType,
+                                                       constantValue: null,
+                                                       isImplicit: true);
 
                             AddStatement(new FlowCaptureOperation(positiveFlagId, isUp.Syntax, isUp));
 
@@ -4923,18 +5042,19 @@ oneMoreTime:
                     if (comparisonKind != BinaryOperatorKind.None)
                     {
                         condition = new BinaryOperation(comparisonKind,
-                                                                 PopOperand(),
-                                                                 limitReference,
-                                                                 isLifted: false,
-                                                                 isChecked: false,
-                                                                 isCompareText: false,
-                                                                 operatorMethod: null,
-                                                                 unaryOperatorMethod: null,
-                                                                 semanticModel: null,
-                                                                 operation.LimitValue.Syntax,
-                                                                 booleanType,
-                                                                 constantValue: null,
-                                                                 isImplicit: true);
+                                                        PopOperand(),
+                                                        limitReference,
+                                                        isLifted: false,
+                                                        isChecked: false,
+                                                        isCompareText: false,
+                                                        operatorMethod: null,
+                                                        constrainedToType: null,
+                                                        unaryOperatorMethod: null,
+                                                        semanticModel: null,
+                                                        operation.LimitValue.Syntax,
+                                                        booleanType,
+                                                        constantValue: null,
+                                                        isImplicit: true);
 
                         ConditionalBranch(condition, jumpIfTrue: false, @break);
                         UnconditionalBranch(bodyBlock);
@@ -4959,18 +5079,19 @@ oneMoreTime:
                     if (ITypeSymbolHelpers.IsNullableType(operation.LimitValue.Type))
                     {
                         eitherLimitOrControlVariableIsNull = new BinaryOperation(BinaryOperatorKind.Or,
-                                                                                          MakeIsNullOperation(limitReference, booleanType),
-                                                                                          MakeIsNullOperation(PopOperand(), booleanType),
-                                                                                          isLifted: false,
-                                                                                          isChecked: false,
-                                                                                          isCompareText: false,
-                                                                                          operatorMethod: null,
-                                                                                          unaryOperatorMethod: null,
-                                                                                          semanticModel: null,
-                                                                                          operation.StepValue.Syntax,
-                                                                                          _compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                                          constantValue: null,
-                                                                                          isImplicit: true);
+                                                                                 MakeIsNullOperation(limitReference, booleanType),
+                                                                                 MakeIsNullOperation(PopOperand(), booleanType),
+                                                                                 isLifted: false,
+                                                                                 isChecked: false,
+                                                                                 isCompareText: false,
+                                                                                 operatorMethod: null,
+                                                                                 constrainedToType: null,
+                                                                                 unaryOperatorMethod: null,
+                                                                                 semanticModel: null,
+                                                                                 operation.StepValue.Syntax,
+                                                                                 _compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                                                 constantValue: null,
+                                                                                 isImplicit: true);
 
                         // if either limit or control variable is null, we exit the loop
                         var whenBothNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -4999,18 +5120,19 @@ oneMoreTime:
                     _currentBasicBlock = null;
 
                     condition = new BinaryOperation(BinaryOperatorKind.LessThanOrEqual,
-                                                             controlVariableReferenceforCondition,
-                                                             limitReference,
-                                                             isLifted: false,
-                                                             isChecked: false,
-                                                             isCompareText: false,
-                                                             operatorMethod: null,
-                                                             unaryOperatorMethod: null,
-                                                             semanticModel: null,
-                                                             operation.LimitValue.Syntax,
-                                                             booleanType,
-                                                             constantValue: null,
-                                                             isImplicit: true);
+                                                    controlVariableReferenceforCondition,
+                                                    limitReference,
+                                                    isLifted: false,
+                                                    isChecked: false,
+                                                    isCompareText: false,
+                                                    operatorMethod: null,
+                                                    constrainedToType: null,
+                                                    unaryOperatorMethod: null,
+                                                    semanticModel: null,
+                                                    operation.LimitValue.Syntax,
+                                                    booleanType,
+                                                    constantValue: null,
+                                                    isImplicit: true);
 
                     ConditionalBranch(condition, jumpIfTrue: false, @break);
                     UnconditionalBranch(bodyBlock);
@@ -5018,18 +5140,19 @@ oneMoreTime:
                     AppendNewBlock(notPositive);
 
                     condition = new BinaryOperation(BinaryOperatorKind.GreaterThanOrEqual,
-                                                             OperationCloner.CloneOperation(controlVariableReferenceforCondition),
-                                                             OperationCloner.CloneOperation(limitReference),
-                                                             isLifted: false,
-                                                             isChecked: false,
-                                                             isCompareText: false,
-                                                             operatorMethod: null,
-                                                             unaryOperatorMethod: null,
-                                                             semanticModel: null,
-                                                             operation.LimitValue.Syntax,
-                                                             booleanType,
-                                                             constantValue: null,
-                                                             isImplicit: true);
+                                                    OperationCloner.CloneOperation(controlVariableReferenceforCondition),
+                                                    OperationCloner.CloneOperation(limitReference),
+                                                    isLifted: false,
+                                                    isChecked: false,
+                                                    isCompareText: false,
+                                                    operatorMethod: null,
+                                                    constrainedToType: null,
+                                                    unaryOperatorMethod: null,
+                                                    semanticModel: null,
+                                                    operation.LimitValue.Syntax,
+                                                    booleanType,
+                                                    constantValue: null,
+                                                    isImplicit: true);
 
                     ConditionalBranch(condition, jumpIfTrue: false, @break);
                     UnconditionalBranch(bodyBlock);
@@ -5038,7 +5161,7 @@ oneMoreTime:
                     return;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             // Produce "(operand Xor (step >> 31))"
@@ -5051,32 +5174,34 @@ oneMoreTime:
                                                        constantValue: ConstantValue.Create(bits), isImplicit: true);
 
                 var shiftedStep = new BinaryOperation(BinaryOperatorKind.RightShift,
-                                                               GetCaptureReference(stepValueId, operation.StepValue),
-                                                               shiftConst,
-                                                               isLifted: false,
-                                                               isChecked: false,
-                                                               isCompareText: false,
-                                                               operatorMethod: null,
-                                                               unaryOperatorMethod: null,
-                                                               semanticModel: null,
-                                                               operand.Syntax,
-                                                               operation.StepValue.Type,
-                                                               constantValue: null,
-                                                               isImplicit: true);
+                                                      GetCaptureReference(stepValueId, operation.StepValue),
+                                                      shiftConst,
+                                                      isLifted: false,
+                                                      isChecked: false,
+                                                      isCompareText: false,
+                                                      operatorMethod: null,
+                                                      constrainedToType: null,
+                                                      unaryOperatorMethod: null,
+                                                      semanticModel: null,
+                                                      operand.Syntax,
+                                                      operation.StepValue.Type,
+                                                      constantValue: null,
+                                                      isImplicit: true);
 
                 return new BinaryOperation(BinaryOperatorKind.ExclusiveOr,
-                                                    shiftedStep,
-                                                    operand,
-                                                    isLifted: false,
-                                                    isChecked: false,
-                                                    isCompareText: false,
-                                                    operatorMethod: null,
-                                                    unaryOperatorMethod: null,
-                                                    semanticModel: null,
-                                                    operand.Syntax,
-                                                    operand.Type,
-                                                    constantValue: null,
-                                                    isImplicit: true);
+                                           shiftedStep,
+                                           operand,
+                                           isLifted: false,
+                                           isChecked: false,
+                                           isCompareText: false,
+                                           operatorMethod: null,
+                                           constrainedToType: null,
+                                           unaryOperatorMethod: null,
+                                           semanticModel: null,
+                                           operand.Syntax,
+                                           operand.Type,
+                                           constantValue: null,
+                                           isImplicit: true);
             }
 
             void incrementLoopControlVariable()
@@ -5136,19 +5261,20 @@ oneMoreTime:
 
                         EvalStackFrame nullCheckFrame = PushStackFrame();
                         IOperation condition = new BinaryOperation(BinaryOperatorKind.Or,
-                                                                            MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType),
-                                                                            MakeIsNullOperation(visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                                                                booleanType),
-                                                                            isLifted: false,
-                                                                            isChecked: false,
-                                                                            isCompareText: false,
-                                                                            operatorMethod: null,
-                                                                            unaryOperatorMethod: null,
-                                                                            semanticModel: null,
-                                                                            operation.StepValue.Syntax,
-                                                                            _compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                            constantValue: null,
-                                                                            isImplicit: true);
+                                                                   MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType),
+                                                                   MakeIsNullOperation(visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                                       booleanType),
+                                                                   isLifted: false,
+                                                                   isChecked: false,
+                                                                   isCompareText: false,
+                                                                   operatorMethod: null,
+                                                                   constrainedToType: null,
+                                                                   unaryOperatorMethod: null,
+                                                                   semanticModel: null,
+                                                                   operation.StepValue.Syntax,
+                                                                   _compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                                   constantValue: null,
+                                                                   isImplicit: true);
 
                         ConditionalBranch(condition, jumpIfTrue: false, whenNotNull);
                         _currentBasicBlock = null;
@@ -5187,18 +5313,19 @@ oneMoreTime:
                     }
 
                     IOperation increment = new BinaryOperation(BinaryOperatorKind.Add,
-                                                                        controlVariableReferenceForIncrement,
-                                                                        stepValueForIncrement,
-                                                                        isLifted: false,
-                                                                        isChecked: operation.IsChecked,
-                                                                        isCompareText: false,
-                                                                        operatorMethod: null,
-                                                                        unaryOperatorMethod: null,
-                                                                        semanticModel: null,
-                                                                        operation.StepValue.Syntax,
-                                                                        controlVariableReferenceForIncrement.Type,
-                                                                        constantValue: null,
-                                                                        isImplicit: true);
+                                                               controlVariableReferenceForIncrement,
+                                                               stepValueForIncrement,
+                                                               isLifted: false,
+                                                               isChecked: operation.IsChecked,
+                                                               isCompareText: false,
+                                                               operatorMethod: null,
+                                                               constrainedToType: null,
+                                                               unaryOperatorMethod: null,
+                                                               semanticModel: null,
+                                                               operation.StepValue.Syntax,
+                                                               controlVariableReferenceForIncrement.Type,
+                                                               constantValue: null,
+                                                               isImplicit: true);
 
                     controlVariableReferenceForAssignment = PopOperand();
 
@@ -5380,18 +5507,19 @@ oneMoreTime:
                             }
 
                             condition = new BinaryOperation(BinaryOperatorKind.Equals,
-                                                                     leftOperand,
-                                                                     rightOperand,
-                                                                     isLifted,
-                                                                     isChecked: false,
-                                                                     isCompareText: false,
-                                                                     operatorMethod: null,
-                                                                     unaryOperatorMethod: null,
-                                                                     semanticModel: null,
-                                                                     compareWith.Syntax,
-                                                                     booleanType,
-                                                                     constantValue: null,
-                                                                     isImplicit: true);
+                                                            leftOperand,
+                                                            rightOperand,
+                                                            isLifted,
+                                                            isChecked: false,
+                                                            isCompareText: false,
+                                                            operatorMethod: null,
+                                                            constrainedToType: null,
+                                                            unaryOperatorMethod: null,
+                                                            semanticModel: null,
+                                                            compareWith.Syntax,
+                                                            booleanType,
+                                                            constantValue: null,
+                                                            isImplicit: true);
 
                             ConditionalBranch(condition, jumpIfTrue: false, nextCase);
 
@@ -5471,32 +5599,32 @@ oneMoreTime:
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitEnd(IEndOperation operation, int? captureIdForResult)
@@ -5691,39 +5819,39 @@ oneMoreTime:
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
         {
             // All variable declarators should be handled by VisitVariableDeclarationGroup.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, int? captureIdForResult)
         {
             // All variable declarators should be handled by VisitVariableDeclaration.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
         {
             // All variable initializers should be removed from the tree by VisitVariableDeclaration.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
@@ -5732,7 +5860,7 @@ oneMoreTime:
             IOperation? instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
             (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             PopStackFrame(frame);
-            return new InvocationOperation(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
+            return new InvocationOperation(operation.TargetMethod, operation.ConstrainedToType, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
                                            operation.Type, IsImplicit(operation));
         }
 
@@ -5863,7 +5991,8 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();
@@ -5941,6 +6070,14 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
+                if (onlyContainsEmptyLeafNestedInitializers(memberInitializer))
+                {
+                    // However, when the leaf nested initializers are empty, we won't access the chain of initialized members
+                    // and we only evaluate the arguments/indexes they contain.
+                    addIndexes(memberInitializer);
+                    return;
+                }
+
                 EvalStackFrame frame = PushStackFrame();
                 bool pushSuccess = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember) : VisitRequired(memberInitializer.InitializedMember);
@@ -5983,6 +6120,13 @@ oneMoreTime:
                         PushOperand(VisitRequired(arrayReference.ArrayReference));
                         return true;
 
+                    case OperationKind.ImplicitIndexerReference:
+                        var implicitIndexerReference = (IImplicitIndexerReferenceOperation)instance;
+                        PushOperand(VisitRequired(implicitIndexerReference.Argument));
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(implicitIndexerReference.Instance));
+                        return true;
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicIndexer = (IDynamicIndexerAccessOperation)instance;
                         VisitAndPushArray(dynamicIndexer.Arguments);
@@ -6021,19 +6165,27 @@ oneMoreTime:
                     case OperationKind.EventReference:
                         var eventReference = (IEventReferenceOperation)originalTarget;
                         instance = (!eventReference.Member.IsStatic && eventReference.Instance != null) ? PopOperand() : null;
-                        return new EventReferenceOperation(eventReference.Event, instance, semanticModel: null, eventReference.Syntax,
+                        return new EventReferenceOperation(eventReference.Event, eventReference.ConstrainedToType, instance, semanticModel: null, eventReference.Syntax,
                                                             eventReference.Type, IsImplicit(eventReference));
                     case OperationKind.PropertyReference:
                         var propertyReference = (IPropertyReferenceOperation)originalTarget;
                         instance = (!propertyReference.Member.IsStatic && propertyReference.Instance != null) ? PopOperand() : null;
                         ImmutableArray<IArgumentOperation> propertyArguments = PopArray(propertyReference.Arguments, RewriteArgumentFromArray);
-                        return new PropertyReferenceOperation(propertyReference.Property, propertyArguments, instance, semanticModel: null, propertyReference.Syntax,
+                        return new PropertyReferenceOperation(propertyReference.Property, propertyReference.ConstrainedToType, propertyArguments, instance, semanticModel: null, propertyReference.Syntax,
                                                                propertyReference.Type, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         var arrayElementReference = (IArrayElementReferenceOperation)originalTarget;
                         instance = PopOperand();
                         ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
                         return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var indexerReference = (IImplicitIndexerReferenceOperation)originalTarget;
+                        instance = PopOperand();
+                        IOperation index = PopOperand();
+                        return new ImplicitIndexerReferenceOperation(instance, index, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
+                                                                      semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;
                         instance = PopOperand();
@@ -6050,6 +6202,84 @@ oneMoreTime:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
+                }
+            }
+
+            static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
+            {
+                // Guard on the cases understood by addIndexes below
+                if (memberInitializer.InitializedMember is IPropertyReferenceOperation
+                    or IImplicitIndexerReferenceOperation
+                    or IArrayElementReferenceOperation
+                    or IDynamicIndexerAccessOperation
+                    or IFieldReferenceOperation
+                    or IEventReferenceOperation
+                    || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _])
+                {
+                    // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
+                    return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
+                        && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                }
+
+                return false;
+            }
+
+            void addIndexes(IMemberInitializerOperation memberInitializer)
+            {
+                var lhs = memberInitializer.InitializedMember;
+                // If we have an element access of the form `[arguments] = { ... }`, we'll evaluate `arguments` only
+                if (lhs is IPropertyReferenceOperation propertyReference)
+                {
+                    foreach (var argument in propertyReference.Arguments)
+                    {
+                        if (argument is { ArgumentKind: ArgumentKind.ParamArray, Value: IArrayCreationOperation array })
+                        {
+                            Debug.Assert(array.Initializer is not null);
+
+                            foreach (var element in array.Initializer.ElementValues)
+                            {
+                                AddStatement(Visit(element));
+                            }
+                        }
+                        else
+                        {
+                            AddStatement(Visit(argument.Value));
+                        }
+                    }
+                }
+                else if (lhs is IImplicitIndexerReferenceOperation implicitIndexer)
+                {
+                    AddStatement(Visit(implicitIndexer.Argument));
+                }
+                else if (lhs is IArrayElementReferenceOperation arrayAccess)
+                {
+                    foreach (var index in arrayAccess.Indices)
+                    {
+                        AddStatement(Visit(index));
+                    }
+                }
+                else if (lhs is IDynamicIndexerAccessOperation dynamicIndexerAccess)
+                {
+                    foreach (var argument in dynamicIndexerAccess.Arguments)
+                    {
+                        AddStatement(Visit(argument));
+                    }
+                }
+                else if (lhs is NoneOperation { ChildOperations: var children } &&
+                    children.ToImmutableArray() is [IInstanceReferenceOperation, var index])
+                {
+                    // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
+                    AddStatement(Visit(index));
+                }
+                else if (lhs is not (FieldReferenceOperation or EventReferenceOperation))
+                {
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
+                }
+
+                // And any nested indexes
+                foreach (var initializer in memberInitializer.Initializer.Initializers)
+                {
+                    addIndexes((IMemberInitializerOperation)initializer);
                 }
             }
         }
@@ -6097,7 +6327,7 @@ oneMoreTime:
 
                 var visitedPropertyInstance = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
                     propertyReference.Instance.Syntax, propertyReference.Instance.Type, IsImplicit(propertyReference.Instance));
-                IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
+                IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, propertyReference.ConstrainedToType, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
                     semanticModel: null, propertyReference.Syntax, propertyReference.Type, IsImplicit(propertyReference));
                 IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
                 var visitedAssignment = new SimpleAssignmentOperation(isRef: simpleAssignment.IsRef, visitedTarget, visitedValue,
@@ -6164,7 +6394,7 @@ oneMoreTime:
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
@@ -6237,6 +6467,44 @@ oneMoreTime:
                 builder.ReverseContents();
                 return new ArrayInitializerOperation(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, IsImplicit(initializer));
             }
+        }
+
+        public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var elements = VisitArray(
+                operation.Elements,
+                unwrapper: static (IOperation element) =>
+                {
+                    return element is ISpreadOperation spread ?
+                        spread.Operand :
+                        element;
+                },
+                wrapper: (IOperation operation, int index, ImmutableArray<IOperation> elements) =>
+                {
+                    return elements[index] is ISpreadOperation spread ?
+                        new SpreadOperation(
+                            operation,
+                            elementType: spread.ElementType,
+                            elementConversion: ((SpreadOperation)spread).ElementConversionConvertible,
+                            semanticModel: null,
+                            spread.Syntax,
+                            IsImplicit(spread)) :
+                        operation;
+                });
+            PopStackFrame(frame);
+            return new CollectionExpressionOperation(
+                operation.ConstructMethod,
+                elements,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
+        }
+
+        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
@@ -6614,12 +6882,12 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
@@ -6746,12 +7014,12 @@ oneMoreTime:
 
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
@@ -6765,9 +7033,9 @@ oneMoreTime:
             return new LiteralOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
-        public override IOperation? VisitUTF8String(IUTF8StringOperation operation, int? captureIdForResult)
+        public override IOperation? VisitUtf8String(IUtf8StringOperation operation, int? captureIdForResult)
         {
-            return new UTF8StringOperation(operation.Value, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+            return new Utf8StringOperation(operation.Value, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitLocalReference(ILocalReferenceOperation operation, int? captureIdForResult)
@@ -6792,7 +7060,7 @@ oneMoreTime:
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
         {
             IOperation? visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
-            return new MethodReferenceOperation(operation.Method, operation.IsVirtual, visitedInstance, semanticModel: null,
+            return new MethodReferenceOperation(operation.Method, operation.ConstrainedToType, operation.IsVirtual, visitedInstance, semanticModel: null,
                                                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -6821,14 +7089,14 @@ oneMoreTime:
             IOperation? instance = operation.Property.IsStatic ? null : operation.Instance;
             (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             PopStackFrame(frame);
-            return new PropertyReferenceOperation(operation.Property, visitedArguments, visitedInstance, semanticModel: null,
+            return new PropertyReferenceOperation(operation.Property, operation.ConstrainedToType, visitedArguments, visitedInstance, semanticModel: null,
                                                   operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
         {
             IOperation? visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
-            return new EventReferenceOperation(operation.Event, visitedInstance, semanticModel: null,
+            return new EventReferenceOperation(operation.Event, operation.ConstrainedToType, visitedInstance, semanticModel: null,
                                                operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -6924,7 +7192,7 @@ oneMoreTime:
                     arguments = ImmutableArray<IArgumentOperation>.Empty;
                 }
 
-                IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, arguments, instance,
+                IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, constrainedToType: null, arguments, instance,
                     semanticModel: null, operation.Syntax, propertySymbol.Type, isImplicit: true);
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
@@ -6965,7 +7233,7 @@ oneMoreTime:
                 visitedHandler = VisitRequired(operation.HandlerValue);
 
                 IOperation? visitedInstance = eventReferenceInstance == null ? null : PopOperand();
-                visitedEventReference = new EventReferenceOperation(eventReference.Event, visitedInstance,
+                visitedEventReference = new EventReferenceOperation(eventReference.Event, eventReference.ConstrainedToType, visitedInstance,
                     semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
             }
             else
@@ -7011,7 +7279,7 @@ oneMoreTime:
 
             (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) =
                 VisitInstanceWithArguments(operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance, operation.Arguments);
-            var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, visitedInstance,
+            var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, operation.EventReference.ConstrainedToType, visitedInstance,
                 semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
 
             PopStackFrame(frame);
@@ -7026,7 +7294,8 @@ oneMoreTime:
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
-            return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, VisitRequired(operation.Target), operation.OperatorMethod,
+            return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, VisitRequired(operation.Target),
+                                                     operation.OperatorMethod, operation.ConstrainedToType,
                                                      operation.Kind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -7197,7 +7466,7 @@ oneMoreTime:
 
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
@@ -7490,7 +7759,7 @@ oneMoreTime:
             return Visit(operation, argument: null);
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? VisitRequired(IOperation? operation, int? argument = null)
         {
@@ -7500,12 +7769,16 @@ oneMoreTime:
             return result;
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? BaseVisitRequired(IOperation? operation, int? argument)
         {
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            _recursionDepth++;
             var result = base.Visit(operation, argument);
             Debug.Assert((result == null) == (operation == null));
+            _recursionDepth--;
+
             return result;
         }
 
@@ -7516,23 +7789,28 @@ oneMoreTime:
                 return null;
             }
 
-            return PopStackFrame(PushStackFrame(), base.Visit(operation, argument));
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            _recursionDepth++;
+            var result = PopStackFrame(PushStackFrame(), base.Visit(operation, argument));
+            _recursionDepth--;
+
+            return result;
         }
 
         public override IOperation DefaultVisit(IOperation operation, int? captureIdForResult)
         {
             // this should never reach, otherwise, there is missing override for IOperation type
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
@@ -7554,7 +7832,7 @@ oneMoreTime:
             {
                 cloned = operation.CloneMethod is null
                     ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
-                    : new InvocationOperation(operation.CloneMethod, visitedInstance,
+                    : new InvocationOperation(operation.CloneMethod, constrainedToType: null, visitedInstance,
                         isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
                         semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
             }
@@ -7657,7 +7935,7 @@ oneMoreTime:
                             operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
 
                         // `oldInstance.Property`
-                        var visitedValue = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, oldInstance,
+                        var visitedValue = new PropertyReferenceOperation(property, constrainedToType: null, ImmutableArray<IArgumentOperation>.Empty, oldInstance,
                             semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
 
                         int extraValueCaptureId = GetNextCaptureId(outerCaptureRegion);
@@ -7683,7 +7961,7 @@ oneMoreTime:
                     semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
 
                 // <implicitReceiver>.Property
-                var target = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, implicitReceiver,
+                var target = new PropertyReferenceOperation(property, constrainedToType: null, ImmutableArray<IArgumentOperation>.Empty, implicitReceiver,
                     semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
 
                 // <implicitReceiver>.Property = <capturedValue>
@@ -7713,6 +7991,11 @@ oneMoreTime:
 
                 return set.Count == properties.Count();
             }
+        }
+
+        public override IOperation VisitAttribute(IAttributeOperation operation, int? captureIdForResult)
+        {
+            return new AttributeOperation(Visit(operation.Operation, captureIdForResult)!, semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
     }
 }

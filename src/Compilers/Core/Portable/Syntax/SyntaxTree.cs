@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis
         public abstract Encoding? Encoding { get; }
 
         /// <summary>
+        /// Useful information about this tree that is stored for source-generator scenarios.  Allows the incremental
+        /// generation framework to compute and cache data once against a tree so it does not have to go back to source
+        /// for untouched trees when other trees in the compilation are modified.
+        /// </summary>
+        private SourceGeneratorSyntaxTreeInfo _sourceGeneratorInfo = SourceGeneratorSyntaxTreeInfo.NotComputedYet;
+
+        /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
         /// <remarks>
@@ -277,12 +284,26 @@ namespace Microsoft.CodeAnalysis
         internal string GetDisplayPath(TextSpan span, SourceReferenceResolver? resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
-            if (resolver == null || mappedSpan.Path.IsEmpty())
+            if (resolver is null || mappedSpan.Path.IsEmpty())
             {
                 return mappedSpan.Path;
             }
 
             return resolver.NormalizePath(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null) ?? mappedSpan.Path;
+        }
+
+        /// <summary>
+        /// Returns the path used for emit purposes. This takes into account /pathmap arguments passed into
+        /// the compiler.
+        /// </summary>
+        internal string GetNormalizedPath(SourceReferenceResolver? resolver)
+        {
+            if (resolver is null)
+            {
+                return FilePath;
+            }
+
+            return resolver.NormalizePath(FilePath, baseFilePath: null) ?? FilePath;
         }
 
         /// <summary>
@@ -398,6 +419,27 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool SupportsLocations
         {
             get { return this.HasCompilationUnitRoot; }
+        }
+
+        internal SourceGeneratorSyntaxTreeInfo GetSourceGeneratorInfo(
+            ISyntaxHelper syntaxHelper, CancellationToken cancellationToken)
+        {
+            if (_sourceGeneratorInfo is SourceGeneratorSyntaxTreeInfo.NotComputedYet)
+            {
+                var root = this.GetRoot(cancellationToken);
+
+                var result = SourceGeneratorSyntaxTreeInfo.None;
+
+                if (syntaxHelper.ContainsGlobalAliases(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
+
+                if (syntaxHelper.ContainsAttributeList(root))
+                    result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
+
+                _sourceGeneratorInfo = result;
+            }
+
+            return _sourceGeneratorInfo;
         }
     }
 }

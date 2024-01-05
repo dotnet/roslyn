@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -25,9 +24,13 @@ namespace Microsoft.Cci
 
         // IMethodDefinition implementation
 
+        bool IDefinition.IsEncDeleted => false;
+
         public ITypeDefinition ContainingTypeDefinition { get; }
 
         public string Name => WellKnownMemberNames.StaticConstructorName;
+
+        public bool HasBody => true;
 
         public IMethodBody GetBody(EmitContext context) => this;
 
@@ -63,6 +66,7 @@ namespace Microsoft.Cci
 
         public ImmutableArray<IParameterDefinition> Parameters => ImmutableArray<IParameterDefinition>.Empty;
 
+#nullable disable
         public IPlatformInvokeInformation PlatformInvokeData => null;
 
         public bool RequiresSecurityObject => false;
@@ -82,8 +86,6 @@ namespace Microsoft.Cci
         public bool AcceptsExtraArguments => false;
 
         public ushort GenericParameterCount => 0;
-
-        public bool IsGeneric => false;
 
         public ImmutableArray<IParameterTypeInformation> ExtraParameters => ImmutableArray<IParameterTypeInformation>.Empty;
 
@@ -157,25 +159,28 @@ namespace Microsoft.Cci
 
         public ImmutableArray<ITypeReference> StateMachineAwaiterSlots => ImmutableArray<ITypeReference>.Empty;
 
-        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => ImmutableArray<ClosureDebugInfo>.Empty;
+        public ImmutableArray<EncClosureInfo> ClosureDebugInfo => ImmutableArray<EncClosureInfo>.Empty;
 
-        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
+        public ImmutableArray<EncLambdaInfo> LambdaDebugInfo => ImmutableArray<EncLambdaInfo>.Empty;
+
+        public ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits => ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty;
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+        public ImmutableArray<SourceSpan> CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
 
+        public bool IsPrimaryConstructor => false;
 
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

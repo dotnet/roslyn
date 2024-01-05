@@ -8,40 +8,40 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo : DiagnosticInfo
+    internal sealed class LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo : LazyDiagnosticInfo
     {
-        private DiagnosticInfo? _lazyActualUnmanagedCallersOnlyDiagnostic;
-
         private readonly MethodSymbol _method;
         private readonly bool _isDelegateConversion;
 
         internal LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(MethodSymbol method, bool isDelegateConversion)
-            : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
             _method = method;
-            _lazyActualUnmanagedCallersOnlyDiagnostic = null;
             _isDelegateConversion = isDelegateConversion;
         }
 
-        internal override DiagnosticInfo GetResolvedInfo()
+        private LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
         {
-            if (_lazyActualUnmanagedCallersOnlyDiagnostic is null)
-            {
-                UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
-                Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
-                Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+            _method = original._method;
+            _isDelegateConversion = original._isDelegateConversion;
+        }
 
-                var info = unmanagedCallersOnlyAttributeData is null
-                    ? CSDiagnosticInfo.VoidDiagnosticInfo
-                    : new CSDiagnosticInfo(_isDelegateConversion
-                                               ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
-                                               : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
-                                           _method);
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(this, severity);
+        }
 
-                Interlocked.CompareExchange(ref _lazyActualUnmanagedCallersOnlyDiagnostic, info, null);
-            }
+        protected override DiagnosticInfo? ResolveInfo()
+        {
+            UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
+            Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
+            Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
 
-            return _lazyActualUnmanagedCallersOnlyDiagnostic;
+            return unmanagedCallersOnlyAttributeData is null
+                ? null
+                : new CSDiagnosticInfo(_isDelegateConversion
+                                           ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
+                                           : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
+                                       _method);
         }
     }
 }

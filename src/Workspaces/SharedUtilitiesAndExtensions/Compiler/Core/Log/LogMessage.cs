@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public string GetMessage()
         {
-            if (_message == null)
-            {
-                _message = CreateMessage();
-            }
+            _message ??= CreateMessage();
 
             return _message;
         }

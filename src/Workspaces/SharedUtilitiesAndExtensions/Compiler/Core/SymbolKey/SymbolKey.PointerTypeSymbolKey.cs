@@ -6,14 +6,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class PointerTypeSymbolKey
+        private sealed class PointerTypeSymbolKey : AbstractSymbolKey<IPointerTypeSymbol>
         {
-            public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly PointerTypeSymbolKey Instance = new();
+
+            public sealed override void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
                 => visitor.WriteSymbolKey(symbol.PointedAtType);
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IPointerTypeSymbol? contextualSymbol, out string? failureReason)
             {
-                var pointedAtTypeResolution = reader.ReadSymbolKey(out var pointedAtTypeFailureReason);
+                var pointedAtTypeResolution = reader.ReadSymbolKey(contextualSymbol?.PointedAtType, out var pointedAtTypeFailureReason);
 
                 if (pointedAtTypeFailureReason != null)
                 {

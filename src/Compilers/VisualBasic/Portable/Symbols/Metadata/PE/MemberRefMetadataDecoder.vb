@@ -92,13 +92,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary> 
         ''' Search through the members of the <see cref="_containingType"/> type symbol to find the method that matches a particular signature. 
         ''' </summary> 
-        ''' <param name="memberRef">A MemberRef handle that can be used to obtain the name and signature of the method</param> 
+        ''' <param name="memberRefOrMethodDef">A MemberRef or a MethodDef handle that can be used to obtain the name and signature of the method</param> 
         ''' <param name="methodsOnly">True to only return a method.</param> 
         ''' <returns>The matching method symbol, or null if the inputs do not correspond to a valid method.</returns>
-        Friend Function FindMember(memberRef As MemberReferenceHandle, methodsOnly As Boolean) As Symbol
+        Friend Function FindMember(memberRefOrMethodDef As EntityHandle, methodsOnly As Boolean) As Symbol
             Try
-                Dim memberName As String = [Module].GetMemberRefNameOrThrow(memberRef)
-                Dim signatureHandle = [Module].GetSignatureOrThrow(memberRef)
+                Dim memberName As String
+                Dim signatureHandle As BlobHandle
+
+                Select Case memberRefOrMethodDef.Kind
+                    Case HandleKind.MemberReference
+                        Dim memberRef = CType(memberRefOrMethodDef, MemberReferenceHandle)
+                        memberName = [Module].GetMemberRefNameOrThrow(memberRef)
+                        signatureHandle = [Module].GetSignatureOrThrow(memberRef)
+
+                    Case HandleKind.MethodDefinition
+                        Dim methodDef = CType(memberRefOrMethodDef, MethodDefinitionHandle)
+                        memberName = [Module].GetMethodDefNameOrThrow(methodDef)
+                        signatureHandle = [Module].GetMethodSignatureOrThrow(methodDef)
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(memberRefOrMethodDef.Kind)
+                End Select
+
                 Dim signatureHeader As SignatureHeader
                 Dim signaturePointer As BlobReader = Me.DecodeSignatureHeaderOrThrow(signatureHandle, signatureHeader)
 
@@ -114,9 +130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             Return Nothing
                         End If
 
-                        Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, customModifiers)
-                        Return FindFieldBySignature(_containingType, memberName, customModifiers, type)
+                        Dim fieldInfo As FieldInfo(Of TypeSymbol) = Me.DecodeFieldSignature(signaturePointer)
+                        Return FindFieldBySignature(_containingType, memberName, fieldInfo)
 
                     Case Else
                         ' error
@@ -127,7 +142,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Function
 
-        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)), type As TypeSymbol) As FieldSymbol
+        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, fieldInfo As FieldInfo(Of TypeSymbol)) As FieldSymbol
+
+            Dim type As TypeSymbol = Nothing
+            Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
+            PEFieldSymbol.GetSignatureParts(fieldInfo, type, customModifiers)
+
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
                 If field IsNot Nothing AndAlso
@@ -160,7 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return Nothing
         End Function
-
 
         Private Shared Function MethodSymbolMatchesParamInfo(candidateMethod As MethodSymbol, targetParamInfo As ParamInfo(Of TypeSymbol)()) As Boolean
             Dim numParams As Integer = targetParamInfo.Length - 1
@@ -252,5 +271,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
     End Class
 End Namespace
-
 

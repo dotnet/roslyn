@@ -32,15 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
-        {
-            if (token.Kind() is SyntaxKind.QuestionToken or
-                SyntaxKind.ColonToken)
-            {
-                return token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
-            }
-
-            return false;
-        }
+            => token.Kind() is SyntaxKind.QuestionToken or SyntaxKind.ColonToken && token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
             in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)

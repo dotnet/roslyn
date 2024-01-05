@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -96,10 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Only one of these values can be true at this point.
                 Debug.Assert(_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) != _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock));
 
-                var firstStatementIsBlock =
-                    section.Statements.Count > 0 &&
-                    section.Statements[0].IsKind(SyntaxKind.Block);
-
+                var firstStatementIsBlock = section.Statements is [(kind: SyntaxKind.Block), ..];
                 if (_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock) != firstStatementIsBlock)
                 {
                     return;
@@ -174,6 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
+                case StackAllocArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, arrayCreation.StackAllocKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, implicitArrayCreation.StackAllocKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKind.PropertyPatternClause) || node.IsKind(SyntaxKind.SwitchExpression))
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.Kind() is SyntaxKind.PropertyPatternClause or SyntaxKind.SwitchExpression)
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
@@ -251,16 +255,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracketPair = node.GetBracketPair();
 
             if (!bracketPair.IsValidBracketOrBracePair())
-            {
                 return;
-            }
 
-            if (node.IsKind(SyntaxKind.ListPattern) && node.Parent != null)
+            if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
                 // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
-                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
-
                 AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+
+                // If we have:
+                //
+                // return Goo([ //<-- determining indentation here.
+                //
+                // Then we want to compute the indentation relative to the construct that the collection expression is
+                // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
+                // same line as it.
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
+                var firstToken = node.GetFirstToken(includeZeroWidth: true);
+                var lastToken = node.GetLastToken(includeZeroWidth: true);
+                var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
+                SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
             }
         }
 

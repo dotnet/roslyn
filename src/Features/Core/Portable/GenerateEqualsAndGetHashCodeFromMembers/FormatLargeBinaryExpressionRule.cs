@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
@@ -14,12 +14,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// Specialized formatter for the "return a == obj.a &amp;&amp; b == obj.b &amp;&amp; c == obj.c &amp;&amp; ...
         /// code that we spit out.
         /// </summary>
-        private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
+        private class FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts) : AbstractFormattingRule
         {
-            private readonly ISyntaxFactsService _syntaxFacts;
-
-            public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
-                => _syntaxFacts = syntaxFacts;
+            private readonly ISyntaxFactsService _syntaxFacts = syntaxFacts;
 
             /// <summary>
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.

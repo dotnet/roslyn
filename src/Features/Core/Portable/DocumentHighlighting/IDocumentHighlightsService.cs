@@ -6,9 +6,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     [DataContract]
-    internal readonly struct HighlightSpan
+    internal readonly record struct HighlightSpan
     {
         [DataMember(Order = 0)]
         public TextSpan TextSpan { get; }
@@ -37,20 +35,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
     }
 
-    internal readonly struct DocumentHighlights
+    internal readonly struct DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
     {
-        public Document Document { get; }
-        public ImmutableArray<HighlightSpan> HighlightSpans { get; }
-
-        public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
-        {
-            Document = document;
-            HighlightSpans = highlightSpans;
-        }
+        public Document Document { get; } = document;
+        public ImmutableArray<HighlightSpan> HighlightSpans { get; } = highlightSpans;
     }
 
     /// <summary>
-    /// Note: This is the new version of the language service and superceded the same named type
+    /// Note: This is the new version of the language service and superseded the same named type
     /// in the EditorFeatures layer.
     /// </summary>
     internal interface IDocumentHighlightsService : ILanguageService

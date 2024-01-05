@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpCodeGenerationService(provider);
+            => new CSharpCodeGenerationService(provider.LanguageServices);
     }
 }

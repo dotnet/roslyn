@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
-                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
+                if (token.Parent is (kind: SyntaxKind.ExternAliasDirective or SyntaxKind.UsingDirective))
                 {
                     return true;
                 }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     }
                 }
                 else if (previousToken.Kind() == SyntaxKind.SemicolonToken &&
-                    previousToken.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
+                    previousToken.Parent is (kind: SyntaxKind.ExternAliasDirective or SyntaxKind.UsingDirective))
                 {
                     if (token.Kind() == SyntaxKind.GlobalKeyword)
                     {

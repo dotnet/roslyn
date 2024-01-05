@@ -41,7 +41,7 @@ End Class
             Using (new EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources)
-                Dim diags = New DiagnosticBag()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim badStream = New BrokenStream()
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
 
@@ -49,10 +49,10 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=badStream,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
@@ -6708,7 +6708,6 @@ End Class
                                     SymbolKind.Method),
                                "Function System.Object.GetHashCode() As System.Int32")
 
-
             ' c.n1.n2.t.C
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "C")
             Assert.Equal(1, names.Length)
@@ -6718,7 +6717,6 @@ End Class
                                                  DirectCast(names(0), ExpressionSyntax),
                                                  "C(Of T).N1.N2.T.C")
             Assert.Equal(1, symbols.Length)
-
 
             ' "t"
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "t")
@@ -10925,7 +10923,6 @@ End Class
     </file>
 </compilation>)
 
-
             Dim xmlDoc = If(Not invalidChars,
 <xml>
     <![CDATA[
@@ -11423,7 +11420,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
@@ -11451,7 +11447,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
@@ -11489,7 +11484,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim lib1Ref = CreateCompilationWithMscorlib40(lib1Source).EmitToImageReference()
             Dim lib2Ref = CreateCompilationWithMscorlib40(lib2Source).EmitToImageReference()
@@ -11531,7 +11525,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11567,7 +11560,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11595,7 +11587,6 @@ Delegate Sub D(Of T)(p As T)
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -12440,7 +12431,6 @@ End Class
                 sources,
                 options:=TestOptions.ReleaseDll)
 
-
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -12530,64 +12520,64 @@ End Class
             Using (New EnsureEnglishUICulture())
 
                 Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
-                Dim diags = DiagnosticBag.GetInstance()
+                Dim diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0),
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                Assert.Empty(diags.ToReadOnlyAndFree())
+                Assert.Empty(diags.ToReadOnlyAndFree().Diagnostics)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(1))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> b.vb
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=Nothing)
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb
@@ -12597,18 +12587,18 @@ BC42312: XML documentation comments must precede member or type declarations.
    ~~~~~~~~~~~~~~~~
                                    ]]></errors>)
 
-                diags = DiagnosticBag.GetInstance()
+                diags = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=New BindingDiagnosticBag(diags),
+                    diagnostics:=diags,
                     cancellationToken:=Nothing,
                     filterTree:=Nothing,
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
 
-                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree().Diagnostics,
                                        <errors><![CDATA[
 BC42312: XML documentation comments must precede member or type declarations.
 ''' <summary> a.vb

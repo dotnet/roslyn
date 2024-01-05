@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyOperationKinds(operationKinds);
         }
 
-        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, bool> isSupportedDiagnostic)
+        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             if (diagnostic is DiagnosticWithInfo)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 VerifyDiagnosticLocationsInCompilation(diagnostic, compilation);
             }
 
-            if (!isSupportedDiagnostic(diagnostic))
+            if (!isSupportedDiagnostic(diagnostic, cancellationToken))
             {
                 throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }

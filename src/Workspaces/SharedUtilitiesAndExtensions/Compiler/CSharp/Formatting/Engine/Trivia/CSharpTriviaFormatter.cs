@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _newLine;
         }
 
-        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
+        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2, CancellationToken cancellationToken)
         {
             if (IsStartOrEndOfFile(trivia1, trivia2))
             {
@@ -97,8 +97,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // if current line is the first line of the file, don't put extra line 1
                 var lines = (trivia1.IsKind(SyntaxKind.None) && this.Token1.IsKind(SyntaxKind.None)) ? 0 : 1;
 
-                if (trivia2.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                if (trivia2.Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia)
                 {
+                    // When we have a '#region' in conditionally disabled conditional (e.g, `#if false`), we cannot determine a correct indentation for '#region'.
+                    // So we preserve the existing indentation.
+                    // To figure whether we are in a disabled region, we do the following:
+                    // - Starting from the given trivia, keep going back.
+                    // - Once we find a disabled text, we know this is a disabled region.
+                    // - If we find a BranchingDirectiveTriviaSyntax, we can directly determine whether it's active or not via BranchTaken property.
+                    var previous = trivia2;
+                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, cancellationToken)) != default)
+                    {
+                        if (previous.IsKind(SyntaxKind.DisabledTextTrivia))
+                        {
+                            return LineColumnRule.Preserve;
+                        }
+                        else if (previous.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                        {
+                            // To correctly determine if we are in a disabled region or not, we'll have to ignore
+                            // everything until the corresponding #if (keeping in mind nested `#if` conditionals).
+                            // Then, continue from there.
+                            // For now, we don't do that and assume we are in active region.
+                            break;
+                        }
+                        else if (previous.HasStructure && previous.GetStructure() is BranchingDirectiveTriviaSyntax branchingDirectiveTrivia)
+                        {
+                            if (!branchingDirectiveTrivia.BranchTaken)
+                            {
+                                return LineColumnRule.Preserve;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+
                     return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
                 }
 
@@ -359,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <param name="trivia"></param>
         protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

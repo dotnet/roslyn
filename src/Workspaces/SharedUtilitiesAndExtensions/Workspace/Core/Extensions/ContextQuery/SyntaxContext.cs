@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
@@ -32,12 +32,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAtStartOfPattern { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsAwaitKeywordContext { get; }
+        public bool IsEnumBaseListContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsGenericConstraintContext { get; }
         public bool IsGlobalStatementContext { get; }
         public bool IsInImportsDirective { get; }
         public bool IsInQuery { get; }
-        public bool IsInTaskLikeTypeContext { get; }
+        public bool IsTaskLikeTypeContext { get; }
         public bool IsNameOfContext { get; }
         public bool IsNamespaceContext { get; }
         public bool IsNamespaceDeclarationNameContext { get; }
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsPossibleTupleContext { get; }
         public bool IsPreProcessorDirectiveContext { get; }
         public bool IsPreProcessorExpressionContext { get; }
+        public bool IsRightAfterUsingOrImportDirective { get; }
         public bool IsRightOfNameSeparator { get; }
         public bool IsRightSideOfNumericType { get; }
         public bool IsStatementContext { get; }
@@ -64,12 +66,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAtStartOfPattern,
             bool isAttributeNameContext,
             bool isAwaitKeywordContext,
+            bool isEnumBaseListContext,
             bool isEnumTypeMemberAccessContext,
             bool isGenericConstraintContext,
             bool isGlobalStatementContext,
             bool isInImportsDirective,
             bool isInQuery,
-            bool isInTaskLikeTypeContext,
+            bool isTaskLikeTypeContext,
             bool isNameOfContext,
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
@@ -77,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isPossibleTupleContext,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorExpressionContext,
+            bool isRightAfterUsingOrImportDirective,
             bool isRightOfNameSeparator,
             bool isRightSideOfNumericType,
             bool isStatementContext,
@@ -96,12 +100,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsAtStartOfPattern = isAtStartOfPattern;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsAwaitKeywordContext = isAwaitKeywordContext;
+            this.IsEnumBaseListContext = isEnumBaseListContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
             this.IsGenericConstraintContext = isGenericConstraintContext;
             this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsInImportsDirective = isInImportsDirective;
             this.IsInQuery = isInQuery;
-            this.IsInTaskLikeTypeContext = isInTaskLikeTypeContext;
+            this.IsTaskLikeTypeContext = isTaskLikeTypeContext;
             this.IsNameOfContext = isNameOfContext;
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
@@ -109,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPossibleTupleContext = isPossibleTupleContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
             this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
+            this.IsRightAfterUsingOrImportDirective = isRightAfterUsingOrImportDirective;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsStatementContext = isStatementContext;

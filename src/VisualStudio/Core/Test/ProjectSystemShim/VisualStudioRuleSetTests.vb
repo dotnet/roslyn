@@ -11,10 +11,11 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
-Imports IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx
+Imports IVsAsyncFileChangeEx2 = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx2
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class VisualStudioRuleSetTests
         Implements IDisposable
 
@@ -29,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(_tempPath, recursive:=True)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SingleFile() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -47,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 File.WriteAllText(ruleSetPath, ruleSetSource)
 
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -63,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function TwoFiles() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -91,7 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -107,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function IncludeUpdated() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -135,7 +136,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
@@ -158,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SameFileRequestedAfterChange() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -176,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
@@ -207,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SameFileRequestedMultipleTimes() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -225,7 +226,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet1 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -245,7 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function FileWithError() As Task
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
         <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -263,7 +264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 

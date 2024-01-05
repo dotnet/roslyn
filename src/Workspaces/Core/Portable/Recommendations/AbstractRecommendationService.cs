@@ -14,8 +14,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
-    internal abstract partial class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
+    internal abstract partial class AbstractRecommendationService<
+        TSyntaxContext,
+        TAnonymousFunctionSyntax> : IRecommendationService
         where TSyntaxContext : SyntaxContext
+        where TAnonymousFunctionSyntax : SyntaxNode
     {
         protected abstract AbstractRecommendationServiceRunner CreateRunner(
             TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);

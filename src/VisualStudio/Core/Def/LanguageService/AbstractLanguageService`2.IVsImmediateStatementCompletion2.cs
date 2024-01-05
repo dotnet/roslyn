@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // of textview->filters.
             if (install != 0)
             {
-                DebuggerIntelliSenseFilter filter;
-                if (!this.filters.ContainsKey(textView))
+                if (!this.filters.TryGetValue(textView, out var filter))
                 {
                     filter = new DebuggerIntelliSenseFilter(
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     filter.SetNextFilter(nextFilter);
                 }
 
-                this.filters[textView].SetContentType(install: true);
+                filter.SetContentType(install: true);
             }
             else
             {

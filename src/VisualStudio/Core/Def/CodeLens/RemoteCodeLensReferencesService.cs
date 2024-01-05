@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ReferenceCount?>(
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceMethodDescriptor>?>(
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return ImmutableArray<ReferenceLocationDescriptor>.Empty;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceLocationDescriptor>?>(

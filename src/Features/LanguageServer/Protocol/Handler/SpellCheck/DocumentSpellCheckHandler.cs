@@ -4,23 +4,21 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
     internal class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
-        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 

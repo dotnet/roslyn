@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
-
         protected override ISimplification Simplification
             => CSharpSimplification.Instance;
 
@@ -33,23 +30,29 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
         {
             if (node.GetAncestorOrThis<AttributeSyntax>() != null)
-            {
                 return false;
-            }
 
             if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
+                return false;
+
+            if (node.IsKind(SyntaxKind.BaseExpression))
+                return false;
+
+            if (IsInPropertyOrFieldInitialization(containingSymbol, node))
+                return false;
+
+            if (node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression), Left: var left } &&
+                left == node)
             {
                 return false;
             }
 
-            return !(node.IsKind(SyntaxKind.BaseExpression) ||
-                     node.GetRequiredParent().GetRequiredParent().IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                     IsInPropertyOrFieldInitialization(containingSymbol, node));
+            return true;
         }
 
         private static bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
         {
-            return (containingSymbol.Kind == SymbolKind.Field || containingSymbol.Kind == SymbolKind.Property) &&
+            return (containingSymbol.Kind is SymbolKind.Field or SymbolKind.Property) &&
                 containingSymbol.DeclaringSyntaxReferences
                     .Select(declaringSyntaxReferences => declaringSyntaxReferences.GetSyntax())
                     .Any(declaringSyntax => IsInPropertyInitialization(declaringSyntax, node) || IsInFieldInitialization(declaringSyntax, node));

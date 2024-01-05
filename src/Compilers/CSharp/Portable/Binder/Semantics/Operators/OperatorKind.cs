@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         _NullableNull = 0x00000027, // reserved for binary op
         UserDefined = 0x00000028,
         Dynamic = 0x00000029,
+        _Utf8 = 0x0000002A, // reserved for binary op
 
         OpMask = 0x0000FF00,
         PostfixIncrement = 0x00001000,
@@ -324,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableNull = UnaryOperatorKind._NullableNull,
         UserDefined = UnaryOperatorKind.UserDefined,
         Dynamic = UnaryOperatorKind.Dynamic,
+        Utf8 = UnaryOperatorKind._Utf8,
 
         OpMask = 0x0000FF00,
         Multiplication = 0x00001000,
@@ -453,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ObjectAndStringConcatenation = ObjectAndString | Addition,
         DelegateCombination = Delegate | Addition,
         DynamicAddition = Dynamic | Addition,
+        Utf8Addition = Utf8 | Addition,
 
         IntSubtraction = Int | Subtraction,
         UIntSubtraction = UInt | Subtraction,

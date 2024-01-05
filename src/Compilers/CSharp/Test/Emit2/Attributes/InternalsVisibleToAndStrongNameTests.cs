@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class InternalsVisibleToAndStrongNameTests : CSharpTestBase
     {
+        private readonly TempDirectory _signingTempDirectory;
+
         public static IEnumerable<object[]> AllProviderParseOptions
         {
             get
@@ -48,15 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public InternalsVisibleToAndStrongNameTests()
         {
             SigningTestHelpers.InstallKey();
+            _signingTempDirectory = Temp.CreateDirectory();
         }
 
         private static readonly string s_keyPairFile = SigningTestHelpers.KeyPairFile;
         private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
         private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
+        private static readonly StrongNameProvider s_providerNoSigningTempPath = new DesktopStrongNameProvider(
+            ImmutableArray<string>.Empty,
+            new VirtualizedStrongNameFileSystem(tempPath: null));
 
-
-        private static StrongNameProvider GetProviderWithPath(string keyFilePath) =>
-            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), strongNameFileSystem: new VirtualizedStrongNameFileSystem());
+        private StrongNameProvider GetProviderWithPath(string keyFilePath) =>
+            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), strongNameFileSystem: new VirtualizedStrongNameFileSystem(_signingTempDirectory.Path));
 
         #endregion
 
@@ -110,7 +115,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -179,6 +184,35 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
+        [Fact]
+        public void PubKeyFromKeyFileAttribute_SigningTempPathNotAvailable()
+        {
+            string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
+
+            var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(s_providerNoSigningTempPath);
+            Assert.Null(options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
+            compilation.VerifyEmitDiagnostics();
+
+            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(s_keyPairFile, CodeAnalysisResources.SigningTempPathUnavailable));
+        }
+
+        [Fact]
+        public void PubKeyFromKeyFileAttribute_SigningTempPathAvailable()
+        {
+            string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
+
+            var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
+            Assert.NotNull(options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
+            compilation.VerifyEmitDiagnostics();
+
+            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+            compilation.VerifyEmitDiagnostics();
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
         public void SigningNotAvailable001()
         {
@@ -189,7 +223,7 @@ public class Test
             var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs", TestOptions.RegularWithLegacyStrongName);
             var provider = new TestDesktopStrongNameProvider(
                 ImmutableArray.Create(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")),
-                new VirtualizedStrongNameFileSystem())
+                new VirtualizedStrongNameFileSystem(_signingTempDirectory.Path))
             {
                 GetStrongNameInterfaceFunc = () => throw new DllNotFoundException("aaa.dll not found.")
             };
@@ -224,7 +258,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyNameAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyNameAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -390,6 +424,20 @@ public class Test
 
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyContainer", "System.Reflection.AssemblyKeyNameAttribute"));
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerSigningTempPathMissing(CSharpParseOptions parseOptions)
+        {
+            string source = @"class C { }";
+            var options = TestOptions.SigningReleaseDll
+                .WithCryptoKeyContainer("RoslynTestContainer")
+                .WithStrongNameProvider(s_providerNoSigningTempPath);
+            var compilation = CreateCompilation(source, options: options, parseOptions: parseOptions);
+
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", CodeAnalysisResources.SigningTempPathUnavailable));
         }
 
         [Theory]
@@ -2327,11 +2375,11 @@ public class C : B
                 parseOptions: parseOptions);
 
             comp3.VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'B.F(int[])'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'B.F(int[])'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("a", "B.F(int[])").WithLocation(7, 11),
                 // (8,20): error CS1061: 'object' does not contain a definition for 'Bar' and no extension method 'Bar' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bar").WithArguments("object", "Bar").WithLocation(8, 20),
-                // (10,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'B.this[int, int[]]'
+                // (10,17): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'B.this[int, int[]]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
         }
 
@@ -2747,7 +2795,7 @@ class B
             {
                 var assembly = module.ContainingAssembly;
                 Assert.NotNull(assembly);
-                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
+                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute)));
             });
         }
 
@@ -2800,7 +2848,7 @@ class B
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasCOMInterop)]
         public void LegacyDoesNotUseBuilder()
         {
-            var provider = new TestDesktopStrongNameProvider(fileSystem: new VirtualizedStrongNameFileSystem())
+            var provider = new TestDesktopStrongNameProvider(fileSystem: new VirtualizedStrongNameFileSystem(_signingTempDirectory.Path))
             {
                 SignBuilderFunc = delegate { throw null; }
             };

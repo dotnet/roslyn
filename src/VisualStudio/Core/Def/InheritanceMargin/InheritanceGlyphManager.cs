@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
         private const string GlyphMarginName = "Indicator Margin";
 
+        private readonly Workspace _workspace;
         private readonly double _heightAndWidthOfTheGlyph;
         private readonly IWpfTextView _textView;
         private readonly IThreadingContext _threadingContext;
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly SimpleIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
         public InheritanceGlyphManager(
+            Workspace workspace,
             IWpfTextView textView,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
@@ -55,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Canvas canvas,
             double heightAndWidthOfTheGlyph) : base(threadingContext)
         {
+            _workspace = workspace;
             _textView = textView;
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -193,6 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private InheritanceMarginGlyph CreateNewGlyph(InheritanceMarginTag tag)
             => new(
+                _workspace,
                 _threadingContext,
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,

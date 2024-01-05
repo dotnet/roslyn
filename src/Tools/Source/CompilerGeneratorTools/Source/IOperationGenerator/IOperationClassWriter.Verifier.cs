@@ -43,7 +43,7 @@ namespace IOperationGenerator
 
                     foreach (var prop in abstractNode.Properties)
                     {
-                        if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal)
+                        if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal && !prop.IsOverride)
                         {
                             Console.WriteLine($"{abstractNode.Name}.{prop.Name} does not have correctly formatted comments, please ensure that there is a <summary> block for the property.");
                             error = true;

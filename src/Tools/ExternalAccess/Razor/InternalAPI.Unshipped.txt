@@ -1,0 +1,489 @@
+#nullable enable
+abstract Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>.GetRazorTextDocumentIdentifier(TRequestType request) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier?
+abstract Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>.GetRazorTextDocumentIdentifier(TRequestType request) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier?
+abstract Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractCohostRazorRequestHandler<TRequestType, TResponseType>.HandleRequestAsync(TRequestType request, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponseType>!
+abstract Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractCohostRazorRequestHandler<TRequestType, TResponseType>.MutatesSolutionState.get -> bool
+abstract Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractCohostRazorRequestHandler<TRequestType, TResponseType>.RequiresLSPSolution.get -> bool
+const Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLanguageContract = "RazorLanguageServer" -> string!
+const Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLSPContentType = "Razor" -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>.AbstractRazorCohostDocumentRequestHandler() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractCohostRazorRequestHandler<TRequestType, TResponseType>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.AbstractCohostRazorRequestHandler<TRequestType, TResponseType>.AbstractCohostRazorRequestHandler() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorLspServiceFactoryAttribute
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorLspServiceFactoryAttribute.ExportRazorLspServiceFactoryAttribute(System.Type! handlerType) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorStatelessLspServiceAttribute
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorStatelessLspServiceAttribute.ExportRazorStatelessLspServiceAttribute(System.Type! handlerType) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider.GetCapabilities(string! clientCapabilities) -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService.ShouldActivateCohostServer() -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCustomMessageTarget
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.RazorCohostLanguageClient(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspServiceProvider! lspServiceProvider, Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, Microsoft.CodeAnalysis.Editor.Shared.Utilities.IThreadingContext! threadingContext, Microsoft.CodeAnalysis.LanguageServer.ILspServiceLoggerFactory! lspLoggerFactory, Microsoft.VisualStudio.Composition.ExportProvider! exportProvider, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider? razorCapabilitiesProvider = null, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCustomMessageTarget? razorCustomMessageTarget = null, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService = null) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspServiceProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspServiceProvider.RazorLspServiceProvider(System.Collections.Generic.IEnumerable<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspService!, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView!>!>! lspServices, System.Collections.Generic.IEnumerable<System.Lazy<Microsoft.CodeAnalysis.LanguageServer.ILspServiceFactory!, Microsoft.CodeAnalysis.LanguageServer.LspServiceMetadataView!>!>! lspServiceFactories) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspWorkspaceManagerFactory
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspWorkspaceManagerFactory.RazorLspWorkspaceManagerFactory(Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationService! lspWorkspaceRegistrationService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Equals(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Method.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Method.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.RazorCohostRequestContext(string! Method, System.Uri? Uri, Microsoft.CodeAnalysis.Solution? Solution, Microsoft.CodeAnalysis.TextDocument? TextDocument) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Deconstruct(out string! Method, out System.Uri? Uri, out Microsoft.CodeAnalysis.Solution? Solution, out Microsoft.CodeAnalysis.TextDocument? TextDocument) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.TextDocument.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.RazorCohostRequestContext() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Solution.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Uri.get -> System.Uri?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Uri.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorRequestExecutionQueueProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorRequestExecutionQueueProvider.CreateRequestExecutionQueue(Microsoft.CommonLanguageServerProtocol.Framework.AbstractLanguageServer<Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext>! languageServer, Microsoft.CommonLanguageServerProtocol.Framework.ILspLogger! logger, Microsoft.CommonLanguageServerProtocol.Framework.IHandlerProvider! handlerProvider) -> Microsoft.CommonLanguageServerProtocol.Framework.IRequestExecutionQueue<Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorRequestExecutionQueueProvider.RazorRequestExecutionQueueProvider() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorRequestTelemetryLoggerFactory
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorRequestTelemetryLoggerFactory.RazorRequestTelemetryLoggerFactory() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.Equals(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.Deconstruct(out System.Uri! Uri, out string? ProjectContextId) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.ProjectContextId.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.ProjectContextId.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.RazorTextDocumentIdentifier() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.RazorTextDocumentIdentifier(System.Uri! Uri, string? ProjectContextId) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.Uri.get -> System.Uri!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.Uri.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorAsynchronousOperationListenerProviderAccessor.GetListener(string! featureName) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider.GetCapabilities(Roslyn.LanguageServer.Protocol.ClientCapabilities! clientCapabilities) -> Roslyn.LanguageServer.Protocol.ServerCapabilities!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.CanHandle(string! methodName) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentExcerptServiceImplementation
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentExcerptServiceImplementation.TryExcerptAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode mode, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult?>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentOperationService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentOperationService.CanApplyChange.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentOperationService.SupportDiagnostics.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService.DesignTimeOnly.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService.DiagnosticsLspClientName.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider.GetService<TService>() -> TService?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo?>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.RemoveDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider.Updated -> System.EventHandler<string!>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper.CreateDocumentInfo(Microsoft.CodeAnalysis.DocumentId! id, string! name, System.Collections.Generic.IReadOnlyList<string!>? folders = null, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, Microsoft.CodeAnalysis.TextLoader? loader = null, string? filePath = null, bool isGenerated = false, bool designTimeOnly = false, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider? razorDocumentServiceProvider = null) -> Microsoft.CodeAnalysis.DocumentInfo!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper.CreateLanguageServer(StreamJsonRpc.JsonRpc! jsonRpc, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider! capabilitiesProvider, Microsoft.CodeAnalysis.Host.HostServices! hostServices) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerTarget!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerFactoryWrapper.CreateLanguageServer(StreamJsonRpc.JsonRpc! jsonRpc, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorTestCapabilitiesProvider! capabilitiesProvider, Microsoft.CodeAnalysis.Host.HostServices! hostServices) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerTarget!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerTarget
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorSpanMappingService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorSpanMappingService.MapSpansAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan>! spans, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult>>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorTestCapabilitiesProvider
+Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorTestCapabilitiesProvider.GetServerCapabilitiesJson(string! clientCapabilitiesJson) -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerProviderAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerProviderAccessor.GetListener(string! featureName) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerProviderAccessor.RazorAsynchronousOperationListenerProviderAccessor(Microsoft.CodeAnalysis.Shared.TestHooks.IAsynchronousOperationListenerProvider! implementation) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper.BeginAsyncOperation(string! name, object? tag = null, string! filePath = "", int lineNumber = 0) -> System.IDisposable!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper.RazorAsynchronousOperationListenerWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAsynchronousOperationListenerWrapper.RazorAsynchronousOperationListenerWrapper(Microsoft.CodeAnalysis.Shared.TestHooks.IAsynchronousOperationListener! implementation) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions.RazorAutoFormattingOptions() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions.RazorAutoFormattingOptions(bool formatOnReturn, bool formatOnTyping, bool formatOnSemicolon, bool formatOnCloseBrace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions.RazorAutoFormattingOptions(Microsoft.CodeAnalysis.Formatting.AutoFormattingOptions underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorBreakpointSpans
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.RazorClassificationOptionsWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.RazorClassificationOptionsWrapper(Microsoft.CodeAnalysis.Classification.ClassificationOptions underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassifierAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.RazorCSharpInterceptionMiddleLayerWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer! razorCSharpInterceptionMiddleLayer) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressionResolverService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper.RazorDocumentExcerptServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentExcerptServiceImplementation! impl) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper.TryExcerptAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Host.ExcerptMode mode, Microsoft.CodeAnalysis.Classification.ClassificationOptions classificationOptions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Host.ExcerptResult?>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentPropertiesServiceWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentPropertiesServiceWrapper.RazorDocumentPropertiesServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentPropertiesService! razorDocumentPropertiesService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentServiceProviderWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentServiceProviderWrapper.CanApplyChange.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentServiceProviderWrapper.GetService<TService>() -> TService?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentServiceProviderWrapper.RazorDocumentServiceProviderWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider! innerDocumentServiceProvider) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentServiceProviderWrapper.SupportDiagnostics.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.DocumentServiceProvider.get -> Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.FilePath.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.RazorDynamicFileInfo(string! filePath, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind, Microsoft.CodeAnalysis.TextLoader! textLoader, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider! documentServiceProvider) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.SourceCodeKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.TextLoader.get -> Microsoft.CodeAnalysis.TextLoader!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.ToUpdatedDocumentInfo(Microsoft.CodeAnalysis.DocumentInfo! existingDocumentInfo) -> Microsoft.CodeAnalysis.DocumentInfo!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Host.DynamicFileInfo?>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.RazorDynamicFileInfoProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider!>! innerDynamicFileInfoProvider) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.RemoveDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.Updated -> System.EventHandler<string!>?
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode.SingleLine = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode.Tooltip = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.RazorExcerptResult() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.RazorExcerptResult(Microsoft.CodeAnalysis.Text.SourceText! content, Microsoft.CodeAnalysis.Text.TextSpan mappedSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Classification.ClassifiedSpan> classifiedSpans, Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.GetAutoFormattingOptions() -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.RazorGlobalOptions(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.TabSize.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.TabSize.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.UseTabs.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.UseTabs.set -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.Deconstruct(out bool UseTabs, out int TabSize, out int IndentationSize) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.IndentationSize.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.IndentationSize.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.RazorIndentationOptions() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.RazorIndentationOptions(bool UseTabs, int TabSize, int IndentationSize) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.TabSize.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.TabSize.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.UseTabs.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.UseTabs.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerFactoryWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerFactoryWrapper.CreateDocumentInfo(Microsoft.CodeAnalysis.DocumentId! id, string! name, System.Collections.Generic.IReadOnlyList<string!>? folders = null, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, Microsoft.CodeAnalysis.TextLoader? loader = null, string? filePath = null, bool isGenerated = false, bool designTimeOnly = false, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentServiceProvider? razorDocumentServiceProvider = null) -> Microsoft.CodeAnalysis.DocumentInfo!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerFactoryWrapper.CreateLanguageServer(StreamJsonRpc.JsonRpc! jsonRpc, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCapabilitiesProvider! razorCapabilitiesProvider, Microsoft.CodeAnalysis.Host.HostServices! hostServices) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerTarget!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerFactoryWrapper.CreateLanguageServer(StreamJsonRpc.JsonRpc! jsonRpc, Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorTestCapabilitiesProvider! razorCapabilitiesProvider, Microsoft.CodeAnalysis.Host.HostServices! hostServices) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorLanguageServerTarget!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerFactoryWrapper.RazorLanguageServerFactoryWrapper(Microsoft.CodeAnalysis.LanguageServer.ILanguageServerFactory! languageServerFactory) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerTargetWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerTargetWrapper.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorLanguageServerTargetWrapper.RazorLanguageServerTargetWrapper(Microsoft.CommonLanguageServerProtocol.Framework.AbstractLanguageServer<Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext>! languageServer) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.IsDefault.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.RazorMappedSpanResult() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.RazorMappedSpanResult(string! filePath, Microsoft.CodeAnalysis.Text.LinePositionSpan linePositionSpan, Microsoft.CodeAnalysis.Text.TextSpan span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.InvokeAsync(System.Func<T!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.InvokeAsync<TResult>(System.Func<T!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<TResult>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.RazorRemoteCallbackWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.RazorRemoteCallbackWrapper(T! callback) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.CreateConnection<TService>(object? callbackTarget) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService!>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.RazorRemoteHostClient(Microsoft.CodeAnalysis.Remote.ServiceHubRemoteHostClient! client, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper serviceDescriptors, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry! callbackDispatchers) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService, TResult>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, object! callbackTarget, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService, TResult>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService, TResult>(System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, object! callbackTarget, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService, TResult>(System.Func<TService!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, object! callbackTarget, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService>(System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, object! callbackTarget, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryInvokeAsync<TService>(System.Func<TService!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcher
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcher.GetCallback(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper callbackId) -> object!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcher.RazorRemoteServiceCallbackDispatcher() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry.RazorRemoteServiceCallbackDispatcherRegistry(System.Collections.Generic.IEnumerable<(System.Type! serviceType, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcher! dispatcher)>! lazyDispatchers) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper.RazorRemoteServiceCallbackIdWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper.RazorRemoteServiceCallbackIdWrapper(Microsoft.CodeAnalysis.Remote.RemoteServiceCallbackId underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper.UnderlyingObject.get -> Microsoft.CodeAnalysis.Remote.RemoteServiceCallbackId
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.Dispose() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.RazorRemoteServiceConnectionWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.RazorRemoteServiceConnectionWrapper(Microsoft.CodeAnalysis.Remote.RemoteServiceConnection<TService!>! underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync(System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync(System.Func<TService!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync<TResult>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync<TResult>(Microsoft.CodeAnalysis.Solution! solution, System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync<TResult>(System.Func<TService!, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.TryInvokeAsync<TResult>(System.Func<TService!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Optional<TResult>>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceConnectionWrapper<TService>.UnderlyingObject.get -> Microsoft.CodeAnalysis.Remote.RemoteServiceConnection<TService!>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.RazorSemanticTokensAccessor() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.GetDescriptorForServiceFactory(System.Type! serviceInterface) -> Microsoft.ServiceHub.Framework.ServiceJsonRpcDescriptor!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.JsonConverters.get -> System.Collections.Immutable.ImmutableArray<Newtonsoft.Json.JsonConverter!>
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.MessagePackOptions.get -> MessagePack.MessagePackSerializerOptions!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.RazorServiceDescriptorsWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.RazorServiceDescriptorsWrapper(string! componentName, System.Func<string!, string!>! featureDisplayNameProvider, System.Collections.Immutable.ImmutableArray<MessagePack.Formatters.IMessagePackFormatter!> additionalFormatters, System.Collections.Immutable.ImmutableArray<MessagePack.IFormatterResolver!> additionalResolvers, System.Collections.Generic.IEnumerable<(System.Type! serviceInterface, System.Type? callbackInterface)>! interfaces) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.RazorServiceDescriptorsWrapper(string! componentName, System.Func<string!, string!>! featureDisplayNameProvider, System.Collections.Immutable.ImmutableArray<Newtonsoft.Json.JsonConverter!> jsonConverters, System.Collections.Generic.IEnumerable<(System.Type! serviceInterface, System.Type? callbackInterface)>! interfaces) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.RazorSpanMappingServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorSpanMappingService! razorSpanMappingService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.InitializeDiagnosticsServices(Microsoft.CodeAnalysis.Workspace! workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.RazorTestAnalyzerLoader(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService! analyzerService, Microsoft.CodeAnalysis.Diagnostics.IDiagnosticService! diagnosticService, Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptionService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.RazorTestWorkspaceRegistrationService() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.Register(Microsoft.CodeAnalysis.Workspace! workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.ActivateAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Client.Connection?>!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.CustomMessageTarget.get -> object?
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.GetCapabilities(Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! clientCapabilities) -> Microsoft.VisualStudio.LanguageServer.Protocol.ServerCapabilities!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.ServerKind.get -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.ShowNotificationOnInitializeFailed.get -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.CanHandle(string! methodName) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentPropertiesServiceWrapper.DiagnosticsLspClientName.get -> string?
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.GetMappedTextChangesAsync(Microsoft.CodeAnalysis.Document! oldDocument, Microsoft.CodeAnalysis.Document! newDocument, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<(string! mappedFilePath, Microsoft.CodeAnalysis.Text.TextChange mappedTextChange)>>!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.MapSpansAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan>! spans, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Host.MappedSpanResult>>!
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.SupportsMappingImportDirectives.get -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.GetHostWorkspaceKind() -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions.UnderlyingObject -> Microsoft.CodeAnalysis.Formatting.AutoFormattingOptions
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Classification.ClassificationOptions
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.ClassifiedSpans -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Content -> Microsoft.CodeAnalysis.Text.SourceText!
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Document -> Microsoft.CodeAnalysis.Document!
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.MappedSpan -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.FilePath -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.LinePositionSpan -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Checksum
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.UnderlyingObject -> Microsoft.CodeAnalysis.Remote.RemoteCallback<T!>
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Remote.ServiceDescriptors!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext left, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext left, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier left, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier left, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorBreakpointSpans.TryGetBreakpointSpan(Microsoft.CodeAnalysis.SyntaxTree! tree, int position, System.Threading.CancellationToken cancellationToken, out Microsoft.CodeAnalysis.Text.TextSpan breakpointSpan) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.Default -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassifierAccessor.GetClassifiedSpansAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>!>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService.Format(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, Microsoft.CodeAnalysis.SyntaxNode! root, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions indentationOptions, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxNode!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService.GetFormattedTextChanges(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, Microsoft.CodeAnalysis.SyntaxNode! root, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions indentationOptions, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.Document! document, char typedChar, int position, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions indentationOptions, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions autoFormattingOptions, Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle indentStyle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressionResolverService.GetProximityExpressions(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, int absoluteIndex, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IList<string!>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.GetGlobalOptions(Microsoft.CodeAnalysis.Workspace! workspace) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum info) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAccessibilityModifiers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAnonymousTypeMemberName.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAsync.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddBraces.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddDocCommentNodes.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddExplicitCast.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddImport.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddMissingReference.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddNew.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddObsoleteAttribute.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddOverloads.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddPackage.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddParameter.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddParenthesesAroundConditionalExpressionInInterpolatedString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddRequiredParentheses.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AliasAmbiguousType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ApplyNamingStyle.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AssignOutParametersAboveReturn.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AssignOutParametersAtStart.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ChangeNamespaceToMatchFolder.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ChangeReturnType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ChangeToYield.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConflictMarkerResolution.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConsecutiveBracePlacement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConsecutiveStatementPlacement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConstructorInitializerPlacement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConvertSwitchStatementToExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConvertToAsync.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConvertToIterator.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ConvertTypeOfToNameOf.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.CorrectNextControlVariable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.DeclareAsNullable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.DisambiguateSameVariable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.EmbeddedStatementPlacement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FileHeader.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FixFormatting.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FixIncorrectExitContinue.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FixIncorrectFunctionReturnType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FixReturnType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.FullyQualify.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateConstructor.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateConversion.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateEndConstruct.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateEnumMember.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateEvent.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateMethod.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.GenerateVariable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ImplementAbstractClass.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ImplementInterface.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.InlineDeclaration.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeFieldReadonly.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeLocalFunctionStatic.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeMemberStatic.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeMethodSynchronous.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeRefStruct.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeStatementAsynchronous.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeStructFieldsWritable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MakeTypeAbstract.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.MoveToTopOfFile.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.OrderModifiers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.PassInCapturedVariables.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.PopulateSwitch.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.PopulateSwitchExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.PreferFrameworkType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.QualifyMemberAccess.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveAsyncModifier.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveBlankLines.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveConfusingSuppression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveDocCommentNode.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveIn.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveNew.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveRedundantEquality.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveSharedFromModuleMembers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryAttributeSuppressions.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryByVal.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryCast.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryDiscardDesignation.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryImports.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnnecessaryPragmaSuppressions.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnreachableCode.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnusedLocalFunction.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnusedValues.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.ReplaceDefaultLiteral.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SimplifyConditionalExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SimplifyInterpolation.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SimplifyLinqExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SimplifyNames.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SimplifyThisOrMe.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.SpellCheck.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UnsealClass.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UpdateLegacySuppressions.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UpdateProjectToAllowUnsafe.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UpgradeProject.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseAutoProperty.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseCoalesceExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseCoalesceExpressionForNullable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseCollectionInitializer.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseCompoundAssignment.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseConditionalExpressionForAssignment.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseConditionalExpressionForReturn.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseDeconstruction.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseDefaultLiteral.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseExplicitTupleName.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseExplicitType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseExplicitTypeForConst.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseExpressionBody.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseExpressionBodyForLambda.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseImplicitObjectCreation.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseImplicitType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseIndexOperator.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseInferredMemberName.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseInterpolatedVerbatimString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseIsNotExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseIsNullCheck.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseIsNullCheckForCastAndEqualityOperator.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseIsNullCheckForReferenceEquals.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseLocalFunction.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseNotPattern.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseNullPropagation.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseObjectInitializer.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UsePatternCombinators.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UsePatternMatchingAsAndNullCheck.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheck.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheckWithoutName.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseRangeOperator.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseSimpleUsingStatement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseSystemHashCode.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.UseThrowExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddAwait.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddFileBanner.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddMissingImports.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.AddParameterCheck.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ChangeSignature.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertDirectCastToTryCast.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertForEachToFor.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertForEachToLinqQuery.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertForToForEach.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertIfToSwitch.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertLocalFunctionToMethod.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertNumericLiteral.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertTryCastToDirectCast.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ConvertTupleToStruct.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.EncapsulateField.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ExtractClass.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ExtractInterface.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ExtractMethod.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.GenerateComparisonOperators.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.GenerateOverrides.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InlineMethod.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InlineTemporary.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.IntroduceUsingStatement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InvertConditional.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InvertIf.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InvertLogical.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.InvertMultiLineIf.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MakeLocalFunctionStatic.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MergeConsecutiveIfStatements.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MergeNestedIfStatements.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MoveToNamespace.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.MoveTypeToFile.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.NameTupleElement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.PullMemberUp.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.RenameTracking.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ReplaceDocCommentTextWithTag.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.ReverseForStatement.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.SplitIntoConsecutiveIfStatements.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.SplitIntoNestedIfStatements.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.SyncNamespace.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.UseExplicitType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.UseImplicitType.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.UseNamedArguments.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames.Wrapping.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient.TryGetClientAsync(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper serviceDescriptors, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry! callbackDispatchers, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient?>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper(Microsoft.CodeAnalysis.Remote.RemoteServiceCallbackId id) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackIdWrapper
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenModifiers() -> string![]!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(bool clientSupportsVisualStudioExtensions) -> System.Collections.Immutable.ImmutableArray<string!>
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.GetTokenTypes(Roslyn.LanguageServer.Protocol.ClientCapabilities! capabilities) -> System.Collections.Immutable.ImmutableArray<string!>
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSemanticTokensAccessor.RoslynTokenTypes.get -> System.Collections.Immutable.ImmutableArray<string!>
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri.CreateAbsoluteUri(string! absolutePath) -> System.Uri!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorUri.CreateUri(this Microsoft.CodeAnalysis.TextDocument! document) -> System.Uri!
+static readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLanguage -> System.Collections.Immutable.ImmutableArray<string!>
+static readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry.Empty -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteServiceCallbackDispatcherRegistry!
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.ToString() -> string

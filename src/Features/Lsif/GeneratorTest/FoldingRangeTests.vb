@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.LanguageServer.Protocol
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -51,7 +51,7 @@ using System.Linq;|}", "imports", "...")>
                                 <%= code %>
                             </Document>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
                 Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderBy(Function(range) range.StartLine).ToArray()

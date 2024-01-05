@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -134,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public readonly ArrayBuilder<ClosureEnvironment> CapturedEnvironments
                     = ArrayBuilder<ClosureEnvironment>.GetInstance();
-
-                public ClosureEnvironment ContainingEnvironmentOpt;
-
+#nullable enable
+                public ClosureEnvironment? ContainingEnvironmentOpt;
+#nullable disable
                 private bool _capturesThis;
 
                 /// <summary>
@@ -170,16 +171,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
             public sealed class ClosureEnvironment
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
 
                 /// <summary>
-                /// True if this environment captures a reference to a class environment
-                /// declared in a higher scope. Assigned by
-                /// <see cref="ComputeLambdaScopesAndFrameCaptures()"/>
+                /// Assigned by <see cref="ComputeLambdaScopesAndFrameCaptures()"/>.
                 /// </summary>
-                public bool CapturesParent;
+                public ClosureEnvironment Parent;
 
                 public readonly bool IsStruct;
                 internal SynthesizedClosureEnvironment SynthesizedEnvironment;
@@ -192,6 +192,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CapturedVariables.Add(item);
                     }
                     IsStruct = isStruct;
+                }
+
+                /// <summary>
+                /// True if this environment references a class environment declared in a higher scope.
+                /// </summary>
+                public bool CapturesParent => Parent != null;
+
+                private string GetDebuggerDisplay()
+                {
+                    int depth = 0;
+                    var current = Parent;
+                    while (current != null)
+                    {
+                        depth++;
+                        current = current.Parent;
+                    }
+
+                    return $"{depth}: captures [{string.Join(", ", CapturedVariables.Select(v => v.Name))}]";
                 }
             }
 
@@ -393,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override BoundNode VisitMethodGroup(BoundMethodGroup node)
-                    => throw ExceptionUtilities.Unreachable;
+                    => throw ExceptionUtilities.Unreachable();
 
                 public override BoundNode VisitBlock(BoundBlock node)
                 {
@@ -437,14 +455,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
                     => VisitNestedFunction(node.Symbol.OriginalDefinition, node.Body);
 
-                public override BoundNode VisitCall(BoundCall node)
+                protected override void VisitArguments(BoundCall node)
                 {
                     if (node.Method.MethodKind == MethodKind.LocalFunction)
                     {
                         // Use OriginalDefinition to strip generic type parameters
                         AddIfCaptured(node.Method.OriginalDefinition, node.Syntax);
                     }
-                    return base.VisitCall(node);
+
+                    base.VisitArguments(node);
                 }
 
                 public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

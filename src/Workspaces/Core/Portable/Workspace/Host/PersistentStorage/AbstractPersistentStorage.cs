@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Host
         public string DatabaseFile { get; }
         public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile) ?? throw ExceptionUtilities.UnexpectedValue(DatabaseFile);
 
+        private bool _isDisabled;
+
         protected AbstractPersistentStorage(
             string workingFolderPath,
             string solutionFilePath,
@@ -33,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Host
                 Directory.CreateDirectory(this.DatabaseDirectory);
             }
         }
+
+        private bool IsDisabled
+            => Volatile.Read(ref _isDisabled);
+
+        protected void DisableStorage()
+            => Volatile.Write(ref _isDisabled, true);
 
         public abstract void Dispose();
         public abstract ValueTask DisposeAsync();
@@ -49,57 +57,57 @@ namespace Microsoft.CodeAnalysis.Host
         protected abstract Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(projectKey, project: null, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : ChecksumMatchesAsync(projectKey, project: null, name, checksum, cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(documentKey, document: null, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : ChecksumMatchesAsync(documentKey, document: null, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(projectKey, project: null, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(projectKey, project: null, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(documentKey, document: null, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(documentKey, document: null, name, checksum, cancellationToken);
 
         public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(projectKey, project: null, name, stream, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(projectKey, project: null, name, stream, checksum, cancellationToken);
 
         public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(documentKey, document: null, name, stream, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(documentKey, document: null, name, stream, checksum, cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : ChecksumMatchesAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
-            => ReadStreamAsync(name, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(name, checksum: null, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
-            => ReadStreamAsync(project, name, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(project, name, checksum: null, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
-            => ReadStreamAsync(document, name, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.Null<Stream>() : ReadStreamAsync(document, name, checksum: null, cancellationToken);
 
         public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(ProjectKey.ToProjectKey(project), project, name, stream, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(ProjectKey.ToProjectKey(project), project, name, stream, checksum, cancellationToken);
 
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(DocumentKey.ToDocumentKey(document), document, name, stream, checksum, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(DocumentKey.ToDocumentKey(document), document, name, stream, checksum, cancellationToken);
 
         public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(name, stream, checksum: null, cancellationToken);
 
         public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken)
-            => WriteStreamAsync(project, name, stream, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(project, name, stream, checksum: null, cancellationToken);
 
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
-            => WriteStreamAsync(document, name, stream, checksum: null, cancellationToken);
+            => IsDisabled ? SpecializedTasks.False : WriteStreamAsync(document, name, stream, checksum: null, cancellationToken);
     }
 }

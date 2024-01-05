@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // instance.  Then once all other existing clients who are holding onto this
                     // instance let go, it will finally get truly disposed.
                     // This operation is not safe to cancel (as dispose must happen).
-                    _ = Task.Run(() => storageToDispose.Dispose(), CancellationToken.None);
+                    _ = Task.Run(storageToDispose.Dispose, CancellationToken.None);
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
@@ -159,26 +159,18 @@ namespace Microsoft.CodeAnalysis.Storage
                 _currentPersistentStorageSolutionId = null;
             }
 
-            if (storage != null)
-            {
-                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                // using this will still be holding a reference count.
-                storage.Dispose();
-            }
+            // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+            // using this will still be holding a reference count.
+            storage?.Dispose();
         }
 
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractPersistentStorageService service)
         {
-            private readonly AbstractPersistentStorageService _service;
-
-            public TestAccessor(AbstractPersistentStorageService service)
-                => _service = service;
-
             public void Shutdown()
-                => _service.Shutdown();
+                => service.Shutdown();
         }
 
         /// <summary>
@@ -196,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Storage
             {
                 // This should only be called from a caller that has a non-null storage that it
                 // already has a reference on.  So .TryAddReference cannot fail.
-                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw ExceptionUtilities.Unreachable());
             }
 
             public void Dispose()
@@ -229,19 +221,19 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(ProjectKey project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(DocumentKey document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
@@ -253,19 +245,19 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(projectKey, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(documentKey, name, stream, checksum, cancellationToken);
         }
     }

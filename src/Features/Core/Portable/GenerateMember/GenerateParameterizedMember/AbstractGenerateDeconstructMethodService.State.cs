@@ -7,10 +7,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                var parameters = TryMakeParameters(semanticModel, targetVariables);
+                var parameters = service.TryMakeParameters(semanticModel, targetVariables, cancellationToken);
                 if (parameters.IsDefault)
                 {
                     return false;
@@ -83,25 +87,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
 
                 return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
-            }
-
-            private static ImmutableArray<IParameterSymbol> TryMakeParameters(SemanticModel semanticModel, SyntaxNode target)
-            {
-                var targetType = semanticModel.GetTypeInfo(target).Type;
-                if (targetType?.IsTupleType != true)
-                {
-                    return default;
-                }
-
-                var tupleElements = ((INamedTypeSymbol)targetType).TupleElements;
-                using var builderDisposer = ArrayBuilder<IParameterSymbol>.GetInstance(tupleElements.Length, out var builder);
-                foreach (var element in tupleElements)
-                {
-                    builder.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default, RefKind.Out, isParams: false, element.Type, element.Name));
-                }
-
-                return builder.ToImmutable();
             }
         }
     }

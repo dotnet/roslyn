@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -32,9 +33,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public partial class TestWorkspace : Workspace
+    public partial class TestWorkspace : Workspace, ILspWorkspace
     {
         public ExportProvider ExportProvider { get; }
+        public TestComposition? Composition { get; }
 
         public bool CanApplyChangeDocument { get; set; }
 
@@ -49,28 +51,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
-        private readonly BackgroundCompiler _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
+        private readonly bool _supportsLspMutation;
 
-        public TestWorkspace(
-            ExportProvider? exportProvider = null,
+        internal TestWorkspace(
             TestComposition? composition = null,
             string? workspaceKind = WorkspaceKind.Host,
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
-            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+            WorkspaceConfigurationOptions? configurationOptions = null,
+            bool supportsLspMutation = false)
+            : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
-            Contract.ThrowIfTrue(exportProvider != null && composition != null);
+            this.Composition = composition;
+            this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
-            SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
+            var partialSolutionsTestHook = Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
+            partialSolutionsTestHook.IsPartialSolutionDisabled = disablePartialSolutions;
 
-            this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-            this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
+            // configure workspace before creating any solutions:
+            if (configurationOptions != null)
+            {
+                var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
+                workspaceConfigurationService.Options = configurationOptions.Value;
+            }
+
+            SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
+
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
@@ -80,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+            _supportsLspMutation = supportsLspMutation;
             this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
@@ -102,42 +114,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 };
             }
 
-            _backgroundCompiler = new BackgroundCompiler(this);
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
-
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        internal static TestComposition GetComposition(TestComposition? composition)
-            => composition ?? EditorTestCompositions.EditorFeatures;
-
-        private static HostServices GetHostServices(ExportProvider? exportProvider = null, TestComposition? composition = null)
-           => (exportProvider != null) ? VisualStudioMefHostServices.Create(exportProvider) : GetComposition(composition).GetHostServices();
-
-        protected internal override bool PartialSemanticsEnabled
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
         {
-            get { return _backgroundCompiler != null; }
+            composition ??= EditorTestCompositions.EditorFeatures;
+
+            if (hasWorkspaceConfigurationOptions)
+            {
+                composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
+            }
+
+            return composition.GetHostServices();
         }
+
+        protected internal override bool PartialSemanticsEnabled => true;
 
         public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
-
-        protected override void OnDocumentTextChanged(Document document)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
-        }
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
-        }
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
@@ -145,8 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void Dispose(bool finalize)
         {
             _metadataAsSourceFileService?.CleanupGeneratedFiles();
-
-            this.ClearSolutionData();
 
             foreach (var document in Documents)
             {
@@ -166,11 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
-            }
-
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
             }
 
             base.Dispose(finalize);
@@ -469,8 +457,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty)
-                    ? mappedSpans[string.Empty]
+                mappedSpans[string.Empty] = mappedSpans.TryGetValue(string.Empty, out var emptyTextSpans)
+                    ? emptyTextSpans
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
@@ -485,9 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 foreach (var (key, spans) in document.AnnotatedSpans)
                 {
-                    mappedSpans[key] = mappedSpans.ContainsKey(key)
-                        ? mappedSpans[key]
-                        : ImmutableArray<TextSpan>.Empty;
+                    mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in spans)
                     {
@@ -549,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // Get any inert text between this and the previous span
                 if (currentPositionInInertText < spanLocation)
                 {
-                    var textToAdd = inertText.Substring(currentPositionInInertText, spanLocation - currentPositionInInertText);
+                    var textToAdd = inertText[currentPositionInInertText..spanLocation];
                     projectionBufferSpans.Add(textToAdd);
                     projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
@@ -603,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Handle any inert text after the final projected span
             if (currentPositionInInertText < inertText.Length - 1)
             {
-                projectionBufferSpans.Add(inertText.Substring(currentPositionInInertText));
+                projectionBufferSpans.Add(inertText[currentPositionInInertText..]);
                 projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
                 if (mappedCaretLocation == null && markupCaretLocation != null && markupCaretLocation >= currentPositionInInertText)
@@ -678,6 +664,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             testDocument.GetOpenTextContainer();
         }
 
+        /// <summary>
+        /// Overriding base impl so that when we close a document it goes back to the initial state when the test
+        /// workspace was loaded, throwing away any changes made to the open version.
+        /// </summary>
+        internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(this._supportsLspMutation);
+
+            var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
+            return ValueTaskFactory.CompletedTask;
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             var testDocument = this.GetTestDocument(documentId);
@@ -685,6 +686,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 
             this.OnDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAdditionalDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAdditionalDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAnalyzerConfigDocumentClosed(documentId, testDocument.Loader);
         }
 
         public void OpenSourceGeneratedDocument(DocumentId documentId)
@@ -707,11 +744,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             OnSourceGeneratedDocumentClosed(document);
         }
 
-        public void ChangeDocument(DocumentId documentId, SourceText text)
-        {
-            ChangeDocumentAsync(documentId, text);
-        }
-
         public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
         {
             return ChangeDocumentAsync(documentId, this.CurrentSolution.WithDocumentText(documentId, text));
@@ -719,8 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public Task ChangeDocumentAsync(DocumentId documentId, Solution solution)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
@@ -729,37 +760,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var documentId = documentInfo.Id;
 
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.AddDocument(documentInfo));
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, text));
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.WithAdditionalDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
         public void ChangeAnalyzerConfigDocument(DocumentId documentId, SourceText text)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.WithAnalyzerConfigDocumentText(documentId, text));
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.WithAnalyzerConfigDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
-        public void ChangeProject(ProjectId projectId, Solution solution)
-        {
-            ChangeProjectAsync(projectId, solution);
-        }
-
         public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
@@ -767,15 +789,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public new void ClearSolution()
             => base.ClearSolution();
 
-        public void ChangeSolution(Solution solution)
-        {
-            ChangeSolutionAsync(solution);
-        }
-
         public Task ChangeSolutionAsync(Solution solution)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
@@ -807,11 +823,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // Ensure that the editor options on the text buffer matches that of the options that can be directly set in the workspace
                 var editorOptions = ExportProvider.GetExportedValue<IEditorOptionsFactoryService>().GetOptions(textBuffer);
-                var workspaceOptions = this.Options;
+                var globalOptions = GlobalOptions;
 
-                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !workspaceOptions.GetOption(FormattingOptions.UseTabs, languageName));
-                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, workspaceOptions.GetOption(FormattingOptions.TabSize, languageName));
-                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, workspaceOptions.GetOption(FormattingOptions.IndentationSize, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !globalOptions.GetOption(FormattingOptions2.UseTabs, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, globalOptions.GetOption(FormattingOptions2.TabSize, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, globalOptions.GetOption(FormattingOptions2.IndentationSize, languageName));
 
                 return textBuffer;
             });

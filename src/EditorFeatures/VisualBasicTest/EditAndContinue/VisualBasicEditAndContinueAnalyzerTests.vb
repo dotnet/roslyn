@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,6 +23,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             EditorTestCompositions.EditorFeatures
 
 #Region "Helpers"
+        Private Shared Function CreateWorkspace() As TestWorkspace
+            Return New TestWorkspace(composition:=s_composition)
+        End Function
+
+        Private Shared Function AddDefaultTestProject(solution As Solution, source As String) As Solution
+
+            Dim pid = ProjectId.CreateNewId()
+
+            Return solution.
+                AddProject(ProjectInfo.Create(pid, VersionStamp.Create(), "proj", "proj", LanguageNames.VisualBasic)).GetProject(pid).
+                AddDocument("test.vb", SourceText.From(source, Encoding.UTF8), filePath:=Path.Combine(TempRoot.Root, "test.vb")).Project.Solution
+        End Function
+
         Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxNode, Boolean))
             Dim tree = SyntaxFactory.ParseSyntaxTree(ClearSource(source))
 
@@ -418,7 +433,7 @@ End Class
             source = "
 Class C
     Async Function M() As Task(Of Integer)
-        <span>Await expr</span>
+        <span>Await</span> expr
     End Function
 End Class
 "
@@ -452,14 +467,13 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
-
-                Dim oldSolution = workspace.CurrentSolution
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1)
                 Dim oldProject = oldSolution.Projects.First()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim documentId = oldDocument.Id
 
-                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+                Dim newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim oldText = Await oldDocument.GetTextAsync()
                 Dim oldSyntaxRoot = Await oldDocument.GetSyntaxRootAsync()
                 Dim newDocument = newSolution.GetDocument(documentId)
@@ -487,14 +501,14 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements)
 
                 Assert.True(result.HasChanges)
-                Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
-                Assert.NotNull(syntaxMap)
+                Dim syntaxMaps = result.SemanticEdits(0).SyntaxMaps
+                Assert.True(syntaxMaps.HasMap)
 
                 Dim newStatementSpan = result.ActiveStatements(0).Span
                 Dim newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan)
                 Dim newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan)
 
-                Dim oldStatementSyntaxMapped = syntaxMap(newStatementSyntax)
+                Dim oldStatementSyntaxMapped = syntaxMaps.MatchingNodes(newStatementSyntax)
                 Assert.Same(oldStatementSyntax, oldStatementSyntaxMapped)
             End Using
         End Function
@@ -509,8 +523,9 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
-                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source)
+                Dim oldProject = oldSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
 
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
@@ -538,12 +553,12 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
-                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1)
+                Dim oldProject = oldSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim documentId = oldDocument.Id
-                Dim oldSolution = workspace.CurrentSolution
-                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+                Dim newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
@@ -564,8 +579,9 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
-                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source)
+                Dim oldProject = oldSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
 
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
@@ -576,7 +592,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
@@ -595,12 +611,12 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
-                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1)
+                Dim oldProject = oldSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim documentId = oldDocument.Id
-                Dim oldSolution = workspace.CurrentSolution
-                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+                Dim newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
@@ -610,7 +626,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
             Dim source1 = "
 Class C
@@ -627,11 +643,11 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
-                Dim oldSolution = workspace.CurrentSolution
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1)
                 Dim oldProject = oldSolution.Projects.Single()
                 Dim documentId = oldProject.Documents.Single().Id
-                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+                Dim newSolution = oldSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.True(result.HasChanges)
@@ -658,13 +674,11 @@ Class D
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
-                Dim oldSolution = workspace.CurrentSolution
+            Using workspace = CreateWorkspace()
+                Dim oldSolution = AddDefaultTestProject(workspace.CurrentSolution, source1)
                 Dim oldProject = oldSolution.Projects.Single()
                 Dim newDocId = DocumentId.CreateNewId(oldProject.Id)
-                Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2))
-
-                workspace.TryApplyChanges(newSolution)
+                Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2), filePath:=Path.Combine(TempRoot.Root, "goo.vb"))
 
                 Dim newProject = newSolution.Projects.Single()
                 Dim changes = newProject.GetChanges(oldProject)

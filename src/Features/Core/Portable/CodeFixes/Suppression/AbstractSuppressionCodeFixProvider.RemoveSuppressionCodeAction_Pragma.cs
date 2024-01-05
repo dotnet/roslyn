@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static SyntaxTriviaList GetTriviaListForSuppression(SyntaxToken token, bool isStartToken, AbstractSuppressionCodeFixProvider fixer)
                 {
-                    return isStartToken || fixer.IsEndOfFileToken(token) ?
-                        token.LeadingTrivia :
-                        token.TrailingTrivia;
+                    return isStartToken || fixer.IsEndOfFileToken(token)
+                        ? token.LeadingTrivia
+                        : token.TrailingTrivia;
                 }
 
                 private static SyntaxToken UpdateTriviaList(SyntaxToken token, bool isStartToken, SyntaxTriviaList triviaList, AbstractSuppressionCodeFixProvider fixer)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
                 private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
-                    => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
+                    => Formatter.Format(node, _document.Project.Solution.Services, _options, cancellationToken);
             }
         }
     }

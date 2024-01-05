@@ -41,19 +41,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
-            Workspace.ApplyOptions(options);
+            options?.SetGlobalOptions(Workspace.GlobalOptions);
         }
 
         public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)
             => new EventHookupTestState(GetWorkspaceXml(markup), options);
 
         public static XElement GetWorkspaceXml(string markup)
-            => XElement.Parse(string.Format(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
-    </Project>
-</Workspace>", markup));
+            => XElement.Parse(string.Format("""
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>{0}</Document>
+                    </Project>
+                </Workspace>
+                """, markup));
 
         internal void AssertShowing(string expectedText)
         {

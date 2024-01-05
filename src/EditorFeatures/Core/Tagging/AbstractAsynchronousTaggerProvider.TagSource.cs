@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
             /// to actually produce the latest set of tags.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
+            private readonly AsyncBatchingWorkQueue<bool, VoidResult> _eventChangeQueue;
 
             #endregion
 
@@ -161,7 +161,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
                 // asked for initial tags or not
-                _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
+                //
+                // PERF: Use AsyncBatchingWorkQueue<bool, VoidResult> instead of AsyncBatchingWorkQueue<bool> because
+                // the latter has an async state machine that rethrows a very common cancellation exception.
+                _eventChangeQueue = new AsyncBatchingWorkQueue<bool, VoidResult>(
                     dataSource.EventChangeDelay.ComputeTimeDelay(),
                     ProcessEventChangeAsync,
                     EqualityComparer<bool>.Default,
@@ -310,13 +313,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ITaggerEventSource CreateEventSource()
             {
+                Contract.ThrowIfTrue(_dataSource.Options.Any(o => o is not Option2<bool> and not PerLanguageOption2<bool>), "All options must be Option2<bool> or PerLanguageOption2<bool>");
+
                 var eventSource = _dataSource.CreateEventSource(_textView, _subjectBuffer);
 
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.
-                var optionChangedEventSources =
-                    _dataSource.Options.Concat<IOption>(_dataSource.PerLanguageOptions)
-                        .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption)).ToList();
+                var optionChangedEventSources = _dataSource.Options.Concat(_dataSource.FeatureOptions)
+                    .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption))
+                    .ToList();
 
                 if (optionChangedEventSources.Count == 0)
                 {

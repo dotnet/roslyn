@@ -54,18 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, Manager.System_Object, Manager.System_IntPtr);
                 var fields = TypeDescriptor.Fields;
                 int parameterCount = fields.Length - 1;
-                var parameterTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(parameterCount);
-                var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
+                var parameters = ArrayBuilder<SynthesizedDelegateInvokeMethod.ParameterDescription>.GetInstance(parameterCount);
                 for (int i = 0; i < parameterCount; i++)
                 {
                     var field = fields[i];
-                    parameterTypes.Add(field.TypeWithAnnotations);
-                    parameterRefKinds.Add(field.RefKind);
+                    parameters.Add(
+                        new SynthesizedDelegateInvokeMethod.ParameterDescription(field.TypeWithAnnotations, field.RefKind, field.Scope, field.DefaultValue, isParams: field.IsParams, hasUnscopedRefAttribute: field.HasUnscopedRefAttribute));
                 }
                 var returnField = fields.Last();
-                var invokeMethod = new SynthesizedDelegateInvokeMethod(this, parameterTypes, parameterRefKinds, returnField.TypeWithAnnotations, returnField.RefKind);
-                parameterRefKinds.Free();
-                parameterTypes.Free();
+                var invokeMethod = new SynthesizedDelegateInvokeMethod(this, parameters, returnField.TypeWithAnnotations, returnField.RefKind);
+                parameters.Free();
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 return ImmutableArray.Create<Symbol>(constructor, invokeMethod);
             }

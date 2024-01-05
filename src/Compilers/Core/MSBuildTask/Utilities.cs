@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        private const string MSBuildRoslynFolderName = "Roslyn";
-
         /// <summary>
         /// Copied from msbuild. ItemSpecs are normalized using this method.
         /// </summary>
@@ -173,15 +171,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Generate the full path to the tool that is deployed with our build tasks.
         /// </summary>
-        internal static string GenerateFullPathToTool(string toolName)
+        internal static string GenerateFullPathToTool(string toolFileName)
         {
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
             var assemblyPath = buildTask.Location;
-            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath)!;
 
             return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory!, toolName)
-                : Path.Combine(assemblyDirectory!, "bincore", toolName);
+                ? Path.Combine(assemblyDirectory, toolFileName)
+                : Path.Combine(assemblyDirectory, "bincore", toolFileName);
         }
     }
 }

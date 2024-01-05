@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        private class GenerateTypeCodeAction : CodeAction
+        private sealed class GenerateTypeCodeAction : CodeAction
         {
             private readonly bool _intoNamespace;
             private readonly bool _inNewFile;
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
@@ -101,9 +104,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
-                var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                var generateTypeOptionsService = _document.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
+                var notificationService = _document.Project.Solution.Services.GetService<INotificationService>();
+                var projectManagementService = _document.Project.Solution.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
                 var typeKindValue = GetTypeKindOption(_state);
                 var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);
@@ -172,7 +175,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return false;
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 

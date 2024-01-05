@@ -17,23 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     [Export(typeof(IAsyncCompletionCommitManagerProvider))]
     [Name("Roslyn Completion Commit Manager")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CommitManagerProvider(
+        IThreadingContext threadingContext,
+        RecentItemsManager recentItemsManager,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ILanguageServerSnippetExpander? languageServerSnippetExpander) : IAsyncCompletionCommitManagerProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly RecentItemsManager _recentItemsManager;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(
-            IThreadingContext threadingContext,
-            RecentItemsManager recentItemsManager,
-            IGlobalOptionService globalOptions)
-        {
-            _threadingContext = threadingContext;
-            _recentItemsManager = recentItemsManager;
-            _globalOptions = globalOptions;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly RecentItemsManager _recentItemsManager = recentItemsManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander = languageServerSnippetExpander;
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
@@ -42,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
+            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext, _languageServerSnippetExpander);
         }
     }
 }

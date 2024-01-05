@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    internal sealed class DemoLogger : ILogger
+    file class DemoLogger : ILogger
     {
         private const int IndentIncrement = 2;
 
@@ -31,7 +31,7 @@ namespace BuildValidator
 
         private int _indent;
 
-        public IDisposable BeginScope<TState>(TState state)
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull
         {
             LogCore(state?.ToString());
             return new Scope(this);
@@ -39,8 +39,8 @@ namespace BuildValidator
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) =>
-            LogCore(formatter(state, exception));
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            => LogCore(formatter(state, exception));
 
         private void LogCore(string? message)
         {
@@ -66,11 +66,11 @@ namespace BuildValidator
         {
         }
 
-        public IDisposable BeginScope<TState>(TState state) => this;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => this;
 
         public bool IsEnabled(LogLevel logLevel) => false;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
         }
     }

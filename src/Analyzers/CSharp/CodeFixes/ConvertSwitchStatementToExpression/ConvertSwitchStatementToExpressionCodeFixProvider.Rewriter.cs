@@ -113,10 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     VariableDeclaration(
                         type,
                         variables: SingletonSeparatedList(
-                                    VariableDeclarator(
-                                        identifier: ((IdentifierNameSyntax)_assignmentTarget).Identifier,
-                                        argumentList: null,
-                                        initializer: EqualsValueClause(switchExpression)))));
+                            VariableDeclarator(
+                                identifier: ((IdentifierNameSyntax)_assignmentTarget).Identifier,
+                                argumentList: null,
+                                initializer: EqualsValueClause(switchExpression)))));
             }
 
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (allowMoveNextStatementToSwitchExpression)
                 {
                     var nextStatement = node.GetNextStatement();
-                    if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement))
+                    if (nextStatement is (kind: SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement))
                     {
                         var armExpression = Visit(nextStatement);
                         Contract.ThrowIfNull(armExpression);

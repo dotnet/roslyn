@@ -12,16 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
     internal partial class CSharpProximityExpressionsService
     {
-        private class RelevantExpressionsCollector : CSharpSyntaxVisitor
+        private class RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions) : CSharpSyntaxVisitor
         {
-            private readonly bool _includeDeclarations;
-            private readonly IList<string> _expressions;
-
-            public RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions)
-            {
-                _includeDeclarations = includeDeclarations;
-                _expressions = expressions;
-            }
+            private readonly bool _includeDeclarations = includeDeclarations;
+            private readonly IList<string> _expressions = expressions;
 
             public override void VisitLabeledStatement(LabeledStatementSyntax node)
                 => AddRelevantExpressions(node.Statement, _expressions, _includeDeclarations);

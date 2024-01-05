@@ -83,10 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             for (var parent = item; parent != null; parent = parent.Parent)
             {
-                if (targetFrameworkMoniker == null)
-                {
-                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent);
-                }
+                targetFrameworkMoniker ??= GetTargetFrameworkMoniker(parent);
 
                 if (NestedHierarchyHasProjectTreeCapability(parent, "ProjectRoot"))
                 {
@@ -118,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
                 else if (capability.StartsWith("$TFM:"))
                 {
-                    potentialTFM = capability.Substring("$TFM:".Length);
+                    potentialTFM = capability["$TFM:".Length..];
                 }
             }
 
@@ -131,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var itemId = item.HierarchyIdentity.NestedItemID;
 
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-            return projectTreeCapabilities.Any(c => c.Equals(capability));
+            return projectTreeCapabilities.Any(static (c, capability) => c.Equals(capability), capability);
         }
 
         private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
@@ -149,10 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private IHierarchyItemToProjectIdMap? TryGetProjectMap()
         {
-            if (_projectMap == null)
-            {
-                _projectMap = _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-            }
+            _projectMap ??= _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
 
             return _projectMap;
         }

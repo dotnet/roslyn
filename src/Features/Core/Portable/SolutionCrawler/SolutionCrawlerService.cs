@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
-        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\SolutionCrawler\Solution Crawler"));
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("dotnet_enable_solution_crawler", defaultValue: true);
 
         /// <summary>
         /// nested class of <see cref="SolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
             }
 
-            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
+            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)

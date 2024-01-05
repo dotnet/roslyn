@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(SourceBuildToolsetTargetFrameworks);net472</TargetFrameworks>
+    <UseAppHost>false</UseAppHost>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+  </PropertyGroup>
+  
+  <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\csc.rsp" Condition="'$(TargetFramework)' == 'net472'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Import Project="..\CscCommandLine.projitems" Label="Shared" />
+</Project>

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 IsInstanceExpressionOrStatement(context) ||
                 IsThisParameterModifierContext(context) ||
-                IsConstructorInitializerContext(context) ||
-                context.IsInstanceContext && context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
+                IsConstructorInitializerContext(context);
         }
 
         private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)
@@ -67,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 if (previousModifier is SyntaxKind.None or
                     SyntaxKind.RefKeyword or
-                    SyntaxKind.InKeyword)
+                    SyntaxKind.InKeyword or
+                    SyntaxKind.ReadOnlyKeyword)
                 {
                     if (parameterIndex == 0 &&
                         context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
-            return context.InferredTypes.Any(t => Equals(t, outerType));
+            return context.InferredTypes.Any(static (t, outerType) => Equals(t, outerType), outerType);
         }
     }
 }

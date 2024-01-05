@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
@@ -35,12 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 => new(GetWorkspaceXml(markup));
 
             public static XElement GetWorkspaceXml(string markup)
-                => XElement.Parse(string.Format(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
-    </Project>
-</Workspace>", markup));
+                => XElement.Parse(string.Format("""
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>{0}</Document>
+                        </Project>
+                    </Workspace>
+                    """, markup));
 
             internal void AssertCodeIs(string expectedCode)
             {
@@ -57,300 +59,347 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         public void TestSingleName()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace N$$
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace N$$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;$$
+                """
+                namespace N;$$
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
 
         [WpfFact]
         public void TestOptionOff()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace N$$
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace N$$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
-            testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(
-                FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+            testState.Workspace.GlobalOptions.SetGlobalOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, false);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;$$
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace N;$$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestDottedName1()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace A.B$$
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A.B$$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.B;$$
+                """
+                namespace A.B;$$
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
 
         [WpfFact]
         public void TestDottedName2()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace A.$$B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A.$$B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.;$$B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A.;$$B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestDottedName3()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace A$$.B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A$$.B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A;$$.B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A;$$.B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestDottedName4()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace $$A.B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace $$A.B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace ;$$A.B
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace ;$$A.B
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestAfterWhitespace()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace A.B  $$
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace A.B  $$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.B;$$  
+                """
+                namespace A.B;$$  
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
 
         [WpfFact]
         public void TestBeforeName()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace $$N
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace $$N
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace ;$$N
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace ;$$N
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestNestedNamespace()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace N$$
-{
-    namespace N2
-    {
-        class C
-        {
-        }
-    }
-}");
+                """
+                namespace N$$
+                {
+                    namespace N2
+                    {
+                        class C
+                        {
+                        }
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;$$
-{
-    namespace N2
-    {
-        class C
-        {
-        }
-    }
-}");
+                """
+                namespace N;$$
+                {
+                    namespace N2
+                    {
+                        class C
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestSiblingNamespace()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace N$$
-{
-}
+                """
+                namespace N$$
+                {
+                }
 
-namespace N2
-{
-    class C
-    {
-    }
-}");
+                namespace N2
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;$$
-{
-}
+                """
+                namespace N;$$
+                {
+                }
 
-namespace N2
-{
-    class C
-    {
-    }
-}");
+                namespace N2
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
         }
 
         [WpfFact]
         public void TestOuterUsings()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"
-using A;
-using B;
+                """
+                using A;
+                using B;
 
-namespace N$$
-{
-    class C
-    {
-    }
-}");
+                namespace N$$
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"
-using A;
-using B;
+                """
+                using A;
+                using B;
 
-namespace N;$$
+                namespace N;$$
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
 
         [WpfFact]
         public void TestInnerUsings()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"
-namespace N$$
-{
-    using A;
-    using B;
+                """
+                namespace N$$
+                {
+                    using A;
+                    using B;
 
-    class C
-    {
-    }
-}");
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"
-namespace N;$$
+                """
+                namespace N;$$
 
-using A;
-using B;
+                using A;
+                using B;
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
 
         [WpfFact]
         public void TestCommentAfterName()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
-@"namespace N$$ // Goo
-{
-    class C
-    {
-    }
-}");
+                """
+                namespace N$$ // Goo
+                {
+                    class C
+                    {
+                    }
+                }
+                """);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;$$ // Goo
+                """
+                namespace N;$$ // Goo
 
-class C
-{
-}");
+                class C
+                {
+                }
+                """);
         }
     }
 }

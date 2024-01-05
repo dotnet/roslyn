@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.OrderModifiers;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,20 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
     internal partial class HideBaseCodeFixProvider
     {
-        private class AddNewKeywordAction : CodeAction
+        private class AddNewKeywordAction(Document document, SyntaxNode node, CodeActionOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly Document _document;
-            private readonly SyntaxNode _node;
-            private readonly CodeActionOptionsProvider _fallbackOptions;
+            private readonly Document _document = document;
+            private readonly SyntaxNode _node = node;
+            private readonly CodeActionOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => CSharpCodeFixesResources.Hide_base_member;
-
-            public AddNewKeywordAction(Document document, SyntaxNode node, CodeActionOptionsProvider fallbackOptions)
-            {
-                _document = document;
-                _node = node;
-                _fallbackOptions = fallbackOptions;
-            }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

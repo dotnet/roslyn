@@ -83,7 +83,6 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
             Next
         End Sub
 
-
         Private Shared Sub CheckInstanceAndStaticEvents([class] As NamedTypeSymbol, eventTypeDisplayString As String)
             Dim instanceEvent = [class].GetMember(Of EventSymbol)("InstanceEvent")
             Assert.Equal(SymbolKind.[Event], instanceEvent.Kind)
@@ -124,7 +123,6 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
             Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType)
             Assert.Equal([event].Type, accessor.Parameters.Single().Type)
         End Sub
-
 
         <Fact>
         Public Sub LoadSignatureMismatchEvents()

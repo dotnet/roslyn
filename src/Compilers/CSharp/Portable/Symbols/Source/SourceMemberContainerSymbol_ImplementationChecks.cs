@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev10 reports failure to implement properties/events in terms of the accessors
                 if (abstractMember.Kind == SymbolKind.Method && abstractMember is not SynthesizedRecordOrdinaryMethod)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnimplementedAbstractMethod, this.Locations[0], this, abstractMember);
+                    diagnostics.Add(ErrorCode.ERR_UnimplementedAbstractMethod, this.GetFirstLocation(), this, abstractMember);
                 }
             }
         }
@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case 0:
                                 continue; // There is no requirement to implement anything in an interface
                             case 1:
-                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(explicitImpl.Single(), ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
+                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(explicitImpl.Single(), ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty);
                                 break;
                             default:
-                                Diagnostic diag = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateExplicitImpl, interfaceMember), this.Locations[0]);
-                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(null, new ImmutableBindingDiagnostic<AssemblySymbol>(ImmutableArray.Create(diag), default));
+                                Diagnostic diag = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateExplicitImpl, interfaceMember), this.GetFirstLocation());
+                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(null, new ReadOnlyBindingDiagnostic<AssemblySymbol>(ImmutableArray.Create(diag), default));
                                 break;
                         }
                     }
@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // At this point (and not before), we know that maybeWinRTEvent is definitely a WinRT event and maybeRegularEvent is definitely a regular event.
                             var args = new object[] { implementingEvent, interfaceEvent, maybeWinRTEvent, maybeRegularEvent };
-                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MixingWinRTEventWithRegular, args, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<Location>(this.Locations[0]));
-                            diagnostics.Add(info, implementingEvent.Locations[0]);
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MixingWinRTEventWithRegular, args, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<Location>(this.GetFirstLocation()));
+                            diagnostics.Add(info, implementingEvent.GetFirstLocation());
                         }
                     }
 
@@ -326,8 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // some required assembly, then we want to report the error in the current assembly -
                                     // not in the implementing assembly.
                                     Location location = implementingMember.IsFromCompilation(this.DeclaringCompilation)
-                                        ? implementingMember.Locations[0]
-                                        : this.Locations[0];
+                                        ? implementingMember.GetFirstLocation()
+                                        : this.GetFirstLocation();
                                     diagnostics.Add(useSiteInfo, location);
                                 }
                             }
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private Location GetImplementsLocationOrFallback(NamedTypeSymbol implementedInterface)
         {
-            return GetImplementsLocation(implementedInterface) ?? this.Locations[0];
+            return GetImplementsLocation(implementedInterface) ?? this.GetFirstLocation();
         }
 
         internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
@@ -501,6 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
+            {
+                // Avoid cascading diagnostics
+                return;
+            }
+
             switch (this.TypeKind)
             {
                 // These checks don't make sense for enums and delegates:
@@ -556,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // (see SymbolPreparer::prepareOperator).
                             if ((object)overridden != null && overridden.IsMetadataFinal)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantOverrideSealed, method.Locations[0], method, overridden);
+                                diagnostics.Add(ErrorCode.ERR_CantOverrideSealed, method.GetFirstLocation(), method, overridden);
                             }
                         }
                         break;
@@ -686,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             int symbolArity = symbol.GetMemberArity();
-            Location symbolLocation = symbol.Locations.FirstOrDefault();
+            Location symbolLocation = symbol.TryGetFirstLocation();
             bool unused = false;
 
             NamedTypeSymbol currType = this.BaseTypeNoUseSiteDiagnostics;
@@ -748,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(overridingMemberIsMethod ^ overridingMemberIsProperty ^ overridingMemberIsEvent);
 
-            var overridingMemberLocation = overridingMember.Locations[0];
+            var overridingMemberLocation = overridingMember.GetFirstLocation();
 
             var overriddenMembers = overriddenOrHiddenMembers.OverriddenMembers;
             Debug.Assert(!overriddenMembers.IsDefault);
@@ -851,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (warnAmbiguous)
                 {
                     var ambiguousMethod = overridingMethod.OverriddenMethod;
-                    diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
+                    diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.GetFirstLocation(), ambiguousMethod, overridingMember);
                     suppressAccessors = true;
                 }
             }
@@ -860,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
             {
-                var overridingMemberLocation = overridingMember.Locations[0];
+                var overridingMemberLocation = overridingMember.GetFirstLocation();
                 var overridingMemberIsMethod = overridingMember.Kind == SymbolKind.Method;
                 var overridingMemberIsProperty = overridingMember.Kind == SymbolKind.Property;
                 var overridingMemberIsEvent = overridingMember.Kind == SymbolKind.Event;
@@ -1001,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                     else
                                     {
-                                        throw ExceptionUtilities.Unreachable;
+                                        throw ExceptionUtilities.Unreachable();
                                     }
                                 }
                                 else
@@ -1018,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (!overridingMethod.IsAccessor())
                         {
                             // Accessors will have already been checked above
-                            checkValidNullableMethodOverride(
+                            checkValidMethodOverride(
                                 overridingMemberLocation,
                                 overriddenMethod,
                                 overridingMethod,
@@ -1031,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // NOTE: this error may be redundant (if an error has already been reported
                     // for the return type or parameter type in question), but the scenario is
                     // too rare to justify complicated checks.
-                    if (Binder.ReportUseSite(overriddenMember, diagnostics, overridingMember.Locations[0]))
+                    if (Binder.ReportUseSite(overriddenMember, diagnostics, overridingMember.GetFirstLocation()))
                     {
                         suppressAccessors = true;
                     }
@@ -1039,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
                 {
-                    var overridingMemberLocation = overridingProperty.Locations[0];
+                    var overridingMemberLocation = overridingProperty.GetFirstLocation();
                     var overridingType = overridingProperty.ContainingType;
 
                     TypeWithAnnotations overridingMemberType = overridingProperty.TypeWithAnnotations;
@@ -1091,8 +1097,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingProperty.GetMethod is object)
                         {
                             MethodSymbol overriddenGetMethod = overriddenProperty.GetOwnOrInheritedGetMethod();
-                            checkValidNullableMethodOverride(
-                                overridingProperty.GetMethod.Locations[0],
+                            checkValidMethodOverride(
+                                overridingProperty.GetMethod.GetFirstLocation(),
                                 overriddenGetMethod,
                                 overridingProperty.GetMethod,
                                 diagnostics,
@@ -1107,8 +1113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingProperty.SetMethod is object)
                         {
                             var ownOrInheritedOverriddenSetMethod = overriddenProperty.GetOwnOrInheritedSetMethod();
-                            checkValidNullableMethodOverride(
-                                overridingProperty.SetMethod.Locations[0],
+                            checkValidMethodOverride(
+                                overridingProperty.SetMethod.GetFirstLocation(),
                                 ownOrInheritedOverriddenSetMethod,
                                 overridingProperty.SetMethod,
                                 diagnostics,
@@ -1147,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static void checkValidNullableMethodOverride(
+            static void checkValidMethodOverride(
                 Location overridingMemberLocation,
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
@@ -1155,10 +1161,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkReturnType,
                 bool checkParameters)
             {
+                if (checkParameters && RequiresValidScopedOverrideForRefSafety(overriddenMethod))
+                {
+                    CheckValidScopedOverride(
+                        overriddenMethod,
+                        overridingMethod,
+                        diagnostics,
+                        static (diagnostics, overriddenMethod, overridingMethod, overridingParameter, _, location) =>
+                            {
+                                diagnostics.Add(
+                                    ReportInvalidScopedOverrideAsError(overriddenMethod, overridingMethod) ?
+                                        ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                        ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                    location,
+                                    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
+                            },
+                        overridingMemberLocation,
+                        allowVariance: true,
+                        invokedAsExtensionMethod: false);
+                }
+
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
+
+                if (checkParameters)
+                {
+                    CheckRefReadonlyInMismatch(
+                        overriddenMethod, overridingMethod, diagnostics,
+                        static (diagnostics, _, _, overridingParameter, _, arg) =>
+                        {
+                            var (overriddenParameter, location) = arg;
+                            // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                            diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, overridingParameter, overriddenParameter);
+                        },
+                        overridingMemberLocation,
+                        invokedAsExtensionMethod: false);
+                }
             }
         }
 
@@ -1177,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                 var result = DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingReturnType.Type, overriddenReturnType.Type, ref useSiteInfo);
-                Location symbolLocation = overridingSymbol.Locations.FirstOrDefault();
+                Location symbolLocation = overridingSymbol.TryGetFirstLocation();
                 diagnostics.Add(symbolLocation, useSiteInfo);
 
                 return result;
@@ -1188,14 +1228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
+        private static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
             (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
             => diagnostics.Add(topLevel ?
                 ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
                 location);
 
-        static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
+        private static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
             (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
             => diagnostics.Add(
                 topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
@@ -1225,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
                 (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
-                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.GetFirstLocation(), new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 hasErrors = true;
             }
 
@@ -1343,6 +1383,152 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        /// <summary>
+        /// Returns true if the method signature must match, with respect to scoped for ref safety,
+        /// in overrides, interface implementations, or delegate conversions.
+        /// </summary>
+        internal static bool RequiresValidScopedOverrideForRefSafety(MethodSymbol? method)
+        {
+            if (method is null)
+            {
+                return false;
+            }
+
+            var parameters = method.Parameters;
+
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
+            // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
+            // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
+            // ...
+            int nRefParametersRequired;
+            if (method.ReturnType.IsRefLikeType ||
+                (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
+            {
+                nRefParametersRequired = 1;
+            }
+            else if (parameters.Any(p => (p.RefKind is RefKind.Ref or RefKind.Out) && p.Type.IsRefLikeType))
+            {
+                nRefParametersRequired = 2; // including the parameter found above
+            }
+            else
+            {
+                return false;
+            }
+
+            // ...
+            // - The method has at least one additional `ref`, `in`, `ref readonly`, or `out` parameter, or a parameter of `ref struct` type.
+            int nRefParameters = parameters.Count(p => p.RefKind is RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter or RefKind.Out);
+            if (nRefParameters >= nRefParametersRequired)
+            {
+                return true;
+            }
+            else if (parameters.Any(p => p.RefKind == RefKind.None && p.Type.IsRefLikeType))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if a scoped mismatch should be reported as an error rather than a warning.
+        /// </summary>
+        internal static bool ReportInvalidScopedOverrideAsError(MethodSymbol baseMethod, MethodSymbol overrideMethod)
+        {
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
+            // The diagnostic is reported as an error if the mismatched signatures are both using C#11 ref safety rules; otherwise, the diagnostic is a warning.
+            return baseMethod.UseUpdatedEscapeRules && overrideMethod.UseUpdatedEscapeRules;
+        }
+
+        /// <summary>
+        /// Returns true if a diagnostic was added.
+        /// </summary>
+        internal static bool CheckValidScopedOverride<TArg>(
+            MethodSymbol? baseMethod,
+            MethodSymbol? overrideMethod,
+            BindingDiagnosticBag diagnostics,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
+            TArg extraArgument,
+            bool allowVariance,
+            bool invokedAsExtensionMethod)
+        {
+            Debug.Assert(reportMismatchInParameterType is { });
+
+            if (baseMethod is null || overrideMethod is null)
+            {
+                return false;
+            }
+
+            bool hasErrors = false;
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
+
+            for (int i = 0; i < baseParameters.Length; i++)
+            {
+                var baseParameter = baseParameters[i];
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                if (!isValidScopedConversion(allowVariance, baseParameter.EffectiveScope, baseParameter.HasUnscopedRefAttribute, overrideParameter.EffectiveScope, overrideParameter.HasUnscopedRefAttribute))
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
+                    hasErrors = true;
+                }
+            }
+            return hasErrors;
+
+            static bool isValidScopedConversion(
+                bool allowVariance,
+                ScopedKind baseScope,
+                bool baseHasUnscopedRefAttribute,
+                ScopedKind overrideScope,
+                bool overrideHasUnscopedRefAttribute)
+            {
+                if (baseScope == overrideScope)
+                {
+                    if (baseHasUnscopedRefAttribute == overrideHasUnscopedRefAttribute)
+                    {
+                        return true;
+                    }
+                    return allowVariance && !overrideHasUnscopedRefAttribute;
+                }
+                return allowVariance && baseScope == ScopedKind.None;
+            }
+        }
+
+        internal static void CheckRefReadonlyInMismatch<TArg>(
+            MethodSymbol? baseMethod,
+            MethodSymbol? overrideMethod,
+            BindingDiagnosticBag diagnostics,
+            ReportMismatchInParameterType<(ParameterSymbol BaseParameter, TArg Arg)> reportMismatchInParameterType,
+            TArg extraArgument,
+            bool invokedAsExtensionMethod)
+        {
+            Debug.Assert(reportMismatchInParameterType is { });
+
+            if (baseMethod is null || overrideMethod is null)
+            {
+                return;
+            }
+
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
+
+            for (int i = 0; i < baseParameters.Length; i++)
+            {
+                var baseParameter = baseParameters[i];
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                if (baseParameter.RefKind != overrideParameter.RefKind)
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
+                }
+            }
+        }
+#nullable disable
+
         private static bool PerformValidNullableOverrideCheck(
             CSharpCompilation compilation,
             Symbol overriddenMember,
@@ -1384,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             suppressAccessors = false;
 
-            var hidingMemberLocation = hidingMember.Locations[0];
+            var hidingMemberLocation = hidingMember.GetFirstLocation();
 
             Debug.Assert(overriddenOrHiddenMembers != null);
             Debug.Assert(!overriddenOrHiddenMembers.OverriddenMembers.Any()); //since hidingMethod.IsOverride is false
@@ -1439,6 +1625,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
                 }
+
+                if (hidingMember is MethodSymbol hidingMethod && hiddenMembers[0] is MethodSymbol hiddenMethod)
+                {
+                    CheckRefReadonlyInMismatch(
+                        hiddenMethod, hidingMethod, diagnostics,
+                        static (diagnostics, _, _, hidingParameter, _, arg) =>
+                        {
+                            var (hiddenParameter, location) = arg;
+                            // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.
+                            diagnostics.Add(ErrorCode.WRN_HidingDifferentRefness, location, hidingParameter, hiddenParameter);
+                        },
+                        hidingMemberLocation,
+                        invokedAsExtensionMethod: false);
+                }
             }
         }
 
@@ -1490,7 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if ((object)associatedPropertyOrEvent != null)
                                 {
                                     //Dev10 reports that the property/event is doing the hiding, rather than the method
-                                    diagnostics.Add(ErrorCode.ERR_HidingAbstractMethod, associatedPropertyOrEvent.Locations[0], associatedPropertyOrEvent, hiddenMember);
+                                    diagnostics.Add(ErrorCode.ERR_HidingAbstractMethod, associatedPropertyOrEvent.GetFirstLocation(), associatedPropertyOrEvent, hiddenMember);
                                     break;
                                 }
 
@@ -1584,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             interface2 = temp;
                         }
 
-                        diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.Locations[0], this, interface1, interface2);
+                        diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.GetFirstLocation(), this, interface1, interface2);
                     }
                 }
             }
@@ -1609,7 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not ((int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember or (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember))
                 {
                     return default;
                 }

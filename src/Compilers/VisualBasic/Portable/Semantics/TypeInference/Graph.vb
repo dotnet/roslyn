@@ -119,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw ExceptionUtilities.Unreachable
             End Sub
 
-
             Public Function BuildStronglyConnectedComponents() As Graph(Of StronglyConnectedComponent(Of TGraphNode))
 
                 Dim sccGraph As New Graph(Of StronglyConnectedComponent(Of TGraphNode))()

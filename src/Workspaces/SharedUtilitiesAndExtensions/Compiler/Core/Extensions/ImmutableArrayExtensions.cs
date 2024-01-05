@@ -11,6 +11,15 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
+        public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
+        {
+            using var _ = ArrayBuilder<T>.GetInstance(set.Count, out var result);
+            foreach (var value in set)
+                result.Add(value);
+
+            return result.ToImmutableAndClear();
+        }
+
         public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
             => items.IndexOf(item, 0, equalityComparer) >= 0;
 
@@ -33,7 +42,7 @@ namespace Roslyn.Utilities
             for (var i = 0; i < count; i++)
                 result.Add(array[i]);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     if (modifier.ModifierKindWrapper is SymbolSpecification.ModifierKindEnum.IsStatic
                         or SymbolSpecification.ModifierKindEnum.IsReadOnly)
                     {
-                        if (x.SymbolSpecification.RequiredModifierList.Any(x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
+                        if (x.SymbolSpecification.RequiredModifierList.Any(static x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
                         {
                             // 'const' implies both 'readonly' and 'static'
                             continue;
