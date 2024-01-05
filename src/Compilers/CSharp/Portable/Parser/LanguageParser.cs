@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 return false;
 
-            using (this.GetDisposableResetPoint(resetOnDispose: true)) ;
+            using (this.GetDisposableResetPoint(resetOnDispose: true))
             {
                 // Eat the `[`
                 EatToken();
@@ -897,8 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // If we see `[lit` (like `[0`) then this is def not an attribute, and should be parsed as a collection
                 // expr.  Note: this heuristic can be added to in the future.
-                var isLiteral = SyntaxFacts.GetLiteralExpression(this.CurrentToken.Kind) != SyntaxKind.None;
-                if (isLiteral)
+                if (SyntaxFacts.IsLiteralExpression(this.CurrentToken.Kind))
                     return false;
 
                 return true;
