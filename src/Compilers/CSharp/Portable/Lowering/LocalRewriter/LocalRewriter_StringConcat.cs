@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 2:
                     var left = leftFlattened[0];
                     var right = leftFlattened[1];
-                    Debug.Assert(previousLocals.Count <= 1);
-                    result = RewriteStringConcatenationTwoExprs(syntax, left, right, previousLocals);
+                    Debug.Assert(previousLocals.Count == 0);
+                    result = RewriteStringConcatenationTwoExprs(syntax, left, right);
                     break;
 
                 case 3:
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var first = leftFlattened[0];
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
-                        Debug.Assert(previousLocals.Count <= 2);
+                        Debug.Assert(previousLocals.Count <= 1);
                         result = RewriteStringConcatenationThreeExprs(syntax, first, second, third, previousLocals);
                     }
                     break;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
                         var fourth = leftFlattened[3];
-                        Debug.Assert(previousLocals.Count <= 3);
+                        Debug.Assert(previousLocals.Count <= 2);
                         result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth, previousLocals);
                     }
                     break;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> previousLocals)
+        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             var leftType = loweredLeft.Type;
             var rightType = loweredRight.Type;
@@ -353,11 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
 
-                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 2);
-                locals.AddRange(previousLocals);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 1);
 
                 var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var leftTempLocal);
                 var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var rightTempLocal);
+
+                Debug.Assert(leftTempLocal is null || rightTempLocal is null);
 
                 locals.AddIfNotNull(leftTempLocal);
                 locals.AddIfNotNull(rightTempLocal);
@@ -373,7 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!leftType.IsReadOnlySpanChar() && !rightType.IsReadOnlySpanChar());
-            Debug.Assert(previousLocals.Count == 0);
 
             if (leftIsChar)
             {
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 3);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: previousLocals.Count + 1);
                 locals.AddRange(previousLocals);
 
                 var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var firstTempLocal);
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanCtorRefParamChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: 4);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(capacity: previousLocals.Count + 1);
                 locals.AddRange(previousLocals);
 
                 var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, out var firstTempLocal);
