@@ -329,6 +329,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return false;
             }
 
+            if (operation is IInlineArrayAccessOperation)
+            {
+                // If we're writing into an inline-array off of 'this'.  Then we can't make this `readonly`.
+                if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
+                    return true;
+
+                // We're reading a value from inside the inline-array.  Have to keep looking upwards to see how the
+                // value is treated.
+                continue;
+            }
+
             // See if we're accessing or invoking a method.
             if (operation is IMethodReferenceOperation methodRefOperation)
             {
