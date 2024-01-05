@@ -887,11 +887,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Eat the `[`
                 EatToken();
 
-                // `[ id` is always an attribute.
+                // `[ id` could definitely begin an attribute.
                 if (this.IsTrueIdentifier())
                     return true;
 
-                // `[ word: ...` could be an attribute.
+                // `[ word: ...` could definitely start an attribute.
                 if (IsAttributeTarget())
                     return true;
 
