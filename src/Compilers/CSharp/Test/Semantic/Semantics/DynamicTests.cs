@@ -4390,19 +4390,10 @@ class C
     {
         dynamic d = 1;
 
-        // Produce an error. This cannot work correctly right now
         M1(in d, d = 2, in d);
 
         void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
 
-        // NOTE: the following could work!!!
-        //
-        // Currently any kind of overloading that would require dynamic dispatch is not permitted
-        // for locals functions and dynamic dispatch is bypassed.
-        // 
-        // We will still give an error for consistency with the case where the method is an ordinary private method. 
-        // (and also in case if overloading restrictions are relaxed in the future and dispatch becomes necessary)
-        //
         M2(in d, d = 3, in d);
     }
 }
