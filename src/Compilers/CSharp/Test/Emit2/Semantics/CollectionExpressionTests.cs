@@ -20568,30 +20568,56 @@ partial class Program
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
         [Fact]
-        public void ExplicitConversionError()
+        public void ExplicitConversion_NoElementConversion()
         {
             string source = """
                 using System;
+                DateTimeOffset d = default;
+                ReadOnlySpan<DateTime> x = [d];
+                var y = (ReadOnlySpan<DateTime>)[d];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,29): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // ReadOnlySpan<DateTime> x = [d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(3, 29),
+                // (4,34): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // var y = (ReadOnlySpan<DateTime>)[d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(4, 34));
+        }
 
-                class C
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementType()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T>
                 {
-                    private DateTimeOffset _d = default;
-
-                    public void M()
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                class Program
+                {
+                    static void Main()
                     {
-                        ReadOnlySpan<DateTime> x = [_d];
-                        var y = (ReadOnlySpan<DateTime>)[_d];
+                        MyCollection<object> x = [];
+                        var y = (MyCollection<object>)[];
                     }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (9,37): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
-                //         ReadOnlySpan<DateTime> x = [_d];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "_d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(9, 37),
-                // (10,42): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
-                //         var y = (ReadOnlySpan<DateTime>)[_d];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "_d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(10, 42));
+                // (15,34): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<object> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(15, 34),
+                // (16,39): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         var y = (MyCollection<object>)[];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(16, 39));
         }
 
         [Fact]
