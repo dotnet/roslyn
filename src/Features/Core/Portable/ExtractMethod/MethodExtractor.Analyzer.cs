@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 if (SelectionResult.ShouldPutAsyncModifier())
                 {
-                    var names = parameters.Where(v => !v.UseAsReturnValue && (v.ParameterModifier == ParameterBehavior.Out || v.ParameterModifier == ParameterBehavior.Ref))
+                    var names = parameters.Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
                                           .Select(p => p.Name ?? string.Empty);
 
                     if (names.Any())

@@ -80,7 +80,7 @@ internal partial class SolutionCompilationState
                 return result.Value;
 
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-            var telemetryCollector = compilationState.Solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
+            var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(
                 telemetryCollector, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }
@@ -92,7 +92,7 @@ internal partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            var solution = compilationState.Solution;
+            var solution = compilationState.SolutionState;
             var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
             if (options.RunSourceGeneratorsInSameProcessOnly)
                 return null;

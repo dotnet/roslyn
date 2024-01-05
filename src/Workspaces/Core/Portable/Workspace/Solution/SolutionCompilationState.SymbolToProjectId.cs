@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
                 if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
                 {
                     // does this solution even have the document?
-                    var projectState = this.Solution.GetProjectState(documentId.ProjectId);
+                    var projectState = this.SolutionState.GetProjectState(documentId.ProjectId);
                     if (projectState != null)
                     {
                         var document = projectState.DocumentStates.GetState(documentId);

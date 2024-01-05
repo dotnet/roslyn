@@ -70,7 +70,7 @@ internal partial class SolutionAssetStorage
             if (solutionState.TryGetStateChecksums(out var stateChecksums))
                 await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
-            foreach (var projectId in solutionState.Solution.ProjectIds)
+            foreach (var projectId in solutionState.SolutionState.ProjectIds)
             {
                 if (remainingChecksumsToFind.Count == 0)
                     break;

@@ -10,9 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -21,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1417,14 +1414,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // changed projects
-                var projectChangesList = solutionChanges.GetProjectChanges().ToList();
-                progressTracker.AddItems(projectChangesList.Count);
+                var projectChangesList = solutionChanges.GetProjectChanges().ToImmutableArray();
+                progressTracker.AddItems(projectChangesList.Length);
 
                 foreach (var projectChanges in projectChangesList)
                 {
                     this.ApplyProjectChanges(projectChanges);
                     progressTracker.ItemCompleted();
                 }
+
+                this.ApplyDocumentsInfoChange(projectChangesList);
 
                 // changes in mapped files outside the workspace (may span multiple projects)
                 this.ApplyMappedFileChanges(solutionChanges);
@@ -1455,6 +1454,39 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return true;
+            }
+        }
+
+        private void ApplyDocumentsInfoChange(ImmutableArray<ProjectChanges> projectChanges)
+        {
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var infoChangedDocumentIds);
+            using var _2 = PooledHashSet<Document>.GetInstance(out var infoChangedNewDocuments);
+            foreach (var projectChange in projectChanges)
+            {
+                foreach (var docId in projectChange.GetChangedDocuments())
+                {
+                    if (!infoChangedDocumentIds.Contains(docId))
+                    {
+                        var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
+                        var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
+                        // For linked documents, when info get changed (e.g. name/folder/filePath)
+                        // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
+                        if (oldDoc.HasInfoChanged(newDoc))
+                        {
+                            var linkedDocuments = oldDoc.GetLinkedDocumentIds();
+                            infoChangedDocumentIds.Add(docId);
+                            infoChangedDocumentIds.AddRange(linkedDocuments);
+                            infoChangedNewDocuments.Add(newDoc);
+                        }
+                    }
+                }
+            }
+
+            foreach (var newDoc in infoChangedNewDocuments)
+            {
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(newDoc.Id,
+                    new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1829,16 +1861,6 @@ namespace Microsoft.CodeAnalysis
                     // So either the new text already knows the individual changes or we do not have a way to compute them.
                     this.ApplyDocumentTextChanged(documentId, newText);
                 }
-            }
-
-            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
-            // so we do this after any text changes have been applied.
-            if (newDoc.HasInfoChanged(oldDoc))
-            {
-                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
-                ApplyDocumentInfoChanged(
-                    documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 

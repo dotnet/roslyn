@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SolutionState SolutionState => CompilationState.Solution;
+        internal SolutionState SolutionState => CompilationState.SolutionState;
 
         internal SolutionCompilationState CompilationState => _compilationState;
 

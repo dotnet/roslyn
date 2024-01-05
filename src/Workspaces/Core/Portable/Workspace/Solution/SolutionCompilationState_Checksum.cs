@@ -96,18 +96,18 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.SolutionCompilationState_ComputeChecksumsAsync, this.Solution.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionCompilationState_ComputeChecksumsAsync, this.SolutionState.FilePath, cancellationToken))
                 {
                     var solutionStateChecksum = projectId == null
-                        ? await this.Solution.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-                        : await this.Solution.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+                        ? await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+                        : await this.SolutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
 
                     if (FrozenSourceGeneratedDocumentState != null)
                     {
-                        var serializer = this.Solution.Services.GetRequiredService<ISerializerService>();
+                        var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
                         frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
                         frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
                     }

@@ -5,7 +5,11 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
@@ -13,12 +17,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
         Inherits AbstractVisualBasicCodeActionTest
 
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(MockDiagnosticUpdateSourceRegistrationService),
+                GetType(MockPreviewPaneService))
+
         Private Const s_addedDocumentName As String = "AddedDocument"
         Private Const s_addedDocumentText As String = "Class C1 : End Class"
         Private Shared s_removedMetadataReferenceDisplayName As String = ""
         Private Const s_addedProjectName As String = "AddedProject"
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
+
+        Protected Overrides Function GetComposition() As TestComposition
+            Return s_composition
+        End Function
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
@@ -84,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return (document, previews)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
+        <WpfFact>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
             Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)

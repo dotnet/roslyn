@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
-                    var referencedProject = compilationState.Solution.GetProjectState(projectReference.ProjectId);
+                    var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
                     if (referencedProject != null)
                     {
                         if (referencedProject.IsSubmission)
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
                     {
-                        var referencedProject = compilationState.Solution.GetProjectState(projectReference.ProjectId);
+                        var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
 
                         // Even though we're creating a final compilation (vs. an in progress compilation),
                         // it's possible that the target project has been removed.
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (compilationState.Solution.ContainsProject(dependentProjectReference.ProjectId))
+                    if (compilationState.SolutionState.ContainsProject(dependentProjectReference.ProjectId))
                     {
                         var dependentProjectVersion = await compilationState.GetDependentVersionAsync(dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
                         version = dependentProjectVersion.GetNewerVersion(version);
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (compilationState.Solution.ContainsProject(dependentProjectReference.ProjectId))
+                    if (compilationState.SolutionState.ContainsProject(dependentProjectReference.ProjectId))
                     {
                         var dependentProjectVersion = await compilationState.GetDependentSemanticVersionAsync(
                             dependentProjectReference.ProjectId, cancellationToken).ConfigureAwait(false);
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDependentChecksum == null)
                 {
-                    var tmp = compilationState.Solution; // temp. local to avoid a closure allocation for the fast path
+                    var tmp = compilationState.SolutionState; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
