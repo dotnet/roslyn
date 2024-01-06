@@ -3412,13 +3412,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag))
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag) && filterOpt == null)
                 {
-                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag
-#if DEBUG
-                        , isFiltered: filterOpt != null
-#endif
-                    );
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag);
                 }
 
                 bool hasDuplicateFilePaths = CheckDuplicateFilePaths(diagnostics);
@@ -3535,15 +3531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return anyDuplicates;
         }
 
-        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag
-#if DEBUG
-            , bool isFiltered
-#endif
-        )
+        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
         {
-#if DEBUG
-            Debug.Assert(_declarationDiagnosticsFrozen || isFiltered);
-#endif
+            Debug.Assert(_declarationDiagnosticsFrozen);
             if (_moduleInitializerMethods is object)
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
