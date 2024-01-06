@@ -5399,6 +5399,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)boundMember;
+                    MessageID.IDS_ImplicitIndexerInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
+
+                    if (isRhsNestedInitializer && GetPropertySymbol(implicitIndexer, out _, out _) is { } property)
+                    {
+                        hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
+                    }
+
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
+
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
 
@@ -6846,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
-                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType);
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false), boundType, typeDiagnostics.ToReadOnlyAndFree(forceDiagnosticResolution: false)), leftType);
                             }
 
                             typeDiagnostics.Free();
@@ -8514,13 +8525,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
-                var spanMethod = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
-                if (spanMethod is { ContainingType: { Kind: SymbolKind.NamedType } spanType })
+                if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
                 {
-                    spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations)).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
+                    method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(expr.Type), elementField.TypeWithAnnotations)).
+                        CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
                 }
 
                 if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
@@ -9726,7 +9738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            var sealedDiagnostics = ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);

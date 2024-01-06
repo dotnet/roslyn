@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 internal static class UseCollectionInitializerHelpers
 {
     public const string UseCollectionExpressionName = nameof(UseCollectionExpressionName);
+    public const string ChangesSemanticsName = nameof(ChangesSemanticsName);
 
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
@@ -94,4 +95,7 @@ internal static class UseCollectionInitializerHelpers
             yield return childStatement;
         }
     }
+
+    public static bool ChangesSemantics(Diagnostic diagnostic)
+        => diagnostic.Properties.ContainsKey(ChangesSemanticsName);
 }

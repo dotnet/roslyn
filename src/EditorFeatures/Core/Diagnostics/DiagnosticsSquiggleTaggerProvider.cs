@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
             return
-                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
+                (diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error || isUnnecessary) &&
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 

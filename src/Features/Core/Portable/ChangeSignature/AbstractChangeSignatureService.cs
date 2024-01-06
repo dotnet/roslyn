@@ -244,8 +244,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-#nullable enable
-
         private async Task<(Solution updatedSolution, string? confirmationMessage)> CreateUpdatedSolutionAsync(
             ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
@@ -271,8 +269,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
 
-                if (methodSymbol != null &&
-                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
+                if (methodSymbol is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet })
                 {
                     continue;
                 }

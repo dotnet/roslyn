@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var service = document.GetRequiredLanguageService<INavigableItemsService>();
+            var service = document.GetLanguageService<INavigableItemsService>();
+            if (service is null)
+                return null;
 
             var definitions = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (definitions.Length > 0)

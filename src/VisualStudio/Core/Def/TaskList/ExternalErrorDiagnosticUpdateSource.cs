@@ -776,7 +776,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
-                    var descriptorMap = Solution.State.Analyzers.GetDiagnosticDescriptorsPerReference(_owner._diagnosticService.AnalyzerInfoCache, project);
+                    var descriptorMap = Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(_owner._diagnosticService.AnalyzerInfoCache, project);
                     builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
                     return builder.ToImmutable();
@@ -951,7 +951,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     var builder = ImmutableHashSet.CreateBuilder<string>();
                     var infoCache = _owner._diagnosticService.AnalyzerInfoCache;
 
-                    foreach (var analyzersPerReference in project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project))
+                    foreach (var analyzersPerReference in project.Solution.SolutionState.Analyzers.CreateDiagnosticAnalyzersPerReference(project))
                     {
                         foreach (var analyzer in analyzersPerReference.Value)
                         {

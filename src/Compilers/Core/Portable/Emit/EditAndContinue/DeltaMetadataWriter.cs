@@ -570,40 +570,54 @@ namespace Microsoft.CodeAnalysis.Emit
                 // create representations of the old deleted methods in this compilation:
                 var newMethodDefs = ArrayBuilder<IMethodDefinition>.GetInstance();
 
+                ImmutableArray<byte>? lazyDeletedMethodIL = null;
+                ImmutableArray<byte>? lazyDeletedLambdaIL = null;
+
                 foreach (var deletedMember in deletedMembers.NullToEmpty())
                 {
                     if (deletedMember is IMethodSymbolInternal deletedMethod)
                     {
                         var deletedMethodHandle = _definitionMap.GetPreviousMethodHandle(deletedMethod);
-
                         var deletedMethodDef = (IMethodDefinition)deletedMethod.GetCciAdapter();
-                        newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, _typesUsedByDeletedMembers));
 
-                        addDeletedClosureMethods(deletedMethod, currentLambdas: ImmutableArray<LambdaDebugInfo>.Empty);
+                        lazyDeletedMethodIL ??= DeletedMethodBody.GetIL(Context, rudeEdit: null, isLambdaOrLocalFunction: false);
+
+                        newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, _typesUsedByDeletedMembers));
+
+                        addDeletedClosureMethods(deletedMethod, currentLambdas: ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
                     }
                 }
 
                 foreach (var (oldMethod, newMethod) in updatedMethods.NullToEmpty())
                 {
                     var newMethodDef = (IMethodDefinition)newMethod.GetCciAdapter();
-                    var currentLambdas = (newMethodDef.HasBody && newMethodDef.GetBody(Context) is { } body) ? body.LambdaDebugInfo : ImmutableArray<LambdaDebugInfo>.Empty;
 
-                    addDeletedClosureMethods(oldMethod, currentLambdas);
+                    var (currentLambdas, rudeEdits) = (newMethodDef.HasBody && newMethodDef.GetBody(Context) is { } body) ?
+                        (body.LambdaDebugInfo, body.OrderedLambdaRuntimeRudeEdits) :
+                        (ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
+
+                    addDeletedClosureMethods(oldMethod, currentLambdas, rudeEdits);
                 }
 
-                void addDeletedClosureMethods(IMethodSymbolInternal oldMethod, ImmutableArray<LambdaDebugInfo> currentLambdas)
+                void addDeletedClosureMethods(IMethodSymbolInternal oldMethod, ImmutableArray<EncLambdaInfo> currentLambdas, ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits)
                 {
-                    foreach (var deletedClosureMethod in _definitionMap.GetDeletedSynthesizedMethods(oldMethod, currentLambdas))
+                    foreach (var (lambdaId, deletedClosureMethod) in _definitionMap.GetDeletedSynthesizedMethods(oldMethod, currentLambdas))
                     {
+                        var rudeEditIndex = orderedLambdaRuntimeRudeEdits.BinarySearch(lambdaId, static (rudeEdit, lambdaId) => rudeEdit.LambdaId.CompareTo(lambdaId));
+
+                        var il = (rudeEditIndex >= 0)
+                            ? DeletedMethodBody.GetIL(Context, orderedLambdaRuntimeRudeEdits[rudeEditIndex].RudeEdit, isLambdaOrLocalFunction: true)
+                            : lazyDeletedLambdaIL ??= DeletedMethodBody.GetIL(Context, rudeEdit: null, isLambdaOrLocalFunction: true);
+
                         if (deletedClosureMethod.MetadataToken != 0)
                         {
-                            newMethodDefs.Add(new DeletedPEMethodDefinition(deletedClosureMethod));
+                            newMethodDefs.Add(new DeletedPEMethodDefinition(deletedClosureMethod, il));
                         }
                         else
                         {
                             var deletedClosureMethodDef = (IMethodDefinition)deletedClosureMethod.GetCciAdapter();
                             var deletedClosureMethodHandle = _definitionMap.GetPreviousMethodHandle(deletedClosureMethod);
-                            newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, _typesUsedByDeletedMembers));
+                            newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, il, _typesUsedByDeletedMembers));
                         }
                     }
                 }
