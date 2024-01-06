@@ -46,20 +46,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var targetToken = syntaxContext.TargetToken;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (TryGetInlineExpression(targetToken, syntaxFacts, out var expression))
+            if (TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type)
             {
-                var accessingType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-
-                if (accessingType is not null)
-                    return IsValidAccessingType(accessingType, semanticModel.Compilation);
-            }
-
-            if (TryGetInlineExpressionInQualifiedNameEdgeCases(targetToken, syntaxFacts, out expression))
-            {
-                var speculativeAccessingType = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression).Type;
-
-                if (speculativeAccessingType is not null)
-                    return IsValidAccessingType(speculativeAccessingType, semanticModel.Compilation);
+                return IsValidAccessingType(type, semanticModel.Compilation);
             }
 
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -72,28 +61,12 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var targetToken = syntaxContext.TargetToken;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
-
-            InlineExpressionInfo? inlineExpressionInfo = null;
-
-            if (inlineExpression is null)
-            {
-                if (TryGetInlineExpressionInQualifiedNameEdgeCases(targetToken, syntaxFacts, out inlineExpression))
-                {
-                    var speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(inlineExpression.SpanStart, inlineExpression, SpeculativeBindingOption.BindAsExpression);
-                    inlineExpressionInfo = new(inlineExpression, speculativeTypeInfo);
-                }
-            }
-            else
-            {
-                var typeInfo = semanticModel.GetTypeInfo(inlineExpression, cancellationToken);
-                inlineExpressionInfo = new(inlineExpression, typeInfo);
-            }
+            _ = TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
 
             var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpressionInfo);
             ConstructedFromInlineExpression = inlineExpressionInfo is not null;
 
-            return new TextChange(TextSpan.FromBounds(inlineExpression?.SpanStart ?? position, position), statement.ToFullString());
+            return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());
         }
 
         protected sealed override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
@@ -102,44 +75,35 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             return closestNode.FirstAncestorOrSelf<SyntaxNode>(isCorrectContainer);
         }
 
-        private static bool TryGetInlineExpression(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
+        private static bool TryGetInlineExpressionInfo(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo, CancellationToken cancellationToken)
         {
             var parentNode = targetToken.Parent;
 
             if (syntaxFacts.IsMemberAccessExpression(parentNode) &&
                 syntaxFacts.IsExpressionStatement(parentNode?.Parent))
             {
-                expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+                var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+                expressionInfo = new(expression, typeInfo);
                 return true;
             }
 
-            expression = null;
-            return false;
-        }
-
-        /// <summary>
-        /// There are some edge cases when user intent is to write a member access expression,
-        /// but due to the current state of the document parser ends up parsing it as a qualified name, e.g.
-        /// <code>
-        /// ...
-        /// flag.$$
-        /// var a = 0;
-        /// ...
-        /// </code>
-        /// Here <c>flag.var</c> is parsed as a qualified name. Since we normally query for member access expressions this case requires its own handling
-        /// </summary>
-        /// <param name="expression">Left-hand side of a qualified name</param>
-        private static bool TryGetInlineExpressionInQualifiedNameEdgeCases(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
-        {
-            var parentNode = targetToken.Parent;
-
+            // There are some edge cases when user intent is to write a member access expression,
+            // but due to the current state of the document parser ends up parsing it as a qualified name, e.g.
+            // ...
+            // flag.$$
+            // var a = 0;
+            // ...
+            // Here `flag.var` is parsed as a qualified name, so this case requires its own handling
             if (syntaxFacts.IsQualifiedName(parentNode))
             {
-                syntaxFacts.GetPartsOfQualifiedName(parentNode, out expression, out _, out _);
+                syntaxFacts.GetPartsOfQualifiedName(parentNode, out var expression, out _, out _);
+                var typeInfo = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
+                expressionInfo = new(expression, typeInfo);
                 return true;
             }
 
-            expression = null;
+            expressionInfo = null;
             return false;
         }
     }
