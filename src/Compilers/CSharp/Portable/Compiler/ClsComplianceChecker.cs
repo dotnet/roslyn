@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                return false;
+                return _symbolFilter?.Invoke(symbol) == false;
             }
 
             // TODO: There's no public equivalent of Symbol.DeclaringCompilation.
