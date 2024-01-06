@@ -6,25 +6,19 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     <[UseExportProvider]>
     Public Class VisualBasicEditAndContinueAnalyzerTests
-
-        Private Shared ReadOnly s_composition As TestComposition =
-            EditorTestCompositions.EditorFeatures
-
 #Region "Helpers"
         Private Shared Function CreateWorkspace() As TestWorkspace
-            Return New TestWorkspace(composition:=s_composition)
+            Return New TestWorkspace()
         End Function
 
         Private Shared Function AddDefaultTestProject(solution As Solution, source As String) As Solution

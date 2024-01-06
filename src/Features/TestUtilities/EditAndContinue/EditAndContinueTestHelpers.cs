@@ -506,6 +506,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     New = partners.Value.ToString().Replace("\r\n", " ").Replace("\n", " ")
                 }));
         }
+
+        public static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
+        {
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    session.LastCommittedSolution.Test_SetDocumentState(document.Id, state);
+                }
+            }
+        }
     }
 
     internal static class EditScriptTestUtils

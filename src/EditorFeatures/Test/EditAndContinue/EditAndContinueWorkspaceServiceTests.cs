@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                SetDocumentsState(session, solution, initialState);
+                EditAndContinueTestHelpers.SetDocumentsState(session, solution, initialState);
             }
 
             session.GetTestAccessor().SetTelemetryLogger((id, message) => _telemetryLog.Add($"{id}: {s_timePropertiesRegex.Replace(message.GetMessage(), "")}"), () => ++_telemetryId);
@@ -259,17 +259,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
             return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
-        }
-
-        internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
-        {
-            foreach (var project in solution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    session.LastCommittedSolution.Test_SetDocumentState(document.Id, state);
-                }
-            }
         }
 
         private static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
