@@ -1253,5 +1253,66 @@ public class C : IEnumerable<string>
             await TestAlwaysAsync(code, fixedCode);
             await TestWhenStronglyTypedAsync(code, fixedCode);
         }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithMultipleIEnumerableOfT()
+        {
+            // NOTE: The analyzer only considers the first IEnumerable<T> implementation.
+            // That is why the following tests produces a diagnostic for the implicit string cast, but not for the implicit int cast.
+            var test = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>, IEnumerable<string>
+{
+    public IEnumerator GetEnumerator() => null;
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+
+    public static void M(C c)
+    {
+        foreach (int x in c)
+        {
+        }
+
+        [|foreach|] (string x in c)
+        {
+        }
+    }
+}
+";
+
+            var fixedCode = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C : IEnumerable<int>, IEnumerable<string>
+{
+    public IEnumerator GetEnumerator() => null;
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+
+    public static void M(C c)
+    {
+        foreach (int x in c)
+        {
+        }
+
+        foreach (string x in c.Cast<string>())
+        {
+        }
+    }
+}
+";
+            await TestAlwaysAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
+        }
     }
 }

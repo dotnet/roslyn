@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // Given it's very rare that implementation can be bad, and to reduce false positives, we adjust collectionElementType for the case above to be `Match` instead of object.
             if (collectionElementType.SpecialType == SpecialType.System_Object)
             {
-                var ienumerableOfT = collectionType.AllInterfaces.SingleOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+                var ienumerableOfT = collectionType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
                 if (ienumerableOfT is not null)
                 {
                     collectionElementType = ienumerableOfT.TypeArguments[0];
