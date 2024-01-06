@@ -28331,5 +28331,267 @@ partial class Program
                 }
                 """);
         }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_List()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        List<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Array()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        object[] items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Object[]) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Span()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        Span<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ReadOnlySpan()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.ReadOnlySpan<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImmutableArray()
+        {
+            var source = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_IEnumerableT()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImplementsIEnumerable()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection items = [new()];
+                    }
+                }
+
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(object obj) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
     }
 }
