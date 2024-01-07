@@ -210,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAwaitableInfo? awaitOpt,
             MethodArgumentInfo? patternDisposeInfo)
         {
+            // PROTOTYPE how does a using statement work when a GetResult(Exception) method is present in the BoundAwaitableInfo?
             Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 

@@ -35,4 +35,13 @@ Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 4 -> Microsoft.CodeAnalysi
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.MinimumReportedSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
 virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
-virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
+static TaskAwaiterExceptionExtensions.GetResult(this System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter, out System.Exception? exception) -> void
+static TaskAwaiterExceptionExtensions.GetResult(this System.Runtime.CompilerServices.TaskAwaiter awaiter, out System.Exception? exception) -> void
+static TaskAwaiterExceptionExtensions.GetResult<TResult>(this System.Runtime.CompilerServices.ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter, out System.Exception? exception) -> TResult
+static TaskAwaiterExceptionExtensions.GetResult<TResult>(this System.Runtime.CompilerServices.TaskAwaiter<TResult> awaiter, out System.Exception? exception) -> TResult
+static ValueTaskAwaiterExceptionExtensions.GetResult(this System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter awaiter, out System.Exception? exception) -> void
+static ValueTaskAwaiterExceptionExtensions.GetResult(this System.Runtime.CompilerServices.ValueTaskAwaiter awaiter, out System.Exception? exception) -> void
+static ValueTaskAwaiterExceptionExtensions.GetResult<TResult>(this System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable<TResult>.ConfiguredValueTaskAwaiter awaiter, out System.Exception? exception) -> TResult
+static ValueTaskAwaiterExceptionExtensions.GetResult<TResult>(this System.Runtime.CompilerServices.ValueTaskAwaiter<TResult> awaiter, out System.Exception? exception) -> TResult
+TaskAwaiterExceptionExtensions
+ValueTaskAwaiterExceptionExtensions

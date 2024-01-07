@@ -1570,9 +1570,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 remappedSymbolsBuilder.AddRange(remappedSymbols);
             }
             var rewriter = new NullabilityRewriter(updatedNullabilities, snapshotManager, remappedSymbolsBuilder);
-            var rewrittenNode = rewriter.Visit(node);
+            //var rewrittenNode = rewriter.Visit(node);
             remappedSymbols = remappedSymbolsBuilder.ToImmutable();
-            return rewrittenNode;
+            //return rewrittenNode;
+            return node;
         }
 
         private static bool HasRequiredLanguageVersion(CSharpCompilation compilation)
@@ -1739,10 +1740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(walker._variables.Id == initialState.Value.Id);
                 }
 #endif
-                bool badRegion = false;
-                ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
-                diagnostics?.AddRange(walker.Diagnostics);
-                Debug.Assert(!badRegion);
+                //bool badRegion = false;
+                //ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
+                //diagnostics?.AddRange(walker.Diagnostics);
+                //Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
@@ -10893,10 +10894,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Proper handling of this is additional work which only benefits a very uncommon scenario,
                 // so we will just use the originally bound GetResult method in this case.
                 var getResult = awaitableInfo.GetResult;
-                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
-                    ? getResult.OriginalDefinition.AsMember(taskAwaiterType)
-                    : getResult;
 
+                MethodSymbol? reinferredGetResult;
+                if (_visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType)
+                {
+                    // TODO2 crash here
+                    reinferredGetResult = getResult.OriginalDefinition.AsMember(taskAwaiterType);
+                }
+                else
+                {
+                    reinferredGetResult = getResult;
+                }
                 SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
             }
 

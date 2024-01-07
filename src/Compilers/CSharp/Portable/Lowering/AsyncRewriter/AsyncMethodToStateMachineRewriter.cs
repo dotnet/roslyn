@@ -342,20 +342,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
             var expression = (BoundExpression)Visit(node.Expression);
-            var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+            BoundAwaitableInfo awaitableInfo = node.AwaitableInfo;
+            var awaitablePlaceholder = awaitableInfo.AwaitableInstancePlaceholder;
 
             if (awaitablePlaceholder != null)
             {
                 _placeholderMap.Add(awaitablePlaceholder, expression);
             }
 
-            var getAwaiter = node.AwaitableInfo.IsDynamic ?
+            var getAwaiter = awaitableInfo.IsDynamic ?
                 MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
-                (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
+                (BoundExpression)base.Visit(awaitableInfo.GetAwaiter);
 
             resultPlace = (BoundExpression)Visit(resultPlace);
-            MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
-            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
+            MethodSymbol getResult = VisitMethodSymbol(awaitableInfo.GetResult);
+            MethodSymbol isCompletedMethod = ((object)awaitableInfo.IsCompleted != null) ? VisitMethodSymbol(awaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
             if (awaitablePlaceholder != null)
@@ -381,19 +382,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.If(
                         condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
                         thenClause: GenerateAwaitForIncompleteTask(awaiterTemp, node.DebugInfo)));
-            BoundExpression getResultCall = MakeCallMaybeDynamic(
-                F.Local(awaiterTemp),
-                getResult,
-                WellKnownMemberNames.GetResult,
-                resultsDiscarded: resultPlace == null);
 
-            // [$resultPlace = ] $awaiterTemp.GetResult();
+            LocalSymbol outExceptionLocal = null;
+            NamedTypeSymbol exceptionType = F.WellKnownType(WellKnownType.System_Exception);
+            bool getResultHasException = awaitableInfo.GetResult?.ParameterCount >= 1;
+            if (getResultHasException)
+            {
+                // PROTOTYPE consider using a single outException local for the entire method
+                outExceptionLocal = F.SynthesizedLocal(exceptionType, syntax: node.Syntax); // PROTOTYPE do we need a special local kind?
+            }
+
+            BoundExpression getResultCall;
+            if (getResultHasException)
+            {
+                if (getResult.IsExtensionMethod)
+                {
+                    getResultCall = F.StaticCall(getResult.ContainingType, getResult, F.Local(awaiterTemp), F.Local(outExceptionLocal));
+                }
+                else
+                {
+                    getResultCall = F.Call(F.Local(awaiterTemp), getResult, F.Local(outExceptionLocal));
+                }
+            }
+            else
+            {
+                getResultCall = MakeCallMaybeDynamic(F.Local(awaiterTemp), getResult, WellKnownMemberNames.GetResult, resultsDiscarded: resultPlace == null);
+            }
+
+            // [$resultPlace = ] $awaiterTemp.GetResult(); OR
+            // [$resultPlace = ] $awaiterTemp.GetResult(out var exception);
             BoundStatement getResultStatement = resultPlace != null && !type.IsVoidType() ?
                 F.Assignment(resultPlace, getResultCall) :
                 F.ExpressionStatement(getResultCall);
 
+            if (getResultHasException)
+            {
+                // if (exception is not null)
+                // {
+                //     ExceptionDispatchInfo.AppendCurrentStackFrame(exception);
+                //     builder.SetException(exception);
+                //     return;
+                // }
+
+                // PROTOTYPE consider using a centralized code block with a label instead
+                getResultStatement = F.Block(
+                    getResultStatement,
+                    F.If(
+                        F.ObjectNotEqual(F.Local(outExceptionLocal), F.Null(outExceptionLocal.Type)),
+                        F.Block(
+                            // PROTOTYPE should call AppendCurrentStackFrame too
+                            GenerateSetExceptionCall(outExceptionLocal),
+                            F.Return()
+                            )));
+            }
+
             return F.Block(
-                ImmutableArray.Create(awaiterTemp),
+                getResultHasException ? ImmutableArray.Create(awaiterTemp, outExceptionLocal) : ImmutableArray.Create(awaiterTemp),
                 awaitIfIncomplete,
                 getResultStatement);
         }

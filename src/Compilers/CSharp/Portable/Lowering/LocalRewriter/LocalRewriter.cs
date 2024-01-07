@@ -1144,6 +1144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitGetResultOutExceptionPlaceholder(BoundGetResultOutExceptionPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
             public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
             {
                 Fail(node);

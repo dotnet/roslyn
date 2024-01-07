@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
     }
 
+    internal partial class BoundGetResultOutExceptionPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
     internal partial class BoundDisposableValuePlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false;
