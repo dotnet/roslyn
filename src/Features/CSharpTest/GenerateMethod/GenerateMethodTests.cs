@@ -1108,7 +1108,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestPointArgument()
     {
         await TestInRegularAndScriptAsync(
@@ -1141,7 +1141,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithPointerName()
     {
         await TestInRegularAndScriptAsync(
@@ -1174,7 +1174,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithPointTo()
     {
         await TestInRegularAndScriptAsync(
@@ -1207,7 +1207,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithAddress()
     {
         await TestInRegularAndScriptAsync(

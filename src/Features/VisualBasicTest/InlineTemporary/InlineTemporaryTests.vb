@@ -546,7 +546,7 @@ Console.Write(New String(" "c, 10).Length)
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
-        <WpfFact(Skip:="551797")>
+        <Fact(Skip:="551797")>
         Public Async Function TestInlineIntoMemberAccess4() As Task
             Dim code =
 <MethodBody>

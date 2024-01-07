@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_InvalidFolderName1()
         {
             var defaultNamespace = "A";
@@ -40,7 +40,7 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_InvalidFolderName2()
         {
             var defaultNamespace = "A";
@@ -65,7 +65,7 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentNoReference()
         {
             var defaultNamespace = "A";
@@ -96,7 +96,7 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
         {
             var defaultNamespace = "A";
@@ -127,7 +127,7 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentLocalReference()
         {
             var defaultNamespace = "A";
@@ -178,7 +178,7 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithCrefReference()
         {
             var defaultNamespace = "A";
@@ -255,7 +255,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithCrefReferencesInVB()
         {
             var defaultNamespace = "A.B.C";
@@ -317,7 +317,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -374,7 +374,7 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -431,7 +431,7 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -502,7 +502,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -557,7 +557,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
@@ -628,7 +628,7 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -702,7 +702,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
         {
             var defaultNamespace = "";
@@ -743,7 +743,7 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "";
@@ -792,7 +792,7 @@ class Class2 : Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "";
@@ -858,7 +858,7 @@ class Class2
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "";
@@ -909,7 +909,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
         {
             var defaultNamespace = "";
@@ -966,7 +966,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "";
@@ -1021,7 +1021,7 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "";
@@ -1088,7 +1088,7 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "";
@@ -1159,7 +1159,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
         {
             var defaultNamespace = "A";
@@ -1191,7 +1191,7 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "A";
@@ -1237,7 +1237,7 @@ class Class2 : Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -1302,7 +1302,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -1350,7 +1350,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -1399,7 +1399,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
@@ -1469,7 +1469,7 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -1541,7 +1541,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -1587,7 +1587,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithQualifiedReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -1628,7 +1628,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "A";
@@ -1669,7 +1669,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithCredReferences()
         {
             var defaultNamespace = "A";
@@ -1726,7 +1726,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "";
@@ -1767,7 +1767,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
         {
             var defaultNamespace = "";
@@ -1816,7 +1816,7 @@ End Namespace";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithCredReferences()
         {
             var defaultNamespace = "";
@@ -1880,7 +1880,7 @@ namespace Foo
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ExtensionMethodInReducedForm()
         {
             var defaultNamespace = "A";
@@ -1936,7 +1936,7 @@ namespace {defaultNamespace}
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ExternsionMethodInRegularForm()
         {
             var defaultNamespace = "A";
@@ -1992,7 +1992,7 @@ namespace A
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
         {
             var defaultNamespace = "A";
@@ -2054,7 +2054,7 @@ namespace A
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -2112,7 +2112,7 @@ End Class";
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -2176,7 +2176,7 @@ namespace Foo
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "";
@@ -2235,7 +2235,7 @@ namespace Foo
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -2287,7 +2287,7 @@ End Class";
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "";
@@ -2336,7 +2336,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
         public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
         {
             var defaultNamespace = "A";
