@@ -473,7 +473,7 @@ class Class
 index: 2);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -485,7 +485,7 @@ expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Goo.cs");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -1177,7 +1177,7 @@ index: 1);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateClassFromIntoNewNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3357,7 +3357,7 @@ index: 1);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateIntoNewFile()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3375,7 +3375,7 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateIntoNewFileWithUsings1()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3398,7 +3398,7 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateIntoNewFileWithUsings2()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -4685,7 +4685,7 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-        [Fact]
+        [WpfFact]
         public async Task TestAddDocumentForGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -4858,7 +4858,7 @@ namespace A
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
             var code = @"<Workspace>
@@ -4887,7 +4887,7 @@ namespace Namespace1.Namespace2
                 expectedDocumentName: "ClassB.cs");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
         {
             var code = @"<Workspace>
@@ -4918,7 +4918,7 @@ public class ClassB
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [Fact]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
             var code = @"<Workspace>
@@ -5309,7 +5309,7 @@ index: 2);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [Fact]
+        [WpfFact]
         public async Task TestPreserveFileBanner1()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5332,7 +5332,7 @@ expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [Fact]
+        [WpfFact]
         public async Task TestPreserveFileBanner2()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5352,7 +5352,7 @@ expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [Fact]
+        [WpfFact]
         public async Task TestPreserveFileBanner3()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5383,7 +5383,7 @@ internal class Goo
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [Fact]
+        [WpfFact]
         public async Task TestPreserveFileBanner4()
         {
             await TestAddDocumentInRegularAndScriptAsync(
