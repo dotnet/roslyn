@@ -4331,4 +4331,145 @@ public class UseCollectionExpressionForArrayTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestFixAllImplicitArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { [|[|new|][]|] { 1 }, [|[|new|][]|] { 1 } };
+                    }
+                }
+                """,
+            // Fixing just validates each fix in order, iteratively.  After the first item is fixed, the second can't be.
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { [1], new[] { 1 } };
+                    }
+                }
+                """,
+            // Batch fixing runs the fixer against all diagnostics at once.  That fixer goes from innermost (lowest) to
+            // highest. So we end up fixing the second.  After that one is fixed, the first can't be.
+            BatchFixedCode = $$"""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        object falsePositive = new[] { new[] { 1 }, [1] };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        return new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
 }

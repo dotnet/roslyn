@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             return (document, previews);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14421")]
+        [WpfFact]
         public async Task TestPickTheRightPreview_NoPreference()
         {
             var parameters = new TestParameters();

@@ -4042,7 +4042,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                case CollectionExpressionTypeKind.ImmutableArray: // Error case.
                     Debug.Assert(elementType.Type is { });
                     return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
                 case CollectionExpressionTypeKind.Span:

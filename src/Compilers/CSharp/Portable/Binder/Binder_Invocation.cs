@@ -1728,9 +1728,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
                         {
-                            if (d.Code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
+                            // Avoid forcing resolution of lazy diagnostics to avoid cycles.
+                            var code = d is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : d.Code;
+                            if (code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
                                 !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
                             {
+                                Debug.Assert(d is not DiagnosticWithInfo { HasLazyInfo: true }, "Adjust the Arguments access to handle lazy diagnostics to avoid cycles.");
                                 diagnostics.Add(d);
                             }
                         }

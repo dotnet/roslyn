@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 
@@ -31,21 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
             }
 
-            public static async Task<SuggestedAction> CreateAsync(
-                SuggestedActionWithNestedFlavors suggestedAction, CancellationToken cancellationToken)
+            public static SuggestedAction Create(SuggestedActionWithNestedFlavors suggestedAction)
             {
-                var previewResult = await suggestedAction.GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
-                if (previewResult == null)
-                {
-                    return null;
-                }
-
-                var changeSummary = previewResult.ChangeSummary;
-                if (changeSummary == null)
-                {
-                    return null;
-                }
-
                 return new PreviewChangesSuggestedAction(
                     suggestedAction.ThreadingContext,
                     suggestedAction.SourceProvider,
@@ -54,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     suggestedAction.SubjectBuffer,
                     suggestedAction.Provider,
                     new PreviewChangesCodeAction(
-                        suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary));
+                        suggestedAction.Workspace, suggestedAction.CodeAction, suggestedAction.GetPreviewResultAsync));
             }
         }
     }

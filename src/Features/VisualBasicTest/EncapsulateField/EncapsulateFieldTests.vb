@@ -347,7 +347,7 @@ End Class</File>.ConvertTestSourceTag()
                 }, testHost:=host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateFieldNamedValue(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -617,7 +617,7 @@ End Enum
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/7090")>
-        <WpfTheory, CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function ApplyCurrentMePrefixStyle(host As TestHost) As Task
             Await TestInRegularAndScriptAsync("
 Class C

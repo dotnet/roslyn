@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.GoToBase
         public static ValueTask<ImmutableArray<ISymbol>> FindBasesAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            if (symbol is INamedTypeSymbol namedTypeSymbol &&
-                (namedTypeSymbol.TypeKind == TypeKind.Class ||
-                namedTypeSymbol.TypeKind == TypeKind.Interface ||
-                namedTypeSymbol.TypeKind == TypeKind.Struct))
+            if (symbol is INamedTypeSymbol
+                {
+                    TypeKind: TypeKind.Class or TypeKind.Interface or TypeKind.Struct,
+                } namedTypeSymbol)
             {
                 var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
                 return ValueTaskFactory.FromResult(result);
