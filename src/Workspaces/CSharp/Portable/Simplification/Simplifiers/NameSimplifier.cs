@@ -522,13 +522,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                         switch (name)
                         {
-                            case IdentifierNameSyntax:
-                                replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
+                            case GenericNameSyntax generic:
+                                replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
                                     .WithLeadingTrivia(name.GetLeadingTrivia());
                                 break;
 
-                            case GenericNameSyntax generic:
-                                replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
+                            default:
+                                replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
                                     .WithLeadingTrivia(name.GetLeadingTrivia());
                                 break;
                         }
