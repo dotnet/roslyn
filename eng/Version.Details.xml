@@ -6,9 +6,9 @@
       <Sha>e844aa02a05b90d8cbe499676ec6ee0f19ec4980</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="8.0.0-alpha.1.23461.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.23627.2">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>264d80ed1ee84b458328b2df68f9930deac08bff</Sha>
+      <Sha>2a008ae4f42c0db384db5a4864752b2ff52d720b</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.0-beta4.23407.1">
@@ -40,6 +40,14 @@
     <Dependency Name="System.Text.Json" Version="7.0.3">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>0a2bda10e81d901396c3cff95533529e3a93ad47</Sha>
+    </Dependency>
+    <Dependency Name="System.Reflection.Metadata" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    </Dependency>
+    <Dependency Name="System.Collections.Immutable" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>

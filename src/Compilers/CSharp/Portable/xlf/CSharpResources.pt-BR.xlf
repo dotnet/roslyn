@@ -2314,7 +2314,7 @@
       </trans-unit>
       <trans-unit id="IDS_ImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">inicializador de indexador implícito</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2354,7 +2354,7 @@
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
-        <target state="new">{0} is not a valid C# spread operation</target>
+        <target state="translated">{0} não é uma operação de espalhamento C# válida</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
