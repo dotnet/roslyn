@@ -140,6 +140,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NestedVisitResults = nestedVisitResults;
             }
 
+            internal VisitResult WithLValueType(TypeWithAnnotations lvalueType)
+            {
+                if (NestedVisitResults is not null)
+                {
+                    Debug.Assert(!StateForLambda.HasValue);
+                    return new VisitResult(RValueType, lvalueType, NestedVisitResults);
+                }
+                else if (StateForLambda.HasValue)
+                {
+                    return new VisitResult(RValueType, lvalueType, StateForLambda);
+                }
+
+                return new VisitResult(RValueType, lvalueType);
+            }
             internal string GetDebuggerDisplay()
             {
                 if (NestedVisitResults is null)
@@ -297,10 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void UseRvalueOnly(BoundExpression? expression)
         {
-            if (_visitResult.NestedVisitResults is null && !_visitResult.StateForLambda.HasValue)
-            {
-                SetResult(expression, ResultType, ResultType.ToTypeWithAnnotations(compilation), isLvalue: false);
-            }
+            VisitResult visitResult = _visitResult.WithLValueType(ResultType.ToTypeWithAnnotations(compilation));
+            SetResult(expression, visitResult, updateAnalyzedNullability: true, isLvalue: false);
         }
 
         private TypeWithAnnotations LvalueResultType
@@ -3507,7 +3519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundCollectionElementInitializer initializer:
                         // We don't visit the Add methods
-                        // But we should check conversion to the iteration type (for that we need to have identified the preferred IEnumerable<T> interface)
+                        // But we should check conversion to the iteration type
                         // Tracked by https://github.com/dotnet/roslyn/issues/68786
                         SetUnknownResultNullability(initializer);
                         Debug.Assert(node.Placeholder is { });
@@ -3569,6 +3581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Process the element conversions now that we have the target-type
                 var (collectionKind, targetElementType) = getCollectionDetails(node, strippedTargetCollectionType);
+
+                // We should analyze the Create method
+                // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
                 foreach (var completion in completions)
                 {
                     _ = completion(targetElementType);
@@ -3582,7 +3598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return resultTypeWithState;
             }
 
-            NullableFlowState getResultState(BoundCollectionExpression node, CollectionExpressionTypeKind collectionKind)
+            static NullableFlowState getResultState(BoundCollectionExpression node, CollectionExpressionTypeKind collectionKind)
             {
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
@@ -6577,14 +6593,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (parameter is null)
                         {
-                            if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true)
+                            if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
                             {
                                 if (method is ErrorMethodSymbol)
                                 {
                                     // The parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
                                     // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
                                     // We flush the completion with a plausible/dummy type and remove it.
-                                    TargetTypedAnalysisCompletion[argumentNoConversion](TypeWithAnnotations.Create(argument.Type));
+                                    completion(TypeWithAnnotations.Create(argument.Type));
                                     TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
                                 }
                                 else

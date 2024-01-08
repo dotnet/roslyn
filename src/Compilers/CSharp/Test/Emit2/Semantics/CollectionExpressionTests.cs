@@ -25697,15 +25697,14 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            Assert.Equal("""M("hi", [null])""", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M((string?)null, [null])", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25746,19 +25745,18 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            Assert.Equal("""M("hi", [null])""", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, """M("hi", [null])""");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M((string?)null, [null])", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, [null])");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M((string?)null, null)", invocations[2].ToString());
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, "M((string?)null, null)");
             Assert.Equal("void M<System.String?>(System.String? t, MyCollection<System.String?>? mc)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25805,15 +25803,13 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-
-            Assert.Equal("M(ref notNull, [null])", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
             Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M(ref maybeNull, [null])", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref maybeNull, [null])");
             Assert.Equal("void M<System.String?>(ref System.String? t, MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -25905,19 +25901,18 @@ partial class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
-            Assert.Equal("M([(string?)null])", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([(string?)null])");
             Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi"])""", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi"])""");
             Assert.Equal("void M<System.String!>(MyCollection<System.String!> mc)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(["hi", null])""", invocations[2].ToString());
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(["hi", null])""");
             Assert.Equal("void M<System.String?>(MyCollection<System.String?> mc)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -26056,7 +26051,6 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (9,1): warning CS8602: Dereference of a possibly null reference.
                 // M(ref maybeNull, [maybeNull]).ToString();
@@ -26097,7 +26091,9 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
+            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
+            // Tracked by https://github.com/dotnet/roslyn/issues/68786
+
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (9,1): warning CS8602: Dereference of a possibly null reference.
                 // M(ref maybeNull, [maybeNull]).ToString();
@@ -26207,7 +26203,7 @@ partial class Program
                 M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]); // 1
+                M(CreateUnannotated(notNull), [maybeNull]);
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -26499,22 +26495,24 @@ partial class Program
                 using System.Collections.Generic;
 
                 #nullable enable
-                string? element = null;
+                string element = null; // 1
                 var collection = IdList([element]);
-                collection[0].ToString(); // 1
+                collection[0].ToString(); // 2
 
                 List<T> IdList<T>(List<T> l) => l;
                 """;
 
             var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 18),
                 // (6,1): warning CS8602: Dereference of a possibly null reference.
-                // collection[0].ToString(); // 1
+                // collection[0].ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(6, 1)
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([element])", invocation.ToFullString());
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
@@ -26550,8 +26548,7 @@ partial class Program
             var comp = CreateCompilation(src).VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([element])", invocation.ToFullString());
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element])");
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<System.String> IdList<System.String>(System.Collections.Generic.List<System.String> l)",
@@ -26565,24 +26562,25 @@ partial class Program
                 using System.Collections.Generic;
 
                 #nullable enable
-                string? element1 = null;
+                string element1 = null; // 1
                 string element2 = "hi";
                 var collection = IdList([element1, element2]);
-                collection[0].ToString(); // 1
+                collection[0].ToString(); // 2
 
                 List<T> IdList<T>(List<T> l) => l;
                 """;
 
             var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (4,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(4, 19),
                 // (7,1): warning CS8602: Dereference of a possibly null reference.
-                // collection[0].ToString(); // 1
+                // collection[0].ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection[0]").WithLocation(7, 1)
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([element1, element2])", invocation.ToFullString());
-
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<System.String?> IdList<System.String?>(System.Collections.Generic.List<System.String?> l)",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -26610,9 +26608,7 @@ partial class Program
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([element1, element2])", invocation.ToFullString());
-
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -26654,9 +26650,7 @@ partial class Program
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([(string?)element1, element2])", invocation.ToFullString());
-
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([(string?)element1, element2])");
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<System.Object?> IdList<System.Object?>(System.Collections.Generic.List<System.Object?> l)",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -26705,9 +26699,7 @@ partial class Program
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-            Assert.Equal("IdList([element1, element2])", invocation.ToFullString());
-
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("System.Collections.Generic.List<Container<System.String>> IdList<Container<System.String>>(System.Collections.Generic.List<Container<System.String>> l)",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -26734,7 +26726,7 @@ partial class Program
                 #nullable enable
                 public class C
                 {
-                    void M1(string? maybeNull, string notNull)
+                    void M1(string notNull)
                     {
                         M(ref notNull, [null]); // 1
                     }
@@ -26748,6 +26740,10 @@ partial class Program
                     }
                     void M4(string? maybeNull, string notNull)
                     {
+                        M(ref notNull, [maybeNull, ""]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
                         M(ref maybeNull, [notNull, maybeNull, ""]);
                     }
                     void M<T>(ref T t, T[] a) { }
@@ -26760,28 +26756,34 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
                 // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         M(ref notNull, [maybeNull]); // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [maybeNull, ""]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("M(ref notNull, [null])", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [null])");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M(ref notNull, [maybeNull])", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [maybeNull])");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(ref notNull, [notNull, ""])""", invocations[2].ToString());
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [notNull, ""])""");
             Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]! a)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(ref maybeNull, [notNull, maybeNull, ""])""", invocations[3].ToString());
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [maybeNull, ""])""");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
-                model.GetSymbolInfo(invocations[3]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [notNull, maybeNull, ""])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -26789,23 +26791,26 @@ partial class Program
         {
             string src = """
                 #nullable enable
-                string? element1 = null;
+                string element1 = null; // 1
                 string element2 = "hi";
-                var collection = IdList((string[])[element1, element2]); // 1
+                var collection = IdList((string[])[element1, element2]); // 2
                 collection[0].ToString();
 
                 var collection2 = IdList([element1, element2]);
-                collection2[0].ToString(); // 2
+                collection2[0].ToString(); // 3
 
                 T[] IdList<T>(T[] l) => l;
                 """;
 
             CreateCompilation(src).VerifyEmitDiagnostics(
+                // (2,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // string element1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(2, 19),
                 // (4,36): warning CS8601: Possible null reference assignment.
-                // var collection = IdList((string[])[element1, element2]); // 1
+                // var collection = IdList((string[])[element1, element2]); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "element1").WithLocation(4, 36),
                 // (8,1): warning CS8602: Dereference of a possibly null reference.
-                // collection2[0].ToString(); // 2
+                // collection2[0].ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "collection2[0]").WithLocation(8, 1)
                 );
         }
@@ -26817,7 +26822,7 @@ partial class Program
                 #nullable enable
                 public class C
                 {
-                    void M1(string? maybeNull, string notNull)
+                    void M1(string notNull)
                     {
                         M(ref notNull, [[null]]); // 1
                     }
@@ -26831,6 +26836,10 @@ partial class Program
                     }
                     void M4(string? maybeNull, string notNull)
                     {
+                        M(ref notNull, [[maybeNull, ""]]); // 3
+                    }
+                    void M5(string? maybeNull, string notNull)
+                    {
                         M(ref maybeNull, [[notNull, maybeNull, ""]]);
                     }
                     void M<T>(ref T t, T[][] a) { }
@@ -26839,32 +26848,38 @@ partial class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         M(ref notNull, [null]); // 1
+                //         M(ref notNull, [[null]]); // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(6, 15),
                 // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         M(ref notNull, [maybeNull]); // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15)
-            );
+                //         M(ref notNull, [[maybeNull]]); // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(10, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref notNull, [[maybeNull, ""]]); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "notNull").WithLocation(18, 15)
+                );
 
             var tree = comp.SyntaxTrees.First();
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("M(ref notNull, [[null]])", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[null]])");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M(ref notNull, [[maybeNull]])", invocations[1].ToString());
+            var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "M(ref notNull, [[maybeNull]])");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
-                model.GetSymbolInfo(invocations[1]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(ref notNull, [[notNull, ""]])""", invocations[2].ToString());
+            var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[notNull, ""]])""");
             Assert.Equal("void C.M<System.String!>(ref System.String! t, System.String![]![]! a)",
-                model.GetSymbolInfo(invocations[2]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("""M(ref maybeNull, [[notNull, maybeNull, ""]])""", invocations[3].ToString());
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref notNull, [[maybeNull, ""]])""");
             Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
-                model.GetSymbolInfo(invocations[3]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+            var invocation4 = GetSyntax<InvocationExpressionSyntax>(tree, """M(ref maybeNull, [[notNull, maybeNull, ""]])""");
+            Assert.Equal("void C.M<System.String?>(ref System.String? t, System.String?[]![]! a)",
+                model.GetSymbolInfo(invocation4).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -26968,16 +26983,21 @@ partial class Program
                     {
                         bool b = true;
                         Method([b ? (() => s) : (() => s)]).ToString(); // 1
+                        Method2(b ? (() => s) : (() => s)).ToString(); // 2
                     }
 
                     T Method<T>(System.Func<T>[] a) => throw null!;
+                    T Method2<T>(System.Func<T> a) => throw null!;
                 }
                 """;
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'C.Method<T>(Func<T>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Method([b ? (() => s) : (() => s)]).ToString(); // 1
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>(System.Func<T>[])").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Method2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method2(b ? (() => s) : (() => s)).ToString(); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method2").WithArguments("C.Method2<T>(System.Func<T>)").WithLocation(8, 9)
                 );
         }
 
@@ -27234,16 +27254,15 @@ partial class Program
                 );
 
             var tree = comp.SyntaxTrees.First();
-            var invocations = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal("M([Copy(maybeNull, out var maybeNull2), maybeNull2])", invocations[0].ToString());
+            var invocation0 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2])");
             Assert.Equal("System.Object? C.M<System.Object?>(System.Object?[]! a)",
-                model.GetSymbolInfo(invocations[0]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation0).Symbol.ToTestDisplayString(includeNonNullable: true));
 
-            Assert.Equal("M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])", invocations[3].ToString());
+            var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, "M([Copy(maybeNull, out var maybeNull2), maybeNull2.ToString()])");
             Assert.Equal("System.Object! C.M<System.Object!>(System.Object![]! a)",
-                model.GetSymbolInfo(invocations[3]).Symbol.ToTestDisplayString(includeNonNullable: true));
+                model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
