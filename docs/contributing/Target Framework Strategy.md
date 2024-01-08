@@ -8,6 +8,7 @@ The roslyn repository produces components for a number of different products tha
 - .NET SDK: requires us to ship compilers on current servicing target framework (presently `net8.0`)
 - Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net9.0` and `net8.0` respectively)
 - Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
+- Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net7.0`) to avoid two runtime downloads.
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
 
