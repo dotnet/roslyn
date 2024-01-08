@@ -91,8 +91,8 @@ internal sealed class SolutionCompilationStateChecksums(
             if (searchingChecksumsLeft.Count == 0)
                 break;
 
-            if (solutionState.TryGetStateChecksums(projectId, out var checksums))
-                await checksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            if (solutionState.TryGetStateChecksums(projectId, out solutionChecksums))
+                await solutionChecksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }
