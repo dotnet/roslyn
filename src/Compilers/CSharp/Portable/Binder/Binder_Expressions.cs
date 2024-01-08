@@ -2761,12 +2761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionExpression:
                     {
-                        if (operand.Type is null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
-                            return;
-                        }
-                        break;
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
+                        return;
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
