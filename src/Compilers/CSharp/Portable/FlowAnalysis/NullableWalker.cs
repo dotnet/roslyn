@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new VisitResult(RValueType, lvalueType);
             }
+
             internal string GetDebuggerDisplay()
             {
                 if (NestedVisitResults is null)
