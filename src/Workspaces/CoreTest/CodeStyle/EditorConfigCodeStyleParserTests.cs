@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : warning", false, ReportDiagnostic.Warn)]
         [InlineData("true : error", true, ReportDiagnostic.Error)]
         [InlineData("false : error", false, ReportDiagnostic.Error)]
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44596")]
+        [InlineData("true:warning # comment", true, ReportDiagnostic.Warn)]
+        [InlineData("false:warning # comment", false, ReportDiagnostic.Warn)]
+        [InlineData("true:error # comment", true, ReportDiagnostic.Error)]
+        [InlineData("false:error # comment", false, ReportDiagnostic.Error)]
+        [InlineData("true:warning ; comment", true, ReportDiagnostic.Warn)]
+        [InlineData("false:warning ; comment", false, ReportDiagnostic.Warn)]
+        [InlineData("true:error ; comment", true, ReportDiagnostic.Error)]
+        [InlineData("false:error ; comment", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
             CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, defaultValue: CodeStyleOption2<bool>.Default, out var result);

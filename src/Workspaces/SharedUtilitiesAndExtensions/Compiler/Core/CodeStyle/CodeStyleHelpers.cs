@@ -13,6 +13,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleHelpers
     {
+        /// <summary>
+        /// Delimiters which the compiler previously treated as embedded comment delimiters for parsing EditorConfig
+        /// files. For code style options maintained by Roslyn, we continue to detect and remove these "comments" for
+        /// backwards compatibility.
+        /// </summary>
+        private static readonly char[] s_commentDelimiters = ['#', ';'];
+
         public static bool TryParseStringEditorConfigCodeStyleOption(string arg, CodeStyleOption2<string> defaultValue, [NotNullWhen(true)] out CodeStyleOption2<string>? option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
@@ -62,6 +69,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryGetCodeStyleValueAndOptionalNotification(
             string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2 notification)
         {
+            var embeddedCommentTextIndex = arg.IndexOfAny(s_commentDelimiters);
+            if (embeddedCommentTextIndex >= 0)
+            {
+                // For backwards compatibility, remove the embedded comment before continuing. In following the
+                // EditorConfig specification, the compiler no longer treats text after a '#' or ';' as an embedded
+                // comment.
+                // https://github.com/dotnet/roslyn/issues/44596
+                arg = arg[..embeddedCommentTextIndex];
+            }
+
             var firstColonIndex = arg.IndexOf(':');
 
             // We allow a single value to be provided without an explicit notification.
