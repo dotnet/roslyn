@@ -1125,7 +1125,7 @@ count: 2);
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
-    [WpfFact(Skip = "552389")]
+    [Fact(Skip = "552389")]
     public async Task TestConstantForFixedBufferInitializer()
     {
         await TestInRegularAndScriptAsync(

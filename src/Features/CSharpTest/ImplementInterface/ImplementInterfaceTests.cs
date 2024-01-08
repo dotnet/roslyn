@@ -7216,7 +7216,7 @@ codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.Impl
 
 #if false
         [WorkItem(13677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoGenerateInVenusCase2()
         {
             await TestMissingAsync(
