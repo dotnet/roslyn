@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             SolutionCompilationStateEqual(solutionCompilationObjectFromSolution, solutionCompilationObjectFromSyncObject);
 
             var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums1>(solutionCompilationObjectFromSyncObject.SolutionState);
-            Contract.ThrowIfFalse(solution.CompilationState.Solution.TryGetStateChecksums(out var solutionObjectFromSolution));
+            Contract.ThrowIfFalse(solution.CompilationState.SolutionState.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
