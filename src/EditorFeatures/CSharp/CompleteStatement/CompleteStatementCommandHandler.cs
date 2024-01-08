@@ -179,6 +179,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     SyntaxKind.UncheckedExpression or
                     SyntaxKind.TypeOfExpression or
                     SyntaxKind.TupleExpression or
+                    SyntaxKind.ObjectInitializerExpression or
+                    SyntaxKind.ArrayInitializerExpression or
+                    SyntaxKind.CollectionInitializerExpression or
+                    SyntaxKind.CollectionExpression or
                     SyntaxKind.SwitchExpression)
             {
                 // make sure the closing delimiter exists
@@ -210,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 if (IsInConditionOfDoStatement(currentNode, caret))
                 {
-                    return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, true);
+                    return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, isInsideDelimiters: true);
                 }
 
                 return false;
@@ -450,9 +454,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return currentNode.GetBrackets().closeBracket.IsMissing ||
-                currentNode.GetParentheses().closeParen.IsMissing ||
-                currentNode.GetBraces().closeBrace.IsMissing;
+            if (currentNode.GetBrackets().closeBracket.IsMissing
+                || currentNode.GetParentheses().closeParen.IsMissing)
+            {
+                return true;
+            }
+
+            // If the current node has braces, we also need to make sure parent constructs are not missing braces
+            var braces = currentNode.GetBraces();
+            if (braces.openBrace.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                if (braces.closeBrace.IsMissing)
+                {
+                    return true;
+                }
+
+                for (var node = currentNode.Parent; node is not null; node = node.Parent)
+                {
+                    if (node.GetBraces().closeBrace.IsMissing)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool HasDelimitersButCaretIsOutside(SyntaxNode currentNode, int caretPosition)

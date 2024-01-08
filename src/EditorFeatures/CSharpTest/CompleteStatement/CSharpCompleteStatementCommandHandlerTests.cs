@@ -1550,8 +1550,23 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc"" };$$ )
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1740,8 +1755,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1758,8 +1784,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1776,8 +1813,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] {  0, "abc" };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1834,8 +1882,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1852,8 +1911,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1870,8 +1940,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] {  0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1928,8 +2009,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ];$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1946,8 +2038,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ];$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -1964,8 +2067,19 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [  0, "abc" ];$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2024,8 +2138,20 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2043,8 +2169,20 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2062,8 +2200,20 @@ class C
                 }
 
                 """;
+            var expected =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> {  0, 1 };$$
+                    }
+                }
 
-            VerifyNoSpecialSemicolonHandling(code);
+                """;
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2131,8 +2281,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2154,8 +2320,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -2177,8 +2359,24 @@ public class Goo
     public string s;
 }
 ";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
 
-            VerifyNoSpecialSemicolonHandling(code);
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
@@ -4046,8 +4244,8 @@ class C
     {
         var d = new Dictionary<int, int>
         {
-            [1];$$ = 4,
-        }
+            [1] = 4,
+        };$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
@@ -4068,7 +4266,18 @@ class C
         }
     }
 }";
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
@@ -4086,7 +4295,18 @@ class C
         }
     }
 }";
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
