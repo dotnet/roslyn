@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Ldsflda);
                     _builder.EmitToken(field, inits.Syntax, _diagnostics.DiagnosticBag);
                     _builder.EmitIntConstant(data.Length);
+                    _builder.EmitUnaligned(alignment: 1);
                     _builder.EmitOpCode(ILOpCode.Cpblk, -3);
                 }
                 else
@@ -95,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         EmitSymbolToken(spanGetItem, syntaxNode, optArgList: null);
 
                         _builder.EmitIntConstant(data.Length);
+                        if (sizeInBytes != 8)
+                        {
+                            _builder.EmitUnaligned((sbyte)sizeInBytes);
+                        }
                         _builder.EmitOpCode(ILOpCode.Cpblk, -3);
 
                         FreeTemp(temp);

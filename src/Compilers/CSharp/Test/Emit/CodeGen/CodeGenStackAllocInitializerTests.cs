@@ -614,7 +614,7 @@ static unsafe class C
                 verify: Verification.Fails, expectedOutput: @"ABCDDD").VerifyIL("C.Main",
 """
 {
-  // Code size       35 (0x23)
+  // Code size       38 (0x26)
   .maxstack  4
   .locals init (C.E* V_0) //p1
   IL_0000:  ldc.i4.3
@@ -623,19 +623,20 @@ static unsafe class C
   IL_0004:  dup
   IL_0005:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.AE4B3280E56E2FAF83F414A6E3DABE9D5FBE18976544C05FED121ACCB85B53FC"
   IL_000a:  ldc.i4.3
-  IL_000b:  cpblk
-  IL_000d:  stloc.0
-  IL_000e:  ldc.i4.3
-  IL_000f:  conv.u
-  IL_0010:  localloc
-  IL_0012:  dup
-  IL_0013:  ldc.i4.3
-  IL_0014:  ldc.i4.3
-  IL_0015:  initblk
-  IL_0017:  ldloc.0
-  IL_0018:  call       "void C.Print(C.E*)"
-  IL_001d:  call       "void C.Print(C.E*)"
-  IL_0022:  ret
+  IL_000b:  unaligned. 1
+  IL_000e:  cpblk
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.3
+  IL_0012:  conv.u
+  IL_0013:  localloc
+  IL_0015:  dup
+  IL_0016:  ldc.i4.3
+  IL_0017:  ldc.i4.3
+  IL_0018:  initblk
+  IL_001a:  ldloc.0
+  IL_001b:  call       "void C.Print(C.E*)"
+  IL_0020:  call       "void C.Print(C.E*)"
+  IL_0025:  ret
 }
 """);
         }
@@ -670,7 +671,7 @@ static unsafe class C
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Fails, expectedOutput: @"123456789").VerifyIL("C.Main",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       33 (0x21)
   .maxstack  4
   IL_0000:  ldc.i4.s   9
   IL_0002:  conv.u
@@ -678,14 +679,15 @@ static unsafe class C
   IL_0005:  dup
   IL_0006:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=9 <PrivateImplementationDetails>.5248358BD96335E3BA4BB5D100E25AD64FAF4ADA8E613568E449FF981304C025""
   IL_000b:  ldc.i4.s   9
-  IL_000d:  cpblk
-  IL_000f:  dup
-  IL_0010:  ldc.i4.8
-  IL_0011:  add
-  IL_0012:  call       ""byte C.M()""
-  IL_0017:  stind.i1
-  IL_0018:  call       ""void C.Print(byte*)""
-  IL_001d:  ret
+  IL_000d:  unaligned. 1
+  IL_0010:  cpblk
+  IL_0012:  dup
+  IL_0013:  ldc.i4.8
+  IL_0014:  add
+  IL_0015:  call       ""byte C.M()""
+  IL_001a:  stind.i1
+  IL_001b:  call       ""void C.Print(byte*)""
+  IL_0020:  ret
 }");
         }
 
@@ -761,7 +763,7 @@ static unsafe class C
         {
             Test("System.Byte",
 @"{
-  // Code size       19 (0x13)
+  // Code size       22 (0x16)
   .maxstack  4
   IL_0000:  ldc.i4.3
   IL_0001:  conv.u
@@ -769,9 +771,10 @@ static unsafe class C
   IL_0004:  dup
   IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
   IL_000a:  ldc.i4.3
-  IL_000b:  cpblk
-  IL_000d:  call       ""void C.Print(byte*)""
-  IL_0012:  ret
+  IL_000b:  unaligned. 1
+  IL_000e:  cpblk
+  IL_0010:  call       ""void C.Print(byte*)""
+  IL_0015:  ret
 }");
         }
 
@@ -869,7 +872,7 @@ namespace System
                 .VerifyIL("C.Main",
 @"
 {
-  // Code size       21 (0x15)
+  // Code size       24 (0x18)
   .maxstack  4
   IL_0000:  ldc.i4.3
   IL_0001:  conv.u
@@ -877,11 +880,12 @@ namespace System
   IL_0004:  dup
   IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
   IL_000a:  ldc.i4.3
-  IL_000b:  cpblk
-  IL_000d:  ldc.i4.3
-  IL_000e:  newobj     ""System.Span<byte>..ctor(void*, int)""
-  IL_0013:  pop
-  IL_0014:  ret
+  IL_000b:  unaligned. 1
+  IL_000e:  cpblk
+  IL_0010:  ldc.i4.3
+  IL_0011:  newobj     ""System.Span<byte>..ctor(void*, int)""
+  IL_0016:  pop
+  IL_0017:  ret
 }
 ");
         }
@@ -948,7 +952,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       41 (0x29)
+                  // Code size       44 (0x2c)
                   .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
@@ -962,11 +966,12 @@ namespace System
                   IL_0013:  ldc.i4.0
                   IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
                   IL_0019:  ldc.i4.s   12
-                  IL_001b:  cpblk
-                  IL_001d:  ldc.i4.3
-                  IL_001e:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_0023:  call       "void C.Write(System.Span<int>)"
-                  IL_0028:  ret
+                  IL_001b:  unaligned. 4
+                  IL_001e:  cpblk
+                  IL_0020:  ldc.i4.3
+                  IL_0021:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0026:  call       "void C.Write(System.Span<int>)"
+                  IL_002b:  ret
                 }
                 """);
         }
@@ -1098,7 +1103,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       46 (0x2e)
+                  // Code size       49 (0x31)
                   .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
@@ -1112,12 +1117,13 @@ namespace System
                   IL_0013:  ldc.i4.0
                   IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
                   IL_0019:  ldc.i4.s   12
-                  IL_001b:  cpblk
-                  IL_001d:  ldc.i4.3
-                  IL_001e:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_0023:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                  IL_0028:  call       "void C.Write(System.ReadOnlySpan<int>)"
-                  IL_002d:  ret
+                  IL_001b:  unaligned. 4
+                  IL_001e:  cpblk
+                  IL_0020:  ldc.i4.3
+                  IL_0021:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_0026:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_002b:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_0030:  ret
                 }
                 """);
         }
@@ -1147,7 +1153,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       30 (0x1e)
+                  // Code size       33 (0x21)
                   .maxstack  4
                   IL_0000:  ldc.i4.3
                   IL_0001:  conv.u
@@ -1155,12 +1161,13 @@ namespace System
                   IL_0004:  dup
                   IL_0005:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81"
                   IL_000a:  ldc.i4.3
-                  IL_000b:  cpblk
-                  IL_000d:  ldc.i4.3
-                  IL_000e:  newobj     "System.Span<byte>..ctor(void*, int)"
-                  IL_0013:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
-                  IL_0018:  call       "void C.Write(System.ReadOnlySpan<byte>)"
-                  IL_001d:  ret
+                  IL_000b:  unaligned. 1
+                  IL_000e:  cpblk
+                  IL_0010:  ldc.i4.3
+                  IL_0011:  newobj     "System.Span<byte>..ctor(void*, int)"
+                  IL_0016:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                  IL_001b:  call       "void C.Write(System.ReadOnlySpan<byte>)"
+                  IL_0020:  ret
                 }
                 """);
         }
@@ -1415,7 +1422,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       35 (0x23)
+                  // Code size       38 (0x26)
                   .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
@@ -1429,9 +1436,10 @@ namespace System
                   IL_0013:  ldc.i4.0
                   IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
                   IL_0019:  ldc.i4.s   12
-                  IL_001b:  cpblk
-                  IL_001d:  call       "void C.Write(int*)"
-                  IL_0022:  ret
+                  IL_001b:  unaligned. 4
+                  IL_001e:  cpblk
+                  IL_0020:  call       "void C.Write(int*)"
+                  IL_0025:  ret
                 }
                 """);
 
@@ -1549,7 +1557,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size       54 (0x36)
+                  // Code size       57 (0x39)
                   .maxstack  5
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   16
@@ -1563,20 +1571,21 @@ namespace System
                   IL_0013:  ldc.i4.0
                   IL_0014:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
                   IL_0019:  ldc.i4.s   16
-                  IL_001b:  cpblk
-                  IL_001d:  dup
-                  IL_001e:  ldc.i4.3
-                  IL_001f:  conv.i
-                  IL_0020:  ldc.i4.4
-                  IL_0021:  mul
-                  IL_0022:  add
-                  IL_0023:  ldarg.0
-                  IL_0024:  stind.i4
-                  IL_0025:  ldc.i4.4
-                  IL_0026:  newobj     "System.Span<int>..ctor(void*, int)"
-                  IL_002b:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                  IL_0030:  call       "void C.Write(System.ReadOnlySpan<int>)"
-                  IL_0035:  ret
+                  IL_001b:  unaligned. 4
+                  IL_001e:  cpblk
+                  IL_0020:  dup
+                  IL_0021:  ldc.i4.3
+                  IL_0022:  conv.i
+                  IL_0023:  ldc.i4.4
+                  IL_0024:  mul
+                  IL_0025:  add
+                  IL_0026:  ldarg.0
+                  IL_0027:  stind.i4
+                  IL_0028:  ldc.i4.4
+                  IL_0029:  newobj     "System.Span<int>..ctor(void*, int)"
+                  IL_002e:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0033:  call       "void C.Write(System.ReadOnlySpan<int>)"
+                  IL_0038:  ret
                 }
                 """);
         }
