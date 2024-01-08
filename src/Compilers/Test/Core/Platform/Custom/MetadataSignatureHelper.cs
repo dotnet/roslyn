@@ -13,6 +13,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
+// The compiler must emit binary serialization metadata entries even though it doesn't 
+// actually do binary serialization.
+#pragma warning disable SYSLIB0050 
+
 namespace Roslyn.Test.Utilities
 {
     public class MetadataSignatureHelper

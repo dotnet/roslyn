@@ -52,15 +52,6 @@
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
 
-    <!--
-      These represent the runtimes for VS and VS Code. 
-
-      Note: when changing these values it's important to evaluate the properties in the below <Choose>
-      and ensure there are no duplicates. 
-    -->
-    <NetVS>net8.0</NetVS>
-    <NetVSCode>net7.0</NetVSCode>
-    <NetVSShared>net7.0;net8.0</NetVSShared>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
