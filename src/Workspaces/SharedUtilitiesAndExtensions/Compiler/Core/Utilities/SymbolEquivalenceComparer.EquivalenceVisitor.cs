@@ -76,18 +76,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
             {
+                // If we're ignoring nullability, these are trivially true.
                 if (symbolEquivalenceComparer._ignoreNullableAnnotations)
                     return true;
 
+                // If they have the same nullability, these are trivially true.
                 if (x.NullableAnnotation == y.NullableAnnotation)
                     return true;
 
-                return (x.NullableAnnotation, y.NullableAnnotation) switch
-                {
-                    (NullableAnnotation.None, NullableAnnotation.NotAnnotated) => true,
-                    (NullableAnnotation.NotAnnotated, NullableAnnotation.None) => true,
-                    _ => false,
-                };
+                // They have different nullability.  Check however if either is 'None'.  That means we don't know what
+                // the actual nullability is.  That means they could be equal (and the lang will consider them equal as
+                // it cannot make a determination with the lack of information about one side).
+                return x.NullableAnnotation is NullableAnnotation.None || y.NullableAnnotation is NullableAnnotation.None;
             }
 
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
