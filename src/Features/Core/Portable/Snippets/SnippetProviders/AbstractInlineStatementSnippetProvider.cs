@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// <summary>
         /// Tells if accessing type of a member access expression is valid for that snippet
         /// </summary>
-        /// <param name="type">Type of right-hand side of a member access expression</param>
+        /// <param name="type">Type of right-hand side of an accessing expression</param>
         /// <param name="compilation">Current compilation instance</param>
         protected abstract bool IsValidAccessingType(ITypeSymbol type, Compilation compilation);
 
         /// <summary>
         /// Generate statement node
         /// </summary>
-        /// <param name="inlineExpression">Right-hand side of a member access expression. <see langword="null"/> if snippet is executed in normal statement context</param>
-        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression);
+        /// <param name="inlineExpressionInfo">Information about inline expression or <see langword="null"/> if snippet is executed in normal statement context</param>
+        protected abstract SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo);
 
         /// <summary>
         /// Tells whether the original snippet was constructed from member access expression.
@@ -46,12 +46,9 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var targetToken = syntaxContext.TargetToken;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (TryGetInlineExpression(targetToken, syntaxFacts, out var expression))
+            if (TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type)
             {
-                var accessingType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-
-                if (accessingType is not null)
-                    return IsValidAccessingType(accessingType, semanticModel.Compilation);
+                return IsValidAccessingType(type, semanticModel.Compilation);
             }
 
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -64,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var targetToken = syntaxContext.TargetToken;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            _ = TryGetInlineExpression(targetToken, syntaxFacts, out var inlineExpression);
+            _ = TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
 
-            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpression);
-            ConstructedFromInlineExpression = inlineExpression is not null;
+            var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpressionInfo);
+            ConstructedFromInlineExpression = inlineExpressionInfo is not null;
 
-            return new TextChange(inlineExpression?.Parent?.Span ?? TextSpan.FromBounds(position, position), statement.ToFullString());
+            return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());
         }
 
         protected sealed override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
@@ -78,19 +75,35 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             return closestNode.FirstAncestorOrSelf<SyntaxNode>(isCorrectContainer);
         }
 
-        private static bool TryGetInlineExpression(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] out SyntaxNode? expression)
+        private static bool TryGetInlineExpressionInfo(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo, CancellationToken cancellationToken)
         {
-            expression = null;
-
             var parentNode = targetToken.Parent;
 
             if (syntaxFacts.IsMemberAccessExpression(parentNode) &&
                 syntaxFacts.IsExpressionStatement(parentNode?.Parent))
             {
-                expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+                var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+                expressionInfo = new(expression, typeInfo);
                 return true;
             }
 
+            // There are some edge cases when user intent is to write a member access expression,
+            // but due to the current state of the document parser ends up parsing it as a qualified name, e.g.
+            // ...
+            // flag.$$
+            // var a = 0;
+            // ...
+            // Here `flag.var` is parsed as a qualified name, so this case requires its own handling
+            if (syntaxFacts.IsQualifiedName(parentNode))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(parentNode, out var expression, out _, out _);
+                var typeInfo = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
+                expressionInfo = new(expression, typeInfo);
+                return true;
+            }
+
+            expressionInfo = null;
             return false;
         }
     }
