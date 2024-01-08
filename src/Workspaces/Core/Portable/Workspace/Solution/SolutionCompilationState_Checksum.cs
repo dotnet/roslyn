@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis
         private readonly AsyncLazy<SolutionCompilationStateChecksums> _lazyChecksums;
 
         /// <summary>
-        /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
-        /// to an OOP host.  Lock this specific field before reading/writing to it.
+        /// Mapping from project-id to the checksums needed to synchronize it over to an OOP host.  Lock this specific
+        /// field before reading/writing to it.
         /// </summary>
         private readonly Dictionary<ProjectId, AsyncLazy<SolutionCompilationStateChecksums>> _lazyProjectChecksums = new();
 
@@ -133,7 +133,10 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
 
-        // Checksums for this solution state
+        /// <summary>
+        /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
+        /// <see cref="SolutionState"/>.
+        /// </summary>
         private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
 
         /// <summary>
