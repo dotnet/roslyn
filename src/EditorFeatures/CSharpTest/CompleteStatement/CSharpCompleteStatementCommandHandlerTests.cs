@@ -1706,6 +1706,387 @@ class C
 
         #endregion
 
+        #region ArrayInitializer (explicit type)
+
+        [WpfFact]
+        public void ArrayInitializer()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc" }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc"$$ }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0$$, "abc" }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { $$ 0, "abc" }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ArrayInitializer_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new object[] { 0, "abc"$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region ArrayInitializer (implicit type)
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1 }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1$$ }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0$$, 1 }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { $$ 0, 1 }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void ImplicitTypeArrayInitializer_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new[] { 0, 1$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region Collection Expression
+
+        [WpfFact]
+        public void CollectionExpression()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc" ]$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionExpression2()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc"$$ ]
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionExpression3()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0$$, "abc" ]
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionExpression4()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ $$ 0, "abc" ]
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionExpression_MissingBrace()
+        {
+            var code =
+                """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        object[] f = [ 0, "abc"$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
+        #region CollectionInitializer
+
+        [WpfFact]
+        public void CollectionInitializer()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1 }$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer2()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1$$ }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer3()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0$$, 1 }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer4()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { $$ 0, 1 }
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact]
+        public void CollectionInitializer_MissingBrace()
+        {
+            var code =
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var f = new List<int> { 0, 1$$
+                    }
+                }
+
+                """;
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
         #region ObjectInitializer
 
         [WpfFact]
