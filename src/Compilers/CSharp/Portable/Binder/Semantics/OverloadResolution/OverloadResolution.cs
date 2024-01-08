@@ -3305,7 +3305,7 @@ outerDefault:
                     return argRefKind;
                 }
             }
-            else if (AreRefsCompatibleForMethodConversion(paramRefKind, argRefKind, binder.Compilation))
+            else if (AreRefsCompatibleForMethodConversion(source: paramRefKind, destination: argRefKind, binder.Compilation))
             {
                 return argRefKind;
             }
@@ -3322,28 +3322,34 @@ outerDefault:
             return paramRefKind;
         }
 
-        // In method group conversions, 'in' is allowed to match 'ref' and 'ref readonly' is allowed to match 'ref' or 'in'.
-        internal static bool AreRefsCompatibleForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilation)
+        // In method group conversions,
+        // - 'in' is allowed to be converted to 'ref',
+        // - 'ref readonly' is allowed to be converted to 'ref' or 'in',
+        // - 'in' is allowed to be converted to 'ref readonly'.
+        internal static bool AreRefsCompatibleForMethodConversion(RefKind source, RefKind destination, CSharpCompilation compilation)
         {
             Debug.Assert(compilation is not null);
 
-            if (x == y)
+            if (source == destination)
             {
                 return true;
             }
 
-            if (x == RefKind.RefReadOnlyParameter)
+            if ((source, destination) is
+                (RefKind.RefReadOnlyParameter, RefKind.Ref) or
+                (RefKind.RefReadOnlyParameter, RefKind.In) or
+                (RefKind.In, RefKind.RefReadOnlyParameter))
             {
-                return y is RefKind.Ref or RefKind.In;
+                return true;
             }
 
-            if (y == RefKind.RefReadOnlyParameter)
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
+                (source, destination) is (RefKind.In, RefKind.Ref))
             {
-                return x is RefKind.Ref or RefKind.In;
+                return true;
             }
 
-            return (x, y) is (RefKind.In, RefKind.Ref) or (RefKind.Ref, RefKind.In) &&
-                compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters);
+            return false;
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
