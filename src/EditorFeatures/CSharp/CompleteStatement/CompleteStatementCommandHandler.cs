@@ -461,24 +461,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
         {
             // Check to see if caret is before or after string
-            if (currentNode.Kind() is not (SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression))
-                return false;
-
-            if (caret.Position <= currentNode.SpanStart)
+            if (currentNode.Kind() is not (SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.Utf8StringLiteralExpression or SyntaxKind.CharacterLiteralExpression))
                 return false;
 
             if (currentNode.IsKind(SyntaxKind.StringLiteralExpression, out LiteralExpressionSyntax? literalExpression)
+                && literalExpression.Token.Text.StartsWith("@"))
+            {
+                // Verbatim strings start with @", so we only consider the caret to be inside the string if it's after the "
+                if (caret.Position <= currentNode.SpanStart + 1)
+                    return false;
+            }
+            else if (caret.Position <= currentNode.SpanStart)
+            {
+                return false;
+            }
+
+            if (currentNode.IsKind(SyntaxKind.StringLiteralExpression, out literalExpression)
                 && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '"'))
             {
                 // This is an unterminated string literal, so we count the end of the span as included in the string
                 return caret.Position <= currentNode.Span.End;
             }
-
-            if (currentNode.IsKind(SyntaxKind.CharacterLiteralExpression, out literalExpression)
+            else if (currentNode.IsKind(SyntaxKind.CharacterLiteralExpression, out literalExpression)
                 && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '\''))
             {
                 // This is an unterminated character literal, so we count the end of the span as included in the character
                 return caret.Position <= currentNode.Span.End;
+            }
+            else if (currentNode.IsKind(SyntaxKind.Utf8StringLiteralExpression))
+            {
+                // String literals are only considered utf-8 literals if they are terminated with a "u8 sequence. Only
+                // consider the caret inside the string if it precedes the position of the " in this sequence.
+                return caret.Position < currentNode.Span.End - 2;
             }
 
             return caret.Position < currentNode.Span.End;

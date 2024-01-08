@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             int x = 1;
             int y = 2;
-            int[] a = { 1,2 }
+            int[] a = { 1,2 };
             " + code + @"
 
             int z = 4;
@@ -218,25 +218,53 @@ public class Class1
         }
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
-        [WpfFact]
-        public void ArgumentListOfMethodInvocation_StringAsMethodArgument()
-        {
-            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( $$""Test"")");
+        [WpfTheory]
+        [InlineData("$$ \"Test\"")]
+        [InlineData(" $$\"Test\"")]
+        [InlineData("\"Test\"$$ ")]
+        [InlineData("\"Test\" $$")]
 
-            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"");$$");
+        // Verbatim strings
+        [InlineData("$$ @\"Test\"")]
+        [InlineData(" $$@\"Test\"")]
+        [InlineData(" @$$\"Test\"")]
+        [InlineData("@\"Test\"$$ ")]
+        [InlineData("@\"Test\" $$")]
+
+        // Raw strings
+        [InlineData("$$ \"\"\"Test\"\"\"")]
+        [InlineData(" $$\"\"\"Test\"\"\"")]
+        [InlineData("\"\"\"Test\"\"\"$$ ")]
+        [InlineData("\"\"\"Test\"\"\" $$")]
+
+        // UTF-8 strings
+        [InlineData("$$ \"Test\"u8")]
+        [InlineData(" $$\"Test\"u8")]
+        [InlineData("\"Test\"u8$$ ")]
+        [InlineData("\"Test\"$$u8 ")]
+        [InlineData("\"Test\"u8 $$")]
+        public void ArgumentListOfMethodInvocation_OutsideStringAsMethodArgument(string argument)
+        {
+            var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
+
+            var expected = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument.Replace("$$", "")});$$");
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
-        [WpfFact]
-        public void ArgumentListOfMethodInvocation_StringAsMethodArgument2()
+        [WpfTheory]
+        [InlineData("\"Test$$\"")]
+        [InlineData("@\"Test$$\"")]
+        [InlineData("\"\"\"Test$$\"\"\"")]
+        [InlineData("\"\"\"Test\"$$\"\"")]
+        [InlineData("\"\"\"Test\"\"$$\"")]
+        [InlineData("\"Test$$\"u8")]
+        public void ArgumentListOfMethodInvocation_InsideStringAsMethodArgument(string argument)
         {
-            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test""$$ )");
+            var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
 
-            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"" );$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact]
@@ -3906,6 +3934,9 @@ class Program
         [InlineData("\"$$")]
         [InlineData("\"$$Test Test")]
         [InlineData("\"Test Test$$")]
+        [InlineData("\"\"\"$$")]
+        [InlineData("\"\"\"$$Test Test")]
+        [InlineData("\"\"\"Test Test$$")]
         public void DoNotComplete_UnterminatedString(string literal)
         {
             var code = CreateTestWithMethodCall(
@@ -3914,6 +3945,18 @@ class Program
                     {literal}
                 )
                 """);
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory]
+        [InlineData("\"Test $$Test\"u8")]
+        [InlineData("\"Test Test$$\"u8")]
+        [InlineData("\"Test Test\"$$u8")]
+        [InlineData("\"Test Test\"u8$$")]
+        public void DoNotComplete_Utf8String(string literal)
+        {
+            var code = CreateTestWithMethodCall($@"var test={literal}");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
