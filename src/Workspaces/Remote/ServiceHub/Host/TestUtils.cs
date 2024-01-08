@@ -238,13 +238,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return set;
         }
 
-        //private static HashSet<Checksum> Flatten(SolutionStateChecksums1 checksums)
-        //{
-        //    var set = new HashSet<Checksum>();
-        //    checksums.AddAllTo(set);
-        //    return set;
-        //}
-
         private static HashSet<Checksum> Flatten(ProjectStateChecksums checksums)
         {
             var set = new HashSet<Checksum>();
