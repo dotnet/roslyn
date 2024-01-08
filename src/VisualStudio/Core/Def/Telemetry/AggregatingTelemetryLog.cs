@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly FunctionId _functionId;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
+        private static readonly object s_lock = new object();
 
         private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
 
@@ -117,14 +118,17 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void Flush()
         {
-            foreach (var (histogram, telemetryEvent) in _histograms.Values)
+            lock (s_lock)
             {
-                var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
+                foreach (var (histogram, telemetryEvent) in _histograms.Values)
+                {
+                    var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
 
-                _session.PostMetricEvent(histogramEvent);
+                    _session.PostMetricEvent(histogramEvent);
+                }
+
+                _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
             }
-
-            _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
         }
     }
 }
