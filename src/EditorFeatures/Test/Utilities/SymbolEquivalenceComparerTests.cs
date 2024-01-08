@@ -1442,8 +1442,7 @@ class T
         [Fact]
         public async Task TestNullableDisableVsEnable2()
         {
-            // One side is nullable disabled. Since we don't know the nullability, we should consider it equals to the
-            // type with nullability.
+            // One side is nullable disabled. One side definitely annotated.  Treat as different.
 
             var csharpCode1 =
 @"
@@ -1491,10 +1490,10 @@ class T
             Assert.True(ignoreComparer.Equals(b1, b2));
             Assert.True(ignoreComparer.Equals(c1, c2));
             Assert.True(ignoreComparer.Equals(d1, d2));
-            Assert.True(notIgnoreComparer.Equals(a1, a2));
-            Assert.True(notIgnoreComparer.Equals(b1, b2));
-            Assert.True(notIgnoreComparer.Equals(c1, c2));
-            Assert.True(notIgnoreComparer.Equals(d1, d2));
+            Assert.False(notIgnoreComparer.Equals(a1, a2));
+            Assert.False(notIgnoreComparer.Equals(b1, b2));
+            Assert.False(notIgnoreComparer.Equals(c1, c2));
+            Assert.False(notIgnoreComparer.Equals(d1, d2));
 
             // The hashcodes of distinct objects don't have to be distinct.
             Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));
@@ -1506,8 +1505,7 @@ class T
         [Fact]
         public async Task TestNullableDisableVsEnable3()
         {
-            // One side is nullable disabled. Since we don't know the nullability, we should consider it equals to the
-            // type with nullability.
+            // One side is nullable disabled. One side definitely annotated.  Treat as different.
 
             var csharpCode1 =
 @"
@@ -1555,10 +1553,10 @@ class T
             Assert.True(ignoreComparer.Equals(b1, b2));
             Assert.True(ignoreComparer.Equals(c1, c2));
             Assert.True(ignoreComparer.Equals(d1, d2));
-            Assert.True(notIgnoreComparer.Equals(a1, a2));
-            Assert.True(notIgnoreComparer.Equals(b1, b2));
-            Assert.True(notIgnoreComparer.Equals(c1, c2));
-            Assert.True(notIgnoreComparer.Equals(d1, d2));
+            Assert.False(notIgnoreComparer.Equals(a1, a2));
+            Assert.False(notIgnoreComparer.Equals(b1, b2));
+            Assert.False(notIgnoreComparer.Equals(c1, c2));
+            Assert.False(notIgnoreComparer.Equals(d1, d2));
 
             // The hashcodes of distinct objects don't have to be distinct.
             Assert.Equal(ignoreComparer.GetHashCode(a1), ignoreComparer.GetHashCode(a2));

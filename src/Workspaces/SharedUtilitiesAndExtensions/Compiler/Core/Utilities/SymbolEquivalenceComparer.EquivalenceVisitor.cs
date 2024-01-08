@@ -76,18 +76,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
             {
-                // If we're ignoring nullability, these are trivially true.
                 if (symbolEquivalenceComparer._ignoreNullableAnnotations)
                     return true;
 
-                // Consider them not equivalent if they both have an annotation, but the annotation doesn't match. If
-                // one doesn't have an annotation, then the language assumes they are equivalent (since it doesn't know
-                // what the unannotated item means).
+                if (x.NullableAnnotation == y.NullableAnnotation)
+                    return true;
+
+                // Workaround compiler issues where sometimes a particular symbol will have 'none' for the annotation
                 return (x.NullableAnnotation, y.NullableAnnotation) switch
                 {
-                    (NullableAnnotation.Annotated, NullableAnnotation.NotAnnotated) => false,
-                    (NullableAnnotation.NotAnnotated, NullableAnnotation.Annotated) => false,
-                    _ => true,
+                    (NullableAnnotation.None, NullableAnnotation.NotAnnotated) => true,
+                    (NullableAnnotation.NotAnnotated, NullableAnnotation.None) => true,
+                    _ => false,
                 };
             }
 
