@@ -82,8 +82,18 @@ internal sealed class SolutionCompilationStateChecksums(
             result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(compilationState.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
         }
 
-        if (compilationState.SolutionState.TryGetStateChecksums(out var solutionChecksums))
-            await solutionChecksums.FindAsync(compilationState.SolutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        var solutionState = compilationState.SolutionState;
+        if (solutionState.TryGetStateChecksums(out var solutionChecksums))
+            await solutionChecksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+
+        foreach (var projectId in solutionState.ProjectIds)
+        {
+            if (searchingChecksumsLeft.Count == 0)
+                break;
+
+            if (solutionState.TryGetStateChecksums(projectId, out var checksums))
+                await checksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 
