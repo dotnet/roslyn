@@ -204,7 +204,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out var memberResolutionResult,
                     out var candidateConstructors,
                     allowProtectedConstructorsOfBaseType: true,
-                    suppressUnsupportedRequiredMembersError: false);
+                    out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo);
+
+                ReportConstructorUseSiteDiagnostics(node.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
+
+                if (memberResolutionResult.IsNotNull)
+                {
+                    this.CheckAndCoerceArguments<MethodSymbol>(memberResolutionResult, analyzedArguments.ConstructorArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
+                }
+
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
                 argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;

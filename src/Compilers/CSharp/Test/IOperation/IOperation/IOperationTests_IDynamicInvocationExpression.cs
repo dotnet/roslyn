@@ -28,6 +28,10 @@ class C
     public void M2(int i)
     {
     }
+
+    public void M2(long i)
+    {
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -183,6 +187,10 @@ class C
     {
         j = 0;
     }
+    public void M2(ref object i, out int j, int c)
+    {
+        j = 0;
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -216,17 +224,19 @@ using System;
 
 class C
 {
-    public Action<object> F;
+    public D F;
     void M(dynamic i)
     {
         var x = /*<bind>*/F(i)/*</bind>*/;
     }
 }
+
+delegate void D(params object[] x);
 ";
             string expectedOperationTree = @"
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'F(i)')
   Expression: 
-    IFieldReferenceOperation: System.Action<System.Object> C.F (OperationKind.FieldReference, Type: System.Action<System.Object>) (Syntax: 'F')
+    IFieldReferenceOperation: D C.F (OperationKind.FieldReference, Type: D) (Syntax: 'F')
       Instance Receiver: 
         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
   Arguments(1):
@@ -235,9 +245,9 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
   ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0649: Field 'C.F' is never assigned to, and will always have its default value null
-                //     public Action<object> F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(6, 27)
+                // (6,14): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
+                //     public D F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(6, 14)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -392,6 +402,10 @@ class C
     public void M2(Action a, Action y)
     {
     }
+
+    public void M2(Action a, Action<int> y)
+    {
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -473,7 +487,11 @@ class C : B
 {
     C(dynamic x) : base((int)/*<bind>*/Goo(x)/*</bind>*/) { }
  
-    static object Goo(object x)
+    static object Goo(int x)
+    {
+        return x;
+    }
+    static object Goo(long x)
     {
         return x;
     }
@@ -509,6 +527,9 @@ class C
     }/*</bind>*/
 
     public void M2(int i)
+    {
+    }
+    public void M2(long i)
     {
     }
 }
@@ -557,6 +578,10 @@ class C
     }/*</bind>*/
 
     public static void M2<T>(int i)
+    {
+    }
+
+    public static void M2<T>(long i)
     {
     }
 }
@@ -649,6 +674,9 @@ class C
     }/*</bind>*/
 
     public void M2(int i)
+    {
+    }
+    public void M2(long i)
     {
     }
 }

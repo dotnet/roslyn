@@ -1811,6 +1811,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -3327,6 +3328,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13276,6 +13278,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13361,6 +13364,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13490,6 +13494,7 @@ class C2 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13658,6 +13663,7 @@ class C2 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c1, int c2) { }
+    public void Add(long c1, long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -14304,6 +14310,13 @@ Block[B2] - Exit
 class A
 {
     A this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+    A this[long x, long y]
     {
         get
         {

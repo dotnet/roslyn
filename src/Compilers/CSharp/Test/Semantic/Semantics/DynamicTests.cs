@@ -1668,6 +1668,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
                 {
                     public int X { get; private set; }
                     public void M(int x) => X = x;
+                    public void M(string x) => throw null;
                 }
                 """;
             var verifier = CompileAndVerify(source, new[] { CSharpRef }).VerifyDiagnostics();
@@ -2920,6 +2921,14 @@ class C : List<int>
     {
     }
 
+    public void Add(long a, long b, long c) 
+    {
+    }
+
+    public void Add(long a) 
+    {
+    }
+
     static void M()
     {	
 		var z = new C()         //-typeExpression: C
@@ -2994,16 +3003,22 @@ class C : List<int>
         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
         Expression<Func<dynamic, dynamic>> e22 = x => from a in new[] { d } select a + 1;
         Expression<Func<dynamic, dynamic>> e23 = x => from a in new[] { d } select a; // ok
-        Expression<Func<dynamic, dynamic>> e24 = x => new string(x);
+        Expression<Func<dynamic, dynamic>> e24 = x => new C1(x);
     }
 } 
+
+class C1
+{
+    public C1(int x){}
+    public C1(long x){}
+}
 ";
             CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)) }).VerifyDiagnostics(
 
                 // (43,55): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         Expression<Func<dynamic, dynamic>> e18 = x => d is dynamic; // ok, warning
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
-                // (46,59): error CS8382: Invalid object creation
+                // (46,59): error CS8386: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
                 Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
@@ -3018,12 +3033,18 @@ class C : List<int>
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z").WithLocation(27, 69),
-                // (28,44): error CS1963: An expression tree may not contain a dynamic operation
+                // (28,46): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }").WithLocation(28, 44),
-                // (28,51): error CS1963: An expression tree may not contain a dynamic operation
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 46),
+                // (28,53): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }").WithLocation(28, 51),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 53),
+                // (28,56): error CS1963: An expression tree may not contain a dynamic operation
+                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 56),
+                // (28,59): error CS1963: An expression tree may not contain a dynamic operation
+                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 59),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()").WithLocation(29, 54),
@@ -3045,15 +3066,6 @@ class C : List<int>
                 // (33,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e8 = x => -x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x").WithLocation(33, 54),
-                // (34,54): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e9 = x => f(d);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)").WithLocation(34, 54),
-                // (36,55): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e11 = x => f((dynamic)1);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)").WithLocation(36, 55),
-                // (37,55): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e12 = x => f(d ?? null);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)").WithLocation(37, 55),
                 // (38,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e13 = x => d ? 1 : 2;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(38, 55),
@@ -3064,8 +3076,8 @@ class C : List<int>
                 //         Expression<Func<dynamic, dynamic>> e22 = x => from a in new[] { d } select a + 1;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "a + 1").WithLocation(47, 84),
                 // (49,55): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e24 = x => new string(x);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)").WithLocation(49, 55)
+                //         Expression<Func<dynamic, dynamic>> e24 = x => new C1(x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new C1(x)").WithLocation(49, 55)
                 );
         }
 
@@ -3319,14 +3331,14 @@ class C
 class B
 {
   public int this[double x] { get { return 1; } set { } }
+  public int this[float x] { get { return 1; } set { } }
 }
-
 class C : B
 {
   public int this[int x] { get { return 1; } set { } }
   public int this[string x] { get { return 1; } set { } }
   public int this[int a, System.Func<int, int> b, object c] { get { return 1; } set { } }
-
+  public int this[long a, System.Func<int, int> b, object c] { get { return 1; } set { } }
   void M(C c, dynamic d)
   {
     // No overload takes two arguments:
@@ -3345,9 +3357,9 @@ class C : B
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.this[int, Func<int, int>, object]'
+                // (16,5): error CS1501: No overload for method 'this' takes 2 arguments
                 //     c[d, d] = 1; 
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "c[d, d]").WithArguments("this", "2").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //     c[d, q=>q, null] = 3; 
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "q=>q"),
@@ -4378,40 +4390,22 @@ class C
     {
         dynamic d = 1;
 
-        // Produce an error. This cannot work correctly right now
         M1(in d, d = 2, in d);
 
         void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
 
-        // NOTE: the following could work!!!
-        //
-        // Currently any kind of overloading that would require dynamic dispatch is not permitted
-        // for locals functions and dynamic dispatch is bypassed.
-        // 
-        // We will still give an error for consistency with the case where the method is an ordinary private method. 
-        // (and also in case if overloading restrictions are relaxed in the future and dispatch becomes necessary)
-        //
         M2(in d, d = 3, in d);
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M1(in d, d = 2, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
-                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M1(in d, d = 2, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28),
-                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M2(in d, d = 3, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 15),
-                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
-                //         M2(in d, d = 3, in d);
-                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 28)
-                );
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+").VerifyDiagnostics();
         }
 
         [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
@@ -4431,7 +4425,7 @@ class C
     class M2
     {
         public M2(int a, in int d) => System.Console.Write(1);
-        public M2(int a, int d) => System.Console.Write(2);
+        public M2(long a, in int d) => System.Console.Write(2);
     }
 }";
 
@@ -4521,6 +4515,35 @@ op_Implicit
                 // if (new C() && x)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(4, 5)
                 );
+        }
+
+        [Fact]
+        public void InapplicableMethodInDerived()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        System.Console.WriteLine(new C2().Add(d));
+    }
+}
+
+class C1
+{
+    public string Add(int x) => ""int"";
+}
+
+class C2 : C1
+{
+    public string Add(string x) => ""string"";
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics();
         }
     }
 }

@@ -2580,6 +2580,7 @@ class Program
     interface IDisposable1
     {
         void Dispose(int i);
+        void Dispose(long i);
     }
 
     class C1 : IDisposable1
@@ -2591,6 +2592,9 @@ class Program
             System.Console.WriteLine(disposed);
             disposed = true;
         }
+        public void Dispose(long i)
+        {
+        }
     }
 
     struct S1 : IDisposable1
@@ -2601,6 +2605,9 @@ class Program
         {
             System.Console.WriteLine(disposed);
             disposed = true;
+        }
+        public void Dispose(long i)
+        {
         }
     }
 

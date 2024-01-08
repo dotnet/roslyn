@@ -4050,7 +4050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     bindingDiagnostics,
                     queryClause: null,
-                    allowUnexpandedForm: false,
+                    ignoreNormalFormIfHasValidParamsParameter: true,
                     anyApplicableCandidates: out _);
 
                 analyzedArguments.Free();

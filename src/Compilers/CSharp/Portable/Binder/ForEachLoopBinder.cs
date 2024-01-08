@@ -1405,7 +1405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver: dummyReceiver,
                 arguments: analyzedArguments,
                 result: overloadResolutionResult,
-                useSiteInfo: ref useSiteInfo);
+                useSiteInfo: ref useSiteInfo,
+                options: OverloadResolution.Options.None);
             diagnostics.Add(collectionSyntax, useSiteInfo);
 
             MethodSymbol result = null;
@@ -1476,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments,
                 collectionExpr,
                 typeArgumentsWithAnnotations: default,
-                isMethodGroupConversion: false,
+                options: OverloadResolution.Options.None,
                 returnRefKind: default,
                 returnType: null,
                 withDependencies: diagnostics.AccumulatesDependencies);

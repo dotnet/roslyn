@@ -2282,6 +2282,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidExperimentalDiagID = 9211,
         ERR_SpreadMissingMember = 9212,
 
+        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9501, // PROTOTYPE(ParamsCollections): Pack numbers
+        ERR_ParamsCollectionAmbiguousDynamicArgument = 9502,
+        WRN_DynamicDispatchToParamsCollectionMethod = 9503,
+        WRN_DynamicDispatchToParamsCollectionIndexer = 9504,
+        WRN_DynamicDispatchToParamsCollectionConstructor = 9505,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

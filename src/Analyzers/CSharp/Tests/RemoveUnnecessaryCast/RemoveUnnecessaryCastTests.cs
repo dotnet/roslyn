@@ -4532,6 +4532,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     {
                         return true;
                     }
+                
+                    static bool Goo(long x, object y, object z)
+                    {
+                        return true;
+                    }
                 }
                 """;
 
@@ -4568,7 +4573,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                         {
                         }
                     }
-
+                
+                    int this[long x, object s, object d]
+                    {
+                        get
+                        {
+                            return 0;
+                        }
+                
+                        set
+                        {
+                        }
+                    }
+                
                     void Goo(dynamic xx)
                     {
                         var y = this[x: xx, s: "", d: (object)""];
@@ -4681,7 +4698,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     {
                         return true;
                     }
-                }
+                
+                    static bool Goo(object y, long x, object z)
+                    {
+                        return true;
+                    }
+                                }
                 """;
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
