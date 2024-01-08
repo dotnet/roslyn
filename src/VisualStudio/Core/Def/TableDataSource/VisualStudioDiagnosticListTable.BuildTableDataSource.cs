@@ -192,6 +192,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = data.DataLocation.MappedFileSpan.StartLinePosition.Character;
                                 return true;
+                            case "EndLine":
+                                content = data.DataLocation.MappedFileSpan.EndLinePosition.Line;
+                                return true;
+                            case "EndLineColumn":
+                                content = data.DataLocation.MappedFileSpan.EndLinePosition.Character;
+                                return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = item.ProjectName;
                                 return content != null;
