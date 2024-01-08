@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
-        private class DeclarationGenerator : SymbolVisitor
+        private sealed class DeclarationGenerator : SymbolVisitor
         {
             private readonly StringBuilder _builder;
             private readonly Generator _generator;
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis
                 _generator.Visit(symbol);
             }
 
-            private class Generator : SymbolVisitor<bool>
+            private sealed class Generator : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class ReferenceGenerator : SymbolVisitor<bool>
+        private sealed class ReferenceGenerator : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder;
             private readonly ISymbol? _typeParameterContext;
