@@ -130,23 +130,23 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
 
         // Checksums for this solution state
-        private readonly AsyncLazy<SolutionStateChecksums1> _lazyChecksums;
+        private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
 
         /// <summary>
         /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
         /// to an OOP host.  Lock this specific field before reading/writing to it.
         /// </summary>
-        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums1>> _lazyProjectChecksums = new();
+        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
 
         public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
             => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
 
-        public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums1? stateChecksums)
+        public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
-        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums1? stateChecksums)
+        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         {
-            AsyncLazy<SolutionStateChecksums1>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
             return checksums.TryGetValue(out stateChecksums);
         }
 
-        public Task<SolutionStateChecksums1> GetStateChecksumsAsync(CancellationToken cancellationToken)
+        public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-        public async Task<SolutionStateChecksums1> GetStateChecksumsAsync(
+        public async Task<SolutionStateChecksums> GetStateChecksumsAsync(
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(projectId);
 
-            AsyncLazy<SolutionStateChecksums1>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            AsyncLazy<SolutionStateChecksums1> Compute(ProjectId projectId)
+            AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectId)
             {
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
         /// to get a checksum for the entire solution</param>
-        private async Task<SolutionStateChecksums1> ComputeChecksumsAsync(
+        private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
             HashSet<ProjectId>? projectsToInclude,
             CancellationToken cancellationToken)
         {
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    return new SolutionStateChecksums1(
+                    return new SolutionStateChecksums(
                         attributesChecksum,
                         new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
                         analyzerReferenceChecksums);

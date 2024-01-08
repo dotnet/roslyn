@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
             => new(this, collection);
 
-        internal async Task VerifyAssetAsync(SolutionStateChecksums1 solutionObject)
+        internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             SolutionCompilationStateEqual(solutionCompilationObjectFromSolution, solutionCompilationObjectFromSyncObject);
 
-            var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums1>(solutionCompilationObjectFromSyncObject.SolutionState);
+            var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionCompilationObjectFromSyncObject.SolutionState);
             Contract.ThrowIfFalse(solution.CompilationState.SolutionState.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
         }
 
-        internal void SolutionStateEqual(SolutionStateChecksums1 solutionObject1, SolutionStateChecksums1 solutionObject2)
+        internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
         {
             Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
             Assert.Equal(solutionObject1.Attributes, solutionObject2.Attributes);

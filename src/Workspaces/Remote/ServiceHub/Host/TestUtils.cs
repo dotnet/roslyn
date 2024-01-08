@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var solutionCompilationChecksums = await assetService.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
-                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums1>(
+                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(
                     assetHint: AssetHint.None, solutionCompilationChecksums.SolutionState, CancellationToken.None).ConfigureAwait(false);
 
                 solutionCompilationChecksums.AddAllTo(set);

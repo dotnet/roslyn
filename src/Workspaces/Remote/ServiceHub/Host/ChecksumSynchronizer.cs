@@ -29,7 +29,7 @@ internal sealed partial class AssetProvider
 
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            SolutionStateChecksums1 solutionChecksumObject;
+            SolutionStateChecksums solutionChecksumObject;
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
@@ -37,7 +37,7 @@ internal sealed partial class AssetProvider
                 // first, get solution checksum object for the given solution checksum
                 var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
-                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
+                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                     assetHint: AssetHint.None, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution

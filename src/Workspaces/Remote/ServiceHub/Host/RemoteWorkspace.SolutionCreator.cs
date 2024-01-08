@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
+                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                     assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
                     var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums1>(
+                    var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private async Task<Solution> UpdateProjectsAsync(
-                Solution solution, SolutionStateChecksums1 oldSolutionChecksums, SolutionStateChecksums1 newSolutionChecksums, CancellationToken cancellationToken)
+                Solution solution, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();

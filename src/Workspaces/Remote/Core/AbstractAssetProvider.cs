@@ -25,7 +25,7 @@ internal abstract class AbstractAssetProvider
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
         var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
-        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums1>(AssetHint.None, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetHint.None, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetHint.None, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 

@@ -23,7 +23,7 @@ internal sealed class SolutionCompilationStateChecksums(
         frozenSourceGeneratedDocumentIdentity,
         frozenSourceGeneratedDocumentText);
 
-    public Checksum SolutionState = solutionState;
+    public Checksum SolutionState { get; } = solutionState;
     public Checksum FrozenSourceGeneratedDocumentIdentity { get; } = frozenSourceGeneratedDocumentIdentity;
     public Checksum FrozenSourceGeneratedDocumentText { get; } = frozenSourceGeneratedDocumentText;
 
@@ -87,7 +87,7 @@ internal sealed class SolutionCompilationStateChecksums(
     }
 }
 
-internal sealed class SolutionStateChecksums1(
+internal sealed class SolutionStateChecksums(
     Checksum attributes,
     ChecksumsAndIds<ProjectId> projects,
     ChecksumCollection analyzerReferences)
@@ -118,10 +118,10 @@ internal sealed class SolutionStateChecksums1(
         this.AnalyzerReferences.WriteTo(writer);
     }
 
-    public static SolutionStateChecksums1 Deserialize(ObjectReader reader)
+    public static SolutionStateChecksums Deserialize(ObjectReader reader)
     {
         var checksum = Checksum.ReadFrom(reader);
-        var result = new SolutionStateChecksums1(
+        var result = new SolutionStateChecksums(
             attributes: Checksum.ReadFrom(reader),
             projects: ChecksumsAndIds<ProjectId>.ReadFrom(reader),
             analyzerReferences: ChecksumCollection.ReadFrom(reader));
