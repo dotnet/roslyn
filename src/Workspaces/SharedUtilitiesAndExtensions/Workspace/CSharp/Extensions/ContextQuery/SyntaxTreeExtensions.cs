@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
             {
                 // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
-                if (expression.IsAnyLambdaOrAnonymousMethod())
+                if (expression is AnonymousFunctionExpressionSyntax)
                     return false;
 
                 var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();

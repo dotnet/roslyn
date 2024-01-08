@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         private abstract partial class CompilationAndGeneratorDriverTranslationAction
         {
@@ -23,9 +20,11 @@ namespace Microsoft.CodeAnalysis
                 private readonly DocumentState _oldState = oldState;
                 private readonly DocumentState _newState = newState;
 
-                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
+                    return oldCompilation.ReplaceSyntaxTree(
+                        await _oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await _newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                 }
 
                 public DocumentId DocumentId => _newState.Attributes.Id;

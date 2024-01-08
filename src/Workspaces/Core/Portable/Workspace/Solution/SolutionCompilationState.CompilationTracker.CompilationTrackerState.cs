@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         private partial class CompilationTracker
         {
@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// The final state a compilation tracker reaches. The real <see cref="CompilationTrackerState.FinalCompilationWithGeneratedDocuments"/> is available. It is a
-            /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="Solution"/>
+            /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="SolutionState"/>
             /// (for example, through <see cref="Project.GetCompilationAsync"/> or <see
             /// cref="Project.TryGetCompilation"/> must be from a <see cref="FinalState"/>.  This is because <see
             /// cref="FinalState"/> stores extra information in it about that compilation that the <see
-            /// cref="Solution"/> can be queried for (for example: <see
+            /// cref="SolutionState"/> can be queried for (for example: <see
             /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
             /// cref="CompilationTrackerState"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>

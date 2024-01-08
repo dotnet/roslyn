@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public readonly string? FilePath = filePath;
 
         public static SolutionKey ToSolutionKey(Solution solution)
-            => ToSolutionKey(solution.State);
+            => ToSolutionKey(solution.SolutionState);
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
             => new(solutionState.Id, solutionState.FilePath);

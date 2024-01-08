@@ -4742,9 +4742,9 @@ static class Program
                 // (6,18): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         int* y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
-                // (7,17): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
+                // (7,23): error CS9174: Cannot initialize type 'int*' with a collection expression because the type is not constructible.
                 //         var z = (int*)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("int*").WithLocation(7, 23));
         }
 
         [Fact]
@@ -4769,9 +4769,9 @@ static class Program
                 // (6,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
+                // (7,34): error CS9174: Cannot initialize type 'delegate*<void>' with a collection expression because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("delegate*<void>").WithLocation(7, 34));
         }
 
         [Fact]
@@ -6496,9 +6496,9 @@ static class Program
                 // (8,15): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (9,24): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         object o = (S)([1, 2]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 24));
         }
 
         [Fact]
@@ -9893,7 +9893,7 @@ static class Program
         [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyList_T })]
         [InlineData(new[] { SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
             SpecialType.System_Collections_Generic_IReadOnlyList_T })]
-        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes(SpecialType[] missingTypes)
+        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_01(SpecialType[] missingTypes)
         {
             string source = """
                 using System.Collections.Generic;
@@ -9940,6 +9940,269 @@ static class Program
                         "System.Collections.Generic.IList<T>",
                     }
                     : new[]
+                    {
+                        "System.Collections.IEnumerable",
+                        "System.Collections.ICollection",
+                        "System.Collections.IList",
+                        "System.Collections.Generic.IEnumerable<T>",
+                        "System.Collections.Generic.ICollection<T>",
+                        "System.Collections.Generic.IList<T>",
+                    },
+                    interfaces.ToTestDisplayStrings());
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_02()
+        {
+            string runtime = @"
+namespace System
+{
+    using System.Collections;
+    public class NotSupportedException : Exception {}
+    public class Array : ICollection, IList
+    {
+        public static T[] Empty<T>() => throw null;
+        IEnumerator IEnumerable.GetEnumerator() => throw null;
+        void ICollection.CopyTo(Array array, int index) => throw null;
+        int ICollection.Count => throw null;
+        object ICollection.SyncRoot => throw null;
+        bool ICollection.IsSynchronized => throw null;
+        object IList.this[int index]
+        {
+            get => throw null;
+            set => throw null;
+        }
+        int IList.Add(object value) => throw null;
+        bool IList.Contains(object value) => throw null;
+        void IList.Clear() => throw null;
+        bool IList.IsReadOnly => throw null;
+        bool IList.IsFixedSize => throw null;
+        int IList.IndexOf(object value) => throw null;
+        void IList.Insert(int index, object value)=> throw null;
+        void IList.Remove(object value) => throw null;
+        void IList.RemoveAt(int index)=> throw null;
+    }
+    public class Attribute { }
+    [Flags]
+    public enum AttributeTargets
+    {
+        Assembly = 0x1,
+        Module = 0x2,
+        Class = 0x4,
+        Struct = 0x8,
+        Enum = 0x10,
+        Constructor = 0x20,
+        Method = 0x40,
+        Property = 0x80,
+        Field = 0x100,
+        Event = 0x200,
+        Interface = 0x400,
+        Parameter = 0x800,
+        Delegate = 0x1000,
+        ReturnValue = 0x2000,
+        GenericParameter = 0x4000,
+        All = 0x7FFF
+    }
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    public sealed class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple
+        {
+            get => throw null;
+            set { }
+        }
+        public bool Inherited
+        {
+            get => throw null;
+            set { }
+        }
+        public AttributeTargets ValidOn => throw null;
+    }
+    public struct Boolean { }
+    public struct Byte { }
+    public class Delegate
+    {
+        public static Delegate CreateDelegate(Type type, object firstArgument, Reflection.MethodInfo method) => null;
+    }
+    public abstract class Enum : IComparable { }
+    public class Exception { }
+    public class FlagsAttribute : Attribute { }
+    public delegate T Func<out T>();
+    public delegate U Func<in T, out U>(T arg);
+    public interface IComparable { }
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+    public struct Int16 { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct IntPtr { }
+    public class MulticastDelegate : Delegate { }
+    public struct Nullable<T> { }
+    public class Object { }
+    public sealed class ParamArrayAttribute : Attribute { }
+    public struct RuntimeMethodHandle { }
+    public struct RuntimeTypeHandle { }
+    public class String : IComparable { public static String Empty = null; }
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+    public class ValueType { }
+    public struct Void { }
+    namespace Collections
+    {
+        public interface IEnumerable
+        {
+            IEnumerator GetEnumerator();
+        }
+        public interface IEnumerator
+        {
+            object Current { get; }
+            bool MoveNext();
+            void Reset();
+        }
+        public interface ICollection : IEnumerable
+        {
+            void CopyTo(Array array, int index);
+            int Count { get; }
+            object SyncRoot { get; }
+            bool IsSynchronized { get; }
+        }
+        public interface IList : ICollection
+        {
+            object this[int index] { get; set; }
+            int Add(object value);
+            bool Contains(object value);
+            void Clear();
+            bool IsReadOnly { get; }
+            bool IsFixedSize { get; }
+            int IndexOf(object value);
+            void Insert(int index, object value);
+            void Remove(object value);
+            void RemoveAt(int index);
+        }
+    }
+    namespace Collections.Generic
+    {
+        public interface IEnumerable<out T> : IEnumerable
+        {
+            new IEnumerator<T> GetEnumerator();
+        }
+        public interface IEnumerator<out T> : IEnumerator, IDisposable
+        {
+            new T Current { get; }
+        }
+        public interface ICollection<T> : IEnumerable<T>
+        {
+            int Count { get; }
+            bool IsReadOnly { get; }
+            void Add(T item);
+            void Clear();
+            bool Contains(T item);
+            void CopyTo(T[] array, int arrayIndex);
+            bool Remove(T item);
+        }
+        public interface IList<T> : ICollection<T>
+        {
+            T this[int index] { get; set; }
+            int IndexOf(T item);
+            void Insert(int index, T item);
+            void RemoveAt(int index);
+        }
+        public class List<T> : System.Collections.Generic.ICollection<T>, System.Collections.Generic.IEnumerable<T>, System.Collections.Generic.IList<T>, System.Collections.ICollection, System.Collections.IEnumerable, System.Collections.IList
+        {
+            public List() { }
+            public List(System.Collections.Generic.IEnumerable<T> collection) { }
+            public List(int capacity) { }
+            public int Capacity { get { throw null; } set { } }
+            public int Count { get { throw null; } }
+            public T this[int index] { get { throw null; } set { } }
+            bool System.Collections.Generic.ICollection<T>.IsReadOnly { get { throw null; } }
+            bool System.Collections.ICollection.IsSynchronized { get { throw null; } }
+            object System.Collections.ICollection.SyncRoot { get { throw null; } }
+            bool System.Collections.IList.IsFixedSize { get { throw null; } }
+            bool System.Collections.IList.IsReadOnly { get { throw null; } }
+            object System.Collections.IList.this[int index] { get { throw null; } set { } }
+            public void Add(T item) { }
+            public void Clear() { }
+            public bool Contains(T item) { throw null; }
+            public void CopyTo(int index, T[] array, int arrayIndex, int count) { }
+            public void CopyTo(T[] array) { }
+            public void CopyTo(T[] array, int arrayIndex) { }
+            public int EnsureCapacity(int capacity) { throw null; }
+            public int IndexOf(T item) { throw null; }
+            public int IndexOf(T item, int index) { throw null; }
+            public int IndexOf(T item, int index, int count) { throw null; }
+            public void Insert(int index, T item) { }
+            public bool Remove(T item) { throw null; }
+            public void RemoveAt(int index) { }
+            System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator() { throw null; }
+            void System.Collections.ICollection.CopyTo(System.Array array, int arrayIndex) { }
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { throw null; }
+            int System.Collections.IList.Add(object item) { throw null; }
+            bool System.Collections.IList.Contains(object item) { throw null; }
+            int System.Collections.IList.IndexOf(object item) { throw null; }
+            void System.Collections.IList.Insert(int index, object item) { }
+            void System.Collections.IList.Remove(object item) { }
+            public T[] ToArray() { throw null; }
+        }
+    }
+    namespace Reflection
+    {
+        public class AssemblyVersionAttribute : Attribute
+        {
+            public AssemblyVersionAttribute(string version) { }
+        }
+        public class DefaultMemberAttribute : Attribute
+        {
+            public DefaultMemberAttribute(string name) { }
+        }
+        public abstract class MemberInfo { }
+        public abstract class MethodBase : MemberInfo
+        {
+            public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => throw null;
+        }
+        public abstract class MethodInfo : MethodBase
+        {
+            public virtual Delegate CreateDelegate(Type delegateType, object target) => throw null;
+        }
+    }
+}
+";
+
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [0, 1];
+                        IEnumerable<int> z = [..x];
+                    }
+                }
+                """;
+            var reference = CreateEmptyCompilation(runtime, assemblyName: "System.Runtime").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [reference]);
+
+            var verifier = CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    verifyInterfaces(module, "<>z__ReadOnlyArray");
+                    verifyInterfaces(module, "<>z__ReadOnlyList");
+                });
+            verifier.VerifyDiagnostics();
+
+            void verifyInterfaces(ModuleSymbol module, string typeName)
+            {
+                var synthesizedType = module.GlobalNamespace.GetTypeMember(typeName);
+                var interfaces = synthesizedType.InterfacesNoUseSiteDiagnostics();
+                AssertEx.Equal(
+                    new[]
                     {
                         "System.Collections.IEnumerable",
                         "System.Collections.ICollection",
@@ -10940,9 +11203,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -10971,9 +11234,9 @@ partial class Program
                 // (10,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
+                // (11,17): error CS9174: Cannot initialize type 'S' with a collection expression because the type is not constructible.
                 //         s = (S)([3, 4]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("S").WithLocation(11, 17));
         }
 
         [Fact]
@@ -11176,9 +11439,9 @@ partial class Program
                 // (20,17): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
+                // (26,24): error CS9174: Cannot initialize type 'S2' with a collection expression because the type is not constructible.
                 //         var v12 = (S2)([]);
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(26, 24));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -20303,6 +20566,60 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementConversion()
+        {
+            string source = """
+                using System;
+                DateTimeOffset d = default;
+                ReadOnlySpan<DateTime> x = [d];
+                var y = (ReadOnlySpan<DateTime>)[d];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,29): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // ReadOnlySpan<DateTime> x = [d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(3, 29),
+                // (4,34): error CS0029: Cannot implicitly convert type 'System.DateTimeOffset' to 'System.DateTime'
+                // var y = (ReadOnlySpan<DateTime>)[d];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("System.DateTimeOffset", "System.DateTime").WithLocation(4, 34));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71490")]
+        [Fact]
+        public void ExplicitConversion_NoElementType()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T>
+                {
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = [];
+                        var y = (MyCollection<object>)[];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (15,34): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<object> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(15, 34),
+                // (16,39): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         var y = (MyCollection<object>)[];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(16, 39));
+        }
+
         [Fact]
         public void TopLevelStatement_01()
         {
@@ -28066,6 +28383,268 @@ partial class Program
                   IL_009d:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_00a2:  ret
                 }
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_List()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        List<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Array()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        object[] items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Object[]) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_Span()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        Span<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ReadOnlySpan()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.ReadOnlySpan<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImmutableArray()
+        {
+            var source = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_IEnumerableT()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        IEnumerable<object> items = [new()];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Object>) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
+                """);
+        }
+
+        [Fact]
+        public void TargetTypedElement_PublicAPI_ImplementsIEnumerable()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection items = [new()];
+                    }
+                }
+
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(object obj) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("object.Object()", info.Symbol.ToDisplayString());
+
+            model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[new()]')
+                  Elements(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new()')
+                            Arguments(0)
+                            Initializer:
+                              null
                 """);
         }
     }

@@ -62,17 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
             await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
 
-            Assert.True(errorReported);
+            // No exception is thrown in the call to GetActionSetsAsync because the preview is only lazily evaluated.
+            Assert.False(errorReported);
         }
 
         private static async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
-            var codeActions = new List<CodeAction>();
-            RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-                workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
+            var suggestedAction = CreateRefactoringSuggestedAction(workspace, provider, out var extensionManager);
             await suggestedAction.GetPreviewAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
@@ -80,12 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
         private static void DisplayText(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
-            var codeActions = new List<CodeAction>();
-            RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-                workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
+            var suggestedAction = CreateRefactoringSuggestedAction(workspace, provider, out var extensionManager);
             _ = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
@@ -93,15 +84,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
         private static async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
+            var suggestedAction = CreateRefactoringSuggestedAction(workspace, provider, out var extensionManager);
+            _ = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
+            Assert.False(extensionManager.IsDisabled(provider));
+            Assert.False(extensionManager.IsIgnored(provider));
+        }
+
+        private static CodeRefactoringSuggestedAction CreateRefactoringSuggestedAction(TestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
+        {
             var codeActions = new List<CodeAction>();
-            RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
+            RefactoringSetup(workspace, provider, codeActions, out extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
-            _ = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
-            Assert.True(extensionManager.IsDisabled(provider));
-            Assert.False(extensionManager.IsIgnored(provider));
+            return suggestedAction;
         }
 
         private static void RefactoringSetup(
