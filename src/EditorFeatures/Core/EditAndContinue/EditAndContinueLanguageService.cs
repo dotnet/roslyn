@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
 
-            _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.Message, errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
+            _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
                 .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
         }
 
