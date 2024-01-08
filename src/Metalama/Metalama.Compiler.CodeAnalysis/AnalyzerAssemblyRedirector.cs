@@ -2,6 +2,7 @@
 // This project is not open source. Please see the LICENSE.md file in the repository root for details.
 
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Metalama.Compiler;
 
@@ -22,6 +23,8 @@ static class AnalyzerAssemblyRedirector
         var pathToRoot = assemblyDirectory.Contains("bincore") ? "../../.." : "../..";
 
         var sdkAnalyzersDirectory = Path.Combine(assemblyDirectory, pathToRoot, "sdkAnalyzers");
+
+        sdkAnalyzersDirectory = FileUtilities.TryNormalizeAbsolutePath(sdkAnalyzersDirectory) ?? sdkAnalyzersDirectory;
 
         return Directory.Exists(sdkAnalyzersDirectory) ? sdkAnalyzersDirectory : null;
     }

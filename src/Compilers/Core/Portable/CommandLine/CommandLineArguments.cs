@@ -625,6 +625,8 @@ namespace Microsoft.CodeAnalysis
 
             return version;
         }
+
+        private readonly HashSet<string> _additionalRedirectedReferences = [];
         // </Metalama>
 
         // <Metalama> modified
@@ -643,45 +645,58 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            if (s_metalamaRoslynVersion is { } metalamaRoslynVersion && getReferencedRoslynVersion() is { } referencedRoslynVersion)
+            if (_additionalRedirectedReferences.Contains(Path.GetFileNameWithoutExtension(reference.FilePath)))
             {
-                if (referencedRoslynVersion.Major >= 2023)
-                {
-                    // If the version is year-based, assume the referenced version of Roslyn is from Metalama and so do nothing.
-                    // Though this should only happen in tests.
-                    RoslynDebug.Assert(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName?.StartsWith("xunit") == true));
-                }
-                else if (referencedRoslynVersion > metalamaRoslynVersion)
-                {
-                    if (AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath) is { } redirectedPath)
-                    {
-                        // We're redirecting assemblies to their older versions, which means the behavior shouldn't change much.
-                        // So a single generic warning should be enough.
-                        if (diagnostics?.Contains(diagnostic => diagnostic.MessageProvider == MetalamaCompilerMessageProvider.Instance && diagnostic.Code == (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected) == false)
-                        {
-                            diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
-                        }
+                // The set contains references that can't be redirected (e.g. netstandard, Roslyn), so it's fine if GetRedirectedPath returns null.
+                resolvedPath = AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath) ?? resolvedPath;
+            }
+            else if (s_metalamaRoslynVersion is { } metalamaRoslynVersion)
+            {
+                using var assembly = AssemblyMetadata.CreateFromFile(resolvedPath);
 
-                        resolvedPath = redirectedPath;
+                var referencedAssemblies = assembly.GetModules().First().Module.ReferencedAssemblies;
+                var referencedRoslynVersion = referencedAssemblies.FirstOrDefault(a => a.Name == "Microsoft.CodeAnalysis")?.Version;
+
+                if (referencedRoslynVersion != null)
+                {
+                    if (referencedRoslynVersion.Major >= 2023)
+                    {
+                        // If the version is year-based, assume the referenced version of Roslyn is from Metalama and so do nothing.
+                        // Though this should only happen in tests.
+                        RoslynDebug.Assert(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName?.StartsWith("xunit") == true));
                     }
-                    else
+                    else if (referencedRoslynVersion > metalamaRoslynVersion)
                     {
-                        // We were unable to redirect, so we're disabling this assembly and informing the user.
-                        diagnostics?.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssemblyCantRedirect, reference.FilePath, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+                        if (AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath) is { } redirectedPath)
+                        {
+                            // We're redirecting assemblies to their older versions, which means the behavior shouldn't change much.
+                            // So a single generic warning should be enough.
+                            if (diagnostics?.Contains(diagnostic => diagnostic.MessageProvider == MetalamaCompilerMessageProvider.Instance && diagnostic.Code == (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected) == false)
+                            {
+                                diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+                            }
 
-                        return null;
+                            // References of this assembly might not reference Roslyn, but still have to be redirected, so add them to a set.
+                            foreach (var referencedAssembly in referencedAssemblies)
+                            {
+                                _additionalRedirectedReferences.Add(referencedAssembly.Name);
+                            }
+
+                            resolvedPath = redirectedPath;
+                        }
+                        else
+                        {
+                            // We were unable to redirect, so we're disabling this assembly and informing the user.
+                            diagnostics?.Add(
+                                new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssemblyCantRedirect, reference.FilePath, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+
+                            return null;
+                        }
                     }
                 }
             }
 
             return new AnalyzerFileReference(resolvedPath, analyzerLoader);
-
-            Version? getReferencedRoslynVersion()
-            {
-                using var assembly = AssemblyMetadata.CreateFromFile(resolvedPath);
-
-                return assembly.GetModules().FirstOrDefault()?.Module.ReferencedAssemblies.FirstOrDefault(a => a.Name == "Microsoft.CodeAnalysis")?.Version;
-            }
         }
         // </Metalama>
         #endregion
