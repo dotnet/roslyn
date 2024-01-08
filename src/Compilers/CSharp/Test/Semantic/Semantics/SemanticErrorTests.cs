@@ -22715,7 +22715,7 @@ class Myclass
     static void Main()
     {
         dynamic d = null;
-        // Warning because Goo might be conditional.
+        // No warning because Goo is statically bound.
         Goo(d); 
         // No warning; only the two-parameter Bar is conditional.
         Bar(d);
