@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
             => value switch
             {
-                SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState1,
+                SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
                 SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
                 ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
                 DocumentStateChecksums => WellKnownSynchronizationKind.DocumentState,
