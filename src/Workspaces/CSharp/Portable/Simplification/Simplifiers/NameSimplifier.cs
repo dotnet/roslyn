@@ -306,7 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            SyntaxToken identifier;
             switch (name.Kind())
             {
                 case SyntaxKind.AliasQualifiedName:
@@ -331,18 +330,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     break;
 
                 case SyntaxKind.IdentifierName:
-                    identifier = ((IdentifierNameSyntax)name).Identifier;
+                    {
+                        var identifier = ((IdentifierNameSyntax)name).Identifier;
 
-                    // we can try to remove the Attribute suffix if this is the attribute name
-                    TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
-                    break;
+                        // we can try to remove the Attribute suffix if this is the attribute name
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                        break;
+                    }
 
                 case SyntaxKind.GenericName:
-                    identifier = ((GenericNameSyntax)name).Identifier;
+                    {
+                        var identifier = ((GenericNameSyntax)name).Identifier;
 
-                    // we can try to remove the Attribute suffix if this is the attribute name
-                    TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
-                    break;
+                        // we can try to remove the Attribute suffix if this is the attribute name
+                        TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                        break;
+                    }
             }
 
             if (replacementNode == null)
