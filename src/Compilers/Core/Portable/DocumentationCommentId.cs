@@ -314,8 +314,14 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The <see langword="bool"/> generic type argument indicates if we succeeded at writing out the declaration ID
-        /// or not. 
+        /// or not.  Callers should only call into <see cref="SymbolVisitor{TResult}.Visit(ISymbol?)"/> and should check
+        /// the return type to see if it failed (in the case of an arbitrary symbol) or that it produced an expected
+        /// value (in the case a known symbol type was used).
         /// </summary>
+        /// <remarks>
+        /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
+        /// succeed for other symbols.
+        /// </remarks>
         private sealed class PrefixAndDeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
         {
             private readonly StringBuilder _builder = builder;
@@ -354,13 +360,51 @@ namespace Microsoft.CodeAnalysis
             public override bool VisitNamespace(INamespaceSymbol symbol)
             {
                 _builder.Append("N:");
-                return _generator.Visit(symbol);
+                AppendNamespace(symbol, _builder);
+                return true;
             }
 
             public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
                 _builder.Append("T:");
-                return _generator.Visit(symbol);
+                _generator.VisitNamedType(symbol);
+                return true;
+            }
+
+            private static void AppendNamespace(INamespaceSymbol symbol, StringBuilder builder)
+            {
+                if (symbol.IsGlobalNamespace)
+                    return;
+
+                if (symbol.ContainingNamespace is { IsGlobalNamespace: false })
+                {
+                    AppendNamespace(symbol.ContainingNamespace, builder);
+                    builder.Append('.');
+                }
+
+                builder.Append(EncodeName(symbol.Name));
+            }
+
+            private static void AppendNamedType(INamedTypeSymbol symbol, StringBuilder builder)
+            {
+                if (symbol.ContainingSymbol is INamedTypeSymbol parentType)
+                {
+                    AppendNamedType(parentType, builder);
+                    builder.Append('.');
+                }
+                else if (symbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: false } parentNamespace)
+                {
+                    AppendNamespace(parentNamespace, builder);
+                    builder.Append('.');
+                }
+
+                builder.Append(EncodeName(symbol.Name));
+
+                if (symbol.TypeParameters.Length > 0)
+                {
+                    builder.Append('`');
+                    builder.Append(symbol.TypeParameters.Length);
+                }
             }
 
             private sealed class DeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
@@ -469,40 +513,13 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitNamespace(INamespaceSymbol symbol)
                 {
-                    if (!symbol.IsGlobalNamespace)
-                    {
-                        if (symbol.ContainingNamespace is { IsGlobalNamespace: false })
-                        {
-                            if (!this.Visit(symbol.ContainingNamespace))
-                                return false;
-
-                            _builder.Append('.');
-                        }
-
-                        _builder.Append(EncodeName(symbol.Name));
-                    }
-
+                    AppendNamespace(symbol, _builder);
                     return true;
                 }
 
                 public override bool VisitNamedType(INamedTypeSymbol symbol)
                 {
-                    if (symbol.ContainingSymbol is INamedTypeSymbol or INamespaceSymbol { IsGlobalNamespace: false })
-                    {
-                        if (!this.Visit(symbol.ContainingSymbol))
-                            return false;
-
-                        _builder.Append('.');
-                    }
-
-                    _builder.Append(EncodeName(symbol.Name));
-
-                    if (symbol.TypeParameters.Length > 0)
-                    {
-                        _builder.Append('`');
-                        _builder.Append(symbol.TypeParameters.Length);
-                    }
-
+                    AppendNamedType(symbol, _builder);
                     return true;
                 }
             }
@@ -614,6 +631,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
+                    Debug.Assert(symbol.ContainingSymbol is INamespaceSymbol or INamedTypeSymbol);
                     Debug.Assert(declarer.Visit(symbol.ContainingSymbol), "Should always be able to write out a type parameter's containing type or method");
                     _builder.Append(':');
                 }
