@@ -212,7 +212,7 @@ public class Class1
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -372,7 +372,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$));");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -432,7 +432,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1175,7 +1175,7 @@ class C
     static void Main(string[] args)
     {
         string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd"");$$; i < 10; i++)
+        for (int i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1201,7 +1201,7 @@ class C
     static void Main(string[] args)
     {
         string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+        for (int i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1256,7 +1256,7 @@ class C
     {
         string s = ""abcdefghij"";
         int i;
-        for (i = s.IndexOf(""bcd"") i < 10;$$; i++)
+        for (i = s.IndexOf(""bcd"") i < 10;$$ i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1287,7 +1287,7 @@ class C
         string s = ""abcdefghij"";
         int i;
         int j;
-        for (i = s.IndexOf(""bcd""), j=1 i < 10;$$; i++)
+        for (i = s.IndexOf(""bcd""), j=1 i < 10;$$ i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1316,7 +1316,7 @@ class C
     {
         string s = ""abcdefghij"";
         int i;
-        for (i = s.IndexOf(""bcd"");$$; i < 10; i++)
+        for (i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1347,7 +1347,7 @@ class C
         string s = ""abcdefghij"";
         int i;
         int j;
-        for (i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+        for (i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1444,7 +1444,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for (int i = Math.Min(3,4);$$;  ; i++)
+        for (int i = Math.Min(3,4);$$  ; i++)
         {
             Console.WriteLine(""test"");
         }
@@ -2746,7 +2746,7 @@ public class Class1
 {
     void M()
     {
-        for (int i = ((3+2)*4);$$; i < 10; i++)
+        for (int i = ((3+2)*4);$$ i < 10; i++)
         {
             int j = (i+i);
         }
@@ -2776,7 +2776,7 @@ public class Class1
 {
     void M()
     {
-        for (int i = 0; i < ((3+2)*4);$$; i++)
+        for (int i = 0; i < ((3+2)*4);$$ i++)
         {
             int j = (i+i);
         }
@@ -4386,7 +4386,7 @@ class Query
         List<int> c2 = new List<int> { 10, 30, 40, 50, 60, 70 };
         var c3 = c1.SelectMany(x1 => c2
             .Where(x2 => object.Equals(x1, x2 / 10))
-            .Select(x2 => x1 + x2));$$;
+            .Select(x2 => x1 + x2));$$
     }
 }";
             VerifyTypingSemicolon(code, expected);
