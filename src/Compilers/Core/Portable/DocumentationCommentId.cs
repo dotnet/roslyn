@@ -53,15 +53,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var builder = PooledStringBuilder.GetInstance();
+            var builder = new StringBuilder();
             var generator = new PrefixAndDeclarationGenerator(builder);
-            if (!generator.Visit(symbol))
-            {
-                builder.Free();
-                return null;
-            }
-
-            return builder.ToStringAndFree();
+            return generator.Visit(symbol) ? builder.ToString() : null;
         }
 
         /// <summary>
