@@ -3142,7 +3142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Do not check CLSCompliance if we are doing ENC.
-            if (symbolFilter != null)
+            if (symbolFilter == null)
             {
 
                 // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
@@ -3420,6 +3420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
+                // We don't generate the module initializer for ENC scenarios, as the assembly is already loaded so edits to the module initializer would have no impact.
+                Debug.Assert(filterOpt == null || moduleBeingBuilt.IsEncDelta);
                 if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag) && filterOpt == null)
                 {
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag);
@@ -3542,6 +3544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
         {
             Debug.Assert(_declarationDiagnosticsFrozen);
+
             if (_moduleInitializerMethods is object)
             {
                 var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
