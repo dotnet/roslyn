@@ -336,6 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // we can try to remove the Attribute suffix if this is the attribute name
                     TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
                     break;
+
+                case SyntaxKind.GenericName:
+                    identifier = ((GenericNameSyntax)name).Identifier;
+
+                    // we can try to remove the Attribute suffix if this is the attribute name
+                    TryReduceAttributeSuffix(name, identifier, out replacementNode, out issueSpan);
+                    break;
             }
 
             if (replacementNode == null)
@@ -510,8 +517,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 newAttributeName,
                                 identifierToken.TrailingTrivia));
 
-                        replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                        switch (name)
+                        {
+                            case IdentifierNameSyntax:
+                                replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+
+                            case GenericNameSyntax generic:
+                                replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
+                                    .WithLeadingTrivia(name.GetLeadingTrivia());
+                                break;
+                        }
                         issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;

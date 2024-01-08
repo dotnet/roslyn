@@ -181,7 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.GenericName) && TrySimplify(node))
+            // Always try to simplify identifiers with an 'Attribute' suffix.
+            var canTrySimplify = node.IsKind(SyntaxKind.GenericName)
+                || CanSimplifyAttributeSuffix(node);
+
+            if (canTrySimplify && TrySimplify(node))
             {
                 // found a match. report it and stop processing.
                 return;
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             //
             // In other cases, don't bother looking at the right side of A.B or A::B. We will process those in
             // one of our other top level Visit methods (like VisitQualifiedName).
-            var canTrySimplify = node.Identifier.ValueText.EndsWith("Attribute", StringComparison.Ordinal);
+            var canTrySimplify = CanSimplifyAttributeSuffix(node);
             if (!canTrySimplify && !node.IsRightSideOfDotOrArrowOrColonColon())
             {
                 // The only possible simplifications to an unqualified identifier are replacement with an alias or
@@ -227,6 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             static bool CanReplaceIdentifierWithPredefinedType(string identifier)
                 => s_predefinedTypeMetadataNames.Contains(identifier);
+        }
+
+        private static bool CanSimplifyAttributeSuffix(SimpleNameSyntax node)
+        {
+            return node.Identifier.ValueText.EndsWith("Attribute", StringComparison.Ordinal);
         }
 
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
