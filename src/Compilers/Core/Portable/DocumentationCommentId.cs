@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -613,7 +614,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // reference to type parameter not in scope, make explicit scope reference
                     var declarer = new PrefixAndDeclarationGenerator(_builder);
-                    declarer.Visit(symbol.ContainingSymbol);
+                    Debug.Assert(declarer.Visit(symbol.ContainingSymbol), "Should always be able to write out a type parameter's containing type or method");
                     _builder.Append(':');
                 }
 
