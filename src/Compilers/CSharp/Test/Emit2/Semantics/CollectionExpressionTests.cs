@@ -22676,6 +22676,129 @@ partial class Program
         }
 
         [Fact]
+        public void IOperation_SpreadElement_NoConversion_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(14, 37),
+                // (14,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(14, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(int i) { _list.Add(i); }
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [1];
+                        MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,37): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..x").WithArguments("1", "object", "int").WithLocation(15, 37),
+                // (15,39): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                //         MyCollection y = /*<bind>*/[..x]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection.Add(int)").WithLocation(15, 39));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[..x]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..x')
+                        Operand:
+                          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MyCollection, IsInvalid) (Syntax: 'x')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71339")]
+        [Fact]
+        public void IOperation_SpreadElement_NoConversion_03()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Test
+                {
+                    Dictionary<string, object> Config => /*<bind>*/[
+                        .. GetConfig(),
+                    ]/*</bind>*/;
+                    private Dictionary<string, object> GetConfig() => new();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
+                //         .. GetConfig(),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "GetConfig()").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(5, 12));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.String, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: '[ ... ]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.String, System.Object>) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '.. GetConfig()')
+                        Operand:
+                          IInvocationOperation ( System.Collections.Generic.Dictionary<System.String, System.Object> Test.GetConfig()) (OperationKind.Invocation, Type: System.Collections.Generic.Dictionary<System.String, System.Object>, IsInvalid) (Syntax: 'GetConfig()')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsInvalid, IsImplicit) (Syntax: 'GetConfig')
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+        }
+
+        [Fact]
         public void Async_01()
         {
             string source = """

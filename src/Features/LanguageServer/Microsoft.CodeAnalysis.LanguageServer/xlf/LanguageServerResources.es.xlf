@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Completed_reload_of_all_projects_in_0">
         <source>Completed (re)load of all projects in {0}</source>
-        <target state="new">Completed (re)load of all projects in {0}</target>
+        <target state="translated">Carga completada (re)de todos los proyectos en {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debugger_attached">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Exception_thrown_while_loading_0">
         <source>Exception thrown while loading {0}</source>
-        <target state="new">Exception thrown while loading {0}</target>
+        <target state="translated">Se produjo una excepción al cargar {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">
         <source>Failed to run restore on {0}</source>
-        <target state="new">Failed to run restore on {0}</target>
+        <target state="translated">No se pudo ejecutar la restauración en {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Nothing_found_to_restore">
         <source>Nothing found to restore</source>
-        <target state="new">Nothing found to restore</target>
+        <target state="translated">No se encontró nada para restaurar</target>
         <note />
       </trans-unit>
       <trans-unit id="Passed">
@@ -109,22 +109,22 @@
       </trans-unit>
       <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
         <source>Project {0} loaded by C# Dev Kit</source>
-        <target state="new">Project {0} loaded by C# Dev Kit</target>
+        <target state="translated">Project {0} cargado por el Kit de desarrollo de C#</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
-        <target state="new">Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</target>
+        <target state="translated">No se pudieron cargar los proyectos porque no se encontraron las herramientas de compilación .NET Framework. Intente instalar Visual Studio o el paquete Visual Studio Build Tools, o compruebe los registros para obtener más detalles.</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
         <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
-        <target state="new">Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</target>
+        <target state="translated">No se pudieron cargar los proyectos porque no se encontró Mono. Asegúrese de que Mono y MSBuild están instalados y compruebe los registros para obtener más detalles.</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore">
         <source>Restore</source>
-        <target state="new">Restore</target>
+        <target state="translated">Restaurar</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore_complete">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Successfully_completed_load_of_0">
         <source>Successfully completed load of {0}</source>
-        <target state="new">Successfully completed load of {0}</target>
+        <target state="translated">Carga de {0} completada correctamente</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary">

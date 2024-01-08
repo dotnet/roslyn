@@ -2349,7 +2349,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">caractère d’échappement de chaîne</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2529,22 +2529,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">L’expression de collection de type '{0}' peut entraîner des allocations de tas inattendues. Créez explicitement un tableau, puis convertissez-le en '{0}' pour rendre l’allocation explicite.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">L’expression de collection peut entraîner des allocations de tas inattendues. Créez explicitement un tableau, puis convertissez vers le type final pour rendre l’allocation explicite.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <target state="translated">L’expression de collection de type '{0}' peut entraîner des allocations de segment de mémoire inattendues en raison de l’utilisation des spreads '..'. Créez explicitement un tableau, puis convertissez-le en '{0}' pour rendre l’allocation explicite.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <target state="translated">L’expression de collection peut entraîner des allocations de segment de mémoire inattendues en raison de l’utilisation des spreads '..'. Créez explicitement un tableau, puis convertissez vers le type final pour rendre l’allocation explicite.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2639,12 +2639,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="needs-review-translation">La fonctionnalité de langage 'Tableaux inline' n’est pas prise en charge pour les types tableau inline avec un champ d’élément qui est un champ 'ref' ou dont le type n’est pas valide en tant qu’argument de type.</target>
+        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
