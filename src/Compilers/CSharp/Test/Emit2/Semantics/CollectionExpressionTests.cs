@@ -7616,26 +7616,316 @@ static class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
-        [Fact]
-        public void SpreadElement_Dynamic_03()
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_ArrayTarget(string targetElementType)
         {
-            string source = """
+            string source = $$"""
+                using System.Collections;
                 class Program
                 {
                     static void Main()
                     {
-                        dynamic x = new[] { 2, 3 };
-                        int[] y = [1, ..x];
-                        y.Report();
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetElementType}}[] a = [..d1, ..d2, ..e1, ..e2];
+                        a.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef });
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[1, 2, 3], "
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(6,25): error CS0029: Cannot implicitly convert type 'object' to 'int'
-                //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "int").WithLocation(6, 25));
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(10,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 22),
+                    // 0.cs(10,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 28),
+                    // 0.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 0.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         int[] a = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 40));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [CombinatorialData]
+        public void SpreadElement_Untyped_ArrayInterfaceTarget(
+            [CombinatorialValues("IEnumerable", "IReadOnlyList", "IList")] string targetInterfaceType,
+            [CombinatorialValues("int", "object")] string targetElementType)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        {{targetInterfaceType}}<{{targetElementType}}> c =
+                            [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 0.cs(12,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(12, 16),
+                    // 0.cs(12,22): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(12, 22),
+                    // 0.cs(12,28): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(12, 28),
+                    // 0.cs(12,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //             [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(12, 34));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_NonGenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    private List<object> _list = new();
+                    public void Add({{targetElementType}} i) { _list.Add(i); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
+                    // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
+                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
+                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
+                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
+                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
+                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_GenericCollectionInitializerTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list = new();
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(comp, expectedOutput: "[1, 2, 3, 4], [5, 6], ");
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
+        [Theory]
+        [InlineData("int")]
+        [InlineData("object")]
+        public void SpreadElement_Untyped_CollectionBuilderTarget(string targetElementType)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d1 = new object[] { 1 };
+                        dynamic d2 = new int[] { 2 };
+                        IEnumerable e1 = new object[] { 3 };
+                        IEnumerable e2 = new int[] { 4 };
+                        MyCollection<{{targetElementType}}> c = [..d1, ..d2, ..e1, ..e2];
+                        c.Report();
+                        int[] x = [5];
+                        int[] y = [6];
+                        c = [..(dynamic)x, ..(IEnumerable)y];
+                        c.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (targetElementType == "int")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // 1.cs(10,34): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1").WithArguments("object", "int").WithLocation(10, 34),
+                    // 1.cs(10,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "d2").WithArguments("object", "int").WithLocation(10, 40),
+                    // 1.cs(10,46): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e1").WithArguments("object", "int").WithLocation(10, 46),
+                    // 1.cs(10,52): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         MyCollection<int> c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "e2").WithArguments("object", "int").WithLocation(10, 52),
+                    // 1.cs(14,16): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(dynamic)x").WithArguments("object", "int").WithLocation(14, 16),
+                    // 1.cs(14,30): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "(IEnumerable)y").WithArguments("object", "int").WithLocation(14, 30));
+            }
+            else
+            {
+                CompileAndVerify(
+                    comp,
+                    verify: Verification.FailsPEVerify,
+                    expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4], [5, 6], "));
+            }
         }
 
         [Fact]
@@ -17748,6 +18038,7 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69704")]
         [Fact]
         public void ListConstruction_Dynamic_03()
         {
@@ -17762,7 +18053,6 @@ partial class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/69704: Should compile and run with expectedOutput: "[4, 5], "
             var comp = CreateCompilation(
                 new[] { source, s_collectionExtensions },
                 targetFramework: TargetFramework.Net80);
