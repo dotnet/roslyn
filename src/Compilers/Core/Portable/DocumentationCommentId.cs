@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = PooledStringBuilder.GetInstance();
-            var generator = new DeclarationGenerator(builder);
+            var generator = new PrefixAndDeclarationGenerator(builder);
             generator.Visit(symbol);
             return builder.ToStringAndFree();
         }
@@ -301,15 +301,15 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
-        private sealed class DeclarationGenerator : SymbolVisitor
+        private sealed class PrefixAndDeclarationGenerator : SymbolVisitor
         {
             private readonly StringBuilder _builder;
-            private readonly Generator _generator;
+            private readonly DeclarationGenerator _generator;
 
-            public DeclarationGenerator(StringBuilder builder)
+            public PrefixAndDeclarationGenerator(StringBuilder builder)
             {
                 _builder = builder;
-                _generator = new Generator(builder);
+                _generator = new DeclarationGenerator(builder);
             }
 
             public override void DefaultVisit(ISymbol symbol)
@@ -353,12 +353,12 @@ namespace Microsoft.CodeAnalysis
                 _generator.Visit(symbol);
             }
 
-            private sealed class Generator : SymbolVisitor<bool>
+            private sealed class DeclarationGenerator : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
 
-                public Generator(StringBuilder builder)
+                public DeclarationGenerator(StringBuilder builder)
                 {
                     _builder = builder;
                 }
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
-                    var declarer = new DeclarationGenerator(_builder);
+                    var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
                     _builder.Append(':');
                 }
