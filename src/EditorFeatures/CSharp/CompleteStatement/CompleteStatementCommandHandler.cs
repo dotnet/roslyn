@@ -459,9 +459,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
+        {
             // Check to see if caret is before or after string
-            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression && caret.Position < currentNode.Span.End
-                && caret.Position > currentNode.SpanStart;
+            if (currentNode.Kind() is not (SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression))
+                return false;
+
+            if (caret.Position <= currentNode.SpanStart)
+                return false;
+
+            if (currentNode.IsKind(SyntaxKind.StringLiteralExpression, out LiteralExpressionSyntax? literalExpression)
+                && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '"'))
+            {
+                // This is an unterminated string literal, so we count the end of the span as included in the string
+                return caret.Position <= currentNode.Span.End;
+            }
+
+            if (currentNode.IsKind(SyntaxKind.CharacterLiteralExpression, out literalExpression)
+                && (literalExpression.Token.Text.Length == 1 || literalExpression.Token.Text[^1] != '\''))
+            {
+                // This is an unterminated character literal, so we count the end of the span as included in the character
+                return caret.Position <= currentNode.Span.End;
+            }
+
+            return caret.Position < currentNode.Span.End;
+        }
 
         /// <summary>
         /// Determines if a statement ends with a closing delimiter, and that closing delimiter exists.

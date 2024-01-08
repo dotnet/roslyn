@@ -3890,26 +3890,59 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String()
+        [WpfTheory]
+        [InlineData("\"Test $$Test\"")]
+        [InlineData("\"Test Test$$\"")]
+        [InlineData("\"Test Test\"$$")]
+        public void DoNotComplete_String(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test $$Test""");
+            var code = CreateTestWithMethodCall($@"var s={literal}");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String2()
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49929")]
+        [InlineData("\"$$")]
+        [InlineData("\"$$Test Test")]
+        [InlineData("\"Test Test$$")]
+        public void DoNotComplete_UnterminatedString(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test Test$$""");
+            var code = CreateTestWithMethodCall(
+                $"""
+                Test(
+                    {literal}
+                )
+                """);
 
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        public void DoNotComplete_String3()
+        [WpfTheory]
+        [InlineData("'T$$'")]
+        [InlineData("'$$'")]
+        [InlineData("'$$T'")]
+        [InlineData("'T'$$")]
+        public void DoNotComplete_CharLiteral(string literal)
         {
-            var code = CreateTestWithMethodCall(@"var s=""Test Test""$$");
+            var code = CreateTestWithMethodCall($"var s={literal}");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/49929")]
+        [InlineData("'T$$")]
+        [InlineData("'$$T")]
+        [InlineData("'$$")]
+        public void DoNotComplete_UnterminatedCharLiteral(string literal)
+        {
+            var code = CreateTestWithMethodCall(
+                $"""
+                Test(
+                    {literal}
+                )
+                """);
 
             VerifyNoSpecialSemicolonHandling(code);
         }
