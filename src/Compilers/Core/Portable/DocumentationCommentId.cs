@@ -312,7 +312,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The <see langword="bool"/> type parameter indicates if we succeeded at writing out the declaration ID or not. 
+        /// The <see langword="bool"/> generic type argument indicates if we succeeded at writing out the declaration ID
+        /// or not. 
         /// </summary>
         private sealed class PrefixAndDeclarationGenerator(StringBuilder builder) : SymbolVisitor<bool>
         {
