@@ -3141,25 +3141,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = locationFilterOpt(result, syntaxTree, filterSpanWithinTree);
             }
 
-            // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, symbolFilter, cancellationToken);
+            // Do not check CLSCompliance if we are doing ENC.
+            if (symbolFilter != null)
+            {
 
-            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
+                // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
+                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
+            }
+            else
+            {
+                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), ImmutableArray<AssemblySymbol>.Empty);
+            }
         }
 
-        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {
                 var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-                ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree, filter);
+                ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }
 
             if (_lazyClsComplianceDiagnostics.IsDefault || _lazyClsComplianceDependencies.IsDefault)
             {
                 var builder = BindingDiagnosticBag.GetInstance();
-                ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, symbolFilter: filter);
+                ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken);
                 var result = builder.ToReadOnlyAndFree();
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDependencies, result.Dependencies);
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, result.Diagnostics);
