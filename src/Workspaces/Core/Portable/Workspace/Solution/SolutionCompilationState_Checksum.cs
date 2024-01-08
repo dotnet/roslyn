@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
-        // Checksums for this solution state
+        /// <summary>
+        /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
+        /// <see cref="SolutionState"/>, as well as the checksums for <see cref="FrozenSourceGeneratedDocumentState"/>
+        /// if present.
+        /// </summary>
         private readonly AsyncLazy<SolutionCompilationStateChecksums> _lazyChecksums;
 
         /// <summary>
