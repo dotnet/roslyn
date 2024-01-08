@@ -1234,9 +1234,9 @@ class C
         }
 
         [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1256,16 +1256,16 @@ class C
     {
         string s = ""abcdefghij"";
         int i;
-        for (i = s.IndexOf(""bcd"") i < 10;$$ i++)
+        for (i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers2()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1287,7 +1287,7 @@ class C
         string s = ""abcdefghij"";
         int i;
         int j;
-        for (i = s.IndexOf(""bcd""), j=1 i < 10;$$ i++)
+        for (i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1296,7 +1296,6 @@ class C
         [WpfFact]
         public void ForLoopInitializers3()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C
@@ -1325,7 +1324,6 @@ class C
         [WpfFact]
         public void ForLoopInitializers4()
         {
-            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
             var code =
 @"
 class C

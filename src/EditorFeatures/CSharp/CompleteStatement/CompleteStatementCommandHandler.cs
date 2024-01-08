@@ -394,9 +394,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 forStatementCaret = GetCaretAtPosition(declaration.Span.End);
             }
-            else if (CaretIsInForStatementInitializers(originalCaret, forStatement))
+            else if (CaretIsInForStatementInitializers(originalCaret, forStatement, out var relocatedPosition))
             {
-                forStatementCaret = GetCaretAtPosition(forStatement.Initializers.Span.End);
+                forStatementCaret = GetCaretAtPosition(relocatedPosition);
             }
             else
             {
@@ -430,10 +430,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return caretPosition > declaration.Span.Start && caretPosition <= declaration.Span.End;
         }
 
-        private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
-            => forStatementSyntax.Initializers.Count != 0 &&
-                caretPosition > forStatementSyntax.Initializers.Span.Start &&
-                caretPosition <= forStatementSyntax.Initializers.Span.End;
+        private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax, out int relocatedPosition)
+        {
+            if (forStatementSyntax.Initializers.Count != 0
+                && caretPosition > forStatementSyntax.Initializers.Span.Start
+                && caretPosition <= forStatementSyntax.Initializers.Span.End)
+            {
+                // Move the caret to the first missing separator, or to the end of the initializers list if all
+                // separators are present.
+                for (var separatorIndex = 0; separatorIndex < forStatementSyntax.Initializers.SeparatorCount; separatorIndex++)
+                {
+                    var separator = forStatementSyntax.Initializers.GetSeparator(separatorIndex);
+                    if (separator.IsMissing)
+                    {
+                        // We can't rely on the position of the missing separator, so move to the end of the last
+                        // initializer preceding the missing separator.
+                        relocatedPosition = forStatementSyntax.Initializers[separatorIndex].Span.End;
+                        return true;
+                    }
+                }
+
+                relocatedPosition = forStatementSyntax.Initializers.Span.End;
+                return true;
+            }
+
+            relocatedPosition = default;
+            return false;
+        }
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
             // Check to see if caret is before or after string
