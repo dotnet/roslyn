@@ -3,8 +3,8 @@ Contributing
 Guides for contributing to this project
 
 - Build, debugging and testing
-    - [Unix](Building,%20Debugging,%20and%20Testing%20on%20Unix.md)
-    - [Windows](Building,%20Debugging,%20and%20Testing%20on%20Windows.md)
+    - [Unix](Building%2C%20Debugging%2C%20and%20Testing%20on%20Unix.md)
+    - [Windows](Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md)
 - [Localization in tests](Localization%20In%20Compiler%20Tests.md)
 - [Nullable Annotations](Nullable%20Annotations.md)
 - [Target Framework Strategy](Target%20Framework%20Strategy.md)
