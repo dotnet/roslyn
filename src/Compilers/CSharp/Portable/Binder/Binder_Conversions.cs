@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
                 Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for CollectionBuilder cases.
-                if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
+                if (!TryGetCollectionIterationType(node.Syntax, targetType, out elementTypeWithAnnotations))
                 {
                     Error(diagnostics, ErrorCode.ERR_CollectionBuilderNoElementType, node.Syntax, targetType);
                     return;
@@ -1454,8 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // PROTOTYPE(ParamsCollections): Adjust
-                    if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
+                    if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1)
                     {
                         // Parameter {0} has params modifier in lambda but not in target delegate type.
                         Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.GetFirstLocation(), p + 1);

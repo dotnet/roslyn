@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
+                        _binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
                         elementType = elementTypeWithAnnotations.Type;
                         if (elementType is null)
                         {

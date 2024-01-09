@@ -17009,7 +17009,7 @@ CustomHandler c = " + expression + ";";
         [Theory]
         [InlineData(@"$""Literal{1}""")]
         [InlineData(@"$""Literal"" + $""{1}""")]
-        public void ConversionInParamsArguments(string expression)
+        public void ConversionInParamsArguments_01(string expression)
         {
             var code = @"
 using System;
@@ -17081,6 +17081,31 @@ format:
   IL_0063:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71488")]
+        public void ConversionInParamsArguments_02()
+        {
+            var code = @"
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+M("""", $""test"");
+
+void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+{
+    Console.WriteLine(string.Join(Environment.NewLine, handlers.Select(h => h.ToString())));
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(8,19): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+                // void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+                Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(8, 19)
+                );
         }
 
         [Theory]

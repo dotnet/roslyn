@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(arguments[p] == null);
 
-                if (argument.IsParamsCollection) // PROTOTYPE(ParamsCollections): Do we need to do the same special case for collections other than arrays?
+                if (argument.IsParamsCollection)
                 {
                     Debug.Assert(expanded);
                     Debug.Assert(p == parameters.Length - 1);

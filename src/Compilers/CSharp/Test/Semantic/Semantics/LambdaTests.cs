@@ -8454,7 +8454,11 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12),
+                // (1,23): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int x) => x;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(1, 23)
+                );
         }
 
         [Fact]
@@ -8466,7 +8470,11 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12),
+                // (1,26): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // var lam = (params int[,] xs) => xs.Length;
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 26)
+                );
         }
 
         [Fact]
