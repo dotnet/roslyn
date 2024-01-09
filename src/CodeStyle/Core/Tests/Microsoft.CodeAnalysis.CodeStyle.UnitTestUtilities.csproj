@@ -11,8 +11,8 @@
   <ItemGroup>
     <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
     <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CodeFixVerifierHelper.cs" Link="CodeFixVerifierHelper.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
+    <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />
     <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1+Test.cs" Link="CSharpCodeRefactoringVerifier`1+Test.cs" />
     <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1.cs" Link="CSharpCodeRefactoringVerifier`1.cs" />
     <Compile Include="..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
