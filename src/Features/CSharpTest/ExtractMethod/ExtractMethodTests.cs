@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
     [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     public class ExtractMethodTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
         private const string EditorConfigNaming_LocalFunctions_CamelCase = """

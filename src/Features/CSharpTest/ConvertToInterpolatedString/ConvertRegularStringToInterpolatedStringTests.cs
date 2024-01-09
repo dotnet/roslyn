@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
     public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new ConvertRegularStringToInterpolatedStringRefactoringProvider();
 
         [Fact]

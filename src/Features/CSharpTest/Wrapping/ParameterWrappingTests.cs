@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
     public class ParameterWrappingTests : AbstractWrappingTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
         [Fact]

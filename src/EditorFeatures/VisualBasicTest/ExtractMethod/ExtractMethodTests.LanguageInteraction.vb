@@ -3374,7 +3374,7 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Using workspace = TestWorkspace.Create(
+                Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Submission Language="Visual Basic" CommonReferences="true">  
                             GetType(String).$$Name

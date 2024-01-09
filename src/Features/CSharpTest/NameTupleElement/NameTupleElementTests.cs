@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
     [Trait(Traits.Feature, Traits.Features.CodeActionsNameTupleElement)]
     public class NameTupleElementTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpNameTupleElementCodeRefactoringProvider();
 
         [Fact]

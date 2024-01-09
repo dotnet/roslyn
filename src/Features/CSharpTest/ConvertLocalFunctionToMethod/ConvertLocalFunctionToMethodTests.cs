@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
     public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
         [Fact]

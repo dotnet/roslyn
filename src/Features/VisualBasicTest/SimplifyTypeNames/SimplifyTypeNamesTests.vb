@@ -1821,7 +1821,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1869,7 +1869,7 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1903,7 +1903,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))

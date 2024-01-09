@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace : Workspace, ILspWorkspace
+    public partial class TestWorkspace<TDocument, TProject, TSolution> : ILspWorkspace
     {
         bool ILspWorkspace.SupportsMutation => _supportsLspMutation;
 

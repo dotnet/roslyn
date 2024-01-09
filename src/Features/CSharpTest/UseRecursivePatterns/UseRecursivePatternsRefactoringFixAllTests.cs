@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public class UseRecursivePatternsRefactoringFixAllTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new UseRecursivePatternsCodeRefactoringProvider();
 
         [Fact]
