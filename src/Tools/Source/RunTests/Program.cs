@@ -311,7 +311,7 @@ namespace RunTests
 
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
-                    if (!IsMatch(options.TestTargetFramework, Path.GetDirectoryName(dir)))
+                    if (!IsMatch(options.TestTargetFramework, Path.GetDirectoryName(targetFrameworkDirectory)))
                     {
                         continue;
                     }
@@ -374,8 +374,8 @@ namespace RunTests
                 testTargetFramework switch
                 {
                     TestTargetFramework.Both => true,
-                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"net[\d]+\."),
-                    TestTargetFramework.Framework => Regex.IsMatch(dirName, @"net[\d]+$"),
+                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"^net[\d]+\."),
+                    TestTargetFramework.Framework => dirName is "net472",
                     _ => throw new InvalidOperationException($"Unexpected {nameof(TestTargetFramework)} value: {testTargetFramework}"),
                 };
         }
