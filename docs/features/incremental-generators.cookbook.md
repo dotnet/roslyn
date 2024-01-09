@@ -194,18 +194,18 @@ public class FileTransformGenerator : IIncrementalGenerator
         {
             if (!text.Path.EndsWith("*.xml"))
             {
-                return null;
+                return default;
             }
 
-            return (Name: text.Name, Code: MyXmlToCSharpCompiler.Compile(text.GetText(cancellationToken)));
+            return (Name: Path.GetFileName(text.Path), Code: MyXmlToCSharpCompiler.Compile(text.GetText(cancellationToken)));
         })
-        .Where((pair, ct) => pair is not null);
+        .Where((pair) => pair is not ((null, _) or (_, null)));
 
         context.RegisterSourceOutput(pipeline,
             static (context, pair) => 
                 // Note: this AddSource is simplified. You will likely want to include the path in the name of the file to avoid
                 // issues with duplicate file names in different paths in the same project.
-                context.AddSource($"{pair.Name}generated.cs", SourceText.From(pair.Code, Encoding.UTF8)))
+                context.AddSource($"{pair.Name}generated.cs", SourceText.From(pair.Code, Encoding.UTF8)));
     }
 }
 ```
@@ -236,7 +236,7 @@ public class AugmentingGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static postInitializationContext => {
+        context.RegisterPostInitializationOutput(static postInitializationContext =>
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
                 using System;
                 namespace GeneratedNamespace
@@ -249,7 +249,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                 """, Encoding.UTF8));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
-            fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute"
+            fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute",
             predicate: static (syntaxNode, cancellationToken) => syntaxNode is BaseMethodDeclarationSyntax,
             transform: static (context, cancellationToken) =>
             {
@@ -269,7 +269,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                 namespace {{model.Namespace}};
                 partial class {{model.ClassName}}
                 {
-                    partial void {{model.Name}}()
+                    partial void {{model.MethodName}}()
                     {
                         // generated code
                     }
@@ -277,7 +277,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                 """, Encoding.UTF8);
 
             context.AddSource($"{model.ClassName}_{model.MethodName}.g.cs", sourceText);
-        }
+        });
     }
 
     private record Model(string Namespace, string ClassName, string MethodName);
@@ -358,7 +358,6 @@ public partial class UserClass : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler PropertyChanged;
 }
-
 ```
 
 ### Package a generator as a NuGet package
@@ -446,12 +445,12 @@ public class JsonUsingGenerator : IIncrementalGenerator
         {
             if (!text.Path.EndsWith("*.json"))
             {
-                return null;
+                return default;
             }
 
-            return (Name: text.Name, Value: Newtonsoft.Json.JsonConvert.DeserializeObject<MyObject>(text.GetText(cancellationToken)));
+            return (Name: Path.GetFileName(text.Path), Value: Newtonsoft.Json.JsonConvert.DeserializeObject<MyObject>(text.GetText(cancellationToken).ToString()));
         })
-        .Where((pair, ct) => pair is not null);
+        .Where((pair) => pair is not ((_, null) or (null, _)));
 
         context.RegisterSourceOutput(pipeline, static (context, pair) =>
         {
@@ -502,7 +501,7 @@ public class MyGenerator : IIncrementalGenerator
         var userCodePipeline = context.SyntaxProvider.ForAttributeWithMetadataName(... /* collect user code info */);
         var emitLoggingPipeline = context.AnalyzerConfigOptionsProvider.Select(static (options, cancellationToken) =>
             options.GlobalOptions.TryGetValue("mygenerator_emit_logging", out var emitLoggingSwitch)
-                ? emitLoggingSwitch
+                ? emitLoggingSwitch.Equals("true", StringComparison.InvariantCultureIgnoreCase)
                 : false); // Default
 
         context.RegisterSourceOutput(userCodePipeline.Combine(emitLoggingPipeline), (context, pair) => /* emit code */);
@@ -532,7 +531,7 @@ The value of `MyGenerator_EnableLogging` property will then be emitted to a gene
 ```c#
 context.AnalyzerConfigOptionsProvider.Select((provider, ct) =>
     provider.GlobalOptions.TryGetValue("build_property.MyGenerator_EnableLogging", out var emitLoggingSwitch)
-        ? emitLoggingSwitch : false);
+        ? emitLoggingSwitch.Equals("true", StringComparison.InvariantCultureIgnoreCase) : false);
 ```
 
 A user can thus enable, or disable logging, by setting a property in their project file.
@@ -600,22 +599,21 @@ MyGenerator.csproj:
 MyGenerator.cs:
 
 ```csharp
-
 [Generator]
-public class MyGenerator : IIncrementalSourceGenerator
+public class MyGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var emitLoggingPipeline = context.AdditionalFilesProvider
+        var emitLoggingPipeline = context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider)
             .Select((pair, ctx) =>
                 pair.Right.GetOptions(pair.Left).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch)
-                ? perFileLoggingSwitch
+                ? perFileLoggingSwitch.Equals("true", StringComparison.OrdinalIgnoreCase)
                 : pair.Right.GlobalOptions.TryGetValue("build_property.MyGenerator_EnableLogging", out var emitLoggingSwitch)
-                  ? emitLoggingSwitch
+                  ? emitLoggingSwitch.Equals("true", StringComparison.OrdinalIgnoreCase)
                   : false);
 
-        var sourcePipeline = context.AdditionalOptionsProvider.Select((file, ctx) => /* Gather build info */);
+        var sourcePipeline = context.AdditionalTextsProvider.Select((file, ctx) => /* Gather build info */);
 
         context.RegisterSourceOutput(sourcePipeline.Combine(emitLoggingPipeline), (context, pair) => /* Add source */);
     }
