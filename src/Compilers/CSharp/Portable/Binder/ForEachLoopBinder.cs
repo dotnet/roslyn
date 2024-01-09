@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
             TypeWithAnnotations inferredType;
-            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out inferredType, builder: out _);
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, allowExtensionMethod: true, isSpread: false, diagnostics, out inferredType, builder: out _);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ForEachEnumeratorInfo.Builder builder;
             TypeWithAnnotations inferredType;
-            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out inferredType, out builder);
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, allowExtensionMethod: true, isSpread: false, diagnostics, out inferredType, out builder);
 
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
-            GetEnumeratorInfoAndInferCollectionElementType(_syntax, collectionSyntax, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out TypeWithAnnotations inferredType, builder: out _);
+            GetEnumeratorInfoAndInferCollectionElementType(_syntax, collectionSyntax, ref collectionExpr, isAsync: IsAsync, allowExtensionMethod: true, isSpread: false, diagnostics, out TypeWithAnnotations inferredType, builder: out _);
             return inferredType;
         }
     }
@@ -661,6 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax collectionSyntax,
             ref BoundExpression collectionExpr,
             bool isAsync,
+            bool allowExtensionMethod,
             bool isSpread,
             BindingDiagnosticBag diagnostics,
             out TypeWithAnnotations inferredType,
@@ -668,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!isAsync || !isSpread);
 
-            bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, isSpread, diagnostics, out builder);
+            bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, allowExtensionMethod, isSpread, diagnostics, out builder);
 
             if (!gotInfo)
             {
@@ -757,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax collectionSyntax,
             ref BoundExpression collectionExpr,
             bool isAsync,
+            bool allowExtensionMethod,
             bool isSpread,
             BindingDiagnosticBag diagnostics,
             out ForEachEnumeratorInfo.Builder builder)
@@ -765,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression originalCollectionExpr = collectionExpr;
 
-            EnumeratorResult found = GetEnumeratorInfoCore(syntax, collectionSyntax, ref collectionExpr, isAsync, diagnostics, out builder);
+            EnumeratorResult found = GetEnumeratorInfoCore(syntax, collectionSyntax, ref collectionExpr, isAsync, allowExtensionMethod, diagnostics, out builder);
             switch (found)
             {
                 case EnumeratorResult.Succeeded:
@@ -786,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Retry with a different assumption about whether the foreach is async
-            bool wrongAsync = GetEnumeratorInfoCore(syntax, collectionSyntax, ref originalCollectionExpr, !isAsync, BindingDiagnosticBag.Discarded, builder: out _) == EnumeratorResult.Succeeded;
+            bool wrongAsync = GetEnumeratorInfoCore(syntax, collectionSyntax, ref originalCollectionExpr, !isAsync, allowExtensionMethod, BindingDiagnosticBag.Discarded, builder: out _) == EnumeratorResult.Succeeded;
 
             ErrorCode errorCode = (wrongAsync, isAsync, isSpread) switch
             {
@@ -809,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FailedAndReported
         }
 
-        private EnumeratorResult GetEnumeratorInfoCore(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref BoundExpression collectionExpr, bool isAsync, BindingDiagnosticBag diagnostics, out ForEachEnumeratorInfo.Builder builder)
+        private EnumeratorResult GetEnumeratorInfoCore(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref BoundExpression collectionExpr, bool isAsync, bool allowExtensionMethod, BindingDiagnosticBag diagnostics, out ForEachEnumeratorInfo.Builder builder)
         {
             EnumeratorResult result;
 
@@ -855,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var originalSpan = span;
 #endif
 
-                result = getEnumeratorInfo(syntax, collectionSyntax, ref span, isAsync: false, enumeratorInfoDiagnostics, out builder);
+                result = getEnumeratorInfo(syntax, collectionSyntax, ref span, isAsync: false, allowExtensionMethod, enumeratorInfoDiagnostics, out builder);
 
 #if DEBUG
                 Debug.Assert(span == originalSpan);
@@ -905,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var originalCollectionExpr = collectionExpr;
 #endif
 
-            result = getEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, diagnostics, out builder);
+            result = getEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, allowExtensionMethod, diagnostics, out builder);
 
 #if DEBUG
             Debug.Assert(collectionExpr == originalCollectionExpr ||
@@ -915,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
 
-            EnumeratorResult getEnumeratorInfo(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref BoundExpression collectionExpr, bool isAsync, BindingDiagnosticBag diagnostics, out ForEachEnumeratorInfo.Builder builder)
+            EnumeratorResult getEnumeratorInfo(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref BoundExpression collectionExpr, bool isAsync, bool allowExtensionMethod, BindingDiagnosticBag diagnostics, out ForEachEnumeratorInfo.Builder builder)
             {
                 builder = new ForEachEnumeratorInfo.Builder();
                 builder.IsAsync = isAsync;
@@ -1009,7 +1011,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EnumeratorResult.Succeeded;
                 }
 
-                if (SatisfiesGetEnumeratorPattern(syntax, collectionSyntax, ref builder, collectionExpr, isAsync, viaExtensionMethod: true, diagnostics))
+                if (allowExtensionMethod &&
+                    SatisfiesGetEnumeratorPattern(syntax, collectionSyntax, ref builder, collectionExpr, isAsync, viaExtensionMethod: true, diagnostics))
                 {
                     return createPatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, viaExtensionMethod: true, diagnostics);
                 }

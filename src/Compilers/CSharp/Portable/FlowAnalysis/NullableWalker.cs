@@ -3618,7 +3618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var createMethod = node.CollectionBuilderMethod;
                     if (createMethod is not null)
                     {
-                        var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
+                        var foundIterationType = _binder.TryGetCollectionExpressionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
                         Debug.Assert(foundIterationType);
                     }
                 }

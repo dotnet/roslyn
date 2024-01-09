@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(result);
 
                         var targetTypeOriginalDefinition = targetType.OriginalDefinition;
-                        result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+                        result = TryGetCollectionExpressionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
                         Debug.Assert(result);
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return element;
         }
 
-        internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        internal bool TryGetCollectionExpressionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
             return GetEnumeratorInfoAndInferCollectionElementType(
@@ -793,6 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
+                allowExtensionMethod: false,  // collection expression target types do not require extension method GetEnumerator
                 isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
@@ -839,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
-                    if (!TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
+                    if (!TryGetCollectionExpressionIterationType((ExpressionSyntax)node.Syntax, targetType, out elementTypeWithAnnotations))
                     {
                         Error(
                             diagnostics,
