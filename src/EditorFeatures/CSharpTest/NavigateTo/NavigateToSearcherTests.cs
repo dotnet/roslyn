@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Moq.Language.Flow;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
@@ -148,8 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NotFullyLoadedMakesTwoSearchProjectCallIfValueNotReturned(bool projectSystemFullyLoaded)
         {
             using var workspace = TestWorkspace.CreateCSharp("");
@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NotFullyLoadedStillReportsAsNotCompleteIfRemoteHostIsStillHydrating(bool projectIsFullyLoaded)
         {
             using var workspace = TestWorkspace.CreateCSharp("");
@@ -267,19 +266,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
-        private class TestNavigateToSearchResult : INavigateToSearchResult, INavigableItem
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1933220")]
+        public async Task DoNotCrashWithoutSearchService()
         {
-            private readonly TestWorkspace _workspace;
-            private readonly TextSpan _sourceSpan;
+            using var workspace = TestWorkspace.CreateCSharp("");
 
-            public TestNavigateToSearchResult(TestWorkspace workspace, TextSpan sourceSpan)
-            {
-                _workspace = workspace;
-                _sourceSpan = sourceSpan;
-            }
+            var pattern = "irrelevant";
 
-            public INavigableItem.NavigableDocument Document => INavigableItem.NavigableDocument.FromDocument(_workspace.CurrentSolution.Projects.Single().Documents.Single());
-            public TextSpan SourceSpan => _sourceSpan;
+            var result = new TestNavigateToSearchResult(workspace, new TextSpan(0, 0));
+
+            var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
+            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(() => new ValueTask<bool>(true));
+
+            // Ensure that returning null for the search service doesn't crash.
+            hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => null);
+
+            var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+            callbackMock.Setup(c => c.ReportIncomplete());
+            callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
+            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            callbackMock.Setup(c => c.Done(true));
+
+            var searcher = NavigateToSearcher.Create(
+                workspace.CurrentSolution,
+                AsynchronousOperationListenerProvider.NullListener,
+                callbackMock.Object,
+                pattern,
+                kinds: ImmutableHashSet<string>.Empty,
+                hostMock.Object);
+
+            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+        }
+
+        private class TestNavigateToSearchResult(TestWorkspace workspace, TextSpan sourceSpan)
+            : INavigateToSearchResult, INavigableItem
+        {
+            public INavigableItem.NavigableDocument Document => INavigableItem.NavigableDocument.FromDocument(workspace.CurrentSolution.Projects.Single().Documents.Single());
+            public TextSpan SourceSpan => sourceSpan;
 
             public string AdditionalInformation => throw new NotImplementedException();
             public string Kind => throw new NotImplementedException();

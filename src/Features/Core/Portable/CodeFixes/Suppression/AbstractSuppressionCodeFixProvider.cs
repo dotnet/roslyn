@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return codeFixes.SelectMany(fix => fix.Action.NestedCodeActions)
+            return codeFixes.SelectMany(fix => fix.Action.NestedActions)
                             .OfType<PragmaWarningCodeAction>()
                             .ToImmutableArray();
         }

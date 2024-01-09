@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -101,11 +102,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
             => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap, string? partialType = null)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
+        internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, (int displayLine, int displayColumn) position, params string[] arguments)
+            => new(marker, rudeEditKind, new LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments);
+
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<(TextSpan, TextSpan)>? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, rudeEdits, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false, Func<Compilation, ISymbol>? deletedSymbolContainerProvider = null)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables, deletedSymbolContainerProvider);
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, rudeEdits: null, preserveLocalVariables, deletedSymbolContainerProvider);
 
         internal static string DeletedSymbolDisplay(string kind, string displayName)
             => string.Format(FeaturesResources.member_kind_and_name, kind, displayName);
@@ -237,7 +241,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration, symbol: null);
             Contract.ThrowIfNull(newBody);
 
-            _ = oldBody.ComputeMatch(newBody, knownMatches: null);
+            _ = oldBody.ComputeMap(newBody, knownMatches: null);
 
             var oldStateMachineInfo = oldBody.GetStateMachineInfo();
             var newStateMachineInfo = newBody.GetStateMachineInfo();

@@ -7216,7 +7216,7 @@ codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.Impl
 
 #if false
         [WorkItem(13677)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoGenerateInVenusCase2()
         {
             await TestMissingAsync(
@@ -11869,6 +11869,38 @@ interface I
                     }
                 }
                 """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70232")]
+        public async Task TestMissingWhenAlreadyContainingImpl()
+        {
+            var code =
+                """
+                interface I
+                {
+                    event System.EventHandler Click;
+                }
+
+                class C : I
+                {
+                    event System.EventHandler I.Click { add { } remove { } }
+
+                    event System.EventHandler I.Click
+
+                }
+                """;
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                //LanguageVersion = LanguageVersion.CSharp12,
+                ExpectedDiagnostics =
+                {
+                    DiagnosticResult.CompilerError("CS8646").WithSpan(6, 7, 6, 8),
+                    DiagnosticResult.CompilerError("CS0071").WithSpan(10, 32, 10, 33),
+                    DiagnosticResult.CompilerError("CS0102").WithSpan(10, 33, 10, 38)
+                }
             }.RunAsync();
         }
     }

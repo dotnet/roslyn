@@ -50,22 +50,22 @@ internal partial class SolutionAssetStorage
     /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
     /// </summary>
     public ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
-        => StoreAssetsAsync(solution.State, cancellationToken);
+        => StoreAssetsAsync(solution.CompilationState, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
     public ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
-        => StoreAssetsAsync(project.Solution.State, project.Id, cancellationToken);
+        => StoreAssetsAsync(project.Solution.CompilationState, project.Id, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public ValueTask<Scope> StoreAssetsAsync(SolutionState solution, CancellationToken cancellationToken)
-        => StoreAssetsAsync(solution, projectId: null, cancellationToken);
+    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        => StoreAssetsAsync(compilationState, projectId: null, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public async ValueTask<Scope> StoreAssetsAsync(SolutionState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
+    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, ProjectId? projectId, CancellationToken cancellationToken)
     {
         var checksum = projectId == null
-            ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-            : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+            ? await compilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+            : await compilationState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
 
         lock (_gate)
         {
@@ -76,7 +76,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            scope = new Scope(this, checksum, solutionState);
+            scope = new Scope(this, checksum, compilationState);
             _checksumToScope[checksum] = scope;
             return scope;
         }

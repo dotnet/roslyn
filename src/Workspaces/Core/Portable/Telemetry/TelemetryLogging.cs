@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         public const string KeyName = "Name";
         public const string KeyValue = "Value";
         public const string KeyLanguageName = "LanguageName";
+        public const string KeyMetricName = "MetricName>";
 
         public static void SetLogProvider(ITelemetryLogProvider logProvider)
         {
@@ -62,6 +63,14 @@ namespace Microsoft.CodeAnalysis.Telemetry
             aggregatingLog.Log(logMessage);
         }
 
+        public static void LogAggregated(FunctionId functionId, KeyValueLogMessage logMessage)
+        {
+            if (GetAggregatingLog(functionId) is not { } aggregatingLog)
+                return;
+
+            aggregatingLog.Log(logMessage);
+        }
+
         /// <summary>
         /// Adds block execution time to an aggregated telemetry event representing the <paramref name="functionId"/> operation 
         /// with metric <paramref name="metricName"/> only if the block duration meets or exceeds <paramref name="minThresholdMs"/> milliseconds.
@@ -94,6 +103,11 @@ namespace Microsoft.CodeAnalysis.Telemetry
         public static ITelemetryLog? GetAggregatingLog(FunctionId functionId, double[]? bucketBoundaries = null)
         {
             return s_logProvider?.GetAggregatingLog(functionId, bucketBoundaries);
+        }
+
+        public static void Flush()
+        {
+            s_logProvider?.Flush();
         }
     }
 }

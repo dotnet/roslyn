@@ -187,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsClosureScope(node)
         End Function
 
+        Friend Overrides Function GetCapturedParameterScope(methodOrLambda As SyntaxNode) As SyntaxNode
+            Return methodOrLambda
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(encompassingAncestor As SyntaxNode, node As SyntaxNode) As LambdaBody
             While node IsNot encompassingAncestor And node IsNot Nothing
                 Dim body As SyntaxNode = Nothing

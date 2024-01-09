@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a) { b(); } else { a(); }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26427")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26427")]
         public async Task TestSingleLine_DoubleParenthesesWithInnerTrivia()
         {
             await TestFixOneAsync(

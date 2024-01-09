@@ -227,6 +227,17 @@ stages:
       helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows CoreClr Debug Spanish'
+        jobName: Test_Windows_CoreClr_Debug_Spanish
+        testArtifactName: Transport_Artifacts_Windows_Debug
+        configuration: Debug
+        testArguments: -testCoreClr
+        helixQueueName: $(HelixWindowsSpanishQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
+
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
       parameters:
         testRunName: 'Test Windows CoreClr Debug Single Machine'
