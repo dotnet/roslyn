@@ -16,9 +16,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
     [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
+    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
         [Theory]
@@ -1224,7 +1224,7 @@ class TestClass
                 </Workspace>
                 """, LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = EditorTestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString);
             // refactor file1 and check
             var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(
@@ -1271,7 +1271,7 @@ class TestClass
                 </Workspace>
                 """, LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = EditorTestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString);
             // refactor file2 and check
             var (_, action) = await GetCodeActionsAsync(testWorkspace);
             await TestActionAsync(
