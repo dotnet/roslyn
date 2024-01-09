@@ -12,16 +12,27 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
-    public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest
+    public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAnonymousTypeToClassCodeRefactoringProvider();
+
+        private OptionsCollection PreferImplicitTypeWithInfo()
+            => new(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Suggestion },
+            };
 
         [Fact]
         public async Task ConvertSingleAnonymousType()
