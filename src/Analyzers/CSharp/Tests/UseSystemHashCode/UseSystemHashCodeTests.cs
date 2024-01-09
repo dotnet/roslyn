@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
                         return hash.ToHashCode();
                     }
                 }
-                """, new TestParameters(options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this)));
+                """, new TestParameters(options: this.PreferImplicitTypeWithInfo()));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]

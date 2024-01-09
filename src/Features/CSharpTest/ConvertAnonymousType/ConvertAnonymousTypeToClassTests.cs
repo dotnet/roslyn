@@ -26,14 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAnonymousTypeToClassCodeRefactoringProvider();
 
-        private OptionsCollection PreferImplicitTypeWithInfo()
-            => new(LanguageNames.CSharp)
-            {
-                { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Suggestion },
-            };
-
         [Fact]
         public async Task ConvertSingleAnonymousType()
         {
