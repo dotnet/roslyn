@@ -369,12 +369,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
 
-                return new BoundSequence(
-                    syntax,
+                var oldSyntax = _factory.Syntax;
+                _factory.Syntax = syntax;
+
+                var sequence = _factory.Sequence(
                     locals.ToImmutableAndFree(),
                     ImmutableArray<BoundExpression>.Empty,
-                    concatCall,
-                    concatCall.Type);
+                    concatCall);
+
+                _factory.Syntax = oldSyntax;
+                return sequence;
             }
 
             Debug.Assert(!leftType.IsReadOnlySpanChar() && !rightType.IsReadOnlySpanChar());
@@ -432,12 +436,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
 
-                return new BoundSequence(
-                    syntax,
+                var oldSyntax = _factory.Syntax;
+                _factory.Syntax = syntax;
+
+                var sequence = _factory.Sequence(
                     locals.ToImmutableAndFree(),
                     ImmutableArray<BoundExpression>.Empty,
-                    concatCall,
-                    concatCall.Type);
+                    concatCall);
+
+                _factory.Syntax = oldSyntax;
+                return sequence;
             }
 
             Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar());
@@ -506,12 +514,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird, wrappedFourth));
 
-                return new BoundSequence(
-                    syntax,
+                var oldSyntax = _factory.Syntax;
+                _factory.Syntax = syntax;
+
+                var sequence = _factory.Sequence(
                     locals.ToImmutableAndFree(),
                     ImmutableArray<BoundExpression>.Empty,
-                    concatCall,
-                    concatCall.Type);
+                    concatCall);
+
+                _factory.Syntax = oldSyntax;
+                return sequence;
             }
 
             Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar() && !fourthType.IsReadOnlySpanChar());
