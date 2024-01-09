@@ -18,9 +18,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFromMembers
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-    public sealed class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
+    public sealed class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpGenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
