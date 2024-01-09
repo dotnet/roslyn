@@ -15,13 +15,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-    public class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
+    public class ImplementExplicitlyTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private const int SingleMember = 0;
         private const int SameInterface = 1;
         private const int AllInterfaces = 2;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpImplementExplicitlyCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
