@@ -1348,10 +1348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return type is NamedTypeSymbol
             {
-                ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true },
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
                 MetadataName: "ReadOnlySpan`1",
-                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [{ SpecialType: SpecialType.System_Char }],
-            };
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
         }
 
         internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
