@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-    public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public GenerateConversionTest(ITestOutputHelper logger)
              : base(logger)
