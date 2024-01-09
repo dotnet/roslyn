@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     <Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
     Partial Public Class QualifyMemberAccessTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(),
