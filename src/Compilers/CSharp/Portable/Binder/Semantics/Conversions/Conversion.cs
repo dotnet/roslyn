@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base(elementConversions)
             {
                 Debug.Assert(collectionExpressionTypeKind != CollectionExpressionTypeKind.None);
+                Debug.Assert(elementType is { });
                 CollectionExpressionTypeKind = collectionExpressionTypeKind;
                 ElementType = elementType;
             }

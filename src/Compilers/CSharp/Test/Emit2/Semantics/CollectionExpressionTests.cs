@@ -11607,7 +11607,7 @@ partial class Program
                         _list.Add(t);
                     }
                     IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 class Program
                 {
