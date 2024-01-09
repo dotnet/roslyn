@@ -12,27 +12,28 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-    public class UseExpressionBodyForConversionOperatorsRefactoringTests : AbstractCSharpCodeActionTest
+    public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new UseExpressionBodyCodeRefactoringProvider();
 
         private OptionsCollection UseExpressionBody
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
         private OptionsCollection UseExpressionBodyDisabledDiagnostic
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
 
         private OptionsCollection UseBlockBody
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         private OptionsCollection UseBlockBodyDisabledDiagnostic
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
+            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
         [Fact]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
@@ -40,9 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    public static implicit operator bool(C c1)
+    int this[int i]
     {
-        [||]Bar();
+        get 
+        {
+            [||]return Bar();
+        }
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
@@ -53,14 +57,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    public static implicit operator bool(C c1)
+    int this[int i]
     {
-        [||]Bar();
+        get
+        {
+            [||]return Bar();
+        }
     }
 }",
 @"class C
 {
-    public static implicit operator bool(C c1) => Bar();
+    int this[int i] => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
         }
 
@@ -70,14 +77,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    public static implicit operator bool(C c1)
+    int this[int i]
     {
-        [||]Bar();
+        get
+        {
+            [||]return Bar();
+        }
     }
 }",
 @"class C
 {
-    public static implicit operator bool(C c1) => Bar();
+    int this[int i] => Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -87,9 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    public static implicit operator bool(C c1)
+    Action Goo[int i]
     {
-        return () => { [||] };
+        get 
+        {
+            return () => { [||] };
+        }
     }
 }", parameters: new TestParameters(options: UseBlockBody));
         }
@@ -100,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    public static implicit operator bool(C c1) => [||]Bar();
+    int this[int i] => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -110,30 +123,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    public static implicit operator bool(C c1) => [||]Bar();
+    int this[int i] => [||]Bar();
 }",
 @"class C
 {
-    public static implicit operator bool(C c1)
+    int this[int i]
     {
-        return Bar();
+        get
+        {
+            return Bar();
+        }
     }
 }", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
         public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
         {
             await TestInRegularAndScript1Async(
 @"class C
 {
-    public static implicit operator bool(C c1) => [||]Bar();
+    int this[int i] => [||]Bar();
 }",
 @"class C
 {
-    public static implicit operator bool(C c1)
+    int this[int i]
     {
-        return Bar();
+        get
+        {
+            return Bar();
+        }
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
