@@ -63,7 +63,7 @@
       <PropertyGroup>
         <SourceBuildToolsetTargetFramework>$(NetPrevious)</SourceBuildToolsetTargetFramework>
         <SourceBuildToolsetTargetFrameworks>$(NetPrevious);$(NetCurrent)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetPrevious);$(NetCurrent);$(NetVSCode)</SourceBuildTargetFrameworks>
+        <SourceBuildTargetFrameworks>$(NetPrevious);$(NetCurrent)</SourceBuildTargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>
