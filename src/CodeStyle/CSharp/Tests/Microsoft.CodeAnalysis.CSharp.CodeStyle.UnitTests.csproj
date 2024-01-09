@@ -11,7 +11,7 @@
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Features\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
+    <Compile Include="..\..\..\Features\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
