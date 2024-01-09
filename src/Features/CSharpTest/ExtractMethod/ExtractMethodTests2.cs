@@ -19,9 +19,9 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-    public class ExtractMethodTests : AbstractCSharpCodeActionTest
+    public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
         private const string EditorConfigNaming_LocalFunctions_CamelCase = """

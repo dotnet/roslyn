@@ -18,9 +18,9 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
-    public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest
+    public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
         private static int CodeActionIndexWhenExtractMethodMissing => 0;
