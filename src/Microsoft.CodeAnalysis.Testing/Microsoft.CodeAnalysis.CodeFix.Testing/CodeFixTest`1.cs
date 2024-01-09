@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Testing.Extensions;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
 
@@ -241,11 +241,13 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Creates a new <see cref="FixAllContext"/>.
         /// </summary>
         /// <param name="document">Document within which fix all occurrences was triggered, or null when applying fix all to a diagnostic with no source location.</param>
+        /// <param name="diagnosticSpan">Span for the diagnostic for which fix all occurrences was triggered.</param>
         /// <param name="project">Project within which fix all occurrences was triggered.</param>
         /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
         /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
         /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="minimumSeverity">The minimum severity of diagnostics to fix in this operation.</param>
         /// <param name="fixAllDiagnosticProvider">
         /// <see cref="FixAllContext.DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
@@ -253,16 +255,20 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>New <see cref="FixAllContext"/></returns>
         protected virtual FixAllContext CreateFixAllContext(
             Document? document,
+            TextSpan? diagnosticSpan,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
+            DiagnosticSeverity minimumSeverity,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            => document != null ?
-                new FixAllContext(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken) :
-                new FixAllContext(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+        {
+            return document != null
+                ? FixAllContextExtensions.Create(document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken)
+                : FixAllContextExtensions.Create(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
+        }
 
         /// <inheritdoc />
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
@@ -781,10 +787,10 @@ namespace Microsoft.CodeAnalysis.Testing
                     fixableDiagnostics = diagnosticToFix is not null ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
                 }
 
-                Diagnostic? firstDiagnostic = null;
+                (Project project, Diagnostic diagnostic)? firstDiagnostic = null;
                 CodeFixProvider? effectiveCodeFixProvider = null;
                 string? equivalenceKey = null;
-                foreach (var (_, diagnostic) in fixableDiagnostics)
+                foreach (var (diagnosticProject, diagnostic) in fixableDiagnostics)
                 {
                     var actions = new List<(CodeAction, CodeFixProvider)>();
 
@@ -806,7 +812,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     var actionToApply = TryGetCodeActionToApply(currentIteration, actions.Select(a => a.Item1).ToImmutableArray(), codeFixIndex, codeFixEquivalenceKey, codeActionVerifier, verifier);
                     if (actionToApply != null)
                     {
-                        firstDiagnostic = diagnostic;
+                        firstDiagnostic = (diagnosticProject, diagnostic);
                         effectiveCodeFixProvider = actions.SingleOrDefault(a => a.Item1 == actionToApply).Item2;
                         equivalenceKey = actionToApply.EquivalenceKey;
                         break;
@@ -826,9 +832,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider = TestDiagnosticProvider.Create(analyzerDiagnostics);
 
-                var fixableDocument = project.Solution.GetDocument(firstDiagnostic.Location.SourceTree);
+                var fixableDocument = project.Solution.GetDocument(firstDiagnostic.Value.diagnostic.Location.SourceTree);
+                var diagnosticSpan = fixableDocument is not null ? firstDiagnostic.Value.diagnostic.Location.SourceSpan : (TextSpan?)null;
                 var relevantIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(effectiveCodeFixProvider);
-                var fixAllContext = CreateFixAllContext(fixableDocument, fixableDocument.Project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, fixAllDiagnosticProvider, cancellationToken);
+                var minimumSeverity = firstDiagnostic.Value.diagnostic.Severity;
+                var fixAllContext = CreateFixAllContext(fixableDocument, diagnosticSpan, firstDiagnostic.Value.project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
 
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 if (action == null)
@@ -837,9 +845,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var originalProjectId = project.Id;
-                var (fixedProject, currentError) = await ApplyCodeActionAsync(fixableDocument.Project, action, verifier, cancellationToken).ConfigureAwait(false);
+                var (fixedProject, currentError) = await ApplyCodeActionAsync(firstDiagnostic.Value.project, action, verifier, cancellationToken).ConfigureAwait(false);
                 firstValidationError ??= currentError;
-                if (fixedProject != fixableDocument.Project)
+                if (fixedProject != firstDiagnostic.Value.project)
                 {
                     done = false;
                     project = fixedProject.Solution.GetProject(originalProjectId);
