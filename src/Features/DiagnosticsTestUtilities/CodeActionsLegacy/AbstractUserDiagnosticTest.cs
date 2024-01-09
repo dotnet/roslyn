@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 #else
     using OptionsCollectionAlias = OptionsCollection;
 #endif
+
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
         protected AbstractUserDiagnosticTest(ITestOutputHelper logger)
@@ -48,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            EditorTestWorkspace workspace, TestParameters parameters);
+            TestWorkspace workspace, TestParameters parameters);
 
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            EditorTestWorkspace workspace, TestParameters parameters);
+            TestWorkspace workspace, TestParameters parameters);
 
         private protected async Task TestDiagnosticsAsync(
             string initialMarkup, TestParameters parameters = null, params DiagnosticDescription[] expected)
@@ -84,20 +85,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            EditorTestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return (actions, actionToInvoke);
         }
 
         protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-            EditorTestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return dxs;
         }
 
-        internal override Task<CodeRefactoring> GetCodeRefactoringAsync(EditorTestWorkspace workspace, TestParameters parameters)
+        internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
             => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
         protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
         }
 
-        protected static Document GetDocumentAndSelectSpan(EditorTestWorkspace workspace, out TextSpan span)
+        protected static Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
         {
             var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
             span = hostDocument.SelectedSpans.Single();

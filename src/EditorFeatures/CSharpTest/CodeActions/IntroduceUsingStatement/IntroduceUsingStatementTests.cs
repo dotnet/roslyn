@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
     public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
         private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)

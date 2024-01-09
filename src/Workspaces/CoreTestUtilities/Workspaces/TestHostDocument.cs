@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public class TestHostDocument
     {
         protected HostLanguageServices? LanguageServiceProvider;
-        protected readonly string InitialText;
+        public readonly string InitialText;
         protected readonly ExportProvider? ExportProvider;
 
         private DocumentId? _id;

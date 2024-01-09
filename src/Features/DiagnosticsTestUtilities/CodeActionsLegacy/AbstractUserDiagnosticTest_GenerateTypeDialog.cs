@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+// using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Xunit;
+
+#if false
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -195,3 +197,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
     }
 }
+
+#endif

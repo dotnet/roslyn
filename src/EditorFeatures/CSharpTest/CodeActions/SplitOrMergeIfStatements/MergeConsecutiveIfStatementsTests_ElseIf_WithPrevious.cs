@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     [Trait(Traits.Feature, Traits.Features.CodeActionsMergeConsecutiveIfStatements)]
     public sealed partial class MergeConsecutiveIfStatementsTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider();
 
         [Theory]

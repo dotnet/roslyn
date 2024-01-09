@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            EditorTestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            EditorTestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);

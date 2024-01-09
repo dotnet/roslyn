@@ -9,7 +9,6 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" Link="TestFramework\AbstractCodeActionOrUserDiagnosticTest.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" Link="TestFramework\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.cs" Link="TestFramework\AbstractUserDiagnosticTest.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" Link="TestFramework\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" />

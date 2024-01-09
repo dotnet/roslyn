@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
                 .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
 
                     var oldDocumentId = workspace.Documents[0].Id;
-                    var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
+                    var expectedText = workspace.Documents[0].InitialText;
                     var spans = workspace.Documents[0].SelectedSpans;
 
                     var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
         private async Task<Tuple<Solution, Solution>> TestOperationAsync(
             TestParameters parameters,
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             string expectedCode,
             string operation)
         {

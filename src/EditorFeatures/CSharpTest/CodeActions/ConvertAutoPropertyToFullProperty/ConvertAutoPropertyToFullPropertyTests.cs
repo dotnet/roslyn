@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
     [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
         [Theory]

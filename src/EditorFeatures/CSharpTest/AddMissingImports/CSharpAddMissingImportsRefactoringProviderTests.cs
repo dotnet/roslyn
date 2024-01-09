@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
     public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         {
             var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
             return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
         }
 
-        protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
             // Treat the span being tested as the pasted span
             var hostDocument = workspace.Documents.First();
