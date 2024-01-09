@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        return VisitCollectionInitializerCollectionExpression(node, node.Type);
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                         if (useListOptimization(_compilation, node, out var listElementType))
                         {
                             return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
@@ -1082,8 +1080,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
                 var element = elements[i];
-                var rewrittenExpression = rewrittenExpressions[i];
-
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
                     var collectionPlaceholder = spreadElement.ExpressionPlaceholder;
