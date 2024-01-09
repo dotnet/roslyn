@@ -20,9 +20,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest
+public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
 
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
