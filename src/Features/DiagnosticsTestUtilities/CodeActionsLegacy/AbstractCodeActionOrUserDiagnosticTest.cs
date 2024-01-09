@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -46,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #else
     using OptionsCollectionAlias = OptionsCollection;
     using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+    using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 #endif
 
     [UseExportProvider]
@@ -155,18 +155,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => null;
 
         protected virtual TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeatures
+            => FeaturesTestCompositions.Features
                 .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
                 .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected virtual void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
+        protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
         }
 
         protected virtual TestParameters SetParameterDefaults(TestParameters parameters)
             => parameters;
 
-        protected EditorTestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters = null)
+        protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters = null)
         {
             parameters ??= TestParameters.Default;
 
@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var documentServiceProvider = GetDocumentServiceProvider();
 
-            var workspace = EditorTestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
-               ? EditorTestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
-               : EditorTestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+               ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
+               : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
 
 #if !CODE_STYLE
             if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return workspace;
         }
 
-        private static void MakeProjectsAndDocumentsRooted(EditorTestWorkspace workspace)
+        private static void MakeProjectsAndDocumentsRooted(TestWorkspace workspace)
         {
             const string defaultRootFilePath = @"z:\";
             var newSolution = workspace.CurrentSolution;
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return;
         }
 
-        private static void AddAnalyzerConfigDocumentWithOptions(EditorTestWorkspace workspace, OptionsCollectionAlias options)
+        private static void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, OptionsCollectionAlias options)
         {
             Debug.Assert(options != null);
             var analyzerConfigText = GenerateAnalyzerConfigText(options);
@@ -324,12 +324,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            EditorTestWorkspace workspace, TestParameters parameters);
+            TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-            EditorTestWorkspace workspace, TestParameters parameters);
+            TestWorkspace workspace, TestParameters parameters);
 
-        internal abstract Task<CodeRefactoring> GetCodeRefactoringAsync(EditorTestWorkspace workspace, TestParameters parameters);
+        internal abstract Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters);
 
         protected Task TestSmartTagTextAsync(string initialMarkup, string displayText, int index)
             => TestSmartTagTextAsync(initialMarkup, displayText, new TestParameters(index: index));
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         internal async Task<Tuple<Solution, Solution>> TestActionAsync(
-            EditorTestWorkspace workspace, string expected,
+            TestWorkspace workspace, string expected,
             CodeAction action,
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             string expectedText,
             ImmutableArray<CodeActionOperation> operations,
             ImmutableArray<TextSpan> conflictSpans,
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         internal async Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
-            EditorTestWorkspace workspace, CodeAction action, TestParameters parameters = null)
+            TestWorkspace workspace, CodeAction action, TestParameters parameters = null)
         {
             parameters ??= TestParameters.Default;
 
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {
             Tuple<Solution, Solution> result = null;
@@ -925,7 +925,7 @@ Consider using the title as the equivalence key instead of 'null'";
         }
 
         protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             out Document document,
             out TextSpan span,
             out string annotation)
@@ -937,7 +937,7 @@ Consider using the title as the equivalence key instead of 'null'";
             }
         }
 
-        private static bool TryGetDocumentAndSelectSpan(EditorTestWorkspace workspace, out Document document, out TextSpan span)
+        private static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
         {
             var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
             if (hostDocument == null)
@@ -962,7 +962,7 @@ Consider using the title as the equivalence key instead of 'null'";
             return true;
         }
 
-        private static Document GetDocumentAndAnnotatedSpan(EditorTestWorkspace workspace, out string annotation, out TextSpan span)
+        private static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
         {
             var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
             var hostDocument = annotatedDocuments.Single();

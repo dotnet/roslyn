@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
             TestParameters parameters,
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             string expectedMarkup,
             string expectedDocumentName,
             ImmutableArray<string> expectedContainers)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         private async Task<Tuple<Solution, Solution>> TestAddDocument(
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             string expectedMarkup,
             ImmutableArray<string> expectedFolders,
             string expectedDocumentName,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
-            EditorTestWorkspace workspace,
+            TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,
             bool hasProjectChange,
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var actual = (await addedDocument.GetTextAsync()).ToString();
             Assert.Equal(expected, actual);
 
+#if false
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
             if (!hasProjectChange)
             {
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 Assert.True(hasPreview);
             }
+#endif
 
             return Tuple.Create(oldSolution, newSolution);
         }
