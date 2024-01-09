@@ -142,7 +142,11 @@ internal sealed class RpcClient
         using (await _sendingStreamSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             await _sendingStream.WriteLineAsync(requestJson).ConfigureAwait(false);
+#if NET8_0_OR_GREATER
+            await _sendingStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+#else
             await _sendingStream.FlushAsync().ConfigureAwait(false);
+#endif
         }
 
         return await requestCompletionSource.Task.ConfigureAwait(false);
