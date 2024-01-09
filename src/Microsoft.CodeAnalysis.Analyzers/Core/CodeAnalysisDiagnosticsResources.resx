@@ -586,4 +586,13 @@
   <data name="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage" xml:space="preserve">
     <value>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</value>
   </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage" xml:space="preserve">
+    <value>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription" xml:space="preserve">
+    <value>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</value>
+  </data>
+  <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle" xml:space="preserve">
+    <value>Compiler extensions should be implemented in assemblies targeting netstandard2.0</value>
+  </data>
 </root>

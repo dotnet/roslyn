@@ -122,6 +122,21 @@
         <target state="translated">Esta extensão de compilador C# não deve ser implementada em um assembly contendo uma referência a Microsoft.CodeAnalysis.VisualBasic. O assembly Microsoft.CodeAnalysis.VisualBasic nem sempre é fornecido durante os cenários de compilação C#, portanto, as referências a ele podem fazer com que a extensão do compilador se comporte de forma imprevisível.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
+        <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
+        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
+        <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
+        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
+        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
         <target state="translated">Esta extensão de compilador não deve ser implementada em um assembly contendo uma referência a Microsoft.CodeAnalysis.Workspaces. O assembly Microsoft.CodeAnalysis.Workspaces não é fornecido durante cenários de compilação de linha de comando, portanto, referências a ele podem fazer com que a extensão do compilador se comporte de forma imprevisível.</target>
