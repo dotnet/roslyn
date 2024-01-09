@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return hostDocument.Id;
         }
 
-        public TDocument? GetTestDocument(DocumentId documentId)
-            => this.Documents.FirstOrDefault(d => d.Id == documentId);
+        public TDocument GetTestDocument(DocumentId documentId)
+            => Documents.Single(d => d.Id == documentId);
 
         public TDocument? GetTestAdditionalDocument(DocumentId documentId)
             => this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
