@@ -57,7 +57,7 @@ parameters:
   default: 150
 
 stages:
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}

@@ -231,9 +231,24 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
+                    var args = $"-configuration {options.Configuration} -ci";
+                    if (options.Oop64Bit)
+                    {
+                        args += " -oop64bit";
+                    }
+
+                    if (options.OopCoreClr)
+                    {
+                        args += " -oopCoreClr";
+                    }
+
+                    if (options.LspEditor)
+                    {
+                        args += " -lspEditor";
+                    }
                     // We need to prepare the integration tests by running the setup scripts.
-                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng/setup-integration-test.ps1 -configuration {options.Configuration} -oop64bit:${options.Oop64Bit} -oopCoreClr:${options.OopCoreClr} -lspEditor:${options.LspEditor} -ci:$true""");
-                    // We need to prepare the integration tests by running the setup scripts.
+                    // We use -file instead of -command to ensure the cmd exit code is set to the script exit code.
+                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -file .\eng\setup-integration-test.ps1 {args}");
                 }
 
                 var xmlResultsFilePath = ProcessTestExecutor.GetResultsFilePath(workItemInfo, options, "xml");
@@ -282,14 +297,21 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
+                    postCommands.AppendLine("dir artifacts");
+                    postCommands.AppendLine(@"dir artifacts\TestResults");
+                    postCommands.AppendLine(@$"dir artifacts\TestResults\{options.Configuration}");
                     var testResultsDirectory = Path.Combine("artifacts", "TestResults", options.Configuration);
                     // Copy integration test artifacts to the helix upload directory.
                     postCommands.AppendLine($@"xcopy %HELIX_WORKITEM_ROOT%\{testResultsDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E");
 
-                    // Copy misc VS logs to work item upload directory.
-                    postCommands.AppendLine($@"xcopy %TEMP%\servicehub\logs %HELIX_WORKITEM_UPLOAD_ROOT%\servicehub\ /E /I");
-                    postCommands.AppendLine($@"xcopy %TEMP%\VSLogs %HELIX_WORKITEM_UPLOAD_ROOT%\loghub\ /E /I");
-                    postCommands.AppendLine($@"xcopy %TEMP%\VSTelemetryLog %HELIX_WORKITEM_UPLOAD_ROOT%\telemetry\ /E /I");
+                    // Zip up VS logs and copy them to the helix upload directory.
+                    postCommands.AppendLine($@"tar.exe -a -c -f servicehub_logs.zip %TEMP%\servicehub\logs");
+                    postCommands.AppendLine($@"tar.exe -a -c -f loghub_logs.zip %TEMP%\VSLogs");
+                    postCommands.AppendLine($@"tar.exe -a -c -f telemetry_logs.zip %TEMP%\VSTelemetryLog");
+
+                    postCommands.AppendLine($@"copy servicehub_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
+                    postCommands.AppendLine($@"copy loghub_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
+                    postCommands.AppendLine($@"copy telemetry_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
                 }
 
                 if (isUnix)

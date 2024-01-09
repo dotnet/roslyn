@@ -58,6 +58,7 @@ parameters:
   type: string
   default: windows.vs2022preview.amd64.open
   values:
+  # When running on Helix, these only apply to the build.
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open
   - windows.vs2022preview.amd64.open
@@ -68,7 +69,7 @@ parameters:
   default: 150
 
 stages:
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
@@ -85,7 +86,7 @@ stages:
         lspEditor: false
         runName: VS_Integration_Debug_64
 
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}

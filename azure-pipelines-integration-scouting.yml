@@ -34,12 +34,15 @@ parameters:
   default: 150
 
 stages:
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
+    # Helix does not have VS scouting queues yet.
+    # See https://github.com/dotnet/dnceng/issues/1687
+    useHelix: false
     testRuns:
       - oop64bit: false
         oopCoreClr: false
@@ -50,12 +53,15 @@ stages:
         lspEditor: false
         runName: VS_Integration_Debug_64
 
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
+    # Helix does not have VS scouting queues yet.
+    # See https://github.com/dotnet/dnceng/issues/1687
+    useHelix: false
     testRuns:
       - oop64bit: false
         oopCoreClr: false

@@ -53,7 +53,8 @@ namespace RunTests
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
-            fileContentsBuilder.AppendLine($"/ResultsDirectory:{options.TestResultsDirectory}");
+            var testResultsDirectory = options.UseHelix ? Path.Combine("artifacts", "TestResults", options.Configuration) : options.TestResultsDirectory;
+            fileContentsBuilder.AppendLine($"/ResultsDirectory:{testResultsDirectory}");
 
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
@@ -103,7 +104,15 @@ namespace RunTests
         public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
-            return Path.Combine(options.TestResultsDirectory, fileName);
+            if (options.UseHelix)
+            {
+                // Helix tests run on a different machine, so we cannot use the directory from this machine.
+                return fileName;
+            }
+            else
+            {
+                return Path.Combine(options.TestResultsDirectory, fileName);
+            }
         }
 
         public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)

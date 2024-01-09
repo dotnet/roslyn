@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -86,6 +87,10 @@ class Program : Attribute
         Program.Main(null);
     }
 }", HangMitigatingCancellationToken);
+
+            // Force timeout for dumps.
+            await Task.Delay(TimeSpan.FromMinutes(16));
+
             await TestServices.Editor.PlaceCaretAsync("Attribute", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("list", charsOffset: 8, HangMitigatingCancellationToken);

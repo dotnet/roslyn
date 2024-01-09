@@ -71,7 +71,7 @@ parameters:
   default: 150
 
 stages:
-- template: eng/pipelines/test-integration-helix.yml
+- template: eng/pipelines/test-integration.yml
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
@@ -84,7 +84,7 @@ stages:
         runName: VS_Integration_CoreHost_Debug
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - template: eng/pipelines/test-integration-helix.yml
+  - template: eng/pipelines/test-integration.yml
     parameters:
       poolName: ${{ parameters.poolName }}
       queueName: ${{ parameters.queueName }}
