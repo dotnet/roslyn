@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
 {
     public class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider((Func<Solution, Solution>)parameters.fixProviderData);
 
         private class MyCodeRefactoringProvider : CodeRefactoringProvider

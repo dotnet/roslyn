@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
 public class IntroduceVariableTests : AbstractCSharpCodeActionTest
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
 
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)

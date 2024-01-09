@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         private static readonly ImmutableArray<PackageSource> NugetPackageSources =
             ImmutableArray.Create(new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/"));
 
-        protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
             workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp, true);
             workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp, true);

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
     public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => workspace.ExportProvider.GetExportedValue<CSharpInlineMethodRefactoringProvider>();
 
         private async Task TestNoActionIsProvided(string initialMarkup)
