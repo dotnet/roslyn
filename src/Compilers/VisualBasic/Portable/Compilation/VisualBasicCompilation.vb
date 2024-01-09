@@ -139,6 +139,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration)
 
         ''' <summary>
+        ''' All source trees that were generated in this compilation
+        ''' </summary>
+        Private ReadOnly _sourceGeneratedTrees As ImmutableArray(Of SyntaxTree)
+
+        ''' <summary>
         ''' The declaration table that holds onto declarations from source. Incrementally updated
         ''' between compilation versions when source changes are made.
         ''' </summary>
@@ -393,6 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                 declMap,
                 embeddedTrees,
+                sourceGeneratedTrees:=ImmutableArray(Of SyntaxTree).Empty,
                 declTable,
                 previousSubmission,
                 returnType,
@@ -420,6 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
             embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration),
+            sourceGeneratedTrees As ImmutableArray(Of SyntaxTree),
             declarationTable As DeclarationTable,
             previousSubmission As VisualBasicCompilation,
             submissionReturnType As Type,
@@ -444,6 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _syntaxTreeOrdinalMap = syntaxTreeOrdinalMap
             _rootNamespaces = rootNamespaces
             _embeddedTrees = embeddedTrees
+            _sourceGeneratedTrees = sourceGeneratedTrees
             _declarationTable = declarationTable
             _anonymousTypeManager = New AnonymousTypeManager(Me)
             _languageVersion = CommonLanguageVersion(syntaxTrees)
@@ -510,6 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
+                _sourceGeneratedTrees,
                 _declarationTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -525,6 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntaxTrees As ImmutableArray(Of SyntaxTree),
             syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer),
             rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry),
+            sourceGeneratedTrees As ImmutableArray(Of SyntaxTree),
             declarationTable As DeclarationTable,
             referenceDirectivesChanged As Boolean) As VisualBasicCompilation
 
@@ -536,6 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 syntaxTreeOrdinalMap,
                 rootNamespaces,
                 _embeddedTrees,
+                sourceGeneratedTrees,
                 declarationTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -562,6 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
+                _sourceGeneratedTrees,
                 _declarationTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -604,6 +616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 embeddedTrees,
+                _sourceGeneratedTrees,
                 declTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -658,6 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 declMap,
                 embeddedTrees,
+                _sourceGeneratedTrees,
                 declTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -693,6 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
+                _sourceGeneratedTrees,
                 _declarationTable,
                 info?.PreviousScriptCompilation,
                 info?.ReturnTypeOpt,
@@ -719,6 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
+                _sourceGeneratedTrees,
                 _declarationTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -741,6 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
+                _sourceGeneratedTrees,
                 _declarationTable,
                 Me.PreviousSubmission,
                 Me.SubmissionReturnType,
@@ -910,10 +927,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
-            Return AddSyntaxTrees(DirectCast(trees, IEnumerable(Of SyntaxTree)))
+            Return AddSyntaxTrees(DirectCast(trees, IEnumerable(Of SyntaxTree)), isSourceGenerated:=False)
         End Function
 
         Public Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
+            Return AddSyntaxTrees(trees, isSourceGenerated:=False)
+        End Function
+
+        Private Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree), isSourceGenerated As Boolean) As VisualBasicCompilation
             If trees Is Nothing Then
                 Throw New ArgumentNullException(NameOf(trees))
             End If
@@ -966,7 +987,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(VBResources.SubmissionCanHaveAtMostOneSyntaxTree, NameOf(trees))
                 End If
 
-                Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+                Dim newSourceGeneratedTrees = If(isSourceGenerated, _sourceGeneratedTrees.AddRange(trees), _sourceGeneratedTrees)
+
+                Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, newSourceGeneratedTrees, declTable, referenceDirectivesChanged)
             Finally
                 builder.Free()
             End Try
@@ -1030,6 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim ordinalMap = ImmutableDictionary.Create(Of SyntaxTree, Integer)()
             Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
+            Dim newSourceGeneratedTrees as ArrayBuilder(Of SyntaxTree) = Nothing
             Dim i = 0
 
             For Each tree In _syntaxTrees
@@ -1037,10 +1061,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Add(tree)
                     ordinalMap = ordinalMap.Add(tree, i)
                     i += 1
+                Else If _sourceGeneratedTrees.Contains(tree) Then
+                    If newSourceGeneratedTrees Is Nothing Then
+                        newSourceGeneratedTrees = ArrayBuilder(Of SyntaxTree).GetInstance(_sourceGeneratedTrees.Length)
+                        newSourceGeneratedTrees.AddRange(_sourceGeneratedTrees)
+                    End If
+
+                    newSourceGeneratedTrees.Remove(tree)
                 End If
             Next
 
-            Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, If(newSourceGeneratedTrees?.ToImmutableAndFree(), _sourceGeneratedTrees), declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Sub RemoveSyntaxTreeFromDeclarationMapAndTable(
@@ -1063,6 +1094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return UpdateSyntaxTrees(ImmutableArray(Of SyntaxTree).Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
+                                     ImmutableArray(Of SyntaxTree).Empty,
                                      AddEmbeddedTrees(DeclarationTable.Empty, _embeddedTrees),
                                      referenceDirectivesChanged:=_declarationTable.ReferenceDirectives.Any())
         End Function
@@ -1121,7 +1153,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ordinalMap = ordinalMap.Remove(oldTree)
             ordinalMap = ordinalMap.Add(newTree, oldOrdinal)
 
-            Return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Dim newSourceGeneratedTrees = If(_sourceGeneratedTrees.Contains(vbOldTree), _sourceGeneratedTrees.Replace(vbOldTree, vbNewTree), _sourceGeneratedTrees)
+
+            Return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, newSourceGeneratedTrees, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VisualBasicCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
@@ -2750,17 +2784,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonAddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As Compilation
-            Dim array = TryCast(trees, SyntaxTree())
-            If array IsNot Nothing Then
-                Return Me.AddSyntaxTrees(array)
-            End If
-
+        Protected Overrides Function CommonAddSyntaxTrees(trees As IEnumerable(Of SyntaxTree), isSourceGenerated as Boolean) As Compilation
             If trees Is Nothing Then
                 Throw New ArgumentNullException(NameOf(trees))
             End If
 
-            Return Me.AddSyntaxTrees(trees.Cast(Of SyntaxTree)())
+            Return Me.AddSyntaxTrees(trees.Cast(Of SyntaxTree)(), isSourceGenerated)
         End Function
 
         Protected Overrides Function CommonRemoveSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As Compilation

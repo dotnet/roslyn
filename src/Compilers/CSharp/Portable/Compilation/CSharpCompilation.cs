@@ -415,7 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 referenceManager: null,
                 reuseReferenceManager: false,
                 syntaxAndDeclarations: new SyntaxAndDeclarationManager(
-                    ImmutableArray<SyntaxTree>.Empty,
+                    externalSyntaxTrees: ImmutableArray<SyntaxTree>.Empty,
+                    sourceGeneratedSyntaxTrees: ImmutableArray<SyntaxTree>.Empty,
                     options.ScriptClassName,
                     options.SourceReferenceResolver,
                     CSharp.MessageProvider.Instance,
@@ -665,6 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _syntaxAndDeclarations :
                     new SyntaxAndDeclarationManager(
                         _syntaxAndDeclarations.ExternalSyntaxTrees,
+                        _syntaxAndDeclarations.SourceGeneratedSyntaxTrees,
                         options.ScriptClassName,
                         options.SourceReferenceResolver,
                         _syntaxAndDeclarations.MessageProvider,
@@ -830,10 +832,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSyntaxTrees((IEnumerable<SyntaxTree>)trees);
         }
 
+        public new CSharpCompilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
+        {
+            return AddSyntaxTrees(trees, isSourceGenerated: false);
+        }
+
         /// <summary>
         /// Creates a new compilation with additional syntax trees.
         /// </summary>
-        public new CSharpCompilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
+        private new CSharpCompilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees, bool isSourceGenerated)
         {
             if (trees == null)
             {
@@ -888,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SubmissionCanHaveAtMostOne, nameof(trees));
             }
 
-            syntaxAndDeclarations = syntaxAndDeclarations.AddSyntaxTrees(trees);
+            syntaxAndDeclarations = syntaxAndDeclarations.AddSyntaxTrees(trees, isSourceGenerated);
 
             return Update(_referenceManager, reuseReferenceManager, syntaxAndDeclarations);
         }
@@ -965,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(
                 _referenceManager,
                 reuseReferenceManager: !syntaxAndDeclarations.MayHaveReferenceDirectives(),
-                syntaxAndDeclarations: syntaxAndDeclarations.WithExternalSyntaxTrees(ImmutableArray<SyntaxTree>.Empty));
+                syntaxAndDeclarations: syntaxAndDeclarations.WithExternalAndSourceGeneratedTrees(ImmutableArray<SyntaxTree>.Empty, ImmutableArray<SyntaxTree>.Empty));
         }
 
         /// <summary>
@@ -1065,6 +1072,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return builder.ToImmutable();
             }
+        }
+
+        internal bool IsSourceGeneratedTree(SyntaxTree tree)
+        {
+            return _syntaxAndDeclarations.SourceGeneratedSyntaxTrees.Contains(tree);
         }
 
         #endregion
@@ -3829,9 +3841,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override Compilation CommonAddSyntaxTrees(IEnumerable<SyntaxTree> trees)
+        protected override Compilation CommonAddSyntaxTrees(IEnumerable<SyntaxTree> trees, bool isSourceGenerated)
         {
-            return this.AddSyntaxTrees(trees);
+            return this.AddSyntaxTrees(trees, isSourceGenerated);
         }
 
         protected override Compilation CommonRemoveSyntaxTrees(IEnumerable<SyntaxTree> trees)

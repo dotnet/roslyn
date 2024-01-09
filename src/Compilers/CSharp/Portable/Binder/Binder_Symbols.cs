@@ -1986,12 +1986,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else if (srcSymbol.Kind == SymbolKind.NamedType && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
-                                    // WRN_SameFullNameThisAggAgg: The type '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the type defined in '{0}'.
-                                    diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggAgg, where.Location, originalSymbols,
-                                        arg0,
-                                        srcSymbol,
-                                        mdSymbol.ContainingAssembly,
-                                        mdSymbol);
+                                    // It is common for source generators to generate internal attributes to drive generator behavior. These are then visible to
+                                    // IVT assemblies that may also run the same source generator. We don't want to warn in these cases, so we suppress the warning
+                                    // if the source symbol is from a source-generated file. We only do this for types with a single location, since that is the very
+                                    // specific scenario we are targeting.
+                                    if (srcSymbol.Locations is not [{ SourceTree: { } srcTree }] || !Compilation.IsSourceGeneratedTree(srcTree))
+                                    {
+                                        // WRN_SameFullNameThisAggAgg: The type '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the type defined in '{0}'.
+                                        diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggAgg, where.Location, originalSymbols,
+                                            arg0,
+                                            srcSymbol,
+                                            mdSymbol.ContainingAssembly,
+                                            mdSymbol);
+                                    }
 
                                     return originalSymbols[best.Index];
                                 }

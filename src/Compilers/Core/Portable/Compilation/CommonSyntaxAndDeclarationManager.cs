@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis
     internal abstract class CommonSyntaxAndDeclarationManager
     {
         internal readonly ImmutableArray<SyntaxTree> ExternalSyntaxTrees;
+        internal readonly ImmutableArray<SyntaxTree> SourceGeneratedSyntaxTrees;
         internal readonly string ScriptClassName;
         internal readonly SourceReferenceResolver Resolver;
         internal readonly CommonMessageProvider MessageProvider;
@@ -16,12 +17,14 @@ namespace Microsoft.CodeAnalysis
 
         public CommonSyntaxAndDeclarationManager(
             ImmutableArray<SyntaxTree> externalSyntaxTrees,
+            ImmutableArray<SyntaxTree> sourceGeneratedSyntaxTrees,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
             bool isSubmission)
         {
             this.ExternalSyntaxTrees = externalSyntaxTrees;
+            this.SourceGeneratedSyntaxTrees = sourceGeneratedSyntaxTrees;
             this.ScriptClassName = scriptClassName ?? "";
             this.Resolver = resolver;
             this.MessageProvider = messageProvider;
