@@ -37,6 +37,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
