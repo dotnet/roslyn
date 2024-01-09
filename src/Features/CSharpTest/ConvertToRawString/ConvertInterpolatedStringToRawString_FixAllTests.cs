@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeActionTest
+    public class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ConvertStringToRawStringCodeRefactoringProvider();
 
         [Fact]
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                 {
                     void M()
                     {
-                        var singleLine1 = {|FixAllInDocument:|}"a";
-                        var singleLine2 = @"goo""bar";
+                        var singleLine1 = {|FixAllInDocument:|}$"a";
+                        var singleLine2 = @$"goo""bar";
 
-                        var multiLine1 = "goo\r\nbar";
-                        var multiLine2 = @"goo
+                        var multiLine1 = $"goo\r\nbar";
+                        var multiLine2 = @$"goo
                 bar";
 
-                        var multiLineWithoutLeadingWhitespace1 = @"
+                        var multiLineWithoutLeadingWhitespace1 = @$"
                 from x in y
                 where x > 0
                 select x";
-                        var multiLineWithoutLeadingWhitespace2 = @"
+                        var multiLineWithoutLeadingWhitespace2 = @$"
                 from x2 in y2
                 where x2 > 0
                 select x2";
@@ -46,18 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                     void M2()
                     {
-                        var singleLine1 = "a";
-                        var singleLine2 = @"goo""bar";
+                        var singleLine1 = $"a";
+                        var singleLine2 = @$"goo""bar";
 
-                        var multiLine1 = "goo\r\nbar";
-                        var multiLine2 = @"goo
+                        var multiLine1 = $"goo\r\nbar";
+                        var multiLine2 = @$"goo
                 bar";
 
-                        var multiLineWithoutLeadingWhitespace1 = @"
+                        var multiLineWithoutLeadingWhitespace1 = @$"
                 from x in y
                 where x > 0
                 select x";
-                        var multiLineWithoutLeadingWhitespace2 = @"
+                        var multiLineWithoutLeadingWhitespace2 = @$"
                 from x2 in y2
                 where x2 > 0
                 select x2";
@@ -69,18 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                 {
                     void M()
                     {
-                        var singleLine1 = """a""";
-                        var singleLine2 = """goo"bar""";
+                        var singleLine1 = $"""a""";
+                        var singleLine2 = $"""goo"bar""";
 
-                        var multiLine1 = "goo\r\nbar";
-                        var multiLine2 = @"goo
+                        var multiLine1 = $"goo\r\nbar";
+                        var multiLine2 = @$"goo
                 bar";
 
-                        var multiLineWithoutLeadingWhitespace1 = @"
+                        var multiLineWithoutLeadingWhitespace1 = @$"
                 from x in y
                 where x > 0
                 select x";
-                        var multiLineWithoutLeadingWhitespace2 = @"
+                        var multiLineWithoutLeadingWhitespace2 = @$"
                 from x2 in y2
                 where x2 > 0
                 select x2";
@@ -88,18 +88,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                     void M2()
                     {
-                        var singleLine1 = """a""";
-                        var singleLine2 = """goo"bar""";
+                        var singleLine1 = $"""a""";
+                        var singleLine2 = $"""goo"bar""";
 
-                        var multiLine1 = "goo\r\nbar";
-                        var multiLine2 = @"goo
+                        var multiLine1 = $"goo\r\nbar";
+                        var multiLine2 = @$"goo
                 bar";
 
-                        var multiLineWithoutLeadingWhitespace1 = @"
+                        var multiLineWithoutLeadingWhitespace1 = @$"
                 from x in y
                 where x > 0
                 select x";
-                        var multiLineWithoutLeadingWhitespace2 = @"
+                        var multiLineWithoutLeadingWhitespace2 = @$"
                 from x2 in y2
                 where x2 > 0
                 select x2";
@@ -117,18 +117,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = {|FixAllInDocument:|}"goo\r\nbar";
-                    var multiLine2 = @"goo
+                    var multiLine1 = {|FixAllInDocument:|}$"goo\r\nbar";
+                    var multiLine2 = @$"goo
             bar";
 
-                    var multiLineWithoutLeadingWhitespace1 = @"
+                    var multiLineWithoutLeadingWhitespace1 = @$"
             from x in y
             where x > 0
             select x";
-                    var multiLineWithoutLeadingWhitespace2 = @"
+                    var multiLineWithoutLeadingWhitespace2 = @$"
             from x2 in y2
             where x2 > 0
             select x2";
@@ -136,18 +136,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = "goo\r\nbar";
-                    var multiLine2 = @"goo
+                    var multiLine1 = $"goo\r\nbar";
+                    var multiLine2 = @$"goo
             bar";
 
-                    var multiLineWithoutLeadingWhitespace1 = @"
+                    var multiLineWithoutLeadingWhitespace1 = @$"
             from x in y
             where x > 0
             select x";
-                    var multiLineWithoutLeadingWhitespace2 = @"
+                    var multiLineWithoutLeadingWhitespace2 = @$"
             from x2 in y2
             where x2 > 0
             select x2";
@@ -159,25 +159,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = """
+                    var multiLine1 = $"""
                         goo
                         bar
                         """;
-                    var multiLine2 = """
+                    var multiLine2 = $"""
                         goo
                         bar
                         """;
 
-                    var multiLineWithoutLeadingWhitespace1 = """
+                    var multiLineWithoutLeadingWhitespace1 = $"""
 
                         from x in y
                         where x > 0
                         select x
                         """;
-                    var multiLineWithoutLeadingWhitespace2 = """
+                    var multiLineWithoutLeadingWhitespace2 = $"""
 
                         from x2 in y2
                         where x2 > 0
@@ -187,25 +187,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = """
+                    var multiLine1 = $"""
                         goo
                         bar
                         """;
-                    var multiLine2 = """
+                    var multiLine2 = $"""
                         goo
                         bar
                         """;
 
-                    var multiLineWithoutLeadingWhitespace1 = """
+                    var multiLineWithoutLeadingWhitespace1 = $"""
 
                         from x in y
                         where x > 0
                         select x
                         """;
-                    var multiLineWithoutLeadingWhitespace2 = """
+                    var multiLineWithoutLeadingWhitespace2 = $"""
 
                         from x2 in y2
                         where x2 > 0
@@ -225,18 +225,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = "goo\r\nbar";
-                    var multiLine2 = @"goo
+                    var multiLine1 = $"goo\r\nbar";
+                    var multiLine2 = @$"goo
             bar";
 
-                    var multiLineWithoutLeadingWhitespace1 = {|FixAllInDocument:|}@"
+                    var multiLineWithoutLeadingWhitespace1 = {|FixAllInDocument:|}@$"
             from x in y
             where x > 0
             select x";
-                    var multiLineWithoutLeadingWhitespace2 = @"
+                    var multiLineWithoutLeadingWhitespace2 = @$"
             from x2 in y2
             where x2 > 0
             select x2";
@@ -244,18 +244,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = "goo\r\nbar";
-                    var multiLine2 = @"goo
+                    var multiLine1 = $"goo\r\nbar";
+                    var multiLine2 = @$"goo
             bar";
 
-                    var multiLineWithoutLeadingWhitespace1 = @"
+                    var multiLineWithoutLeadingWhitespace1 = @$"
             from x in y
             where x > 0
             select x";
-                    var multiLineWithoutLeadingWhitespace2 = @"
+                    var multiLineWithoutLeadingWhitespace2 = @$"
             from x2 in y2
             where x2 > 0
             select x2";
@@ -267,24 +267,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = """
+                    var multiLine1 = $"""
                         goo
                         bar
                         """;
-                    var multiLine2 = """
+                    var multiLine2 = $"""
                         goo
                         bar
                         """;
 
-                    var multiLineWithoutLeadingWhitespace1 = """
+                    var multiLineWithoutLeadingWhitespace1 = $"""
                         from x in y
                         where x > 0
                         select x
                         """;
-                    var multiLineWithoutLeadingWhitespace2 = """
+                    var multiLineWithoutLeadingWhitespace2 = $"""
                         from x2 in y2
                         where x2 > 0
                         select x2
@@ -293,24 +293,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
 
-                    var multiLine1 = """
+                    var multiLine1 = $"""
                         goo
                         bar
                         """;
-                    var multiLine2 = """
+                    var multiLine2 = $"""
                         goo
                         bar
                         """;
 
-                    var multiLineWithoutLeadingWhitespace1 = """
+                    var multiLineWithoutLeadingWhitespace1 = $"""
                         from x in y
                         where x > 0
                         select x
                         """;
-                    var multiLineWithoutLeadingWhitespace2 = """
+                    var multiLineWithoutLeadingWhitespace2 = $"""
                         from x2 in y2
                         where x2 > 0
                         select x2
@@ -332,8 +332,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = {|FixAllInProject:|}"a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = {|FixAllInProject:|}$"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -354,8 +354,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -370,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -392,8 +392,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = {|FixAllInSolution:|}"a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = {|FixAllInSolution:|}$"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -424,8 +424,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -436,8 +436,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -452,8 +452,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -462,8 +462,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -474,8 +474,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -493,14 +493,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = {|FixAllInContainingMember:|}"a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = {|FixAllInContainingMember:|}$"a";
+                    var singleLine2 = @$"goo""bar";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -508,8 +508,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
             """,
@@ -518,14 +518,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -533,8 +533,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
             """");
@@ -549,14 +549,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = {|FixAllInContainingType:|}"a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = {|FixAllInContainingType:|}$"a";
+                    var singleLine2 = @$"goo""bar";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -564,8 +564,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -573,8 +573,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
             """,
@@ -583,14 +583,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
 
@@ -598,8 +598,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -607,8 +607,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
             """");
@@ -626,14 +626,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = {|FixAllInContainingType:|}"a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = {|FixAllInContainingType:|}$"a";
+                    var singleLine2 = @$"goo""bar";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -642,8 +642,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
 
@@ -651,8 +651,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -663,8 +663,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -679,14 +679,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M1()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
 
                 void M2()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
                     </Document>
@@ -695,8 +695,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = """a""";
-                    var singleLine2 = """goo"bar""";
+                    var singleLine1 = $"""a""";
+                    var singleLine2 = $"""goo"bar""";
                 }
             }
 
@@ -704,8 +704,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M2()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -716,8 +716,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 void M3()
                 {
-                    var singleLine1 = "a";
-                    var singleLine2 = @"goo""bar";
+                    var singleLine1 = $"a";
+                    var singleLine2 = @$"goo""bar";
                 }
             }
                     </Document>
@@ -729,19 +729,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
         [Fact]
         public async Task FixAllCommonRoslynTestPattern1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"class X
-                {
-                }",
-                @"class Y
-                {
-                }");
+                {|FixAllInDocument:|}@$"class X
+                {{
+                }}",
+                @$"class Y
+                {{
+                }}");
                     }
                 }
                 """,
@@ -751,36 +751,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
                             }
                             """,
-                            """
+                            $$"""
                             class Y
                             {
                             }
                             """);
                     }
                 }
-                """");
+                """",
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
 
         [Fact]
         public async Task FixAllCommonRoslynTestPattern1_B()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"class X
-                {
-                }", @"class Y
-                {
-                }");
+                {|FixAllInDocument:|}@$"class X
+                {{
+                }}", @$"class Y
+                {{
+                }}");
                     }
                 }
                 """,
@@ -790,38 +791,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
                             }
-                            """, """
+                            """, $$"""
                             class Y
                             {
                             }
                             """);
                     }
                 }
-                """");
+                """",
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
 
         [Fact]
         public async Task FixAllCommonRoslynTestPattern2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"
+                {|FixAllInDocument:|}@$"
                 class X
-                {
-                }",
-                @"
+                {{
+                }}",
+                @$"
                 class Y
-                {
-                }");
+                {{
+                }}");
                     }
                 }
                 """,
@@ -831,38 +833,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
                             }
                             """,
-                            """
+                            $$"""
                             class Y
                             {
                             }
                             """);
                     }
                 }
-                """", index: 1);
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
 
         [Fact]
         public async Task FixAllCommonRoslynTestPattern2_B()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"
+                {|FixAllInDocument:|}@$"
                 class X
-                {
-                }", @"
+                {{
+                }}", @$"
                 class Y
-                {
-                }");
+                {{
+                }}");
                     }
                 }
                 """,
@@ -872,39 +875,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
                             }
-                            """, """
+                            """, $$"""
                             class Y
                             {
                             }
                             """);
                     }
                 }
-                """", index: 1);
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
 
         [Fact]
         public async Task FixAllCommonRoslynTestPattern3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"
+                {|FixAllInDocument:|}@$"
                 class X
-                {
-                }
+                {{
+                }}
                 ",
-                @"
+                @$"
                 class Y
-                {
-                }
+                {{
+                }}
                 ");
                     }
                 }
@@ -915,35 +919,127 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
                             }
                             """,
-                            """
+                            $$"""
                             class Y
                             {
                             }
                             """);
                     }
                 }
-                """", index: 1);
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
 
         [Fact]
         public async Task FixAllCommonRoslynTestPattern3_B()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
                 """
                 class C
                 {
                     void M()
                     {
                         await TestAsync(
-                {|FixAllInDocument:|}@"
+                {|FixAllInDocument:|}@$"
                 class X
-                {
+                {{
+                }}
+                ", @$"
+                class Y
+                {{
+                }}
+                ");
+                    }
                 }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            $$"""
+                            class X
+                            {
+                            }
+                            """, $$"""
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern4()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@$"
+                class X
+                {{
+                    {0}
+                }}
+                ", @$"
+                class Y
+                {{
+                    {1}
+                }}
+                ");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            $$"""
+                            class X
+                            {
+                                {{0}}
+                            }
+                            """, $$"""
+                            class Y
+                            {
+                                {{1}}
+                            }
+                            """);
+                    }
+                }
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern5()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@$"
+                class X
+                {{
+                    {0}
+                }}
                 ", @"
                 class Y
                 {
@@ -958,9 +1054,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     void M()
                     {
                         await TestAsync(
-                            """
+                            $$"""
                             class X
                             {
+                                {{0}}
                             }
                             """, """
                             class Y
@@ -969,7 +1066,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                             """);
                     }
                 }
-                """", index: 1);
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern6()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"
+                class X
+                {
+                }
+                ", @$"
+                class Y
+                {{
+                    {0}
+                }}
+                ");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """, $$"""
+                            class Y
+                            {
+                                {{0}}
+                            }
+                            """);
+                    }
+                }
+                """", index: 1,
+                new TestParameters(treatPositionIndicatorsAsCode: true));
         }
     }
 }
