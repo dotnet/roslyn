@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-    public partial class InvertIfTests : AbstractCSharpCodeActionTest
+    public partial class InvertIfTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private async Task TestFixOneAsync(
             string initial,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
             await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected));
         }
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpInvertIfCodeRefactoringProvider();
 
         private static string CreateTreeText(string initial)
