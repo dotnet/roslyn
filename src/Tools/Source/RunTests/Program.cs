@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace RunTests
 {
@@ -301,16 +302,26 @@ namespace RunTests
                 }
 
                 var fileName = $"{name}.dll";
-                // Find the dlls matching the request configuration and target frameworks.
-                foreach (var targetFramework in options.TargetFrameworks)
+
+                var configDirectory = Path.Combine(project, options.Configuration);
+                if (!Directory.Exists(configDirectory))
                 {
-                    var targetFrameworkDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    continue;
+                }
+
+                foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
+                {
+                    if (!IsMatch(options.TestTargetFramework, Path.GetDirectoryName(dir)))
+                    {
+                        continue;
+                    }
+
                     var filePath = Path.Combine(targetFrameworkDirectory, fileName);
                     if (File.Exists(filePath))
                     {
                         list.Add(new AssemblyInfo(filePath));
                     }
-                    else if (Directory.Exists(targetFrameworkDirectory) && Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    else if (Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
                     {
                         // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
                         // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
@@ -358,6 +369,15 @@ namespace RunTests
 
                 return false;
             }
+
+            static bool IsMatch(TestTargetFramework testTargetFramework, string dirName) =>
+                testTargetFramework switch
+                {
+                    TestTargetFramework.Both => true,
+                    TestTargetFramework.Core => Regex.IsMatch(dirName, @"net[\d]+\."),
+                    TestTargetFramework.Framework => Regex.IsMatch(dirName, @"net[\d]+$"),
+                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestTargetFramework)} value: {testTargetFramework}"),
+                };
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
