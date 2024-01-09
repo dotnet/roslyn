@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static BoundExpression? GetUnderlyingCollectionExpressionElement(BoundCollectionExpression expr, BoundExpression? element)
         {
-            if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableT)
+            if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 return element switch
                 {
