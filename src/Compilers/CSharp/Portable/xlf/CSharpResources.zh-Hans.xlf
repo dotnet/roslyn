@@ -437,6 +437,11 @@
         <target state="new">There is no target type for the collection expression.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
+        <source>Collection expression target '{0}' has no element type.</source>
+        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
