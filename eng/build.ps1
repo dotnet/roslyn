@@ -404,6 +404,7 @@ function TestUsingRunTests() {
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
+      $args += " --tfm net8.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
