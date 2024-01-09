@@ -2107,7 +2107,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatTwo_ReadOnlySpan_DirectReference()
+        public void ConcatTwo_ReadOnlySpan1()
         {
             var source = """
                 using System;
@@ -2132,32 +2132,38 @@ class Test
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
                 {
-                  // Code size       19 (0x13)
+                  // Code size       21 (0x15)
                   .maxstack  2
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0006:  ldarga.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0012:  ret
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0014:  ret
                 }
                 """);
             comp.VerifyIL("Test.M2", """
                 {
-                  // Code size       19 (0x13)
+                  // Code size       21 (0x15)
                   .maxstack  2
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0012:  ret
+                  .locals init (char V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0014:  ret
                 }
                 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatTwo_ReadOnlySpan_IndirectReference()
+        public void ConcatTwo_ReadOnlySpan2()
         {
             var source = """
                 using System;
@@ -2343,7 +2349,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatThree_ReadOnlySpan_DirectReference()
+        public void ConcatThree_ReadOnlySpan1()
         {
             var source = """
                 using System;
@@ -2372,64 +2378,79 @@ class Test
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
                 {
-                  // Code size       25 (0x19)
+                  // Code size       27 (0x1b)
                   .maxstack  3
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0018:  ret
+                  .locals init (char V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001a:  ret
                 }
                 """);
             comp.VerifyIL("Test.M2", """
                 {
-                  // Code size       25 (0x19)
+                  // Code size       27 (0x1b)
                   .maxstack  3
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0006:  ldarga.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0018:  ret
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001a:  ret
                 }
                 """);
             comp.VerifyIL("Test.M3", """
                 {
-                  // Code size       25 (0x19)
+                  // Code size       27 (0x1b)
                   .maxstack  3
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0006:  ldarg.0
                   IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000c:  ldarga.s   V_1
-                  IL_000e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0018:  ret
+                  IL_000c:  ldarg.1
+                  IL_000d:  stloc.0
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001a:  ret
                 }
                 """);
             comp.VerifyIL("Test.M4", """
                 {
-                  // Code size       26 (0x1a)
+                  // Code size       30 (0x1e)
                   .maxstack  3
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  ldarga.s   V_1
-                  IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0014:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0019:  ret
+                  .locals init (char V_0,
+                                char V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  ldarg.1
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloca.s   V_1
+                  IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0018:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001d:  ret
                 }
                 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatThree_ReadOnlySpan_IndirectReference()
+        public void ConcatThree_ReadOnlySpan2()
         {
             var source = """
                 using System;
@@ -2710,6 +2731,61 @@ class Test
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatThree_ReadOnlySpan_MutateLocal()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                Console.WriteLine(c.M());
+
+                class C
+                {
+                    public string M()
+                    {
+                        var c = 'a';
+                        return "a" + c + SneakyLocalChange(ref c);
+                    }
+
+                    private char SneakyLocalChange(ref char local)
+                    {
+                        local = 'b';
+                        return 'b';
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aab" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  4
+                  .locals init (char V_0, //c
+                                char V_1,
+                                char V_2)
+                  IL_0000:  ldc.i4.s   97
+                  IL_0002:  stloc.0
+                  IL_0003:  ldstr      "a"
+                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000d:  ldloc.0
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloca.s   V_1
+                  IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "char C.SneakyLocalChange(ref char)"
+                  IL_001e:  stloc.2
+                  IL_001f:  ldloca.s   V_2
+                  IL_0021:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0026:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_002b:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
         [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
         [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
@@ -2832,7 +2908,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatFour_ReadOnlySpan_DirectReference()
+        public void ConcatFour_ReadOnlySpan1()
         {
             var source = """
                 using System;
@@ -2867,120 +2943,150 @@ class Test
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       33 (0x21)
                   .maxstack  4
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  ldarg.0
-                  IL_0014:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001e:  ret
+                  .locals init (char V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0020:  ret
                 }
                 """);
             comp.VerifyIL("Test.M2", """
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       33 (0x21)
                   .maxstack  4
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0006:  ldarga.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  ldarg.0
-                  IL_0014:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001e:  ret
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0020:  ret
                 }
                 """);
             comp.VerifyIL("Test.M3", """
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       33 (0x21)
                   .maxstack  4
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0006:  ldarg.0
                   IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000c:  ldarga.s   V_1
-                  IL_000e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0013:  ldarg.0
-                  IL_0014:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001e:  ret
+                  IL_000c:  ldarg.1
+                  IL_000d:  stloc.0
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0020:  ret
                 }
                 """);
             comp.VerifyIL("Test.M4", """
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       33 (0x21)
                   .maxstack  4
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_0006:  ldarg.0
                   IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                   IL_000c:  ldarg.0
                   IL_000d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0012:  ldarga.s   V_1
-                  IL_0014:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001e:  ret
+                  IL_0012:  ldarg.1
+                  IL_0013:  stloc.0
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0020:  ret
                 }
                 """);
             comp.VerifyIL("Test.M5", """
                 {
-                  // Code size       32 (0x20)
+                  // Code size       36 (0x24)
                   .maxstack  4
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  ldarga.s   V_1
-                  IL_000f:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0014:  ldarg.0
-                  IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001f:  ret
+                  .locals init (char V_0,
+                                char V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  ldarg.1
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloca.s   V_1
+                  IL_0013:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0018:  ldarg.0
+                  IL_0019:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0023:  ret
                 }
                 """);
             comp.VerifyIL("Test.M6", """
                 {
-                  // Code size       32 (0x20)
+                  // Code size       36 (0x24)
                   .maxstack  4
+                  .locals init (char V_0,
+                                char V_1)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0006:  ldarga.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  ldarga.s   V_1
-                  IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001f:  ret
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  ldarg.1
+                  IL_0016:  stloc.1
+                  IL_0017:  ldloca.s   V_1
+                  IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0023:  ret
                 }
                 """);
             comp.VerifyIL("Test.M7", """
                 {
-                  // Code size       32 (0x20)
+                  // Code size       36 (0x24)
                   .maxstack  4
-                  IL_0000:  ldarga.s   V_1
-                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_0007:  ldarg.0
-                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  ldarga.s   V_1
-                  IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001f:  ret
+                  .locals init (char V_0,
+                                char V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  ldarg.1
+                  IL_0016:  stloc.1
+                  IL_0017:  ldloca.s   V_1
+                  IL_0019:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_001e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0023:  ret
                 }
                 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatFour_ReadOnlySpan_IndirectReference()
+        public void ConcatFour_ReadOnlySpan2()
         {
             var source = """
                 using System;
@@ -3432,6 +3538,69 @@ class Test
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatFour_ReadOnlySpan_MutateLocal()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                Console.WriteLine(c.M());
+
+                class C
+                {
+                    public string M()
+                    {
+                        var c1 = 'a';
+                        var c2 = 'a';
+                        return c1 + SneakyLocalChange(ref c1) + c2 + SneakyLocalChange(ref c2);
+                    }
+
+                    private string SneakyLocalChange(ref char local)
+                    {
+                        local = 'b';
+                        return "b";
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abab" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  5
+                  .locals init (char V_0, //c1
+                                char V_1, //c2
+                                char V_2,
+                                char V_3)
+                  IL_0000:  ldc.i4.s   97
+                  IL_0002:  stloc.0
+                  IL_0003:  ldc.i4.s   97
+                  IL_0005:  stloc.1
+                  IL_0006:  ldloc.0
+                  IL_0007:  stloc.2
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "string C.SneakyLocalChange(ref char)"
+                  IL_0017:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001c:  ldloc.1
+                  IL_001d:  stloc.3
+                  IL_001e:  ldloca.s   V_3
+                  IL_0020:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0025:  ldarg.0
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "string C.SneakyLocalChange(ref char)"
+                  IL_002d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0032:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0037:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
         [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
         [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
@@ -3639,20 +3808,23 @@ class Test
             // This is actually more optimal then using string.Concat(string[]) overload
             comp.VerifyIL("Test.CharInFirstFourArgs", """
                 {
-                  // Code size       37 (0x25)
+                  // Code size       39 (0x27)
                   .maxstack  4
+                  .locals init (char V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0006:  ldarga.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-                  IL_000d:  ldarg.0
-                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0013:  ldarg.0
-                  IL_0014:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_001e:  ldarg.0
-                  IL_001f:  call       "string string.Concat(string, string)"
-                  IL_0024:  ret
+                  IL_0006:  ldarg.1
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0020:  ldarg.0
+                  IL_0021:  call       "string string.Concat(string, string)"
+                  IL_0026:  ret
                 }
                 """);
 
