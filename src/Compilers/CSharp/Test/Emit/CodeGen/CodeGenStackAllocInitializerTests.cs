@@ -1173,6 +1173,56 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
+        public void TestReadOnlySpan_Net7_Short()
+        {
+            var source = """
+                using System;
+                static class C
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<short> p = stackalloc short[3] { 1, 2, 3 };
+                        Write(p);
+                    }
+
+                    static void Write(ReadOnlySpan<short> span)
+                    {
+                        foreach (short x in span)
+                            Console.Write(x);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  5
+                  .locals init (System.ReadOnlySpan<short> V_0)
+                  IL_0000:  ldc.i4.6
+                  IL_0001:  conv.u
+                  IL_0002:  localloc
+                  IL_0004:  dup
+                  IL_0005:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6_Align=2 <PrivateImplementationDetails>.047DBF5366372631BA7E3E02520E651446B899C96C4B64663BAC378A298A7BF72"
+                  IL_000a:  call       "System.ReadOnlySpan<short> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<short>(System.RuntimeFieldHandle)"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "ref readonly short System.ReadOnlySpan<short>.this[int].get"
+                  IL_0018:  ldc.i4.6
+                  IL_0019:  unaligned. 2
+                  IL_001c:  cpblk
+                  IL_001e:  ldc.i4.3
+                  IL_001f:  newobj     "System.Span<short>..ctor(void*, int)"
+                  IL_0024:  call       "System.ReadOnlySpan<short> System.Span<short>.op_Implicit(System.Span<short>)"
+                  IL_0029:  call       "void C.Write(System.ReadOnlySpan<short>)"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
         public void TestReadOnlySpan_Net7_Double()
         {
             var source = """
