@@ -400,18 +400,6 @@ internal abstract class AbstractGraphProvider : IGraphProvider
     private static bool HasExplicitInterfaces(GraphNode node)
         => ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
 
-    private static bool IsRoslynNode(GraphNode node)
-    {
-        return node[RoslynGraphProperties.SymbolKind] != null
-            && node[RoslynGraphProperties.TypeKind] != null;
-    }
-
-    private static bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
-        => symbolKinds.Any(k => k.Equals(node[RoslynGraphProperties.SymbolKind]));
-
-    private static bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
-        => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
-
     private static readonly GraphCommandDefinition s_overridesCommandDefinition =
         new("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
 
