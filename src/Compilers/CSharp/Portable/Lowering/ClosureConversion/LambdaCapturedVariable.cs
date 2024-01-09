@@ -9,18 +9,19 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// A field of a frame class that represents a variable that has been captured in a lambda.
     /// </summary>
-    internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase
+    internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly TypeWithAnnotations _type;
         private readonly bool _isThis;
 
-        private LambdaCapturedVariable(SynthesizedContainer frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
+        private LambdaCapturedVariable(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
                    isPublic: true,
@@ -34,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _type = type;
             _isThis = isThisParameter;
         }
+
+        public SynthesizedClosureEnvironment Frame
+            => (SynthesizedClosureEnvironment)ContainingType;
 
         public static LambdaCapturedVariable Create(SynthesizedClosureEnvironment frame, Symbol captured, ref int uniqueId)
         {
@@ -137,5 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        public IMethodSymbolInternal Method
+            => Frame.TopLevelMethod;
+
+        /// <summary>
+        /// When the containing top-level method body is updated we don't need to attempt to update field (it has no "body").
+        /// </summary>
+        public bool HasMethodBodyDependency
+            => false;
     }
 }

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
@@ -710,7 +710,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(Uri uri, TestLspServer testLspServer)
     {
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
-        return (workspace, document);
+        return (workspace, document as Document);
     }
 
     private static Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // if needed again later.
                     solution = solution.WithoutFrozenSourceGeneratedDocuments();
 
-                    var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var oldSolutionChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task PopulateOldProjectMapAsync()
                 {
-                    foreach (var (projectId, projectState) in solution.State.ProjectStates)
+                    foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
                     {
                         var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                         if (olds.Object.Contains(projectChecksums.Checksum))
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Remote
 #if DEBUG
             private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt, CancellationToken cancellationToken)
             {
-                var currentSolutionChecksum = await incrementalSolutionBuilt.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+                var currentSolutionChecksum = await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
                 if (checksumFromRequest == currentSolutionChecksum)
                 {
                     return;

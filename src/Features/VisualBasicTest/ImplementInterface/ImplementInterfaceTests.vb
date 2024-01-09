@@ -40,7 +40,7 @@ Class C
 End Class")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestInterfaceWithTuple() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

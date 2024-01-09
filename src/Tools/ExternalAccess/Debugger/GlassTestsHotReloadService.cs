@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         {
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
-                new ManagedHotReloadServiceImpl(_debuggerService),
+                new ManagedHotReloadServiceBridge(_debuggerService),
                 NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,

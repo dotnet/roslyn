@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
+        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
             : this(syntax, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda!, body, diagnostics, binder, delegateType)
         {
             InferredReturnType = inferredReturnType;
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var allBags = convBags.Concat(retBags);
 
             FirstAmongEqualsSet<Diagnostic>? intersection = null;
-            foreach (ImmutableBindingDiagnostic<AssemblySymbol> bag in allBags)
+            foreach (ReadOnlyBindingDiagnostic<AssemblySymbol> bag in allBags)
             {
                 if (intersection == null)
                 {
@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FirstAmongEqualsSet<Diagnostic>? union = null;
 
-            foreach (ImmutableBindingDiagnostic<AssemblySymbol> bag in allBags)
+            foreach (ReadOnlyBindingDiagnostic<AssemblySymbol> bag in allBags)
             {
                 if (union == null)
                 {

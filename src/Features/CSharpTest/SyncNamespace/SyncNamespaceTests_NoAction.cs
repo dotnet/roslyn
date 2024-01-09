@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
-        [WpfFact]
+        [Fact]
         public async Task NoAction_NotOnNamespaceDeclaration()
         {
             var folders = new[] { "A", "B" };
@@ -39,7 +39,7 @@ namespace NS
 
             await TestMissingInRegularAndScriptAsync(code);
         }
-        [WpfFact]
+        [Fact]
         public async Task NoAction_NotOnNamespaceDeclaration_FileScopedNamespace()
         {
             var folders = new[] { "A", "B" };
@@ -62,7 +62,7 @@ class [||]Class1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_NotOnFirstMemberInGlobal()
         {
             var folders = new[] { "A" };
@@ -87,7 +87,7 @@ class [||]Class2
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MultipleNamespaceDeclarations()
         {
             var folders = new[] { "A", "B" };
@@ -118,7 +118,7 @@ namespace NS2
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnNamespace()
         {
             var folders = new[] { "A", "B" };
@@ -146,7 +146,7 @@ class Class2
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnFirstGlobalMember()
         {
             var folders = new[] { "A", "B" };
@@ -174,7 +174,7 @@ namespace NS1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_NestedNamespaceDeclarations()
         {
             var folders = new[] { "A", "B" };
@@ -201,7 +201,7 @@ namespace [||]NS1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_InvalidNamespaceIdentifier()
         {
             var folders = new[] { "A", "B" };
@@ -225,7 +225,7 @@ namespace [||]
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MatchingNamespace_InGlobalNamespace()
         {
             var folders = Array.Empty<string>();
@@ -246,7 +246,7 @@ class [||]Class1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MatchingNamespace_DefaultGlobalNamespace()
         {
             var folders = new[] { "A", "B", "C" };
@@ -270,7 +270,7 @@ namespace [||]A.B.C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_MatchingNamespace_InNamespaceDeclaration()
         {
             var folders = new[] { "B", "C" };
@@ -294,7 +294,7 @@ namespace [||]A.B.C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_FileNotRooted()
         {
             var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
@@ -317,7 +317,7 @@ namespace [||]NS
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NoAction_NoDeclaration()
         {
             var folders = new[] { "A" };

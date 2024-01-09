@@ -1705,7 +1705,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
-        <WpfFact(Skip:="529510")>
+        <Fact(Skip:="529510")>
         Public Async Function TestNoRefactoringOnAddressOfExpression() As Task
             Dim source = "Imports System
 Module Module1

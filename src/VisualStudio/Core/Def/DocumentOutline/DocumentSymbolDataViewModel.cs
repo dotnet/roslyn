@@ -12,8 +12,6 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    using SymbolKind = LanguageServer.Protocol.SymbolKind;
-
     /// <summary>
     /// A ViewModel over <see cref="DocumentSymbolData"/>. The only items that are mutable on this type are <see
     /// cref="IsExpanded"/> and <see cref="IsSelected"/>. It is expected that these can be modified from any thread with
