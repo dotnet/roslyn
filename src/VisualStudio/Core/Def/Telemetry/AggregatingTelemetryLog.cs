@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly FunctionId _functionId;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
-        private static readonly object s_lock = new object();
+        private readonly object _lock;
 
         private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent)>.Empty;
 
@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             _eventName = TelemetryLogger.GetEventName(functionId);
             _functionId = functionId;
             _aggregatingTelemetryLogManager = aggregatingTelemetryLogManager;
+            _lock = new();
 
             if (bucketBoundaries != null)
             {
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void Flush()
         {
-            lock (s_lock)
+            lock (_lock)
             {
                 foreach (var (histogram, telemetryEvent) in _histograms.Values)
                 {
