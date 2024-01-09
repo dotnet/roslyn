@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SynchronizationContext synchronizationContext;
 
             var currentContext = SynchronizationContext.Current;
-            if (currentContext is not null and not AsyncTestSyncContext)
+            if (currentContext is not null)
             {
                 Contract.ThrowIfFalse(dispatcherTaskJoiner?.IsDispatcherSynchronizationContext(currentContext) == true);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     },
                     null);
 
-                return innerSynchronizationContext;
+                return innerSynchronizationContext == asyncTestSyncContext ? null : innerSynchronizationContext;
             }
             else
             {
