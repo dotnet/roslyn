@@ -15,18 +15,18 @@ It is not reasonable for us to take the union of all TFM and multi-target every 
 # Picking the right TargetFramework
 Projects in our repository should include the following values in `<TargetFramework(s)>` based on the rules below:
 
-1. `$(SourceBuildToolsetTargetFrameworks)`: code that ships in the .NET SDK for the compiler
-2. `$(SourceBuildTargetFrameworks)`: 
-    - code that is included in source build but not in category (1). 
-    - code is also expected to execute on VS Code and be source buildable
-3. `$(NetVS)`: code that needs to execute on the private runtime of Visual Studio.
-4. `$(NetVSCode)`: code that needs to execute in DevKit host
-5. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
-6. `$(NetPrevious)`: 
+1. `$(NetRoslynSourceBuild)`: code that needs to be part of source build. This property will change based on whether the code is building in a source build context or official builds. In official builds this will include the TFMs for `$(NetVSShared)`
+2. `$(NetVS)`: code that needs to execute on the private runtime of Visual Studio.
+3. `$(NetVSCode)`: code that needs to execute in DevKit host
+4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
+5. `$(NetRoslynToolset)`: packages that ship the Roslyn toolset. The compiler often builds against multiple target frameworks. This property controls which of those frameworks are shipped in the toolset packages. This value will potentially change in source builds.
+6. `$(NetRoslyn)`:
     - code that needs to execute on .NET but not in any of the above categories.
     - compiler unit tests
 
-**Note** avoid hard coding .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
+**DO NOT** hard code .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
+
+**DO NOT** use `$(NetCurrent)` or `$(NetPrevious)` in project files. These should only be used inside of `TargetFrameworks.props` to initialize the above values in certain configurations.
 
 # Require consistent API across Target Frameworks
 It is important that our shipping APIs maintain consistent API surface area across target frameworks. That is true whether the API is `public` or `internal`.

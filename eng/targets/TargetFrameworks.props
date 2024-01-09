@@ -10,6 +10,10 @@
     all the properties here to ensure there are none with duplicate values.
   -->
   <PropertyGroup>
+    <!-- Represents the .NET core version that should be used if there are no specific product attachments to
+         consider -->
+    <NetRoslyn>net7.0</NetRoslyn>
+
     <!-- Represents the private runtime for Visual Studio -->
     <NetVS>net8.0</NetVS>
 
@@ -37,9 +41,8 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetPrevious)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(NetPrevious)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent);$(NetPrevious)</SourceBuildTargetFrameworks>
+        <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
+        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
       </PropertyGroup>
     </When>
 
@@ -48,9 +51,8 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
       <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetCurrent)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(NetCurrent)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent)</SourceBuildTargetFrameworks>
+        <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
+        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
       </PropertyGroup>
     </When>
 
@@ -61,9 +63,8 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetPrevious)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(NetPrevious);$(NetCurrent)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetPrevious);$(NetCurrent)</SourceBuildTargetFrameworks>
+        <NetRoslynToolset>net8.0</NetRoslynToolset>
+        <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
   </Choose>

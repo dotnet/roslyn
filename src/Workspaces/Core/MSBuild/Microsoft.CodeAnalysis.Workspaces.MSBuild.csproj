@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild</RootNamespace>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -108,7 +108,7 @@
     <!-- For source build, we just build the SourceBuild targeted version -->
     <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>$(SourceBuildToolsetTargetFramework)</TargetFramework>
+        <TargetFramework>$(NetRoslyn)</TargetFramework>
         <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
