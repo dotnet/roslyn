@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddAwa
 {
     [Trait(Traits.Feature, Traits.Features.AddAwait)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-    public class AddAwaitTests : AbstractCSharpCodeActionTest
+    public class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpAddAwaitCodeRefactoringProvider();
 
         [Fact]
