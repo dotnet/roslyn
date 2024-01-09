@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.6.0-beta.1" />
+    <PackageReference Include="Azure.Identity" Version="1.10.2" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0-beta.4" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
