@@ -169,9 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
-                        if ((object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString))
                         {
                             arguments = boundCall.Arguments;
                             return true;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        if ((object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
                             if (args != null)
