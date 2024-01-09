@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             string assemblyName = null,
             string defaultNamespace = null)
-            : base(workspace,
+            : base(workspace.Services,
                    name,
                    language,
                    compilationOptions,

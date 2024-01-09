@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-internal class TestHostSolution(params TestHostProject[] projects)
+public class TestHostSolution(params TestHostProject[] projects)
     : TestHostSolution<TestHostDocument>(projects)
 {
     public TestHostSolution(

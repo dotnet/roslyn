@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-internal class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
+public class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
 {
     internal EditorTestHostProject(
         HostLanguageServices languageServices,
-        CompilationOptions compilationOptions,
-        ParseOptions parseOptions,
+        CompilationOptions? compilationOptions,
+        ParseOptions? parseOptions,
         string assemblyName,
         string projectName,
-        IList<MetadataReference> references,
+        IList<MetadataReference>? references,
         IList<EditorTestHostDocument> documents,
         IList<EditorTestHostDocument>? additionalDocuments = null,
         IList<EditorTestHostDocument>? analyzerConfigDocuments = null,
@@ -58,7 +58,7 @@ internal class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
         IEnumerable<AnalyzerReference>? analyzerReferences = null,
         string? assemblyName = null,
         string? defaultNamespace = null)
-        : base(workspace,
+        : base(workspace.Services,
                name,
                language,
                compilationOptions,
@@ -86,7 +86,7 @@ internal class EditorTestHostProject : TestHostProject<EditorTestHostDocument>
         IEnumerable<AnalyzerReference>? analyzerReferences = null,
         string? assemblyName = null,
         string? defaultNamespace = null)
-        : base(workspace, name, language, compilationOptions, parseOptions, [document], [], [], projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
+        : base(workspace.Services, name, language, compilationOptions, parseOptions, [document], [], [], projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
     {
     }
 }

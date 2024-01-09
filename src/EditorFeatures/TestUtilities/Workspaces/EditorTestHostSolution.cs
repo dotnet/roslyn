@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-internal class EditorTestHostSolution(params EditorTestHostProject[] projects)
+public class EditorTestHostSolution(params EditorTestHostProject[] projects)
     : TestHostSolution<EditorTestHostDocument>(projects)
 {
 }

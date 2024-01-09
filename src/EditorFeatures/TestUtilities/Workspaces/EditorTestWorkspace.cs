@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument>
+public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
 
@@ -73,7 +73,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument>
         => new(exportProvider, languageServiceProvider, code, name, filePath, cursorPosition, spans,
             sourceCodeKind, folders, isLinkFile, documentServiceProvider, roles: default, textBuffer: null, generator);
 
-    private protected override TestHostProject<EditorTestHostDocument> CreateProject(
+    private protected override EditorTestHostProject CreateProject(
         HostLanguageServices languageServices,
         CompilationOptions? compilationOptions,
         ParseOptions? parseOptions,
@@ -88,22 +88,23 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument>
         string? filePath = null,
         IList<AnalyzerReference>? analyzerReferences = null,
         string? defaultNamespace = null)
-        => new(languageServices,
-               compilationOptions,
-               parseOptions,
-               assemblyName,
-               projectName,
-               references,
-               documents,
-               additionalDocuments,
-               analyzerConfigDocuments,
-               hostObjectType,
-               isSubmission,
-               filePath,
-               analyzerReferences,
-               defaultNamespace);
+        => new(
+            languageServices,
+            compilationOptions,
+            parseOptions,
+            assemblyName,
+            projectName,
+            references,
+            documents,
+            additionalDocuments,
+            analyzerConfigDocuments,
+            hostObjectType,
+            isSubmission,
+            filePath,
+            analyzerReferences,
+            defaultNamespace);
 
-    private protected override TestHostSolution<EditorTestHostDocument> CreateSolution(TestHostProject<EditorTestHostDocument>[] projects)
+    private protected override EditorTestHostSolution CreateSolution(EditorTestHostProject[] projects)
         => new(projects);
 
     protected override void Dispose(bool finalize)

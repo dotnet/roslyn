@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
-        private class TestNavigateToSearchResult(TestWorkspace workspace, TextSpan sourceSpan)
+        private class TestNavigateToSearchResult(EditorTestWorkspace workspace, TextSpan sourceSpan)
             : INavigateToSearchResult, INavigableItem
         {
             public INavigableItem.NavigableDocument Document => INavigableItem.NavigableDocument.FromDocument(workspace.CurrentSolution.Projects.Single().Documents.Single());

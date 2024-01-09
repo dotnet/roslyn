@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-internal abstract class TestHostSolution<TDocument>
+public abstract class TestHostSolution<TDocument>
     where TDocument : TestHostDocument
 {
     public readonly SolutionId Id;
@@ -16,7 +16,7 @@ internal abstract class TestHostSolution<TDocument>
     public readonly string FilePath = null;
     public readonly IEnumerable<TestHostProject<TDocument>> Projects;
 
-    public TestHostSolution(params TestHostProject<TDocument>[] projects)
+    protected TestHostSolution(params TestHostProject<TDocument>[] projects)
     {
         this.Id = SolutionId.CreateNewId();
         this.Version = VersionStamp.Create();

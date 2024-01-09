@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace<TDocument>
+    public partial class TestWorkspace<TDocument, TProject, TSolution>
     {
         internal static XElement CreateWorkspaceElement(
             string language,

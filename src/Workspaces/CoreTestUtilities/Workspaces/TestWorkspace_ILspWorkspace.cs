@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace<TDocument> : ILspWorkspace
+    public partial class TestWorkspace<TDocument, TProject, TSolution> : ILspWorkspace
     {
         bool ILspWorkspace.SupportsMutation => _supportsLspMutation;
 

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class TestHostProject<TDocument> : AbstractTestHostProject
+    public abstract class TestHostProject<TDocument> : AbstractTestHostProject
         where TDocument : TestHostDocument
     {
         private readonly HostLanguageServices _languageServices;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             get { return _defaultNamespace; }
         }
 
-        internal TestHostProject(
+        protected TestHostProject(
             HostLanguageServices languageServices,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultNamespace = defaultNamespace;
         }
 
-        public TestHostProject(
-            TestWorkspace<TDocument> workspace,
+        protected TestHostProject(
+            HostWorkspaceServices hostServices,
             string name = null,
             string language = null,
             CompilationOptions compilationOptions = null,
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _id = ProjectId.CreateNewId(debugName: this.Name);
 
             language = language ?? LanguageNames.CSharp;
-            _languageServices = workspace.Services.GetLanguageServices(language);
+            _languageServices = hostServices.GetLanguageServices(language);
 
             _compilationOptions = compilationOptions ?? this.LanguageServiceProvider.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             _parseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();

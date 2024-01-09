@@ -33,8 +33,10 @@ using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scrip
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract partial class TestWorkspace<TDocument> : Workspace, ILspWorkspace
+    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace, ILspWorkspace
         where TDocument : TestHostDocument
+        where TProject : TestHostProject<TDocument>
+        where TSolution : TestHostSolution<TDocument>
     {
         public ExportProvider ExportProvider { get; }
         public TestComposition? Composition { get; }
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override bool CanChangeActiveContextDocument { get { return true; } }
 
-        public IList<TestHostProject<TDocument>> Projects { get; }
+        public IList<TProject> Projects { get; }
         public IList<TDocument> Documents { get; }
         public IList<TDocument> AdditionalDocuments { get; }
         public IList<TDocument> AnalyzerConfigDocuments { get; }
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
-            this.Projects = new List<TestHostProject<TDocument>>();
+            this.Projects = new List<TProject>();
             this.Documents = new List<TDocument>();
             this.AdditionalDocuments = new List<TDocument>();
             this.AnalyzerConfigDocuments = new List<TDocument>();
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IDocumentServiceProvider? documentServiceProvider = null,
             ISourceGenerator? generator = null);
 
-        private protected abstract TestHostProject<TDocument> CreateProject(
+        private protected abstract TProject CreateProject(
             HostLanguageServices languageServices,
             CompilationOptions? compilationOptions,
             ParseOptions? parseOptions,
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IList<AnalyzerReference>? analyzerReferences = null,
             string? defaultNamespace = null);
 
-        private protected abstract TestHostSolution<TDocument> CreateSolution(TestHostProject<TDocument>[] projects);
+        private protected abstract TSolution CreateSolution(TProject[] projects);
 
         public static string GetDefaultTestSourceDocumentName(int index, string extension)
            => "test" + (index + 1) + extension;
@@ -206,10 +208,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.Dispose(finalize);
         }
 
-        internal void AddTestSolution(TestHostSolution<TDocument> solution)
+        internal void AddTestSolution(TSolution solution)
             => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
 
-        public void AddTestProject(TestHostProject<TDocument> project)
+        public void AddTestProject(TProject project)
         {
             if (!this.Projects.Contains(project))
             {
@@ -277,8 +279,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return hostDocument.Id;
         }
 
-        public TDocument GetTestDocument(DocumentId documentId)
-            => Documents.Single(d => d.Id == documentId);
+        public TDocument? GetTestDocument(DocumentId documentId)
+            => this.Documents.FirstOrDefault(d => d.Id == documentId);
 
         public TDocument? GetTestAdditionalDocument(DocumentId documentId)
             => this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
@@ -595,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 throw new ArgumentException();
             }
 
-            var projectNameToTestHostProject = new Dictionary<string, TestHostProject<TDocument>>();
+            var projectNameToTestHostProject = new Dictionary<string, TProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
             var projectIdentifier = 0;
             var documentIdentifier = 0;
@@ -687,11 +689,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private IList<TestHostProject<TDocument>> CreateSubmissions(
+        private IList<TProject> CreateSubmissions(
             IEnumerable<XElement> submissionElements,
             ExportProvider exportProvider)
         {
-            var submissions = new List<TestHostProject<TDocument>>();
+            var submissions = new List<TProject>();
             var submissionIndex = 0;
 
             foreach (var submissionElement in submissionElements)

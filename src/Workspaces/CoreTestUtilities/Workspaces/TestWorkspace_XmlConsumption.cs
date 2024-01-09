@@ -30,7 +30,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace<TDocument>
+    public partial class TestWorkspace<TDocument, TProject, TSolution>
     {
         private const string CSharpExtension = ".cs";
         private const string CSharpScriptExtension = ".csx";
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        private TestHostProject<TDocument> CreateProject(
+        private TProject CreateProject(
             XElement workspaceElement,
             XElement projectElement,
             ExportProvider exportProvider,
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 analyzerConfigDocuments.Add(document);
             }
 
-            return new TestHostProject<TDocument>(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
+            return CreateProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)

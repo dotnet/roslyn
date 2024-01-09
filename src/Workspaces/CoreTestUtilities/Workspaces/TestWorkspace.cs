@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class TestWorkspace : TestWorkspace<TestHostDocument>
+    public partial class TestWorkspace : TestWorkspace<TestHostDocument, TestHostProject, TestHostSolution>
     {
         internal TestWorkspace(
             TestComposition? composition = null,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ISourceGenerator? generator = null)
             => new(exportProvider, languageServiceProvider, code, name, filePath, cursorPosition, spans, sourceCodeKind, folders, isLinkFile, documentServiceProvider, generator);
 
-        private protected override TestHostProject<TestHostDocument> CreateProject(
+        private protected override TestHostProject CreateProject(
             HostLanguageServices languageServices,
             CompilationOptions? compilationOptions,
             ParseOptions? parseOptions,
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                    analyzerReferences,
                    defaultNamespace);
 
-        private protected override TestHostSolution<TestHostDocument> CreateSolution(TestHostProject<TestHostDocument>[] projects)
+        private protected override TestHostSolution CreateSolution(TestHostProject[] projects)
             => new(projects);
     }
 }
