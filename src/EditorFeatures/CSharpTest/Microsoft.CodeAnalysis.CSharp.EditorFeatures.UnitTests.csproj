@@ -75,6 +75,5 @@
   <ItemGroup>
     <Folder Include="Interactive\CodeActions\" />
   </ItemGroup>
-  <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
            : base(logger)
